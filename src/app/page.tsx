@@ -16,14 +16,14 @@ export default function HomePage() {
   const [selectedAccount, setSelectedAccount] = useState<TFTRentalAccount | null>(null);
 
   return (
-    <main className="min-h-screen bg-[#0A0E17] text-[#F9FAFB] selection:bg-[#FF6B00] selection:text-white flex flex-col justify-between">
+    <main className="min-h-screen bg-[#F8FAFC] text-slate-900 selection:bg-orange-500 selection:text-white flex flex-col justify-between">
       {/* 1. Sticky Navigation Bar */}
       <TFTNavbar />
 
       {/* 2. Hero Section: Persona & Rental Intro */}
       <TFTHero />
 
-      {/* 3. Core TFT Account Rental Shop (4-Column Grid with Filters & Top Commitments) */}
+      {/* 3. Core TFT Account Rental Shop */}
       <TFTShop onSelectAccount={(acc) => setSelectedAccount(acc)} />
 
       {/* 4. About Me & Gamer Achievements */}
@@ -38,7 +38,7 @@ export default function HomePage() {
       {/* 7. FAQ Section */}
       <TFTFAQ />
 
-      {/* 8. Footer & Floating Zalo Widget */}
+      {/* 8. Footer */}
       <TFTFooter />
 
       {/* Detail Rental Account & Fast Order Modal */}
