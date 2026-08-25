@@ -83,11 +83,11 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
   });
 
   return (
-    <section id="shop" className="py-16 sm:py-20 bg-slate-50/80 text-slate-900 border-t border-slate-200/60 border-b border-slate-200 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+    <section id="shop" className="pt-8 pb-14 sm:pt-10 sm:pb-16 bg-slate-50 border-t border-slate-200/80 border-b border-slate-200 text-slate-900 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-2.5">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-100/80 border border-orange-200 text-orange-700 text-xs font-bold uppercase tracking-wider shadow-sm">
               <Flame className="w-3.5 h-3.5 text-orange-600" />
               <span>Tài Khoản & Dịch Vụ Nổi Bật</span>
@@ -228,7 +228,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
       </div>
 
       {/* 2. NÚT LỚN "XEM THÊM TOÀN BỘ KHO ACC" */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 text-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 text-center">
         <button
           onClick={() => setShowFullCatalog(!showFullCatalog)}
           className={`h-12 sm:h-14 px-8 inline-flex items-center justify-center gap-3 rounded-full font-bold text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 shadow-md ${
@@ -253,7 +253,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
 
       {/* 3. KHU VỰC MỞ RỘNG (CAM KẾT + BỘ LỌC + GRID 4 CỘT) */}
       {showFullCatalog && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-10 border-t border-slate-200/80 space-y-8 animate-fadeIn">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 pt-8 border-t border-slate-200/80 space-y-8 animate-fadeIn">
           {/* KHUNG CAM KẾT */}
           <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
