@@ -10,23 +10,23 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Tuấn Thái Bình TFT | Cựu Thách Đấu & Shop Acc TFT Chính Chủ Uy Tín",
+  title: "Tuấn Thái Bình TFT | Nền Tảng Thuê Tài Khoản ĐTCL & Dịch Vụ Game Chuyên Nghiệp",
   description:
-    "Hồ sơ cá nhân game thủ Cựu Thách Đấu Tuấn Thái Bình TFT và Shop Acc TFT Chính Chủ Uy Tín, cho thuê acc Chibi Ahri, Yasuo, Gwen, Sân Đấu Thần Thoại, cày thuê rank bảo mật.",
+    "Hệ thống thuê acc TFT VIP tự động bàn giao 30s, quỹ bảo hiểm 30M Checkscam an toàn tuyệt đối. Đầy đủ Tướng Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc.",
   keywords: [
-    "Tuấn Thái Bình TFT",
-    "Shop Acc TFT Chính Chủ Uy Tín",
+    "Shop TFT Mobile",
     "Thuê Acc TFT",
-    "Mua Acc Đấu Trường Chân Lý",
-    "Acc Chibi Ahri",
-    "Acc Chibi Yasuo",
+    "Tuấn Thái Bình TFT",
+    "Thuê Tài Khoản ĐTCL",
+    "Tí Nị Ahri",
+    "Tí Nị Yasuo",
     "Cày Thuê TFT",
     "Coaching TFT",
   ],
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0c14",
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
 };
@@ -37,8 +37,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className={`${inter.variable} bg-[#0a0c14] antialiased dark scroll-smooth`}>
-      <body className="min-h-screen bg-[#0a0c14] text-white selection:bg-amber-500 selection:text-black font-sans">
+    <html lang="vi" className={`${inter.variable} bg-[#F8FAFC] antialiased scroll-smooth`}>
+      <body className="min-h-screen bg-[#F8FAFC] text-slate-900 selection:bg-orange-500 selection:text-white font-sans">
         {children}
       </body>
     </html>

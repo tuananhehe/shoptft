@@ -2,19 +2,12 @@
 
 import React from "react";
 import { PROFILE_INFO } from "@/data/tft-data";
-import {
-  ShieldCheck,
-  Award,
-  Flame,
-  HeartHandshake,
-  ExternalLink,
-  ArrowRight,
-} from "lucide-react";
+import { Trophy, ShieldCheck, UserCheck, HeartHandshake, CheckCircle2, ArrowRight, ExternalLink, Users, Sparkles } from "lucide-react";
 
-// Official SVG Brand Logos
+// Official Brand SVG Logos
 const TikTokLogo = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
-    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.86 4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-3.04-1.52 4.83 4.83 0 0 1-.95-3z" />
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.86 4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.12z" />
   </svg>
 );
 
@@ -25,7 +18,7 @@ const ZaloLogo = () => (
       clipRule="evenodd"
       d="M24 4C12.954 4 4 12.059 4 22c0 5.748 3.01 10.864 7.747 14.204-.33 2.502-1.397 5.704-3.568 8.01a1 1 0 0 0 .977 1.637c4.68-.696 8.548-2.613 10.742-4.004A22.25 22.25 0 0 0 24 42c11.046 0 20-8.059 20-18S35.046 4 24 4z"
       fill="currentColor"
-      fillOpacity="0.25"
+      fillOpacity="0.15"
     />
     <path
       d="M13.5 29.5V26.8l8.2-10.5H13.8V13.5h11.8v2.6L17.2 26.8h8.4v2.7H13.5zm14.8 0V13.5h4.1v16h-4.1zm7.8 0V13.5h4V26.5h5.8v3H36.1z"
@@ -58,238 +51,192 @@ export const TFTAbout: React.FC = () => {
     {
       id: "tiktok",
       title: "Kênh TikTok ShopTFT Mobile",
-      desc: "Cập nhật video test acc, chia sẻ giáo án meta độc quyền và highlight trận đấu mãn nhãn.",
-      logo: TikTokLogo,
-      // Box styles: Neon Rose Glow
-      containerBg: "bg-rose-500/10 border-rose-500/30 text-rose-500",
-      glowBg: "bg-rose-500/25",
-      dropShadow: "drop-shadow-[0_0_14px_rgba(244,63,94,0.45)]",
-      hoverBorder: "hover:border-rose-500/60",
-      btnText: "Follow TikTok",
-      btnColor: "bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700",
-      url: PROFILE_INFO.tiktokUrl,
+      subtitle: "Xem highlight & test acc VIP",
+      badge: "45K+ Followers",
+      badgeBg: "bg-rose-50 text-rose-700 border-rose-200",
+      iconBg: "bg-rose-50 text-rose-600 border-rose-200",
+      buttonText: "Xem TikTok ➔",
+      buttonStyle: "bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200",
+      icon: <TikTokLogo />,
+      link: PROFILE_INFO.tiktokUrl,
     },
     {
-      id: "zalo-group",
-      title: "Hội Nhóm Zalo Giao Lưu",
-      desc: "Nhóm trao đổi acc an toàn, thông tin chính chủ, hỗ trợ tư vấn và giao dịch 24/7.",
-      logo: ZaloLogo,
-      // Box styles: Neon Sky Glow
-      containerBg: "bg-sky-500/10 border-sky-500/30 text-sky-400",
-      glowBg: "bg-sky-500/25",
-      dropShadow: "drop-shadow-[0_0_14px_rgba(56,189,248,0.45)]",
-      hoverBorder: "hover:border-sky-500/60",
-      btnText: "Tham Gia Zalo",
-      btnColor: "bg-[#0084FF] hover:bg-[#0070db]",
-      url: PROFILE_INFO.zaloGroupUrl,
+      id: "zalo",
+      title: "Nhóm Zalo Trao Đổi Acc",
+      subtitle: "Giao lưu, mua bán & hỗ trợ 24/7",
+      badge: "1,000+ Thành viên",
+      badgeBg: "bg-sky-50 text-sky-700 border-sky-200",
+      iconBg: "bg-sky-50 text-sky-600 border-sky-200",
+      buttonText: "Tham Gia Zalo ➔",
+      buttonStyle: "bg-sky-50 hover:bg-sky-100 text-sky-700 border-sky-200",
+      icon: <ZaloLogo />,
+      link: PROFILE_INFO.zaloGroupUrl,
     },
     {
       id: "discord",
       title: "Cộng Đồng Discord Game",
-      desc: "Giao lưu voice chat, tìm đồng đội leo rank, chia sẻ kinh nghiệm def máu & xoay bài flex.",
-      logo: DiscordLogo,
-      // Box styles: Neon Indigo Glow
-      containerBg: "bg-indigo-500/10 border-indigo-500/30 text-indigo-400",
-      glowBg: "bg-indigo-500/25",
-      dropShadow: "drop-shadow-[0_0_14px_rgba(99,102,241,0.45)]",
-      hoverBorder: "hover:border-indigo-500/60",
-      btnText: "Vào Discord",
-      btnColor: "bg-[#5865F2] hover:bg-[#4752c4]",
-      url: PROFILE_INFO.discordUrl,
+      subtitle: "Voice chat, tìm đồng đội leo rank",
+      badge: "850+ Online",
+      badgeBg: "bg-indigo-50 text-indigo-700 border-indigo-200",
+      iconBg: "bg-indigo-50 text-indigo-600 border-indigo-200",
+      buttonText: "Vào Discord ➔",
+      buttonStyle: "bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200",
+      icon: <DiscordLogo />,
+      link: PROFILE_INFO.discordUrl,
     },
     {
       id: "fb-group",
-      title: "Group Trao Đổi Cờ Thủ",
-      desc: "Nơi giải đáp thắc mắc trang bị, Lõi Công Nghệ Hextech và cập nhật phiên bản mới nhất.",
-      logo: FacebookGroupLogo,
-      // Box styles: Neon Emerald/Cyan Glow
-      containerBg: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400",
-      glowBg: "bg-emerald-500/25",
-      dropShadow: "drop-shadow-[0_0_14px_rgba(16,185,129,0.45)]",
-      hoverBorder: "hover:border-emerald-500/60",
-      btnText: "Gia Nhập Group",
-      btnColor: "bg-[#1877F2] hover:bg-[#1565c0]",
-      url: PROFILE_INFO.facebookGroupUrl,
+      title: "Hội Cờ Thủ ĐTCL Việt Nam",
+      subtitle: "Chia sẻ giáo án meta, chia sẻ kinh nghiệm",
+      badge: "12K+ Cờ thủ",
+      badgeBg: "bg-blue-50 text-blue-700 border-blue-200",
+      iconBg: "bg-blue-50 text-blue-600 border-blue-200",
+      buttonText: "Gia Nhập Nhóm ➔",
+      buttonStyle: "bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200",
+      icon: <FacebookGroupLogo />,
+      link: PROFILE_INFO.facebookGroupUrl,
     },
   ];
 
   return (
-    <section id="about" className="py-24 bg-[#0c0f1a] text-white border-b border-gray-800 relative">
+    <section id="about" className="py-20 bg-[#F8FAFC] text-slate-900 border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* 1. SECTION HEADER WITH PERSONALIZED SUB-HEADLINE & CHECKSCAM BADGE */}
-        <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          {/* Neon Insurance Badge */}
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <a
-              href={PROFILE_INFO.checkscamUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-500/15 hover:bg-green-500/25 border border-green-500/50 text-green-400 text-xs font-extrabold uppercase tracking-wider transition-all hover:scale-105 shadow-[0_0_20px_rgba(34,197,94,0.3)] animate-pulse"
-            >
-              <ShieldCheck className="w-4 h-4 text-green-400" />
-              <span>🛡️ Đã đóng Quỹ Bảo Hiểm 30.000.000đ tại Checkscam.vn (Bảo chứng 100% Giao Dịch An Toàn)</span>
-              <ExternalLink className="w-3.5 h-3.5 ml-1" />
-            </a>
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto mb-14 space-y-2.5">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-xs font-bold uppercase tracking-wider">
+            <UserCheck className="w-3.5 h-3.5 text-orange-600" />
+            <span>Hồ Sơ Cá Nhân & Thương Hiệu</span>
           </div>
 
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight">
-            VỀ BẢN THÂN <span className="text-[#FF5722]">{PROFILE_INFO.realName}</span>
+          <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900">
+            VỀ BẢN THÂN TUẤN THÁI BÌNH
           </h2>
-
-          {/* Sub-headline: Personalized & Authentic */}
-          <p className="text-gray-300 font-light text-sm sm:text-base leading-relaxed bg-[#121726]/60 p-5 rounded-2xl border border-gray-800 text-center sm:text-left">
-            "Mình là <strong className="text-white font-bold">{PROFILE_INFO.realName}</strong>, một người con sinh ra từ quê lúa Thái Bình. Xuất phát điểm từ đam mê cờ thủ leo Top Thách Đấu, nay mình xây dựng hệ thống <strong className="text-[#FF5722] font-bold">{PROFILE_INFO.brandName}</strong> đồng hành uy tín cùng hàng nghìn anh em Đấu Trường Chân Lý trên toàn quốc."
+          <p className="text-slate-600 text-sm sm:text-base font-normal">
+            "Mình là Tuấn Thái Bình, một người con sinh ra từ quê lúa Thái Bình. Xuất phát điểm từ đam mê cờ thủ leo Top Thách Đấu, nay mình xây dựng hệ thống ShopTFT Mobile đồng hành uy tín cùng hàng nghìn anh em Đấu Trường Chân Lý trên toàn quốc."
           </p>
         </div>
 
-        {/* 2. MILESTONES & CORE PRINCIPLES (2 Columns) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mb-20">
-          {/* Left: Milestones Timeline */}
-          <div className="lg:col-span-6 space-y-6">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <Flame className="w-5 h-5 text-[#FF5722]" />
-              <span>Hành Trình Chinh Phục Thách Đấu Máy Chủ VN</span>
-            </h3>
+        {/* 2 Main Story Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+          {/* Card 1: Journey */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center">
+                <Trophy className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg text-slate-900">Hành Trình 5+ Năm ĐTCL</h3>
+                <span className="text-xs text-slate-500 font-normal">Từ kỳ thủ đam mê đến hệ thống phân phối uy tín</span>
+              </div>
+            </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               {milestones.map((m, idx) => (
-                <div
-                  key={idx}
-                  className="bg-[#121726] border border-gray-800 p-5 rounded-xl hover:border-[#FF5722]/40 transition-colors"
-                >
-                  <div className="flex items-center justify-between pb-2 border-b border-gray-800">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#FF5722]">
-                      {m.season}
-                    </span>
-                    <span className="text-[10px] font-mono text-gray-500">MỐC 0{idx + 1}</span>
+                <div key={idx} className="flex gap-4 border-l-2 border-orange-200 pl-4 relative py-1">
+                  <div className="w-2.5 h-2.5 rounded-full bg-orange-500 absolute -left-[6px] top-2" />
+                  <div>
+                    <span className="text-xs font-black text-orange-600 font-mono block">{m.season}</span>
+                    <p className="text-xs sm:text-sm text-slate-600 font-normal leading-relaxed mt-0.5">{m.achievement}</p>
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-300 font-light mt-2 leading-relaxed">
-                    {m.achievement}
-                  </p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Right: Core Principles & Checkscam Guarantee */}
-          <div className="lg:col-span-6 space-y-6">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-green-400" />
-              <span>Triết Lý & Bảo Hiểm Checkscam 30.000.000đ</span>
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Box 1 */}
-              <div className="p-6 bg-[#121726] border border-gray-800 rounded-xl space-y-2 hover:border-[#FF5722]/30 transition-colors">
-                <div className="w-9 h-9 rounded-lg bg-[#FF5722]/10 flex items-center justify-center text-[#FF5722]">
-                  <ShieldCheck className="w-5 h-5" />
+          {/* Card 2: Philosophy & Safety */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                  <HeartHandshake className="w-5 h-5" />
                 </div>
-                <h4 className="font-bold text-white text-sm">Tài Khoản Sạch 100%</h4>
-                <p className="text-xs text-gray-400 leading-relaxed font-light">
-                  Chỉ phân phối tài khoản chính chủ, có nguồn gốc rõ ràng, nạp qua cổng VNG/Riot chính thống, nói không với hàng nạp lậu.
-                </p>
+                <div>
+                  <h3 className="font-bold text-lg text-slate-900">Triết Lý Kinh Doanh</h3>
+                  <span className="text-xs text-slate-500 font-normal">An toàn - Rõ ràng - Trách nhiệm đến cùng</span>
+                </div>
               </div>
 
-              {/* Box 2: Bảo hiểm Checkscam 30M */}
-              <div className="p-6 bg-gradient-to-br from-green-500/10 to-[#121726] border border-green-500/40 rounded-xl space-y-2 hover:border-green-500 transition-colors shadow-lg">
-                <div className="w-9 h-9 rounded-lg bg-green-500/20 flex items-center justify-center text-green-400">
-                  <ShieldCheck className="w-5 h-5" />
+              <div className="space-y-3.5 text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
+                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100 flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="text-slate-900 block font-bold">100% Trắng Thông Tin:</strong>
+                    Tất cả tài khoản mua bán đều được kiểm tra kỹ lưỡng, hỗ trợ đổi mail và cài đặt bảo mật chính chủ ngay sau khi giao dịch.
+                  </div>
                 </div>
-                <h4 className="font-bold text-green-400 text-sm">Bảo Hiểm 30.000.000đ</h4>
-                <p className="text-xs text-gray-300 leading-relaxed font-light">
-                  Giao dịch tuyệt đối an toàn với quỹ cọc bảo hiểm 30M trên hệ thống Checkscam.vn uy tín toàn quốc.
-                </p>
-              </div>
 
-              {/* Box 3 */}
-              <div className="p-6 bg-[#121726] border border-gray-800 rounded-xl space-y-2 hover:border-cyan-500/30 transition-colors">
-                <div className="w-9 h-9 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400">
-                  <Award className="w-5 h-5" />
+                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100 flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="text-slate-900 block font-bold">Bảo Hiểm 30.000.000đ Checkscam:</strong>
+                    Ký quỹ bảo hiểm trên hệ thống phòng chống lừa đảo Checkscam.vn, cam kết đền bù 100% nếu có tranh chấp tài khoản.
+                  </div>
                 </div>
-                <h4 className="font-bold text-white text-sm">Tư Vấn Giáo Án Meta</h4>
-                <p className="text-xs text-gray-400 leading-relaxed font-light">
-                  Sẵn sàng chia sẻ bảng ghép đồ, phân tích Lõi Công Nghệ và hướng dẫn xoay bài flex cho khách mua acc.
-                </p>
               </div>
+            </div>
 
-              {/* Box 4 */}
-              <div className="p-6 bg-[#121726] border border-amber-500/30 rounded-xl space-y-2 hover:border-amber-500 transition-colors">
-                <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
-                  <Flame className="w-5 h-5" />
-                </div>
-                <h4 className="font-bold text-white text-sm">Giao Dịch Siêu Tốc</h4>
-                <p className="text-xs text-gray-400 leading-relaxed font-light">
-                  Quét mã QR tự động từ mọi ngân hàng, bàn giao thông tin đăng nhập và email trong vòng 2 phút.
-                </p>
-              </div>
+            {/* Checkscam Link */}
+            <div className="pt-6 mt-6 border-t border-slate-100">
+              <a
+                href={PROFILE_INFO.checkscamUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors shadow-sm"
+              >
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <span>Xem Hồ Sơ Bảo Hiểm Checkscam.vn</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
             </div>
           </div>
         </div>
 
-        {/* 3. KHỐI "HỆ SINH THÁI & KÊNH TRUYỀN THÔNG" (COMMUNITY GRID WITH NEON LOGO CONTAINERS) */}
-        <div className="pt-10 border-t border-gray-800 space-y-8">
-          <div className="text-center max-w-2xl mx-auto space-y-2">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#0084FF]/10 border border-[#0084FF]/30 text-[#0084FF] text-xs font-bold uppercase tracking-wider">
-              <span>🌐 Kênh Chính Thức</span>
-            </div>
-            <h3 className="text-2xl sm:text-3xl font-black text-white">
-              HỆ SINH THÁI & KÊNH TRUYỀN THÔNG
+        {/* 4 Community Cards Grid */}
+        <div className="pt-4">
+          <div className="text-center mb-6">
+            <h3 className="font-extrabold text-lg sm:text-xl text-slate-900 flex items-center justify-center gap-2">
+              <Users className="w-5 h-5 text-orange-600" />
+              <span>Hệ Sinh Thái & Kênh Truyền Thông Chính Thức</span>
             </h3>
-            <p className="text-xs sm:text-sm text-gray-400 font-light">
-              Giao lưu cùng hàng chục nghìn anh em cờ thủ, nhận giáo án leo rank và tham gia các sự kiện tặng acc miễn phí.
+            <p className="text-xs text-slate-500 mt-1 font-normal">
+              Tham gia cộng đồng để nhận thông báo acc mới, chia sẻ giáo án meta và hỗ trợ nhanh nhất.
             </p>
           </div>
 
-          {/* 4 Cards Grid with Neon Logo Containers & Fluid Hover Animation */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {communityChannels.map((ch) => {
-              const LogoComp = ch.logo;
-              return (
-                <div
-                  key={ch.id}
-                  className={`bg-[#121726] border border-gray-800 ${ch.hoverBorder} p-6 sm:p-7 rounded-2xl flex flex-col justify-between space-y-6 transition-all duration-300 hover:-translate-y-2 shadow-xl hover:shadow-[0_15px_40px_rgba(0,0,0,0.7)] group relative overflow-hidden`}
-                >
-                  {/* Subtle Background Glow on Card Hover */}
-                  <div className={`absolute -right-10 -bottom-10 w-32 h-32 ${ch.glowBg} rounded-full blur-2xl opacity-0 group-hover:opacity-60 transition-opacity duration-500 pointer-events-none`} />
-
-                  <div className="space-y-4 relative z-10">
-                    {/* 2. ICON CONTAINER WITH NEON, GRADIENT & GLOW EFFECT */}
-                    <div className="relative inline-block">
-                      {/* Ambient Blur Glow behind icon */}
-                      <div
-                        className={`absolute inset-0 ${ch.glowBg} blur-xl rounded-2xl opacity-75 group-hover:opacity-100 transition-opacity duration-300`}
-                      />
-
-                      {/* Rounded Box Container */}
-                      <div
-                        className={`relative w-14 h-14 rounded-2xl border ${ch.containerBg} flex items-center justify-center ${ch.dropShadow} transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-lg`}
-                      >
-                        <LogoComp />
-                      </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {communityChannels.map((item) => (
+              <div
+                key={item.id}
+                className="bg-white border border-slate-200 rounded-2xl p-5 flex flex-col justify-between hover:shadow-md transition-all shadow-sm group"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className={`w-12 h-12 rounded-xl p-2.5 flex items-center justify-center border ${item.iconBg}`}>
+                      {item.icon}
                     </div>
-
-                    <h4 className="font-extrabold text-base sm:text-lg text-white group-hover:text-[#FF5722] transition-colors leading-snug">
-                      {ch.title}
-                    </h4>
-
-                    <p className="text-xs text-gray-400 font-light leading-relaxed">
-                      {ch.desc}
-                    </p>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${item.badgeBg}`}>
+                      {item.badge}
+                    </span>
                   </div>
 
-                  {/* 4. BUTTON WITH SMOOTH HOVER SCALE */}
-                  <a
-                    href={ch.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`relative z-10 w-full h-12 rounded-xl text-white font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md group-hover:scale-[1.03] ${ch.btnColor}`}
-                  >
-                    <span>{ch.btnText}</span>
-                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                  </a>
+                  <h4 className="font-bold text-slate-900 text-sm mb-1 group-hover:text-orange-600 transition-colors">
+                    {item.title}
+                  </h4>
+                  <p className="text-xs text-slate-500 font-normal leading-relaxed mb-4">
+                    {item.subtitle}
+                  </p>
                 </div>
-              );
-            })}
+
+                <a
+                  href={item.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 border transition-all ${item.buttonStyle}`}
+                >
+                  <span>{item.buttonText}</span>
+                </a>
+              </div>
+            ))}
           </div>
         </div>
       </div>

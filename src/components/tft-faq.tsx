@@ -2,64 +2,65 @@
 
 import React, { useState } from "react";
 import { FAQS } from "@/data/tft-data";
-import { HelpCircle, ChevronDown } from "lucide-react";
+import { HelpCircle, ChevronDown, ChevronUp } from "lucide-react";
 
-export const TFTFAQ: React.FC = () => {
-  const [openIdx, setOpenIdx] = useState<number | null>(0);
+export const TFTFaq: React.FC = () => {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const toggle = (idx: number) => {
-    setOpenIdx(openIdx === idx ? null : idx);
+    setOpenIndex(openIndex === idx ? null : idx);
   };
 
   return (
-    <section id="faq" className="py-24 bg-[#0E1422] text-[#F9FAFB] border-b border-white/10">
+    <section id="faq" className="py-20 bg-[#F8FAFC] text-slate-900 border-b border-slate-200">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="space-y-3 mb-16 text-center">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#10B981]/10 border border-[#10B981]/30 text-[#10B981] text-xs font-bold uppercase tracking-wider">
-            <HelpCircle className="w-3.5 h-3.5" />
-            <span>Giải Đáp Thắc Mắc</span>
+        <div className="text-center mb-12 space-y-2.5">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-xs font-bold uppercase tracking-wider">
+            <HelpCircle className="w-3.5 h-3.5 text-orange-600" />
+            <span>Câu Hỏi Thường Gặp</span>
           </div>
 
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gray-50">
-            CÂU HỎI THƯỜNG GẶP (FAQ)
+          <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900">
+            HỎI ĐÁP & HƯỚNG DẪN THUÊ ACC
           </h2>
-          <p className="text-gray-400 font-light text-sm max-w-xl mx-auto">
-            Những thông tin quan trọng bạn cần biết trước và sau khi mua tài khoản tại Shop.
+          <p className="text-slate-600 text-sm sm:text-base font-normal">
+            Giải đáp chi tiết các thắc mắc về quy trình nhận acc, bảo mật và chính sách đền bù.
           </p>
         </div>
 
-        {/* Accordion List */}
+        {/* FAQ Accordion List */}
         <div className="space-y-4">
-          {FAQS.map((faq, idx) => {
-            const isOpen = openIdx === idx;
-            return (
-              <div
-                key={idx}
-                className="bg-[#111827] border border-white/10 rounded-2xl overflow-hidden transition-colors hover:border-amber-500/40"
+          {FAQS.map((faq, idx) => (
+            <div
+              key={idx}
+              className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm transition-all"
+            >
+              <button
+                onClick={() => toggle(idx)}
+                className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 font-bold text-slate-900 hover:text-orange-600 transition-colors"
               >
-                <button
-                  onClick={() => toggle(idx)}
-                  className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 font-bold text-sm sm:text-base text-gray-100 hover:text-[#F59E0B] transition-colors"
-                >
-                  <span>{faq.q}</span>
-                  <ChevronDown
-                    className={`w-5 h-5 text-gray-400 transition-transform duration-200 flex-shrink-0 ${
-                      isOpen ? "rotate-180 text-[#F59E0B]" : ""
-                    }`}
-                  />
-                </button>
+                <span className="text-sm sm:text-base font-bold">{faq.q}</span>
+                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 flex-shrink-0">
+                  {openIndex === idx ? (
+                    <ChevronUp className="w-4 h-4 text-orange-600" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4" />
+                  )}
+                </div>
+              </button>
 
-                {isOpen && (
-                  <div className="px-5 sm:px-6 pb-6 text-xs sm:text-sm text-gray-300 font-light leading-relaxed border-t border-white/5 pt-4 animate-fadeIn">
-                    {faq.a}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+              {openIndex === idx && (
+                <div className="px-5 sm:px-6 pb-6 pt-1 text-slate-600 text-xs sm:text-sm leading-relaxed border-t border-slate-100 font-normal">
+                  {faq.a}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </section>
   );
 };
+
+export const TFTFAQ = TFTFaq;
