@@ -13,26 +13,28 @@ import {
   Zap,
   Sparkles,
   ArrowRight,
+  CheckCircle2,
+  Lock,
 } from "lucide-react";
 
 export const TFTHero: React.FC = () => {
   return (
-    <section id="hero" className="relative bg-gradient-to-b from-white via-slate-50 to-[#F8FAFC] text-slate-900 border-b border-slate-200 overflow-hidden">
+    <section id="hero" className="relative bg-gradient-to-b from-orange-50/40 via-white to-slate-50 text-slate-900 border-b border-slate-200/60 overflow-hidden">
       {/* Background Soft Lighting Gradients */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="w-[500px] h-[500px] bg-orange-500/8 blur-[120px] rounded-full absolute -top-20 -left-20" />
-        <div className="w-[500px] h-[500px] bg-amber-500/8 blur-[120px] rounded-full absolute top-20 right-0" />
+        <div className="w-[600px] h-[600px] bg-orange-500/10 blur-[140px] rounded-full absolute -top-32 -left-24" />
+        <div className="w-[500px] h-[500px] bg-amber-500/10 blur-[130px] rounded-full absolute top-10 right-0" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-18 w-full">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-          {/* Left Column: Headline, Bio & Commitments (7 cols) */}
+          {/* Left Column: Headline, Sub-text & Commitments (7 cols) */}
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-            {/* 1. Tag tiêu đề nhỏ đỏ cam */}
+            {/* Tag tiêu đề nhỏ đỏ cam */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200 shadow-sm">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-100/70 border border-orange-200 shadow-sm">
                 <Sparkles className="w-3.5 h-3.5 text-orange-600 animate-pulse" />
-                <span className="text-xs font-black text-orange-600 uppercase tracking-wider">
+                <span className="text-xs font-black text-orange-700 uppercase tracking-wider">
                   SHOP TFT MOBILE • HỆ THỐNG GIAO DỊCH TỰ ĐỘNG
                 </span>
               </div>
@@ -50,23 +52,24 @@ export const TFTHero: React.FC = () => {
               </a>
             </div>
 
-            {/* 2. Tiêu đề lớn & Phân cấp rõ ràng */}
-            <div className="space-y-2">
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 leading-[1.18] tracking-tight">
-                Nền tảng thuê tài khoản ĐTCL & Dịch vụ game chuyên nghiệp
-              </h1>
-            </div>
+            {/* Tiêu đề lớn: Cụm từ "Dịch vụ game chuyên nghiệp" Gradient Đỏ - Cam */}
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 leading-[1.18] tracking-tight">
+              Nền tảng thuê tài khoản ĐTCL &{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500">
+                Dịch vụ game chuyên nghiệp
+              </span>
+            </h1>
 
-            {/* 3. Mô tả ngắn gọn */}
+            {/* Mô tả ngắn gọn */}
             <p className="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
               Thuê acc VIP tự động bàn giao 30s, quỹ bảo hiểm 30M Checkscam an toàn tuyệt đối. Đầy đủ Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc, giá chỉ từ 6k/giờ.
             </p>
 
-            {/* 4. Nút bấm: "Khám phá kho acc" (Màu đỏ/cam bo tròn) */}
+            {/* Nút bấm CTA: "Khám phá kho acc" (Màu đỏ/cam bo tròn) */}
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 sm:gap-4 pt-1">
               <a
                 href="#shop"
-                className="w-full sm:w-auto px-7 py-3.5 inline-flex items-center justify-center gap-2 rounded-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-extrabold text-sm uppercase tracking-wider shadow-md hover:shadow-lg shadow-orange-600/25 transition-all hover:scale-105"
+                className="w-full sm:w-auto px-8 py-3.5 inline-flex items-center justify-center gap-2 rounded-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-orange-600/25 transition-all hover:scale-105"
               >
                 <KeyRound className="w-4 h-4" />
                 <span>Khám phá kho acc</span>
@@ -81,7 +84,7 @@ export const TFTHero: React.FC = () => {
               </a>
             </div>
 
-            {/* 5. Hàng 3 cam kết dưới nút */}
+            {/* Hàng 3 cam kết dưới nút */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 text-xs text-slate-700">
               <div className="flex items-center gap-2.5 justify-center lg:justify-start bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
@@ -98,85 +101,108 @@ export const TFTHero: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column: Clean White Profile Card (5 cols) */}
-          <div className="lg:col-span-5 relative flex justify-center">
-            <div className="relative w-full max-w-md bg-white border border-slate-200 shadow-xl rounded-2xl p-6 sm:p-7 hover:border-orange-300 transition-all group">
-              {/* Header: Large Avatar & Rank Badge */}
-              <div className="flex items-center gap-4 pb-5 border-b border-slate-100">
-                <div className="relative w-18 h-18 sm:w-20 sm:h-20 rounded-2xl p-[2px] bg-gradient-to-tr from-orange-500 to-amber-500 shadow-md flex-shrink-0">
-                  <div
-                    className="w-full h-full rounded-2xl bg-cover bg-center"
-                    style={{ backgroundImage: `url(${PROFILE_INFO.avatarUrl})` }}
-                  />
-                  <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white animate-pulse" />
+          {/* Right Column: KHUNG ĐỒ HỌA MOCKUP THẺ ACC VIP 3D + FLOATING BADGES (5 cols) */}
+          <div className="lg:col-span-5 relative flex justify-center py-6">
+            {/* Background Glow Ring */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-orange-400/20 via-amber-300/20 to-emerald-400/20 rounded-3xl blur-2xl transform scale-95" />
+
+            {/* Main 3D Mockup Container */}
+            <div className="relative w-full max-w-md bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-[0_20px_50px_rgba(0,0,0,0.12)] transition-all duration-500 hover:shadow-[0_25px_60px_rgba(249,115,22,0.15)] group">
+              
+              {/* Top Photo Mockup 16:9 */}
+              <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-slate-900 border border-slate-100 shadow-inner">
+                <div
+                  className="w-full h-full bg-cover bg-center transform group-hover:scale-105 transition-transform duration-700"
+                  style={{
+                    backgroundImage:
+                      "url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&auto=format&fit=crop')",
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                {/* Top Badge Inside Image */}
+                <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                  <span className="px-2.5 py-1 rounded-lg bg-orange-600 text-white font-mono font-black text-[11px] uppercase tracking-wider shadow-md">
+                    MS: 8899
+                  </span>
+                  <span className="px-2.5 py-1 rounded-lg bg-emerald-500 text-white text-[10px] font-extrabold uppercase tracking-wide shadow-md flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                    <span>SẴN SÀNG</span>
+                  </span>
                 </div>
 
-                <div className="space-y-1">
+                {/* Bottom Overlay Inside Image */}
+                <div className="absolute bottom-3 left-3 right-3 text-white">
+                  <div className="text-[11px] text-amber-300 font-bold flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Tí Nị Ahri Chiêu Hồn + Yasuo Chân Long</span>
+                  </div>
+                  <div className="text-sm font-extrabold line-clamp-1">
+                    Sân Đấu Thần Thoại Tiệm Trà Tâm Linh (Đổi Nhạc EDM)
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Footer Summary */}
+              <div className="pt-4 px-1 space-y-3">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-black text-xl text-slate-900 tracking-tight">{PROFILE_INFO.realName}</h3>
+                    <div
+                      className="w-8 h-8 rounded-full bg-cover bg-center border border-slate-200"
+                      style={{ backgroundImage: `url(${PROFILE_INFO.avatarUrl})` }}
+                    />
+                    <div>
+                      <span className="text-xs font-bold text-slate-900 block leading-tight">{PROFILE_INFO.realName}</span>
+                      <span className="text-[10px] text-slate-500">Chính Chủ ShopTFT</span>
+                    </div>
                   </div>
 
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
-                    <Trophy className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Cựu Thách Đấu // 1.134 ĐNG</span>
+                  <div className="text-right">
+                    <span className="text-xs text-slate-400 block text-[10px] uppercase font-bold">Giá Thuê</span>
+                    <span className="text-lg font-black text-red-600 font-mono">15.000đ<span className="text-xs text-slate-500 font-normal">/h</span></span>
                   </div>
+                </div>
 
-                  <div className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                    <span>ONLINE BÀN GIAO ACC 24/7</span>
-                  </div>
+                <a
+                  href="#shop"
+                  className="w-full py-2.5 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-orange-600/20 transition-all hover:scale-[1.02]"
+                >
+                  <KeyRound className="w-3.5 h-3.5" />
+                  <span>Thuê Acc Nhanh 30s ➔</span>
+                </a>
+              </div>
+
+              {/* FLOATING BADGE 1: Quỹ Bảo Hiểm 30M Checkscam (Góc Trên Trái) */}
+              <div className="absolute -top-4 -left-4 sm:-left-6 bg-white/95 backdrop-blur-md border border-emerald-200/90 rounded-2xl p-2.5 sm:p-3 shadow-[0_10px_25px_rgba(16,185,129,0.2)] flex items-center gap-2.5 animate-bounce" style={{ animationDuration: '3s' }}>
+                <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div className="text-left">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Bảo Hiểm</span>
+                  <strong className="text-xs font-black text-emerald-700 font-mono block leading-none">30.000.000đ</strong>
                 </div>
               </div>
 
-              {/* 4 Stats Grid */}
-              <div className="grid grid-cols-2 gap-3 my-5">
-                <div className="bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl text-center">
-                  <div className="flex items-center justify-center gap-1.5 text-slate-500 text-xs mb-0.5 font-medium">
-                    <KeyRound className="w-3.5 h-3.5 text-orange-600" />
-                    <span>Lượt Đã Thuê</span>
-                  </div>
-                  <div className="text-xl font-black text-slate-900 font-mono">
-                    {PROFILE_INFO.accountsRented}
-                  </div>
+              {/* FLOATING BADGE 2: Cựu Thách Đấu 1.134 ĐNG (Góc Trên Phải) */}
+              <div className="absolute -top-4 -right-3 sm:-right-5 bg-white/95 backdrop-blur-md border border-amber-200/90 rounded-2xl p-2.5 sm:p-3 shadow-[0_10px_25px_rgba(245,158,11,0.2)] flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0">
+                  <Trophy className="w-4 h-4" />
                 </div>
-
-                <div className="bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl text-center">
-                  <div className="flex items-center justify-center gap-1.5 text-slate-500 text-xs mb-0.5 font-medium">
-                    <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                    <span>Hài Lòng</span>
-                  </div>
-                  <div className="text-xl font-black text-slate-900 font-mono">
-                    {PROFILE_INFO.satisfactionRate}
-                  </div>
-                </div>
-
-                <div className="bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl text-center">
-                  <div className="flex items-center justify-center gap-1.5 text-slate-500 text-xs mb-0.5 font-medium">
-                    <Swords className="w-3.5 h-3.5 text-orange-600" />
-                    <span>Kinh Nghiệm</span>
-                  </div>
-                  <div className="text-xl font-black text-slate-900 font-mono">
-                    {PROFILE_INFO.experienceYears}+ Năm
-                  </div>
-                </div>
-
-                <div className="bg-emerald-50 border border-emerald-200 p-3.5 rounded-xl text-center">
-                  <div className="flex items-center justify-center gap-1.5 text-emerald-700 text-xs mb-0.5 font-medium">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Bảo Hiểm</span>
-                  </div>
-                  <div className="text-lg font-black text-emerald-700 font-mono">
-                    {PROFILE_INFO.insuranceFund}
-                  </div>
+                <div className="text-left">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Rank ĐTCL</span>
+                  <strong className="text-xs font-black text-amber-700 block leading-none">1.134 ĐNG</strong>
                 </div>
               </div>
 
-              {/* Bottom Guarantee Seal */}
-              <div className="p-3 bg-emerald-50/80 border-l-4 border-emerald-500 rounded-r-lg text-xs text-emerald-900 flex items-center gap-3">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                <span className="text-[11px] leading-relaxed font-medium">
-                  Giao dịch an toàn với quỹ bảo hiểm 30M ký quỹ trên hệ thống Checkscam.vn uy tín.
-                </span>
+              {/* FLOATING BADGE 3: Bàn Giao Tự Động 30s (Góc Dưới Trái) */}
+              <div className="absolute -bottom-4 -left-3 sm:-left-5 bg-white/95 backdrop-blur-md border border-orange-200/90 rounded-2xl p-2.5 sm:p-3 shadow-[0_10px_25px_rgba(249,115,22,0.2)] flex items-center gap-2">
+                <div className="w-7 h-7 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0">
+                  <Zap className="w-3.5 h-3.5" />
+                </div>
+                <div className="text-left">
+                  <strong className="text-[11px] font-black text-orange-700 block leading-none">Giao Acc 30s</strong>
+                  <span className="text-[9px] text-slate-500 font-medium">Tự động qua Zalo</span>
+                </div>
               </div>
             </div>
           </div>

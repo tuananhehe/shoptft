@@ -83,12 +83,12 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
   });
 
   return (
-    <section id="shop" className="py-16 sm:py-20 bg-[#F8FAFC] text-slate-900 border-b border-slate-200 relative overflow-hidden">
+    <section id="shop" className="py-16 sm:py-20 bg-slate-50/80 text-slate-900 border-t border-slate-200/60 border-b border-slate-200 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2.5">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-xs font-bold uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-100/80 border border-orange-200 text-orange-700 text-xs font-bold uppercase tracking-wider shadow-sm">
               <Flame className="w-3.5 h-3.5 text-orange-600" />
               <span>Tài Khoản & Dịch Vụ Nổi Bật</span>
             </div>
@@ -105,7 +105,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsPaused(!isPaused)}
-              className="px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-slate-300 text-xs font-bold text-slate-700 flex items-center gap-1.5 transition-colors shadow-sm"
+              className="px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-slate-300 text-xs font-bold text-slate-700 flex items-center gap-1.5 transition-colors shadow-sm"
             >
               {isPaused ? <Play className="w-3.5 h-3.5 text-emerald-600" /> : <Pause className="w-3.5 h-3.5 text-orange-600" />}
               <span>{isPaused ? "Tiếp Tục Chạy" : "Tạm Dừng"}</span>
@@ -117,11 +117,11 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
         </div>
       </div>
 
-      {/* 1. SEAMLESS INFINITE MARQUEE AUTO-LOOP TRACK (LIGHT MODE CARDS) */}
+      {/* 1. SEAMLESS INFINITE MARQUEE AUTO-LOOP TRACK (LIGHT MODE CARDS WITH DEPTH SHADOW) */}
       <div className="relative w-full py-2 overflow-hidden mask-gradient">
         {/* Left & Right fade gradient masks */}
-        <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-20 bg-gradient-to-r from-[#F8FAFC] to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-8 sm:w-20 bg-gradient-to-l from-[#F8FAFC] to-transparent z-10 pointer-events-none" />
+        <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-20 bg-gradient-to-r from-slate-50 to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-8 sm:w-20 bg-gradient-to-l from-slate-50 to-transparent z-10 pointer-events-none" />
 
         <div
           className={`animate-infinite-loop flex gap-5 px-4 ${isPaused ? "!animation-play-state-paused" : ""}`}
@@ -130,11 +130,11 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
           {loopAccounts.map((account, index) => (
             <div
               key={`${account.id}-${index}`}
-              className="w-[280px] sm:w-[310px] flex-shrink-0 bg-white border border-slate-200/80 rounded-2xl p-3 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between group shadow-sm"
+              className="w-[280px] sm:w-[310px] flex-shrink-0 bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between group"
             >
               {/* Top Photo & Badges */}
               <div>
-                <div className="relative aspect-[16/9] overflow-hidden rounded-xl bg-slate-100 mb-3">
+                <div className="relative aspect-[16/9] overflow-hidden rounded-xl bg-slate-900 mb-3 border border-slate-100 shadow-inner">
                   <div
                     className="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
                     style={{ backgroundImage: `url(${account.thumbnail})` }}
@@ -164,7 +164,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
 
                   {/* Bottom Rank */}
                   <div className="absolute bottom-2 left-2">
-                    <span className="px-2 py-0.5 rounded bg-white/90 text-slate-900 text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
+                    <span className="px-2 py-0.5 rounded bg-white/95 text-slate-900 text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
                       {account.rank}
                     </span>
                   </div>
@@ -215,7 +215,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
 
                   <button
                     onClick={() => onSelectAccount(account)}
-                    className="h-9 px-2 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1"
+                    className="h-9 px-2 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-600/20 flex items-center justify-center gap-1 hover:scale-105"
                   >
                     <KeyRound className="w-3.5 h-3.5" />
                     <span>Thuê Ngay</span>
@@ -253,9 +253,9 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
 
       {/* 3. KHU VỰC MỞ RỘNG (CAM KẾT + BỘ LỌC + GRID 4 CỘT) */}
       {showFullCatalog && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-10 border-t border-slate-200 space-y-8 animate-fadeIn">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-10 border-t border-slate-200/80 space-y-8 animate-fadeIn">
           {/* KHUNG CAM KẾT */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
               <div className="flex items-start gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
                 <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0">
@@ -308,7 +308,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
           </div>
 
           {/* BỘ LỌC & TÌM KIẾM */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-sm">
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-center">
               {/* Filter 1 */}
               <div className="lg:col-span-3">
@@ -409,11 +409,11 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
               {filteredAccounts.map((account) => (
                 <div
                   key={account.id}
-                  className="bg-white border border-slate-200/80 rounded-2xl p-3 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between group shadow-sm"
+                  className="bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between group"
                 >
                   {/* Top Photo & Badges */}
                   <div>
-                    <div className="relative aspect-[16/9] overflow-hidden rounded-xl bg-slate-100 mb-3">
+                    <div className="relative aspect-[16/9] overflow-hidden rounded-xl bg-slate-900 mb-3 border border-slate-100 shadow-inner">
                       <div
                         className="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
                         style={{ backgroundImage: `url(${account.thumbnail})` }}
@@ -440,7 +440,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                       </div>
 
                       <div className="absolute bottom-2 left-2">
-                        <span className="px-2 py-0.5 rounded bg-white/90 text-slate-900 text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
+                        <span className="px-2 py-0.5 rounded bg-white/95 text-slate-900 text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
                           {account.rank}
                         </span>
                       </div>
@@ -489,7 +489,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
 
                       <button
                         onClick={() => onSelectAccount(account)}
-                        className="h-9 px-2 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1"
+                        className="h-9 px-2 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-600/20 flex items-center justify-center gap-1 hover:scale-105"
                       >
                         <KeyRound className="w-3.5 h-3.5" />
                         <span>Thuê Ngay</span>
