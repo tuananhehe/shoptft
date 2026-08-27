@@ -14,6 +14,8 @@ import {
   KeyRound,
   Zap,
   AlertTriangle,
+  Flame,
+  Crown,
 } from "lucide-react";
 
 interface TFTAccountModalProps {
@@ -22,26 +24,68 @@ interface TFTAccountModalProps {
 }
 
 export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClose }) => {
-  const [selectedPackage, setSelectedPackage] = useState<"1h" | "3h" | "night" | "1day">("1h");
+  const [selectedPackage, setSelectedPackage] = useState<"2h" | "7d" | "30d" | "perm">("2h");
   const [copiedCode, setCopiedCode] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   if (!account) return null;
 
-  // Tính giá tiền dựa theo gói thuê đã chọn
-  let rentalPrice = account.hourlyPrice;
-  let packageLabel = "Gói 1 Giờ Trải Nghiệm";
+  // Giá trị gốc của tài khoản
+  const baseAccountValue = account.accountValue || account.dailyPrice * 16 || 850000;
 
-  if (selectedPackage === "3h") {
-    rentalPrice = Math.round(account.hourlyPrice * 3 * 0.9);
-    packageLabel = "Gói 3 Giờ (Giảm 10%)";
-  } else if (selectedPackage === "night") {
-    rentalPrice = account.nightPrice;
-    packageLabel = "Gói Qua Đêm (22h - 8h Sáng)";
-  } else if (selectedPackage === "1day") {
-    rentalPrice = account.dailyPrice;
-    packageLabel = "Gói Trọn 1 Ngày (24 Tiếng)";
-  }
+  // Hàm làm tròn tiền đến hàng nghìn
+  const roundToThousand = (val: number) => Math.round(val / 1000) * 1000;
+  const formatMoney = (val: number) => `${roundToThousand(val).toLocaleString("vi-VN")}đ`;
+
+  // Cấu hình 4 gói thời gian thuê theo công thức linh hoạt
+  const packageConfigs = {
+    "2h": {
+      id: "2h",
+      name: "2 Giờ Trải Nghiệm",
+      rate: 0.03,
+      basePrice: roundToThousand(baseAccountValue * 0.03),
+      passFee: 20000,
+      totalPrice: roundToThousand(baseAccountValue * 0.03) + 20000,
+      note: "Đã gồm 20k phí đổi pass",
+      tag: "Trải nghiệm nhanh",
+      badgeColor: "bg-blue-100 text-blue-700",
+    },
+    "7d": {
+      id: "7d",
+      name: "Thuê 7 Ngày (1 Tuần)",
+      rate: 0.12,
+      basePrice: roundToThousand(baseAccountValue * 0.12),
+      passFee: 20000,
+      totalPrice: roundToThousand(baseAccountValue * 0.12) + 20000,
+      note: "Đã gồm 20k phí đổi pass",
+      tag: "Tiết kiệm 45%",
+      badgeColor: "bg-amber-100 text-amber-700",
+    },
+    "30d": {
+      id: "30d",
+      name: "Thuê 30 Ngày (1 Tháng)",
+      rate: 0.30,
+      basePrice: roundToThousand(baseAccountValue * 0.30),
+      passFee: 0,
+      totalPrice: roundToThousand(baseAccountValue * 0.30),
+      note: "Miễn phí đổi pass",
+      tag: "Miễn phí đổi pass",
+      badgeColor: "bg-emerald-100 text-emerald-700",
+    },
+    "perm": {
+      id: "perm",
+      name: "Sở Hữu 999 Ngày (Mua Đứt)",
+      rate: 1.00,
+      basePrice: roundToThousand(baseAccountValue),
+      passFee: 0,
+      totalPrice: roundToThousand(baseAccountValue),
+      note: "Bàn giao Full Mail chính chủ",
+      tag: "Bàn giao Full Mail chính chủ",
+      badgeColor: "bg-purple-100 text-purple-700",
+    },
+  };
+
+  const activePkg = packageConfigs[selectedPackage];
 
   // Copy mã Acc riêng lẻ
   const copyAccCode = () => {
@@ -52,24 +96,24 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
 
   // Logic Xử Lý Bấm Nút "NHẬN ACC QUA ZALO"
   const handleOrderZalo = () => {
-    // 1. Ghép nội dung tin nhắn tự động
-    const orderMessage = `[ĐƠN THUÊ ACC TFT]
+    // Ghép nội dung tin nhắn tự động theo mẫu yêu cầu
+    const orderMessage = `[ĐƠN ĐẶT ACC TFT]
 - Mã Acc: ${account.code}
 - Tên Acc: ${account.title}
-- Gói thuê: ${packageLabel}
-- Thành tiền: ${rentalPrice.toLocaleString("vi-VN")}đ
-Nhờ shop gửi STK và bàn giao acc giúp mình!`;
+- Thời hạn: ${activePkg.name}
+- Tổng thanh toán: ${formatMoney(activePkg.totalPrice)}
+Nhờ shop gửi STK và hỗ trợ bàn giao thông tin!`;
 
-    // 2. Thực hiện sao chép vào clipboard của người dùng
+    // Thực hiện copy văn bản trên vào clipboard của người dùng
     if (navigator.clipboard) {
       navigator.clipboard.writeText(orderMessage).catch(() => {});
     }
 
-    // 3. Hiển thị Toast thông báo trực quan
+    // Hiển thị Toast thông báo trực quan
     setToastMessage("Đã sao chép thông tin đơn hàng! Hãy dán (Ctrl+V) vào khung chat Zalo với shop.");
     setTimeout(() => setToastMessage(null), 6000);
 
-    // 4. Mở tab Zalo của shop
+    // Mở link Zalo shop
     window.open(PROFILE_INFO.zaloUrl, "_blank");
   };
 
@@ -193,111 +237,163 @@ Nhờ shop gửi STK và bàn giao acc giúp mình!`;
             </div>
           </div>
 
-          {/* RENTAL PACKAGES SELECTOR */}
+          {/* 4 GÓI THỜI GIAN THUÊ THEO CÔNG THỨC LINH HOẠT */}
           <div className="space-y-3 pt-2">
             <h4 className="font-bold text-slate-900 text-sm flex items-center justify-between">
               <span className="flex items-center gap-1.5">
                 <Clock className="w-4 h-4 text-orange-600" />
-                <span>Chọn Gói Thời Gian Thuê:</span>
+                <span>Chọn Gói Thời Gian Thuê / Sở Hữu:</span>
               </span>
               <span className="text-xs text-emerald-600 font-semibold">100% Không Cần Đặt Cọc</span>
             </h4>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Gói 1: 2 Giờ Trải Nghiệm */}
               <button
-                onClick={() => setSelectedPackage("1h")}
-                className={`p-3 rounded-xl border text-left transition-all ${
-                  selectedPackage === "1h"
-                    ? "bg-orange-50 border-orange-500 text-slate-900 shadow-sm"
+                onClick={() => setSelectedPackage("2h")}
+                className={`p-3.5 rounded-xl border text-left transition-all relative ${
+                  selectedPackage === "2h"
+                    ? "bg-orange-50 border-orange-500 text-slate-900 shadow-sm ring-2 ring-orange-500/20"
                     : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"
                 }`}
               >
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-xs">Gói 1 Giờ Trải Nghiệm</span>
-                  <span className="font-bold font-mono text-red-600 text-sm">
-                    {account.hourlyPrice.toLocaleString("vi-VN")}đ
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-bold text-xs text-slate-900">
+                    {packageConfigs["2h"].name}
+                  </span>
+                  <span className="font-extrabold font-mono text-red-600 text-sm">
+                    {formatMoney(packageConfigs["2h"].totalPrice)}
                   </span>
                 </div>
-                <span className="text-[11px] text-slate-500 mt-0.5 block">Phù hợp test tướng & test bài</span>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-500">{packageConfigs["2h"].note}</span>
+                  <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                    3% + 20k
+                  </span>
+                </div>
               </button>
 
+              {/* Gói 2: Thuê 7 Ngày (1 Tuần) */}
               <button
-                onClick={() => setSelectedPackage("3h")}
-                className={`p-3 rounded-xl border text-left transition-all ${
-                  selectedPackage === "3h"
-                    ? "bg-orange-50 border-orange-500 text-slate-900 shadow-sm"
+                onClick={() => setSelectedPackage("7d")}
+                className={`p-3.5 rounded-xl border text-left transition-all relative ${
+                  selectedPackage === "7d"
+                    ? "bg-orange-50 border-orange-500 text-slate-900 shadow-sm ring-2 ring-orange-500/20"
                     : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"
                 }`}
               >
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-xs">Gói 3 Giờ (Giảm 10%)</span>
-                  <span className="font-bold font-mono text-red-600 text-sm">
-                    {Math.round(account.hourlyPrice * 3 * 0.9).toLocaleString("vi-VN")}đ
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-bold text-xs text-slate-900">
+                    {packageConfigs["7d"].name}
+                  </span>
+                  <span className="font-extrabold font-mono text-red-600 text-sm">
+                    {formatMoney(packageConfigs["7d"].totalPrice)}
                   </span>
                 </div>
-                <span className="text-[11px] text-slate-500 mt-0.5 block">Tiết kiệm chi phí chơi nhiều trận</span>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-500">{packageConfigs["7d"].note}</span>
+                  <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                    12% + 20k
+                  </span>
+                </div>
               </button>
 
+              {/* Gói 3: Thuê 30 Ngày (1 Tháng) */}
               <button
-                onClick={() => setSelectedPackage("night")}
-                className={`p-3 rounded-xl border text-left transition-all ${
-                  selectedPackage === "night"
-                    ? "bg-orange-50 border-orange-500 text-slate-900 shadow-sm"
+                onClick={() => setSelectedPackage("30d")}
+                className={`p-3.5 rounded-xl border text-left transition-all relative ${
+                  selectedPackage === "30d"
+                    ? "bg-orange-50 border-orange-500 text-slate-900 shadow-sm ring-2 ring-orange-500/20"
                     : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"
                 }`}
               >
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-xs">Gói Qua Đêm (22h - 8h)</span>
-                  <span className="font-bold font-mono text-red-600 text-sm">
-                    {account.nightPrice.toLocaleString("vi-VN")}đ
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-bold text-xs text-slate-900">
+                    {packageConfigs["30d"].name}
+                  </span>
+                  <span className="font-extrabold font-mono text-red-600 text-sm">
+                    {formatMoney(packageConfigs["30d"].totalPrice)}
                   </span>
                 </div>
-                <span className="text-[11px] text-slate-500 mt-0.5 block">10 tiếng cày đêm thả ga</span>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-emerald-600 font-semibold">{packageConfigs["30d"].note}</span>
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                    30% Giá Acc
+                  </span>
+                </div>
               </button>
 
+              {/* Gói 4: Sở Hữu 999 Ngày (Mua Đứt) */}
               <button
-                onClick={() => setSelectedPackage("1day")}
-                className={`p-3 rounded-xl border text-left transition-all ${
-                  selectedPackage === "1day"
-                    ? "bg-orange-50 border-orange-500 text-slate-900 shadow-sm"
+                onClick={() => setSelectedPackage("perm")}
+                className={`p-3.5 rounded-xl border text-left transition-all relative ${
+                  selectedPackage === "perm"
+                    ? "bg-orange-50 border-orange-500 text-slate-900 shadow-sm ring-2 ring-orange-500/20"
                     : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"
                 }`}
               >
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-xs">Gói Trọn 1 Ngày (24h)</span>
-                  <span className="font-bold font-mono text-red-600 text-sm">
-                    {account.dailyPrice.toLocaleString("vi-VN")}đ
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-bold text-xs text-slate-900">
+                    {packageConfigs["perm"].name}
+                  </span>
+                  <span className="font-extrabold font-mono text-red-600 text-sm">
+                    {formatMoney(packageConfigs["perm"].totalPrice)}
                   </span>
                 </div>
-                <span className="text-[11px] text-slate-500 mt-0.5 block">Chơi nguyên ngày cuối tuần</span>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-purple-600 font-semibold">{packageConfigs["perm"].note}</span>
+                  <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200">
+                    100% Mua Đứt
+                  </span>
+                </div>
               </button>
             </div>
           </div>
 
-          {/* TOTAL PRICE BLOCK (ĐÃ XÓA KHỐI QR THANH TOÁN) */}
+          {/* TOTAL PRICE & GHI CHÚ CHI TIẾT TÁCH RÕ TIỀN THUÊ GỐC + PHÍ HOÀN TRẢ */}
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-xs text-slate-500 uppercase font-semibold block">Tổng Tiền Thuê:</span>
-                <span className="text-xs text-slate-700 font-medium">{packageLabel}</span>
+                <span className="text-xs text-slate-500 uppercase font-semibold block">Tổng Thanh Toán:</span>
+                <span className="text-xs text-slate-800 font-bold">{activePkg.name}</span>
               </div>
               <div className="text-right">
                 <span className="text-2xl font-black text-red-600 font-mono">
-                  {rentalPrice.toLocaleString("vi-VN")}đ
+                  {formatMoney(activePkg.totalPrice)}
                 </span>
-                <span className="text-[10px] text-emerald-600 block font-semibold">✓ Không phí phát sinh</span>
+                <span className="text-[10px] text-emerald-600 block font-semibold">✓ Đã làm tròn đến hàng nghìn</span>
               </div>
             </div>
 
-            <div className="pt-2.5 border-t border-slate-200 flex items-center justify-between">
-              <span className="text-xs text-slate-500">Mã định danh tài khoản:</span>
-              <button
-                onClick={copyAccCode}
-                className="text-xs text-slate-700 hover:text-orange-600 font-semibold flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-lg shadow-sm transition-colors"
-              >
-                {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedCode ? "Đã copy mã" : `Copy Mã (${account.code})`}</span>
-              </button>
+            {/* Chi Tiết Bóc Tách Phí */}
+            <div className="pt-3 border-t border-slate-200 text-xs space-y-1.5">
+              <div className="flex items-center justify-between text-slate-600">
+                <span>Tiền thuê gốc:</span>
+                <span className="font-mono font-semibold text-slate-800">{formatMoney(activePkg.basePrice)}</span>
+              </div>
+
+              {activePkg.passFee > 0 ? (
+                <div className="flex items-center justify-between text-slate-600">
+                  <span>Phí hoàn trả acc (phí đổi pass):</span>
+                  <span className="font-mono font-semibold text-orange-600">+{formatMoney(activePkg.passFee)}</span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between text-emerald-700">
+                  <span>Phí hoàn trả acc (phí đổi pass):</span>
+                  <span className="font-semibold">Miễn phí (0đ)</span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500">
+                <span>Mã định danh tài khoản:</span>
+                <button
+                  onClick={copyAccCode}
+                  className="text-slate-700 hover:text-orange-600 font-semibold flex items-center gap-1 px-2 py-0.5 bg-white border border-slate-200 rounded shadow-sm transition-colors"
+                >
+                  {copiedCode ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                  <span>{copiedCode ? "Đã copy" : account.code}</span>
+                </button>
+              </div>
             </div>
           </div>
 
