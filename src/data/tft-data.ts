@@ -46,6 +46,13 @@ export interface ServicePackage {
   popular?: boolean;
 }
 
+export interface FAQItem {
+  q: string;
+  a: string;
+  category: "THUE_ACC" | "BAO_MAT" | "CAY_RANK" | "THANH_TOAN";
+  badge?: string;
+}
+
 export const PROFILE_INFO = {
   gamerTag: "Tuấn Thái Bình TFT",
   realName: "Tuấn Thái Bình",
@@ -527,26 +534,60 @@ export const TFT_SERVICE_PACKAGES: ServicePackage[] = [
   },
 ];
 
-export const FAQS = [
+export const FAQS: FAQItem[] = [
   {
-    q: "Sau khi thanh toán thì bao lâu tôi nhận được tài khoản?",
-    a: "Hệ thống hoạt động tự động 24/7. Ngay sau khi bạn bấm nút 'Nhận Acc Qua Zalo' và chuyển khoản thành công, thông tin tài khoản (ID & Mật khẩu) sẽ được gửi tới bạn trong vòng 30 giây.",
+    q: "Sau khi gửi đơn qua Zalo thì bao lâu tôi nhận được tài khoản?",
+    a: "Hệ thống hoạt động tự động 24/7. Ngay sau khi bạn gửi thông tin đơn hàng và chuyển khoản theo STK shop gửi trong Zalo, ID và Mật khẩu tài khoản sẽ được bàn giao cho bạn trong vòng 30 giây.",
+    category: "THUE_ACC",
+    badge: "Bàn giao 30s",
   },
   {
-    q: "Tôi có cần đặt cọc khi thuê tài khoản không?",
-    a: "100% KHÔNG CẦN ĐẶT CỌC. Bạn chỉ cần thanh toán đúng số tiền của gói giờ thuê bạn chọn, không phát sinh bất kỳ khoản phí nào khác.",
+    q: "Tôi có cần phải đặt cọc khi thuê tài khoản không?",
+    a: "100% KHÔNG CẦN ĐẶT CỌC. Bạn chỉ cần thanh toán đúng số tiền của gói thời gian bạn chọn (2h, 7 ngày, 30 ngày...). Không phát sinh bất kỳ chi phí thế chấp hay phụ phí ẩn nào.",
+    category: "THUE_ACC",
+    badge: "Không Cọc",
   },
   {
-    q: "Nếu đang chơi mà tài khoản bị lỗi hoặc bị đổi pass thì sao?",
-    a: "ShopTFT Mobile cam kết bảo hành 100% thời gian thuê. Nếu có bất kỳ sự cố nào xảy ra, Tuấn sẽ đổi ngay acc tương đương hoặc hoàn tiền / bù thêm giờ chơi ngay lập tức qua Zalo 0352.867.283.",
+    q: "Nếu đang chơi mà tài khoản bị lỗi hoặc bị trùng pass thì shop xử lý ra sao?",
+    a: "ShopTFT Mobile cam kết bảo hành 100% thời gian thuê. Nếu có bất kỳ sự cố gián đoạn nào, shop sẽ đổi ngay acc tương đương hoặc bù thêm giờ chơi / hoàn tiền 100% ngay lập tức qua Zalo 0352.867.283.",
+    category: "BAO_MAT",
+    badge: "Bảo hành 100%",
   },
   {
-    q: "Shop có bảo hiểm checkscam không?",
-    a: "Có! Tuấn Thái Bình đã đóng Quỹ Bảo Hiểm 30.000.000đ trên diễn đàn Checkscam.vn uy tín hàng đầu Việt Nam. Bạn hoàn toàn có thể kiểm tra công khai số điện thoại 0352.867.283 trên hệ thống Checkscam.",
+    q: "Shop có bảo hiểm checkscam bảo chứng uy tín không?",
+    a: "Có! Tuấn Thái Bình đã đóng Quỹ Bảo Hiểm 30.000.000đ trên diễn đàn Checkscam.vn uy tín hàng đầu Việt Nam bảo chứng số điện thoại 0352.867.283. Bạn hoàn toàn có thể kiểm tra công khai danh tính bất cứ lúc nào.",
+    category: "THANH_TOAN",
+    badge: "Quỹ 30M",
   },
   {
-    q: "Tôi có thể đổi sang acc khác giữa chừng không?",
-    a: "Nếu bạn muốn đổi sang Tướng Tí Nị hoặc Sân Đấu khác trong thời gian thuê, bạn chỉ cần nhắn tin qua Zalo, shop sẽ hỗ trợ chuyển đổi linh hoạt cho bạn.",
+    q: "Tôi có thể đổi sang Tướng Tí Nị hoặc Sân Đấu khác trong thời gian thuê không?",
+    a: "Hoàn toàn được! Bạn chỉ cần nhắn tin Zalo cho shop, nếu acc khác đang trống shop sẽ hỗ trợ chuyển đổi linh hoạt số giờ còn lại sang acc mới để bạn trải nghiệm.",
+    category: "THUE_ACC",
+    badge: "Đổi acc linh hoạt",
+  },
+  {
+    q: "Chơi trên điện thoại (ĐTCL Mobile iOS / Android) hay PC có được không?",
+    a: "Tất cả tài khoản của shop đều hỗ trợ đăng nhập đa nền tảng: Cả trên máy tính PC (Client Riot VNG) và điện thoại di động (ĐTCL Mobile iOS / Android) đều mượt mà 100%.",
+    category: "THUE_ACC",
+    badge: "Hỗ trợ Mobile & PC",
+  },
+  {
+    q: "Tôi có được tự ý đổi mật khẩu hay liên kết mail khi đang thuê không?",
+    a: "Đối với các gói thuê (2h, 7 ngày, 30 ngày), khách hàng vui lòng không tự ý đổi pass hoặc liên kết thông tin. Hết giờ shop sẽ tự reset pass. Nếu bạn muốn sở hữu toàn quyền đổi full mail/thông tin chính chủ, hãy chọn gói 'Thuê Lâu Dài 999 Ngày'.",
+    category: "BAO_MAT",
+    badge: "Quy định bảo mật",
+  },
+  {
+    q: "Dịch vụ Cày Rank có an toàn cho tài khoản chính không?",
+    a: "Tuấn trực tiếp cày tay 100% (Cựu Thách Đấu 1.134 ĐNG), sử dụng mạng IP sạch, không can thiệp phần mềm thứ 3 và cam kết bảo mật 100% danh tính khách hàng, không chat trong game.",
+    category: "CAY_RANK",
+    badge: "Cày tay 100%",
+  },
+  {
+    q: "Gói Coaching 1-1 diễn ra như thế nào?",
+    a: "Buổi học diễn ra 90 phút qua Discord/Zalo Voice, Tuấn sẽ xem màn hình bạn thi đấu trực tiếp, phân tích sai lầm, hướng dẫn cách giữ máu, quản lý kinh tế 50 vàng và cách xoay bài meta chuẩn xác nhất.",
+    category: "CAY_RANK",
+    badge: "Voice 1-1",
   },
 ];
 
