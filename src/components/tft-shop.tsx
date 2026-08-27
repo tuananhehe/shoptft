@@ -168,11 +168,11 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
           {loopAccounts.map((account, index) => (
             <div
               key={`${account.id}-${index}`}
-              className="w-[275px] sm:w-[295px] lg:w-[285px] xl:w-[295px] flex-shrink-0 flex flex-col h-full justify-between bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 group"
+              className="w-[270px] sm:w-[290px] lg:w-[280px] xl:w-[290px] flex-shrink-0 flex flex-col h-full justify-between bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 group"
             >
               {/* Top Photo & Badges - KHUNG VUÔNG ASPECT-SQUARE CÓ ALT CHUẨN SEO */}
               <div>
-                <div className="relative aspect-square w-full overflow-hidden rounded-t-xl sm:rounded-t-2xl rounded-b-lg bg-slate-900 mb-3.5 border border-slate-100 shadow-inner">
+                <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-slate-900 mb-3 border border-slate-100 shadow-inner">
                   <img
                     src={account.thumbnail}
                     alt={`Thuê acc TFT VIP ${account.code} có ${account.mainChibi} - Tuấn Thái Bình`}
@@ -209,26 +209,20 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                   </div>
                 </div>
 
-                {/* Tag danh mục nhỏ */}
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="bg-slate-100 text-slate-700 text-[10px] font-semibold px-2 py-0.5 rounded">
-                    {account.mainChibi}
-                  </span>
+                {/* Tướng Tí Nị - THÔNG TIN ĐỊNH DANH CHÍNH NỔI BẬT */}
+                <div className="text-slate-900 font-bold text-sm sm:text-base leading-snug line-clamp-1 group-hover:text-orange-700 transition-colors">
+                  {account.mainChibi}
                 </div>
 
-                {/* Tên gói/acc: min-h-[3.5rem] line-clamp-2 */}
-                <h3 className="text-slate-800 text-sm font-semibold line-clamp-2 min-h-[3.5rem] leading-snug group-hover:text-orange-600 transition-colors">
-                  {account.title}
-                </h3>
-
-                {/* Sân Đấu: text-slate-600 font-medium rõ nét */}
-                <p className="text-[11px] text-slate-600 line-clamp-1 mt-1.5 font-medium">
-                  🏟️ {account.mainArena}
+                {/* Sân Đấu: text-xs text-slate-500 font-medium */}
+                <p className="text-xs text-slate-500 line-clamp-1 mt-1 font-medium flex items-center gap-1.5">
+                  <span>🏟️</span>
+                  <span>{account.mainArena}</span>
                 </p>
               </div>
 
               {/* Price & Actions: mt-auto luôn nằm thẳng hàng ở đáy */}
-              <div className="mt-auto pt-3.5 border-t border-slate-100 space-y-2.5">
+              <div className="mt-auto pt-3 border-t border-slate-100 space-y-2.5">
                 <div className="flex items-baseline justify-between">
                   <div>
                     <span className="text-base sm:text-lg font-bold text-red-600 font-mono">
@@ -449,11 +443,11 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                 <motion.div
                   key={account.id}
                   variants={shopCardVariants}
-                  className="flex flex-col h-full justify-between bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 group"
+                  className="flex flex-col h-full justify-between bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 group"
                 >
                   {/* Top Photo & Badges - KHUNG VUÔNG ASPECT-SQUARE CÓ ALT CHUẨN SEO */}
                   <div>
-                    <div className="relative aspect-square w-full overflow-hidden rounded-t-xl sm:rounded-t-2xl rounded-b-lg bg-slate-900 mb-3.5 border border-slate-100 shadow-inner">
+                    <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-slate-900 mb-3 border border-slate-100 shadow-inner">
                       <img
                         src={account.thumbnail}
                         alt={`Thuê acc TFT VIP ${account.code} có ${account.mainChibi} - Tuấn Thái Bình`}
@@ -490,26 +484,20 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                       </div>
                     </div>
 
-                    {/* Tag danh mục nhỏ */}
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="bg-slate-100 text-slate-700 text-[10px] font-semibold px-2 py-0.5 rounded">
-                        {account.mainChibi}
-                      </span>
+                    {/* Tướng Tí Nị - THÔNG TIN ĐỊNH DANH CHÍNH NỔI BẬT */}
+                    <div className="text-slate-900 font-bold text-sm sm:text-base leading-snug line-clamp-1 group-hover:text-orange-700 transition-colors">
+                      {account.mainChibi}
                     </div>
 
-                    {/* Tên gói/acc: min-h-[3.5rem] line-clamp-2 */}
-                    <h3 className="text-slate-800 text-sm font-semibold line-clamp-2 min-h-[3.5rem] leading-snug group-hover:text-orange-600 transition-colors">
-                      {account.title}
-                    </h3>
-
-                    {/* Sân Đấu: text-slate-600 rõ nét */}
-                    <p className="text-[11px] text-slate-600 line-clamp-1 mt-1.5 font-medium">
-                      🏟️ {account.mainArena}
+                    {/* Sân Đấu: text-xs text-slate-500 font-medium */}
+                    <p className="text-xs text-slate-500 line-clamp-1 mt-1 font-medium flex items-center gap-1.5">
+                      <span>🏟️</span>
+                      <span>{account.mainArena}</span>
                     </p>
                   </div>
 
                   {/* Price & Actions: mt-auto luôn nằm thẳng hàng ở đáy */}
-                  <div className="mt-auto pt-3.5 border-t border-slate-100 space-y-2.5">
+                  <div className="mt-auto pt-3 border-t border-slate-100 space-y-2.5">
                     <div className="flex items-baseline justify-between">
                       <div>
                         <span className="text-base sm:text-lg font-bold text-red-600 font-mono">
