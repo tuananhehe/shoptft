@@ -133,12 +133,8 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
         </div>
       </div>
 
-      {/* 1. SEAMLESS INFINITE MARQUEE AUTO-LOOP TRACK - CÂN ĐỐI 4 THẺ TRÊN DESKTOP */}
+      {/* 1. SEAMLESS INFINITE MARQUEE AUTO-LOOP TRACK - HIỂN THỊ RÕ NÉT 100% KHÔNG MỜ VIỀN */}
       <div className="max-w-7xl mx-auto relative w-full py-3 overflow-hidden">
-        {/* Soft edge gradients */}
-        <div className="absolute left-0 top-0 bottom-0 w-6 sm:w-10 bg-gradient-to-r from-slate-50 to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-6 sm:w-10 bg-gradient-to-l from-slate-50 to-transparent z-10 pointer-events-none" />
-
         <div
           ref={sliderRef}
           className="animate-infinite-loop flex gap-5 px-4 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar scroll-smooth py-2"
