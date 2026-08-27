@@ -2,6 +2,7 @@
 
 import React from "react";
 import { PROFILE_INFO } from "@/data/tft-data";
+import { motion } from "framer-motion";
 import {
   Trophy,
   KeyRound,
@@ -26,8 +27,14 @@ export const TFTHero: React.FC = () => {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-10 sm:pt-12 sm:pb-12 lg:pt-14 lg:pb-14 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          {/* Left Column: Headline, Sub-text & Commitments (7 cols) */}
-          <div className="lg:col-span-7 space-y-5 text-center lg:text-left">
+          
+          {/* Left Column: Headline, Sub-text & Commitments (7 cols) - TÁCH NHẬP TỪ BÊN TRÁI SANG */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="lg:col-span-7 space-y-5 text-center lg:text-left"
+          >
             {/* Tag tiêu đề nhỏ đỏ cam */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-100/70 border border-orange-200 shadow-sm">
@@ -98,10 +105,15 @@ export const TFTHero: React.FC = () => {
                 <span>Hỗ trợ trực tiếp 24/7</span>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Right Column: KHUNG ĐỒ HỌA MOCKUP THẺ ACC VIP 3D + 3 FLOATING BADGES (5 cols) */}
-          <div className="lg:col-span-5 relative flex justify-center py-6 sm:py-8">
+          {/* Right Column: KHUNG ĐỒ HỌA MOCKUP THẺ ACC VIP 3D + 3 FLOATING BADGES (5 cols) - BAY TỪ BÊN PHẢI VÀO */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+            className="lg:col-span-5 relative flex justify-center py-6 sm:py-8"
+          >
             {/* Background Glow Ring */}
             <div className="absolute inset-0 bg-gradient-to-tr from-orange-400/20 via-amber-300/20 to-emerald-400/20 rounded-3xl blur-2xl transform scale-95" />
 
@@ -203,7 +215,7 @@ export const TFTHero: React.FC = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

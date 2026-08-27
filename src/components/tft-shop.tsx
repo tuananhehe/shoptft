@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { TFT_RENTAL_ACCOUNTS, TFTRentalAccount } from "@/data/tft-data";
+import { motion } from "framer-motion";
 import {
   Search,
   KeyRound,
@@ -24,6 +25,25 @@ import {
 interface TFTShopProps {
   onSelectAccount: (account: TFTRentalAccount) => void;
 }
+
+const shopContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+    },
+  },
+};
+
+const shopCardVariants = {
+  hidden: { opacity: 0, y: 25 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.45, ease: "easeOut" },
+  },
+};
 
 const RENTAL_DURATIONS = [
   { id: "ALL", label: "Tất cả gói thuê" },
@@ -97,8 +117,14 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
   return (
     <section id="shop" className="pt-8 pb-14 sm:pt-10 sm:pb-16 bg-slate-50 border-t border-slate-200/80 border-b border-slate-200 text-slate-900 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
-        {/* Section Header chuẩn SEO với thẻ H2 */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        {/* Section Header chuẩn SEO với thẻ H2 - Hiệu ứng whileInView Framer Motion */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="flex flex-col md:flex-row md:items-end justify-between gap-4"
+        >
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-100/80 border border-orange-200 text-orange-700 text-xs font-bold uppercase tracking-wider shadow-sm">
               <Flame className="w-3.5 h-3.5 text-orange-600" />
@@ -130,7 +156,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* 1. SEAMLESS INFINITE MARQUEE AUTO-LOOP TRACK - HIỂN THỊ RÕ NÉT 100% KHÔNG MỜ VIỀN */}
@@ -400,7 +426,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
             </div>
           </div>
 
-          {/* GRID 4 CỘT TẤT CẢ ACC - BỐ CỤC ĐỀU NHAU TUYỆT ĐỐI */}
+          {/* GRID 4 CỘT TẤT CẢ ACC - HIỆU ỨNG STAGGER FRAMER MOTION */}
           {filteredAccounts.length === 0 ? (
             <div className="text-center py-16 bg-white border border-slate-200 rounded-2xl p-8">
               <KeyRound className="w-12 h-12 text-slate-400 mx-auto mb-3" />
@@ -412,10 +438,17 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <motion.div
+              variants={shopContainerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.1 }}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
+            >
               {filteredAccounts.map((account) => (
-                <div
+                <motion.div
                   key={account.id}
+                  variants={shopCardVariants}
                   className="flex flex-col h-full justify-between bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 group"
                 >
                   {/* Top Photo & Badges - KHUNG VUÔNG ASPECT-SQUARE CÓ ALT CHUẨN SEO */}
@@ -507,9 +540,9 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                       </button>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
         </div>
       )}
