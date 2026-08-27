@@ -589,6 +589,12 @@ export const FAQS: FAQItem[] = [
     category: "CAY_RANK",
     badge: "Voice 1-1",
   },
+  {
+    q: "Tôi có thể nâng cấp từ gói thuê ngắn ngày sang gói Thuê Lâu Dài được không?",
+    a: "Hoàn toàn được! Shop có chính sách 'Trải nghiệm trước, nâng cấp sau'. Trong thời gian bạn đang thuê (hoặc chậm nhất 24h sau khi gói thuê kết thúc), bạn chỉ cần thanh toán số tiền chênh lệch giữa gói đang thuê và gói Thuê Lâu Dài (999 Ngày). Hệ thống sẽ ngay lập tức bàn giao toàn bộ thông tin gốc của tài khoản cho bạn.",
+    category: "THUE_ACC",
+    badge: "Đặc Quyền Bù %",
+  },
 ];
 
 // Aliases for compatibility

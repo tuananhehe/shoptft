@@ -155,12 +155,17 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
       return;
     }
 
+    const upgradeNote =
+      selectedPackage === "30d"
+        ? "\n*Ghi chú: Đơn này được áp dụng chính sách bù 70% để nâng cấp lên Thuê Lâu Dài trong quá trình sử dụng.*"
+        : "";
+
     const orderMessage = `[ĐƠN ĐẶT ACC TFT]
 - Mã Acc: ${account.code}
 - Tên Acc: ${account.title}
 - Thời hạn: ${activePkg.name}
 - Tổng thanh toán: ${formatMoney(activePkg.totalPrice)}
-Nhờ shop gửi STK và hỗ trợ bàn giao thông tin!`;
+Nhờ shop gửi STK và hỗ trợ bàn giao thông tin!${upgradeNote}`;
 
     if (navigator.clipboard) {
       navigator.clipboard.writeText(orderMessage).catch(() => {});
@@ -445,6 +450,17 @@ Báo mình khi acc này hết giờ thuê nhé!`;
                     </div>
                   </button>
                 </div>
+              </div>
+
+              {/* KHỐI THÔNG BÁO ĐẶC QUYỀN NÂNG CẤP (RENT-TO-OWN) */}
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 sm:p-3.5 text-blue-800 space-y-1">
+                <div className="flex items-center gap-1.5 font-bold text-xs sm:text-sm text-blue-900">
+                  <Zap className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                  <span>⚡ Đặc quyền nâng cấp (Rent-to-Own):</span>
+                </div>
+                <p className="text-xs text-blue-700 leading-relaxed font-normal">
+                  Bạn có thể bù phần % chênh lệch để nâng cấp lên gói Thuê Lâu Dài bất cứ lúc nào trong thời gian đang thuê (và tối đa 24h sau khi hết hạn thuê). Ví dụ: Đã thuê gói 30 ngày (30%), chỉ cần bù thêm 70% để sở hữu acc.
+                </p>
               </div>
 
               {/* TOTAL PRICE & GHI CHÚ BÓC TÁCH PHÍ */}
