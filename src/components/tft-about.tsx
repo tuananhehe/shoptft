@@ -61,8 +61,8 @@ export const TFTAbout: React.FC = () => {
 
   const commitments = [
     {
-      title: "Tài Khoản Trắng Thông Tin 100%",
-      desc: "Kiểm tra kỹ lưỡng, hỗ trợ đổi mail & Riot 2FA lập tức sau khi hoàn tất thanh toán.",
+      title: "Tài Khoản An Toàn 100%",
+      desc: "Cam kết tài khoản bảo mật tuyệt đối, không bị văng game hay tranh chấp khi đang chơi. Bàn giao full thông tin cho các gói thuê lâu dài.",
       icon: <Lock className="w-4 h-4 text-emerald-600" />,
       badgeColor: "bg-emerald-100 text-emerald-700",
     },
@@ -73,8 +73,8 @@ export const TFTAbout: React.FC = () => {
       badgeColor: "bg-emerald-100 text-emerald-700",
     },
     {
-      title: "Bảo Hành Trọn Đời",
-      desc: "Đồng hành và chịu trách nhiệm cùng khách hàng trong suốt thời gian sử dụng tài khoản.",
+      title: "Bảo Hành Suốt Thời Gian Thuê",
+      desc: "Chịu trách nhiệm 100% các vấn đề phát sinh. Hỗ trợ 1 ĐỔI 1 ngay lập tức nếu tài khoản gặp lỗi đăng nhập hoặc sự cố bất khả kháng.",
       icon: <Award className="w-4 h-4 text-orange-600" />,
       badgeColor: "bg-orange-100 text-orange-700",
     },
