@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { TFT_RENTAL_ACCOUNTS, TFTRentalAccount } from "@/data/tft-data";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import {
   Search,
   KeyRound,
@@ -26,7 +26,7 @@ interface TFTShopProps {
   onSelectAccount: (account: TFTRentalAccount) => void;
 }
 
-const shopContainerVariants = {
+const shopContainerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -36,7 +36,7 @@ const shopContainerVariants = {
   },
 };
 
-const shopCardVariants = {
+const shopCardVariants: Variants = {
   hidden: { opacity: 0, y: 25 },
   visible: {
     opacity: 1,
