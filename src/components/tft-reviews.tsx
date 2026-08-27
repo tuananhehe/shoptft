@@ -85,7 +85,7 @@ export const TFTReviews: React.FC = () => {
               onClick={() => handleCategoryChange(cat.id)}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 selectedCategory === cat.id
-                  ? "bg-orange-600 text-white shadow-md shadow-orange-600/20"
+                  ? "bg-orange-700 hover:bg-orange-800 text-white shadow-md shadow-orange-700/20"
                   : "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
               }`}
             >
@@ -115,7 +115,8 @@ export const TFTReviews: React.FC = () => {
                     </div>
 
                     <div>
-                      <h4 className="font-bold text-slate-900 text-sm">{rev.customerName}</h4>
+                      {/* Thay đổi h4 thành thẻ p chuẩn WCAG Heading Order */}
+                      <p className="font-bold text-slate-900 text-sm">{rev.customerName}</p>
                       <span className="text-[11px] text-slate-500 font-normal">{rev.accountBought}</span>
                     </div>
                   </div>
@@ -149,12 +150,13 @@ export const TFTReviews: React.FC = () => {
           })}
         </div>
 
-        {/* Pagination */}
+        {/* Pagination với aria-label chuẩn Accessibility */}
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-3">
             <button
               onClick={() => setPage(Math.max(0, page - 1))}
               disabled={page === 0}
+              aria-label="Trang trước"
               className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:pointer-events-none text-slate-700 border border-slate-200 transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -165,6 +167,7 @@ export const TFTReviews: React.FC = () => {
             <button
               onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
               disabled={page === totalPages - 1}
+              aria-label="Trang tiếp theo"
               className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:pointer-events-none text-slate-700 border border-slate-200 transition-colors cursor-pointer"
             >
               <ChevronRight className="w-4 h-4" />

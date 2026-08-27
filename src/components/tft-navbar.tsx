@@ -67,10 +67,10 @@ export const TFTNavbar: React.FC = () => {
 
           {/* 3. BÊN PHẢI: NÚT THUÊ ACC & NÚT MOBILE MENU */}
           <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
-            {/* Nút Thuê Acc */}
+            {/* Nút Thuê Acc - Đổi sang bg-orange-700 để tăng độ tương phản WCAG */}
             <a
               href="#shop"
-              className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2.5 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-orange-600/20 hover:shadow-lg transition-all hover:scale-105"
+              className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2.5 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-orange-700/20 hover:shadow-lg transition-all hover:scale-105"
             >
               <KeyRound className="w-4 h-4" />
               <span>Thuê Acc</span>
@@ -109,7 +109,7 @@ export const TFTNavbar: React.FC = () => {
             <a
               href="#shop"
               onClick={() => setMobileOpen(false)}
-              className="w-full h-9 flex items-center justify-center gap-1.5 bg-orange-600 text-white font-bold text-xs rounded-xl shadow-sm"
+              className="w-full h-9 flex items-center justify-center gap-1.5 bg-orange-700 hover:bg-orange-800 text-white font-bold text-xs rounded-xl shadow-sm"
             >
               <KeyRound className="w-3 h-3" />
               <span>Kho Acc</span>

@@ -578,7 +578,7 @@ Báo mình khi acc này hết giờ thuê nhé!`;
                 onClick={handleOrderZalo}
                 className={`px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 w-1/2 sm:w-auto cursor-pointer ${
                   canSubmit
-                    ? "bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white shadow-md hover:scale-105 shadow-orange-600/20"
+                    ? "bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white shadow-md hover:scale-105 shadow-orange-700/20"
                     : "bg-slate-200 hover:bg-slate-300 text-slate-500 border border-slate-300 shadow-sm"
                 }`}
               >

@@ -71,11 +71,11 @@ export const TFTHero: React.FC = () => {
               Shop thuê acc TFT, thuê acc ĐTCL VIP tự động bàn giao 30s. Đầy đủ Tướng Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc với Quỹ bảo hiểm 30M Checkscam an toàn tuyệt đối.
             </p>
 
-            {/* Nút bấm CTA: "Khám phá kho acc" */}
+            {/* Nút bấm CTA: "Khám phá kho acc" - Cập nhật bg-orange-700 chuẩn WCAG Contrast */}
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-1">
               <a
                 href="#shop"
-                className="w-full sm:w-auto px-8 py-3.5 inline-flex items-center justify-center gap-2 rounded-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-orange-600/25 transition-all hover:scale-105 cursor-pointer"
+                className="w-full sm:w-auto px-8 py-3.5 inline-flex items-center justify-center gap-2 rounded-full bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-orange-700/25 transition-all hover:scale-105 cursor-pointer"
               >
                 <KeyRound className="w-4 h-4" />
                 <span>Khám phá kho acc</span>

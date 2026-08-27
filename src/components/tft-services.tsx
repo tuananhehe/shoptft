@@ -73,7 +73,7 @@ export const TFTServices: React.FC = () => {
                   rel="noopener noreferrer"
                   className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
                     srv.popular
-                      ? "bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white shadow-md shadow-orange-600/20 hover:scale-[1.02]"
+                      ? "bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white shadow-md shadow-orange-700/20 hover:scale-[1.02]"
                       : "bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 shadow-sm"
                   }`}
                 >

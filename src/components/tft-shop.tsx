@@ -252,7 +252,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
 
                   <button
                     onClick={() => onSelectAccount(account)}
-                    className="h-9 px-2 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-600/20 flex items-center justify-center gap-1 hover:scale-105 cursor-pointer"
+                    className="h-9 px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 hover:scale-105 cursor-pointer"
                   >
                     <KeyRound className="w-3.5 h-3.5" />
                     <span>Thuê Ngay</span>
@@ -271,7 +271,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
           className={`max-w-md mx-auto w-full py-3 sm:py-3.5 px-6 inline-flex items-center justify-center gap-2.5 rounded-full font-semibold text-sm transition-all duration-300 shadow-md cursor-pointer ${
             showFullCatalog
               ? "bg-slate-800 text-white hover:bg-slate-900"
-              : "bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white shadow-orange-600/25 hover:scale-105"
+              : "bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white shadow-orange-700/25 hover:scale-105"
           }`}
         >
           <Layers className="w-4 h-4" />
@@ -299,7 +299,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                   <Zap className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-800 uppercase text-[11px]">Bàn Giao Tự Động</h4>
+                  <p className="font-bold text-slate-800 uppercase text-[11px]">Bàn Giao Tự Động</p>
                   <p className="text-slate-500 leading-relaxed mt-0.5">
                     Nhận ngay ID & Mật Khẩu qua Zalo trong 30 giây sau khi quét QR.
                   </p>
@@ -311,7 +311,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-800 uppercase text-[11px]">Đúng 100% Ảnh Mô Tả</h4>
+                  <p className="font-bold text-slate-800 uppercase text-[11px]">Đúng 100% Ảnh Mô Tả</p>
                   <p className="text-slate-500 leading-relaxed mt-0.5">
                     Cam kết đúng Tướng Tí Nị, Sân Đấu và Bậc Rank như mô tả.
                   </p>
@@ -323,7 +323,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                   <AlertTriangle className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-800 uppercase text-[11px]">Nghiêm Cấm Hack/Phá</h4>
+                  <p className="font-bold text-slate-800 uppercase text-[11px]">Nghiêm Cấm Hack/Phá</p>
                   <p className="text-slate-500 leading-relaxed mt-0.5">
                     Nghiêm cấm dùng phần mềm thứ 3 hoặc phá rank của chủ acc.
                   </p>
@@ -335,7 +335,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                   <RefreshCw className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-800 uppercase text-[11px]">Hỗ Trợ Đổi Acc 24/7</h4>
+                  <p className="font-bold text-slate-800 uppercase text-[11px]">Hỗ Trợ Đổi Acc 24/7</p>
                   <p className="text-slate-500 leading-relaxed mt-0.5">
                     Đổi acc tương đương hoặc bù giờ ngay lập tức nếu có sự cố.
                   </p>
@@ -533,7 +533,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
 
                       <button
                         onClick={() => onSelectAccount(account)}
-                        className="h-9 px-2 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-600/20 flex items-center justify-center gap-1 hover:scale-105 cursor-pointer"
+                        className="h-9 px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 hover:scale-105 cursor-pointer"
                       >
                         <KeyRound className="w-3.5 h-3.5" />
                         <span>Thuê Ngay</span>
