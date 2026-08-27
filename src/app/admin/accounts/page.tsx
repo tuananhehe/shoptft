@@ -28,6 +28,21 @@ interface AdminAccount extends TFTRentalAccount {
   rentedUntil?: string; // ISO string format thời gian trả acc
 }
 
+// Helper format thời gian: "22:30, 15/10"
+const formatRentedUntil = (isoDateStr?: string) => {
+  if (!isoDateStr) return "";
+  try {
+    const d = new Date(isoDateStr);
+    const hours = d.getHours().toString().padStart(2, "0");
+    const minutes = d.getMinutes().toString().padStart(2, "0");
+    const day = d.getDate().toString().padStart(2, "0");
+    const month = (d.getMonth() + 1).toString().padStart(2, "0");
+    return `${hours}:${minutes}, ${day}/${month}`;
+  } catch {
+    return "";
+  }
+};
+
 export default function AdminAccountsPage() {
   // Khởi tạo state với dữ liệu mock chuẩn từ tft-data
   const [accounts, setAccounts] = useState<AdminAccount[]>(TFT_RENTAL_ACCOUNTS);
@@ -35,10 +50,13 @@ export default function AdminAccountsPage() {
   const [statusFilter, setStatusFilter] = useState<"ALL" | "AVAILABLE" | "RENTED">("ALL");
   const [rankFilter, setRankFilter] = useState("ALL");
 
-  // State cho Modal Cập Nhật Trạng Thái Đang Thuê
+  // State cho Modal "Thiết lập thời gian cho thuê"
   const [statusModalAccount, setStatusModalAccount] = useState<AdminAccount | null>(null);
   const [quickDurationHours, setQuickDurationHours] = useState<number>(2);
   const [customEndTime, setCustomEndTime] = useState<string>("");
+
+  // State cho Modal Confirm Xóa Acc
+  const [deleteConfirmAccount, setDeleteConfirmAccount] = useState<AdminAccount | null>(null);
 
   // State cho Drawer Thêm / Sửa Acc
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -98,18 +116,17 @@ export default function AdminAccountsPage() {
   }, [accounts, searchTerm, statusFilter, rankFilter]);
 
   // ============================================================
-  // LOGIC 1: TOGGLE TRẠNG THÁI & MODAL NHẬP THỜI GIAN THUÊ
+  // LOGIC 1: BẮT SỰ KIỆN NÚT TOGGLE (GẠT TRẠNG THÁI)
   // ============================================================
-  const handleToggleStatus = (account: AdminAccount) => {
+  const handleToggleChange = (account: AdminAccount) => {
     if (account.status === "AVAILABLE") {
-      // Đang sẵn sàng -> Bật Modal để nhập thời gian kết thúc thuê
+      // Khi gạt từ SẴN SÀNG -> sang ĐANG THUÊ: KHÔNG chuyển ngay mà mở Modal thiết lập thời gian
       setStatusModalAccount(account);
-      // Mặc định +2 giờ
       const defaultDate = new Date(Date.now() + 2 * 60 * 60 * 1000);
       setCustomEndTime(defaultDate.toISOString().slice(0, 16));
       setQuickDurationHours(2);
     } else {
-      // Đang có khách thuê -> Gạt về Sẵn Sàng ngay lập tức
+      // Khi gạt từ ĐANG THUÊ -> về SẴN SÀNG: Trực tiếp chuyển về màu Xanh và xóa thời gian kết thúc
       setAccounts((prev) =>
         prev.map((a) =>
           a.id === account.id
@@ -121,18 +138,20 @@ export default function AdminAccountsPage() {
     }
   };
 
-  // Áp dụng thời gian thuê nhanh (+2h, +7d, +30d)
+  // Nút chọn nhanh thời gian (+2 Giờ, +7 Ngày, +30 Ngày)
   const applyQuickDuration = (hours: number) => {
     setQuickDurationHours(hours);
     const targetDate = new Date(Date.now() + hours * 60 * 60 * 1000);
     setCustomEndTime(targetDate.toISOString().slice(0, 16));
   };
 
-  // Xác nhận chuyển trạng thái sang Đang Thuê kèm End Time
-  const confirmRentedStatus = () => {
+  // Nút [Xác nhận] trong Modal thiết lập thời gian thuê
+  const confirmRentDuration = () => {
     if (!statusModalAccount) return;
 
-    const endTimeDate = customEndTime ? new Date(customEndTime) : new Date(Date.now() + quickDurationHours * 3600000);
+    const endTimeDate = customEndTime
+      ? new Date(customEndTime)
+      : new Date(Date.now() + quickDurationHours * 3600000);
 
     setAccounts((prev) =>
       prev.map((a) =>
@@ -147,13 +166,27 @@ export default function AdminAccountsPage() {
     );
 
     showToast(
-      `Đã chuyển ${statusModalAccount.code} sang ĐANG THUÊ đến ${endTimeDate.toLocaleDateString("vi-VN")} ${endTimeDate.toLocaleTimeString("vi-VN")}`
+      `Đã chuyển ${statusModalAccount.code} sang ĐANG THUÊ (Hết hạn: ${formatRentedUntil(endTimeDate.toISOString())})`
     );
     setStatusModalAccount(null);
   };
 
   // ============================================================
-  // LOGIC 2: DRAWER THÊM / SỬA TÀI KHOẢN
+  // LOGIC 2: XÓA ACC VỚI MODAL CONFIRM
+  // ============================================================
+  const handleDeleteClick = (account: AdminAccount) => {
+    setDeleteConfirmAccount(account);
+  };
+
+  const confirmDeleteAccount = () => {
+    if (!deleteConfirmAccount) return;
+    setAccounts((prev) => prev.filter((a) => a.id !== deleteConfirmAccount.id));
+    showToast(`Đã xóa tài khoản ${deleteConfirmAccount.code} thành công.`);
+    setDeleteConfirmAccount(null);
+  };
+
+  // ============================================================
+  // LOGIC 3: DRAWER THÊM / SỬA TÀI KHOẢN
   // ============================================================
   const openCreateDrawer = () => {
     setEditingAccount(null);
@@ -211,7 +244,6 @@ export default function AdminAccountsPage() {
     setFormAllArenas((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Lưu Form Thêm / Sửa
   const handleSaveAccount = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -275,14 +307,6 @@ export default function AdminAccountsPage() {
     }
 
     setDrawerOpen(false);
-  };
-
-  // Xóa Acc
-  const handleDeleteAccount = (id: string, code: string) => {
-    if (confirm(`Bạn có chắc chắn muốn xóa tài khoản ${code} khỏi hệ thống?`)) {
-      setAccounts((prev) => prev.filter((a) => a.id !== id));
-      showToast(`Đã xóa tài khoản ${code} thành công.`);
-    }
   };
 
   return (
@@ -419,10 +443,10 @@ export default function AdminAccountsPage() {
               <tr>
                 <th className="py-3.5 px-4">Mã Acc</th>
                 <th className="py-3.5 px-4">Hình Ảnh</th>
-                <th className="py-3.5 px-4 min-w-[220px]">Chi Tiết Tài Khoản</th>
+                <th className="py-3.5 px-4 min-w-[260px]">Chi Tiết Tài Khoản</th>
                 <th className="py-3.5 px-4">Giá Trị Gốc</th>
                 <th className="py-3.5 px-4">Giá Thuê / Giờ</th>
-                <th className="py-3.5 px-4">Trạng Thái (Gạt Bật/Tắt)</th>
+                <th className="py-3.5 px-4 min-w-[180px]">Trạng Thái (Gạt Bật/Tắt)</th>
                 <th className="py-3.5 px-4 text-right">Thao Tác</th>
               </tr>
             </thead>
@@ -457,21 +481,25 @@ export default function AdminAccountsPage() {
                         </div>
                       </td>
 
-                      {/* Cột 3: Chi Tiết */}
+                      {/* Cột 3: TỐI ƯU CỘT CHI TIẾT (Tên Acc to rõ, phân cấp với subtext) */}
                       <td className="py-4 px-4">
-                        <div className="space-y-1">
+                        <div className="space-y-1.5">
                           <div className="flex items-center gap-2">
                             <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-orange-100 text-orange-700 border border-orange-200">
                               {account.rank}
                             </span>
-                            <span className="text-[11px] font-bold text-slate-600">
+                            <span className="text-[11px] font-bold text-slate-700">
                               ⭐ {account.mainChibi}
                             </span>
                           </div>
-                          <h4 className="font-bold text-slate-900 text-sm line-clamp-1 group-hover:text-orange-600 transition-colors">
+
+                          {/* Tên Acc to hơn rõ nét (text-sm font-semibold text-slate-800) */}
+                          <h4 className="text-sm font-semibold text-slate-800 line-clamp-1 group-hover:text-orange-600 transition-colors">
                             {account.title}
                           </h4>
-                          <p className="text-[11px] text-slate-500 line-clamp-1">
+
+                          {/* Dòng subtext sàn đấu / linh thú nhỏ gọn (text-xs text-slate-500) */}
+                          <p className="text-xs text-slate-500 line-clamp-1 font-normal">
                             🏟️ {account.mainArena}
                           </p>
                         </div>
@@ -487,65 +515,66 @@ export default function AdminAccountsPage() {
                         {account.hourlyPrice.toLocaleString("vi-VN")}đ
                       </td>
 
-                      {/* Cột 6: Trạng Thái & NÚT GẠT (SWITCH TOGGLE) */}
+                      {/* Cột 6: TRẠNG THÁI & NÚT GẠT (SWITCH TOGGLE CÓ HIỂN THỊ HẾT HẠN) */}
                       <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          {/* Switch Button */}
-                          <button
-                            type="button"
-                            onClick={() => handleToggleStatus(account)}
-                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                              isRented ? "bg-rose-500" : "bg-emerald-500"
-                            }`}
-                            title="Bấm để đổi trạng thái"
-                          >
-                            <span
-                              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                                isRented ? "translate-x-5" : "translate-x-0"
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2.5">
+                            {/* Switch Button */}
+                            <button
+                              type="button"
+                              onClick={() => handleToggleChange(account)}
+                              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                                isRented ? "bg-rose-500" : "bg-emerald-500"
                               }`}
-                            />
-                          </button>
+                              title={
+                                isRented
+                                  ? "Gạt về để chuyển sang Sẵn Sàng"
+                                  : "Gạt sang để thiết lập thời gian cho thuê"
+                              }
+                            >
+                              <span
+                                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                  isRented ? "translate-x-5" : "translate-x-0"
+                                }`}
+                              />
+                            </button>
 
-                          {/* Label Trạng Thái */}
-                          {isRented ? (
-                            <div>
-                              <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 font-bold text-[10px] uppercase block">
+                            {/* Label Trạng Thái */}
+                            {isRented ? (
+                              <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 font-bold text-[10px] uppercase">
                                 Đang Thuê
                               </span>
-                              {account.rentedUntil && (
-                                <span className="text-[9px] text-slate-500 block mt-0.5">
-                                  Hết:{" "}
-                                  {new Date(account.rentedUntil).toLocaleTimeString(
-                                    "vi-VN",
-                                    { hour: "2-digit", minute: "2-digit" }
-                                  )}
-                                </span>
-                              )}
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 font-bold text-[10px] uppercase">
+                                Sẵn Sàng
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Hiển thị thời gian kết thúc bên dưới Toggle khi đang thuê */}
+                          {isRented && account.rentedUntil && (
+                            <div className="text-slate-500 text-xs mt-1 font-mono flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-slate-400" />
+                              <span>Hết hạn: {formatRentedUntil(account.rentedUntil)}</span>
                             </div>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 font-bold text-[10px] uppercase">
-                              Sẵn Sàng
-                            </span>
                           )}
                         </div>
                       </td>
 
-                      {/* Cột 7: Thao Tác Sửa / Xóa */}
+                      {/* Cột 7: Thao Tác Sửa / Xóa (Có Modal Confirm Xóa) */}
                       <td className="py-4 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => openEditDrawer(account)}
-                            className="p-1.5 bg-slate-100 hover:bg-orange-50 hover:text-orange-600 text-slate-600 rounded-lg transition-colors"
-                            title="Chỉnh sửa acc"
+                            className="p-1.5 bg-slate-100 hover:bg-orange-50 hover:text-orange-600 text-slate-600 rounded-lg transition-colors cursor-pointer"
+                            title="Chỉnh sửa thông tin acc"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={() =>
-                              handleDeleteAccount(account.id, account.code)
-                            }
-                            className="p-1.5 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 rounded-lg transition-colors"
-                            title="Xóa acc"
+                            onClick={() => handleDeleteClick(account)}
+                            className="p-1.5 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 rounded-lg transition-colors cursor-pointer"
+                            title="Xóa acc khỏi kho"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -567,20 +596,20 @@ export default function AdminAccountsPage() {
       </div>
 
       {/* ============================================================ */}
-      {/* 4. POPUP MODAL NHẬP THỜI GIAN KẾT THÚC (KHI GẠT SANG ĐANG THUÊ)*/}
+      {/* 4. MODAL THIẾT LẬP THỜI GIAN CHO THUÊ                        */}
       {/* ============================================================ */}
       {statusModalAccount && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 relative shadow-2xl border border-slate-200 space-y-5 animate-scaleUp">
             {/* Header Modal */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
-                  <Lock className="w-4 h-4" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
+                  <Clock className="w-4 h-4" />
                 </div>
                 <div>
                   <h3 className="font-extrabold text-slate-900 text-base">
-                    Cập Nhật Trạng Thái Đang Thuê
+                    Thiết lập thời gian cho thuê
                   </h3>
                   <span className="text-xs text-orange-600 font-bold font-mono">
                     {statusModalAccount.code} - {statusModalAccount.title}
@@ -596,7 +625,7 @@ export default function AdminAccountsPage() {
               </button>
             </div>
 
-            {/* Các Nút Chọn Thời Gian Nhanh */}
+            {/* Các Nút Chọn Thời Gian Nhanh: [2 Giờ], [7 Ngày], [30 Ngày] */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-700 block">
                 1. Chọn nhanh thời gian thuê:
@@ -605,40 +634,40 @@ export default function AdminAccountsPage() {
                 <button
                   type="button"
                   onClick={() => applyQuickDuration(2)}
-                  className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all ${
+                  className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all cursor-pointer ${
                     quickDurationHours === 2
                       ? "bg-orange-600 text-white border-orange-600 shadow-md"
                       : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                   }`}
                 >
-                  ⚡ +2 Giờ
+                  ⚡ 2 Giờ
                 </button>
                 <button
                   type="button"
-                  onClick={() => applyQuickDuration(168)} // 7 ngày = 168h
-                  className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all ${
+                  onClick={() => applyQuickDuration(168)} // 7 ngày
+                  className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all cursor-pointer ${
                     quickDurationHours === 168
                       ? "bg-orange-600 text-white border-orange-600 shadow-md"
                       : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                   }`}
                 >
-                  📅 +7 Ngày
+                  📅 7 Ngày
                 </button>
                 <button
                   type="button"
-                  onClick={() => applyQuickDuration(720)} // 30 ngày = 720h
-                  className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all ${
+                  onClick={() => applyQuickDuration(720)} // 30 ngày
+                  className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all cursor-pointer ${
                     quickDurationHours === 720
                       ? "bg-orange-600 text-white border-orange-600 shadow-md"
                       : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                   }`}
                 >
-                  🌙 +30 Ngày
+                  🌙 30 Ngày
                 </button>
               </div>
             </div>
 
-            {/* Chọn Ngày & Giờ Tùy Chỉnh */}
+            {/* Chọn Ngày & Giờ Tùy Chỉnh (datetime-local) */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-700 block">
                 2. Hoặc tùy chỉnh ngày & giờ kết thúc:
@@ -650,27 +679,25 @@ export default function AdminAccountsPage() {
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-orange-500 shadow-sm"
               />
               <p className="text-[11px] text-slate-500">
-                * Dữ liệu thời gian này sẽ được lưu vào thuộc tính{" "}
-                <code className="text-orange-600 font-mono font-bold">rentedUntil</code> để
-                Frontend tự động đếm ngược theo thời gian thực.
+                * Khi xác nhận, nút Toggle sẽ chuyển sang màu đỏ và lưu lại mốc thời gian kết thúc để hiển thị trên bảng.
               </p>
             </div>
 
-            {/* Modal Actions */}
+            {/* Modal Actions: [Xác nhận] */}
             <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setStatusModalAccount(null)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-colors"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-colors cursor-pointer"
               >
                 Hủy Bỏ
               </button>
               <button
                 type="button"
-                onClick={confirmRentedStatus}
-                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md transition-all"
+                onClick={confirmRentDuration}
+                className="px-5 py-2 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer"
               >
-                Xác Nhận Khách Thuê
+                Xác Nhận Cho Thuê
               </button>
             </div>
           </div>
@@ -678,11 +705,53 @@ export default function AdminAccountsPage() {
       )}
 
       {/* ============================================================ */}
-      {/* 5. SLIDE-OVER DRAWER THÊM / SỬA ACC (VUỐT TỪ PHẢI SANG)      */}
+      {/* 5. MODAL CONFIRM XÓA TÀI KHOẢN                               */}
+      {/* ============================================================ */}
+      {deleteConfirmAccount && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 relative shadow-2xl border border-slate-200 text-center space-y-4 animate-scaleUp">
+            <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+              <Trash2 className="w-6 h-6" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="font-extrabold text-slate-900 text-base">
+                Xác Nhận Xóa Tài Khoản?
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Bạn có chắc chắn muốn xóa tài khoản{" "}
+                <strong className="text-slate-900 font-mono">
+                  {deleteConfirmAccount.code}
+                </strong>{" "}
+                ({deleteConfirmAccount.title}) khỏi hệ thống? Hành động này không thể hoàn tác.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmAccount(null)}
+                className="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-colors cursor-pointer"
+              >
+                Hủy Bỏ
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteAccount}
+                className="py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer"
+              >
+                Xóa Vĩnh Viễn
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* 6. SLIDE-OVER DRAWER THÊM / SỬA ACC (VUỐT TỪ PHẢI SANG)      */}
       {/* ============================================================ */}
       {drawerOpen && (
         <div className="fixed inset-0 z-50 overflow-hidden animate-fadeIn">
-          {/* Backdrop */}
           <div
             onClick={() => setDrawerOpen(false)}
             className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
@@ -690,9 +759,7 @@ export default function AdminAccountsPage() {
 
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
             <div className="w-screen max-w-xl bg-white shadow-2xl flex flex-col justify-between overflow-y-auto">
-              {/* Drawer Form */}
               <form onSubmit={handleSaveAccount} className="flex-1 flex flex-col justify-between">
-                {/* Header */}
                 <div className="p-6 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <div className="w-9 h-9 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
@@ -717,9 +784,7 @@ export default function AdminAccountsPage() {
                   </button>
                 </div>
 
-                {/* Form Fields */}
                 <div className="p-6 space-y-5 flex-1 overflow-y-auto text-xs">
-                  {/* Mã Acc & Bậc Rank */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="font-bold text-slate-800 block">
@@ -754,7 +819,6 @@ export default function AdminAccountsPage() {
                     </div>
                   </div>
 
-                  {/* Tên mô tả ngắn */}
                   <div className="space-y-1.5">
                     <label className="font-bold text-slate-800 block">
                       Tiêu Đề / Tên Acc: <span className="text-red-500">*</span>
@@ -769,7 +833,6 @@ export default function AdminAccountsPage() {
                     />
                   </div>
 
-                  {/* Giá Trị Gốc & Giá Thuê Giờ */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="font-bold text-slate-800 block">
@@ -782,7 +845,6 @@ export default function AdminAccountsPage() {
                         onChange={(e) => {
                           const val = Number(e.target.value);
                           setFormAccountValue(val);
-                          // Gợi ý giá thuê giờ ~1.5%
                           setFormHourlyPrice(Math.round((val * 0.015) / 1000) * 1000);
                         }}
                         className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-slate-900 focus:outline-none focus:border-orange-500"
@@ -803,7 +865,6 @@ export default function AdminAccountsPage() {
                     </div>
                   </div>
 
-                  {/* Hình ảnh Thumbnail */}
                   <div className="space-y-1.5">
                     <label className="font-bold text-slate-800 block">
                       URL Hình Ảnh (Khung Vuông):
@@ -828,7 +889,6 @@ export default function AdminAccountsPage() {
                     )}
                   </div>
 
-                  {/* Tags Tướng Tí Nị (Multi-select) */}
                   <div className="space-y-2">
                     <label className="font-bold text-slate-800 block">
                       Danh Sách Tướng Tí Nị Trong Acc:
@@ -844,19 +904,18 @@ export default function AdminAccountsPage() {
                             handleAddChibiTag();
                           }
                         }}
-                        placeholder="Nhập tên tướng và ấn Thêm (VD: Tí Nị Ahri Tinh Quái)"
+                        placeholder="Nhập tên tướng và ấn Thêm"
                         className="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-orange-500"
                       />
                       <button
                         type="button"
                         onClick={handleAddChibiTag}
-                        className="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold"
+                        className="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold cursor-pointer"
                       >
                         Thêm
                       </button>
                     </div>
 
-                    {/* Danh sách Tag đã thêm */}
                     <div className="flex flex-wrap gap-1.5 pt-1">
                       {formAllChibi.map((chibi, idx) => (
                         <span
@@ -867,7 +926,7 @@ export default function AdminAccountsPage() {
                           <button
                             type="button"
                             onClick={() => handleRemoveChibiTag(idx)}
-                            className="hover:text-red-600 font-bold ml-1"
+                            className="hover:text-red-600 font-bold ml-1 cursor-pointer"
                           >
                             ×
                           </button>
@@ -876,7 +935,6 @@ export default function AdminAccountsPage() {
                     </div>
                   </div>
 
-                  {/* Tags Sân Đấu Thần Thoại (Multi-select) */}
                   <div className="space-y-2">
                     <label className="font-bold text-slate-800 block">
                       Danh Sách Sân Đấu Thần Thoại:
@@ -892,13 +950,13 @@ export default function AdminAccountsPage() {
                             handleAddArenaTag();
                           }
                         }}
-                        placeholder="Nhập tên sân đấu (VD: Sân Đấu Tiệm Trà Tâm Linh)"
+                        placeholder="Nhập tên sân đấu"
                         className="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-orange-500"
                       />
                       <button
                         type="button"
                         onClick={handleAddArenaTag}
-                        className="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold"
+                        className="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold cursor-pointer"
                       >
                         Thêm
                       </button>
@@ -914,7 +972,7 @@ export default function AdminAccountsPage() {
                           <button
                             type="button"
                             onClick={() => handleRemoveArenaTag(idx)}
-                            className="hover:text-red-600 font-bold ml-1"
+                            className="hover:text-red-600 font-bold ml-1 cursor-pointer"
                           >
                             ×
                           </button>
@@ -923,7 +981,6 @@ export default function AdminAccountsPage() {
                     </div>
                   </div>
 
-                  {/* Mô tả chi tiết */}
                   <div className="space-y-1.5">
                     <label className="font-bold text-slate-800 block">
                       Mô Tả & Ghi Chú:
@@ -938,18 +995,17 @@ export default function AdminAccountsPage() {
                   </div>
                 </div>
 
-                {/* Footer Drawer */}
                 <div className="p-5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => setDrawerOpen(false)}
-                    className="px-5 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl font-bold text-xs transition-colors"
+                    className="px-5 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl font-bold text-xs transition-colors cursor-pointer"
                   >
                     Hủy Bỏ
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md shadow-orange-600/20 transition-all hover:scale-105"
+                    className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md shadow-orange-600/20 transition-all hover:scale-105 cursor-pointer"
                   >
                     {editingAccount ? "Lưu Thay Đổi" : "Tạo Tài Khoản Mới"}
                   </button>
