@@ -143,8 +143,8 @@ export const TFTFooter: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+        {/* Bottom Bar: Có padding đáy an toàn tránh che khuất bởi nút floating */}
+        <div className="pt-8 pb-10 sm:pb-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <p>© 2026 {PROFILE_INFO.brandName} - Tuấn Thái Bình TFT. All rights reserved.</p>
 
           <button
