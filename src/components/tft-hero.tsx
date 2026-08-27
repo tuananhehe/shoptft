@@ -100,7 +100,7 @@ export const TFTHero: React.FC = () => {
           </div>
 
           {/* Right Column: KHUNG ĐỒ HỌA MOCKUP THẺ ACC VIP 3D + 3 FLOATING BADGES (5 cols) */}
-          <div className="lg:col-span-5 relative flex justify-center py-4 sm:py-6">
+          <div className="lg:col-span-5 relative flex justify-center py-6 sm:py-8">
             {/* Background Glow Ring */}
             <div className="absolute inset-0 bg-gradient-to-tr from-orange-400/20 via-amber-300/20 to-emerald-400/20 rounded-3xl blur-2xl transform scale-95" />
 
@@ -116,7 +116,6 @@ export const TFTHero: React.FC = () => {
                       "url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1000&auto=format&fit=crop')",
                   }}
                 />
-                {/* Lớp phủ sáng nhẹ nhàng, không bị đen tối */}
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
 
                 {/* Top Badge Inside Image */}
@@ -171,8 +170,8 @@ export const TFTHero: React.FC = () => {
                 </a>
               </div>
 
-              {/* 1. FLOATING BADGE: Quỹ Bảo Hiểm 30M Checkscam (Góc Trên Trái) */}
-              <div className="absolute -top-3.5 -left-2 sm:-top-4 sm:-left-4 bg-white/95 backdrop-blur-md border border-emerald-200/90 rounded-2xl p-2 sm:p-2.5 shadow-lg shadow-emerald-500/10 flex items-center gap-2.5">
+              {/* 1. FLOATING BADGE: Quỹ Bảo Hiểm 30M Checkscam (Đẩy nhích cao -top-5 sm:-top-6, shadow-lg) */}
+              <div className="absolute -top-5 -left-3 sm:-top-6 sm:-left-5 bg-white/95 backdrop-blur-md border border-emerald-200/90 rounded-2xl p-2 sm:p-2.5 shadow-lg shadow-emerald-500/10 flex items-center gap-2.5 hover:scale-105 transition-transform">
                 <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
@@ -182,8 +181,8 @@ export const TFTHero: React.FC = () => {
                 </div>
               </div>
 
-              {/* 2. FLOATING BADGE: Cựu Thách Đấu 1.134 ĐNG (Góc Trên Phải) */}
-              <div className="absolute -top-3.5 -right-2 sm:-top-4 sm:-right-3 bg-white/95 backdrop-blur-md border border-amber-200/90 rounded-2xl p-2 sm:p-2.5 shadow-lg shadow-amber-500/10 flex items-center gap-2">
+              {/* 2. FLOATING BADGE: Cựu Thách Đấu 1.134 ĐNG (Đẩy nhích cao -top-5 sm:-top-6, shadow-lg) */}
+              <div className="absolute -top-5 -right-3 sm:-top-6 sm:-right-4 bg-white/95 backdrop-blur-md border border-amber-200/90 rounded-2xl p-2 sm:p-2.5 shadow-lg shadow-amber-500/10 flex items-center gap-2 hover:scale-105 transition-transform">
                 <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0">
                   <Trophy className="w-4 h-4" />
                 </div>
@@ -193,8 +192,8 @@ export const TFTHero: React.FC = () => {
                 </div>
               </div>
 
-              {/* 3. FLOATING BADGE: Bàn Giao Tự Động 30s (Góc Dưới Trái) */}
-              <div className="absolute -bottom-3.5 -left-2 sm:-bottom-4 sm:-left-3 bg-white/95 backdrop-blur-md border border-orange-200/90 rounded-2xl p-2 sm:p-2.5 shadow-lg shadow-orange-500/10 flex items-center gap-2">
+              {/* 3. FLOATING BADGE: Bàn Giao Tự Động 30s (Góc Dưới Trái, shadow-lg) */}
+              <div className="absolute -bottom-4 -left-3 sm:-bottom-5 sm:-left-4 bg-white/95 backdrop-blur-md border border-orange-200/90 rounded-2xl p-2 sm:p-2.5 shadow-lg shadow-orange-500/10 flex items-center gap-2 hover:scale-105 transition-transform">
                 <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0">
                   <Zap className="w-4 h-4" />
                 </div>

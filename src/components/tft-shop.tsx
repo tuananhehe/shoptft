@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { TFT_RENTAL_ACCOUNTS, TFTRentalAccount } from "@/data/tft-data";
 import {
   Search,
@@ -14,8 +14,8 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
-  Play,
-  Pause,
+  ChevronLeft,
+  ChevronRight,
   Flame,
   Star,
   Layers,
@@ -56,17 +56,29 @@ const CHIBI_OPTIONS = [
 
 export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
   const [showFullCatalog, setShowFullCatalog] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDuration, setSelectedDuration] = useState("ALL");
   const [selectedRank, setSelectedRank] = useState("ALL");
   const [selectedChibi, setSelectedChibi] = useState("ALL");
+  const sliderRef = useRef<HTMLDivElement>(null);
 
-  // Top 5 Featured Accounts for horizontal marquee
+  // Top 5 Featured Accounts for horizontal loop
   const featuredAccounts = TFT_RENTAL_ACCOUNTS.slice(0, 5);
   const loopAccounts = [...featuredAccounts, ...featuredAccounts];
 
-  // Filtered Accounts
+  const handlePrev = () => {
+    if (sliderRef.current) {
+      sliderRef.current.scrollBy({ left: -320, behavior: "smooth" });
+    }
+  };
+
+  const handleNext = () => {
+    if (sliderRef.current) {
+      sliderRef.current.scrollBy({ left: 320, behavior: "smooth" });
+    }
+  };
+
+  // Filtered Accounts for Full Catalog
   const filteredAccounts = TFT_RENTAL_ACCOUNTS.filter((acc) => {
     const matchesRank = selectedRank === "ALL" || acc.rank === selectedRank;
     const matchesChibi =
@@ -101,31 +113,35 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
             </p>
           </div>
 
-          {/* Pause / Play Control */}
-          <div className="flex items-center gap-3">
+          {/* 2 NÚT ICON MŨI TÊN ĐIỀU HƯỚNG TRÒN (PREV / NEXT) PHONG CÁCH TỐI GIẢN */}
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => setIsPaused(!isPaused)}
-              className="px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-slate-300 text-xs font-bold text-slate-700 flex items-center gap-1.5 transition-colors shadow-sm"
+              onClick={handlePrev}
+              aria-label="Previous accounts"
+              className="w-9 h-9 rounded-full bg-white hover:bg-slate-100 active:scale-95 border border-slate-200 shadow-sm flex items-center justify-center text-slate-700 hover:text-orange-600 hover:border-orange-500 transition-all"
             >
-              {isPaused ? <Play className="w-3.5 h-3.5 text-emerald-600" /> : <Pause className="w-3.5 h-3.5 text-orange-600" />}
-              <span>{isPaused ? "Tiếp Tục Chạy" : "Tạm Dừng"}</span>
+              <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="text-xs text-slate-400 font-medium hidden sm:inline">
-              (Rê chuột tự dừng)
-            </span>
+            <button
+              onClick={handleNext}
+              aria-label="Next accounts"
+              className="w-9 h-9 rounded-full bg-white hover:bg-slate-100 active:scale-95 border border-slate-200 shadow-sm flex items-center justify-center text-slate-700 hover:text-orange-600 hover:border-orange-500 transition-all"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* 1. SEAMLESS INFINITE MARQUEE AUTO-LOOP TRACK (LIGHT MODE CARDS WITH DEPTH SHADOW) */}
+      {/* 1. SEAMLESS INFINITE MARQUEE AUTO-LOOP TRACK */}
       <div className="relative w-full py-2 overflow-hidden mask-gradient">
         {/* Left & Right fade gradient masks */}
         <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-20 bg-gradient-to-r from-slate-50 to-transparent z-10 pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-8 sm:w-20 bg-gradient-to-l from-slate-50 to-transparent z-10 pointer-events-none" />
 
         <div
-          className={`animate-infinite-loop flex gap-5 px-4 ${isPaused ? "!animation-play-state-paused" : ""}`}
-          style={{ animationPlayState: isPaused ? "paused" : undefined }}
+          ref={sliderRef}
+          className="animate-infinite-loop flex gap-5 px-4 overflow-x-auto no-scrollbar scroll-smooth"
         >
           {loopAccounts.map((account, index) => (
             <div
