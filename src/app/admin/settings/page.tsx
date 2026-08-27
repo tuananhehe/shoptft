@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { PROFILE_INFO } from "@/data/tft-data";
+import toast from "react-hot-toast";
 import {
   Settings,
   ShieldCheck,
@@ -32,12 +33,9 @@ export default function AdminSettingsPage() {
     "🎁 Ưu đãi đặc biệt: Tặng thêm 1 giờ chơi và miễn phí phí đổi pass cố định cho khách hàng thuê lần đầu qua Zalo Tuấn Thái Bình!"
   );
 
-  const [saved, setSaved] = useState(false);
-
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3500);
+    toast.success("✅ Đã lưu toàn bộ cài đặt hệ thống thành công!");
   };
 
   // Demo tính giá mẫu dựa trên cấu hình
@@ -48,21 +46,6 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="max-w-4xl space-y-6">
-      {/* TOAST THÔNG BÁO */}
-      {saved && (
-        <div className="fixed top-4 right-4 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 animate-bounce">
-          <CheckCircle2 className="w-5 h-5 text-white flex-shrink-0" />
-          <span className="text-xs sm:text-sm font-bold">
-            Đã lưu toàn bộ cài đặt hệ thống thành công!
-          </span>
-          <button
-            onClick={() => setSaved(false)}
-            className="p-1 hover:bg-emerald-700 rounded-lg text-white font-bold"
-          >
-            ✕
-          </button>
-        </div>
-      )}
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* ============================================================ */}

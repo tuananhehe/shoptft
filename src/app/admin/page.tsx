@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { TFT_RENTAL_ACCOUNTS, PROFILE_INFO } from "@/data/tft-data";
+import toast from "react-hot-toast";
 import {
   TrendingUp,
   Gamepad2,
@@ -20,11 +21,8 @@ import {
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
   const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+    toast.success(msg);
   };
 
   const totalAccounts = TFT_RENTAL_ACCOUNTS.length;
@@ -109,14 +107,6 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* TOAST THÔNG BÁO */}
-      {toastMessage && (
-        <div className="fixed top-4 right-4 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 text-xs font-bold animate-bounce border border-slate-700">
-          <Check className="w-4 h-4 text-emerald-400" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
-
       {/* 1. WELCOME BANNER - TINH CHỈNH PADDING NHỎ GỌN PY-5 SM:PY-6 */}
       <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 text-white flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-xl shadow-orange-600/15 relative overflow-hidden">
         <div className="space-y-1.5 z-10">

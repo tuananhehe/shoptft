@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { TFT_RENTAL_ACCOUNTS, TFTRentalAccount } from "@/data/tft-data";
+import toast from "react-hot-toast";
 import {
   Search,
   Plus,
@@ -78,10 +79,8 @@ export default function AdminAccountsPage() {
   const [formDescription, setFormDescription] = useState("");
 
   // Toast thông báo
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 4000);
+    toast.success(msg);
   };
 
   // Thống kê nhanh
@@ -311,20 +310,6 @@ export default function AdminAccountsPage() {
 
   return (
     <div className="space-y-6">
-      {/* TOAST THÔNG BÁO */}
-      {toastMessage && (
-        <div className="fixed top-4 right-4 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 animate-bounce">
-          <CheckCircle2 className="w-5 h-5 text-white flex-shrink-0" />
-          <span className="text-xs sm:text-sm font-bold">{toastMessage}</span>
-          <button
-            onClick={() => setToastMessage(null)}
-            className="p-1 hover:bg-emerald-700 rounded-lg text-white font-bold"
-          >
-            ✕
-          </button>
-        </div>
-      )}
-
       {/* 1. SECTION STATS TOP CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">

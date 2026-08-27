@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { TFTRentalAccount, PROFILE_INFO } from "@/data/tft-data";
+import toast from "react-hot-toast";
 import {
   X,
   CheckCircle2,
@@ -33,7 +34,6 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
   const [selectedPackage, setSelectedPackage] = useState<PackageKey | null>(null);
   const [isAgreed, setIsAgreed] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Bộ đếm ngược thời gian cho acc đang thuê (tính bằng giây)
   const [countdownSeconds, setCountdownSeconds] = useState<number>(7890); // ~ 2h 11m 30s
@@ -144,12 +144,16 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
   const copyAccCode = () => {
     navigator.clipboard.writeText(account.code);
     setCopiedCode(true);
+    toast.success(`✅ Đã sao chép mã tài khoản: ${account.code}!`);
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
   // Logic Xử Lý Bấm Nút "NHẬN ACC QUA ZALO" (Khi acc có sẵn)
   const handleOrderZalo = () => {
-    if (!canSubmit || !activePkg) return;
+    if (!canSubmit || !activePkg) {
+      toast.error("⚠️ Vui lòng chọn gói thuê và đồng ý với điều khoản!");
+      return;
+    }
 
     const orderMessage = `[ĐƠN ĐẶT ACC TFT]
 - Mã Acc: ${account.code}
@@ -162,8 +166,7 @@ Nhờ shop gửi STK và hỗ trợ bàn giao thông tin!`;
       navigator.clipboard.writeText(orderMessage).catch(() => {});
     }
 
-    setToastMessage("Đã sao chép thông tin đơn hàng! Hãy dán (Ctrl+V) vào khung chat Zalo với shop.");
-    setTimeout(() => setToastMessage(null), 6000);
+    toast.success("✅ Đã sao chép nội dung đơn hàng! Hãy dán (Ctrl+V) vào Zalo với shop.");
     window.open(PROFILE_INFO.zaloUrl, "_blank");
   };
 
@@ -178,8 +181,7 @@ Báo mình khi acc này hết giờ thuê nhé!`;
       navigator.clipboard.writeText(preOrderMessage).catch(() => {});
     }
 
-    setToastMessage("Đã sao chép yêu cầu đặt trước! Hãy dán (Ctrl+V) vào Zalo để shop xếp lịch giữ acc cho bạn.");
-    setTimeout(() => setToastMessage(null), 6000);
+    toast.success("✅ Đã sao chép yêu cầu đặt trước! Hãy dán (Ctrl+V) vào Zalo để shop xếp lịch giữ acc cho bạn.");
     window.open(PROFILE_INFO.zaloUrl, "_blank");
   };
 
@@ -188,22 +190,6 @@ Báo mình khi acc này hết giờ thuê nhé!`;
       <div className="bg-white border border-slate-200 max-w-2xl w-full my-8 rounded-2xl overflow-hidden relative animate-fadeIn flex flex-col max-h-[92vh] shadow-2xl">
         {/* Top Accent Line */}
         <div className="h-[3px] bg-gradient-to-r from-orange-500 via-amber-500 to-emerald-500 w-full" />
-
-        {/* TOAST THÔNG BÁO TỰ ĐỘNG SAO CHÉP */}
-        {toastMessage && (
-          <div className="absolute top-3 left-4 right-4 z-50 bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-xl flex items-center justify-between gap-3 animate-bounce">
-            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold">
-              <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-white" />
-              <span>{toastMessage}</span>
-            </div>
-            <button
-              onClick={() => setToastMessage(null)}
-              className="p-1 hover:bg-emerald-700 rounded-lg text-white font-bold text-xs"
-            >
-              ✕
-            </button>
-          </div>
-        )}
 
         {/* Header Bar */}
         <div className="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
@@ -574,11 +560,10 @@ Báo mình khi acc này hết giờ thuê nhé!`;
             ) : (
               <button
                 onClick={handleOrderZalo}
-                disabled={!canSubmit}
-                className={`px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 w-1/2 sm:w-auto ${
+                className={`px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 w-1/2 sm:w-auto cursor-pointer ${
                   canSubmit
-                    ? "bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white shadow-md hover:scale-105 cursor-pointer shadow-orange-600/20"
-                    : "bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed opacity-80"
+                    ? "bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white shadow-md hover:scale-105 shadow-orange-600/20"
+                    : "bg-slate-200 hover:bg-slate-300 text-slate-500 border border-slate-300 shadow-sm"
                 }`}
               >
                 {!canSubmit && <Lock className="w-3.5 h-3.5" />}

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
 const inter = Inter({
@@ -114,6 +115,36 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-[#F8FAFC] text-slate-900 selection:bg-orange-500 selection:text-white font-sans">
+        <Toaster
+          position="top-right"
+          reverseOrder={false}
+          gutter={8}
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: "#0f172a",
+              color: "#ffffff",
+              fontSize: "13px",
+              fontWeight: "600",
+              borderRadius: "16px",
+              padding: "12px 18px",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.2)",
+            },
+            success: {
+              iconTheme: {
+                primary: "#10b981",
+                secondary: "#ffffff",
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: "#f43f5e",
+                secondary: "#ffffff",
+              },
+            },
+          }}
+        />
         {children}
       </body>
     </html>
