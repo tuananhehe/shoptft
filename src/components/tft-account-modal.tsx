@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   Flame,
   Crown,
+  Lock,
 } from "lucide-react";
 
 interface TFTAccountModalProps {
@@ -23,8 +24,12 @@ interface TFTAccountModalProps {
   onClose: () => void;
 }
 
+type PackageKey = "2h" | "7d" | "30d" | "perm";
+
 export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClose }) => {
-  const [selectedPackage, setSelectedPackage] = useState<"2h" | "7d" | "30d" | "perm">("2h");
+  // Mặc định không chọn gói nào (null) và chưa tích cam kết (false)
+  const [selectedPackage, setSelectedPackage] = useState<PackageKey | null>(null);
+  const [isAgreed, setIsAgreed] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -38,7 +43,17 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
   const formatMoney = (val: number) => `${roundToThousand(val).toLocaleString("vi-VN")}đ`;
 
   // Cấu hình 4 gói thời gian thuê theo công thức linh hoạt
-  const packageConfigs = {
+  const packageConfigs: Record<PackageKey, {
+    id: PackageKey;
+    name: string;
+    rate: number;
+    basePrice: number;
+    passFee: number;
+    totalPrice: number;
+    note: string;
+    tag: string;
+    badgeColor: string;
+  }> = {
     "2h": {
       id: "2h",
       name: "2 Giờ Trải Nghiệm",
@@ -74,18 +89,21 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
     },
     "perm": {
       id: "perm",
-      name: "Sở Hữu 999 Ngày (Mua Đứt)",
+      name: "Thuê Lâu Dài 999 Ngày",
       rate: 1.00,
       basePrice: roundToThousand(baseAccountValue),
       passFee: 0,
       totalPrice: roundToThousand(baseAccountValue),
-      note: "Bàn giao Full Mail chính chủ",
-      tag: "Bàn giao Full Mail chính chủ",
+      note: "Bàn giao full thông tin cho khách",
+      tag: "Bàn giao full thông tin cho khách",
       badgeColor: "bg-purple-100 text-purple-700",
     },
   };
 
-  const activePkg = packageConfigs[selectedPackage];
+  const activePkg = selectedPackage ? packageConfigs[selectedPackage] : null;
+
+  // Điều kiện để nút nhận acc sáng lên
+  const canSubmit = selectedPackage !== null && isAgreed;
 
   // Copy mã Acc riêng lẻ
   const copyAccCode = () => {
@@ -96,7 +114,9 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
 
   // Logic Xử Lý Bấm Nút "NHẬN ACC QUA ZALO"
   const handleOrderZalo = () => {
-    // Ghép nội dung tin nhắn tự động theo mẫu yêu cầu
+    if (!canSubmit || !activePkg) return;
+
+    // Ghép nội dung tin nhắn tự động theo mẫu
     const orderMessage = `[ĐƠN ĐẶT ACC TFT]
 - Mã Acc: ${account.code}
 - Tên Acc: ${account.title}
@@ -237,15 +257,21 @@ Nhờ shop gửi STK và hỗ trợ bàn giao thông tin!`;
             </div>
           </div>
 
-          {/* 4 GÓI THỜI GIAN THUÊ THEO CÔNG THỨC LINH HOẠT */}
+          {/* 4 GÓI THỜI GIAN THUÊ - BỎ MẶC ĐỊNH CHỌN GÓI */}
           <div className="space-y-3 pt-2">
-            <h4 className="font-bold text-slate-900 text-sm flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <h4 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
                 <Clock className="w-4 h-4 text-orange-600" />
-                <span>Chọn Gói Thời Gian Thuê / Sở Hữu:</span>
-              </span>
-              <span className="text-xs text-emerald-600 font-semibold">100% Không Cần Đặt Cọc</span>
-            </h4>
+                <span>Chọn Gói Thời Gian Thuê:</span>
+              </h4>
+              
+              {/* Nhãn chú thích nhấp nháy màu cam */}
+              {!selectedPackage && (
+                <span className="text-xs font-bold text-orange-600 flex items-center gap-1 animate-pulse">
+                  👇 Vui lòng chọn gói thời gian bạn muốn thuê
+                </span>
+              )}
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Gói 1: 2 Giờ Trải Nghiệm */}
@@ -323,7 +349,7 @@ Nhờ shop gửi STK và hỗ trợ bàn giao thông tin!`;
                 </div>
               </button>
 
-              {/* Gói 4: Sở Hữu 999 Ngày (Mua Đứt) */}
+              {/* Gói 4: Thuê Lâu Dài 999 Ngày */}
               <button
                 onClick={() => setSelectedPackage("perm")}
                 className={`p-3.5 rounded-xl border text-left transition-all relative ${
@@ -343,68 +369,92 @@ Nhờ shop gửi STK và hỗ trợ bàn giao thông tin!`;
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="text-purple-600 font-semibold">{packageConfigs["perm"].note}</span>
                   <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200">
-                    100% Mua Đứt
+                    100% Thuê Lâu Dài
                   </span>
                 </div>
               </button>
             </div>
           </div>
 
-          {/* TOTAL PRICE & GHI CHÚ CHI TIẾT TÁCH RÕ TIỀN THUÊ GỐC + PHÍ HOÀN TRẢ */}
+          {/* TOTAL PRICE & GHI CHÚ BÓC TÁCH PHÍ */}
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
+            {activePkg ? (
+              <>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-xs text-slate-500 uppercase font-semibold block">Tổng Thanh Toán:</span>
+                    <span className="text-xs text-slate-800 font-bold">{activePkg.name}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-2xl font-black text-red-600 font-mono">
+                      {formatMoney(activePkg.totalPrice)}
+                    </span>
+                    <span className="text-[10px] text-emerald-600 block font-semibold">✓ Đã làm tròn đến hàng nghìn</span>
+                  </div>
+                </div>
+
+                {/* Chi Tiết Bóc Tách Phí */}
+                <div className="pt-3 border-t border-slate-200 text-xs space-y-1.5">
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span>Tiền thuê gốc:</span>
+                    <span className="font-mono font-semibold text-slate-800">{formatMoney(activePkg.basePrice)}</span>
+                  </div>
+
+                  {activePkg.passFee > 0 ? (
+                    <div className="flex items-center justify-between text-slate-600">
+                      <span>Phí hoàn trả acc (phí đổi pass):</span>
+                      <span className="font-mono font-semibold text-orange-600">+{formatMoney(activePkg.passFee)}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between text-emerald-700">
+                      <span>Phí hoàn trả acc (phí đổi pass):</span>
+                      <span className="font-semibold">Miễn phí (0đ)</span>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-2 space-y-1">
                 <span className="text-xs text-slate-500 uppercase font-semibold block">Tổng Thanh Toán:</span>
-                <span className="text-xs text-slate-800 font-bold">{activePkg.name}</span>
+                <p className="text-sm font-bold text-orange-600">
+                  Vui lòng chọn gói thời gian bên trên
+                </p>
               </div>
-              <div className="text-right">
-                <span className="text-2xl font-black text-red-600 font-mono">
-                  {formatMoney(activePkg.totalPrice)}
-                </span>
-                <span className="text-[10px] text-emerald-600 block font-semibold">✓ Đã làm tròn đến hàng nghìn</span>
-              </div>
-            </div>
+            )}
 
-            {/* Chi Tiết Bóc Tách Phí */}
-            <div className="pt-3 border-t border-slate-200 text-xs space-y-1.5">
-              <div className="flex items-center justify-between text-slate-600">
-                <span>Tiền thuê gốc:</span>
-                <span className="font-mono font-semibold text-slate-800">{formatMoney(activePkg.basePrice)}</span>
-              </div>
-
-              {activePkg.passFee > 0 ? (
-                <div className="flex items-center justify-between text-slate-600">
-                  <span>Phí hoàn trả acc (phí đổi pass):</span>
-                  <span className="font-mono font-semibold text-orange-600">+{formatMoney(activePkg.passFee)}</span>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between text-emerald-700">
-                  <span>Phí hoàn trả acc (phí đổi pass):</span>
-                  <span className="font-semibold">Miễn phí (0đ)</span>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500">
-                <span>Mã định danh tài khoản:</span>
-                <button
-                  onClick={copyAccCode}
-                  className="text-slate-700 hover:text-orange-600 font-semibold flex items-center gap-1 px-2 py-0.5 bg-white border border-slate-200 rounded shadow-sm transition-colors"
-                >
-                  {copiedCode ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                  <span>{copiedCode ? "Đã copy" : account.code}</span>
-                </button>
-              </div>
+            <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-[11px] text-slate-500">
+              <span>Mã định danh tài khoản:</span>
+              <button
+                onClick={copyAccCode}
+                className="text-slate-700 hover:text-orange-600 font-semibold flex items-center gap-1 px-2 py-0.5 bg-white border border-slate-200 rounded shadow-sm transition-colors"
+              >
+                {copiedCode ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                <span>{copiedCode ? "Đã copy" : account.code}</span>
+              </button>
             </div>
           </div>
 
+          {/* CHECKBOX CAM KẾT (ĐIỀU KIỆN BẮT BUỘC) */}
+          <label className="flex items-start gap-3 p-3.5 rounded-xl bg-orange-50/70 hover:bg-orange-50 border border-orange-200/90 cursor-pointer text-xs select-none transition-colors shadow-sm">
+            <input
+              type="checkbox"
+              checked={isAgreed}
+              onChange={(e) => setIsAgreed(e.target.checked)}
+              className="mt-0.5 w-4 h-4 text-orange-600 rounded border-slate-300 focus:ring-orange-500 cursor-pointer accent-orange-600 flex-shrink-0"
+            />
+            <span className="text-slate-700 font-medium leading-relaxed">
+              Tôi đã đọc và cam kết <strong>không dùng phần mềm thứ 3/phá rank</strong>, đồng ý với quy định thuê của Shop Tuấn Thái Bình.
+            </span>
+          </label>
+
           {/* Safety Notice */}
-          <div className="p-3 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg text-xs text-amber-900 space-y-1">
-            <div className="font-bold flex items-center gap-1.5 text-amber-800">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
-              <span>Quy trình thuê tài khoản nhanh:</span>
+          <div className="p-3 bg-slate-100 border-l-4 border-slate-400 rounded-r-lg text-xs text-slate-700 space-y-1">
+            <div className="font-bold flex items-center gap-1.5 text-slate-800">
+              <AlertTriangle className="w-3.5 h-3.5 text-orange-600 flex-shrink-0" />
+              <span>Quy trình thuê tài khoản:</span>
             </div>
-            <p className="text-[11px] leading-relaxed">
-              Bấm nút <strong>"Nhận Acc Qua Zalo"</strong> bên dưới, hệ thống sẽ tự động sao chép toàn bộ thông tin đơn hàng. Bạn chỉ cần dán (Ctrl+V) vào khung chat Zalo, shop sẽ gửi STK và giao acc trong 30 giây!
+            <p className="text-[11px] leading-relaxed text-slate-600">
+              Sau khi chọn gói và tích cam kết, bấm nút <strong>"Nhận Acc Qua Zalo"</strong>. Hệ thống sẽ tự sao chép thông tin để bạn dán (Ctrl+V) vào Zalo, shop sẽ gửi STK và giao acc trong 30 giây!
             </p>
           </div>
         </div>
@@ -424,12 +474,18 @@ Nhờ shop gửi STK và hỗ trợ bàn giao thông tin!`;
               Đóng
             </button>
 
-            {/* NÚT TỰ ĐỘNG SAO CHÉP ĐƠN HÀNG VÀ MỞ ZALO */}
+            {/* NÚT NHẬN ACC QUA ZALO - KHÓA NẾU CHƯA CHỌN GÓI HOẶC CHƯA TÍCH CAM KẾT */}
             <button
               onClick={handleOrderZalo}
-              className="px-5 py-2.5 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 w-1/2 sm:w-auto hover:scale-105"
+              disabled={!canSubmit}
+              className={`px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 w-1/2 sm:w-auto ${
+                canSubmit
+                  ? "bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white shadow-md hover:scale-105 cursor-pointer shadow-orange-600/20"
+                  : "bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed opacity-80"
+              }`}
             >
-              <MessageCircle className="w-4 h-4" />
+              {!canSubmit && <Lock className="w-3.5 h-3.5" />}
+              {canSubmit && <MessageCircle className="w-4 h-4" />}
               <span>Nhận Acc Qua Zalo</span>
             </button>
           </div>
