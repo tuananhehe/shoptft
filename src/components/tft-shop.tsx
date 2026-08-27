@@ -118,14 +118,14 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
             <button
               onClick={handlePrev}
               aria-label="Previous accounts"
-              className="w-9 h-9 rounded-full bg-white hover:bg-slate-100 active:scale-95 border border-slate-200 shadow-sm flex items-center justify-center text-slate-700 hover:text-orange-600 hover:border-orange-500 transition-all"
+              className="w-9 h-9 rounded-full bg-white hover:bg-slate-100 active:scale-95 border border-slate-200 shadow-sm flex items-center justify-center text-slate-700 hover:text-orange-600 hover:border-orange-500 transition-all cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={handleNext}
               aria-label="Next accounts"
-              className="w-9 h-9 rounded-full bg-white hover:bg-slate-100 active:scale-95 border border-slate-200 shadow-sm flex items-center justify-center text-slate-700 hover:text-orange-600 hover:border-orange-500 transition-all"
+              className="w-9 h-9 rounded-full bg-white hover:bg-slate-100 active:scale-95 border border-slate-200 shadow-sm flex items-center justify-center text-slate-700 hover:text-orange-600 hover:border-orange-500 transition-all cursor-pointer"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -133,7 +133,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
         </div>
       </div>
 
-      {/* 1. SEAMLESS INFINITE MARQUEE AUTO-LOOP TRACK - THÊM PADDING PX-4 LG:PX-8 TRÁNH TRÀN LẸM VIỀN */}
+      {/* 1. SEAMLESS INFINITE MARQUEE AUTO-LOOP TRACK */}
       <div className="relative w-full py-3 overflow-hidden">
         {/* Soft edge gradients */}
         <div className="absolute left-0 top-0 bottom-0 w-6 sm:w-12 bg-gradient-to-r from-slate-50 to-transparent z-10 pointer-events-none" />
@@ -148,39 +148,39 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
               key={`${account.id}-${index}`}
               className="w-[285px] sm:w-[315px] flex-shrink-0 bg-white border border-slate-200/90 rounded-2xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between group"
             >
-              {/* Top Photo & Badges */}
+              {/* Top Photo & Badges - ĐỔI THÀNH KHUNG VUÔNG ASPECT-SQUARE */}
               <div>
-                <div className="relative aspect-[16/9] overflow-hidden rounded-xl bg-slate-900 mb-3 border border-slate-100 shadow-inner">
+                <div className="relative aspect-square w-full overflow-hidden rounded-t-xl sm:rounded-t-2xl rounded-b-lg bg-slate-900 mb-3 border border-slate-100 shadow-inner">
                   <div
-                    className="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full bg-cover bg-center object-cover transition-transform duration-500 group-hover:scale-105"
                     style={{ backgroundImage: `url(${account.thumbnail})` }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/30" />
 
                   {/* Top Right Code Badge */}
-                  <div className="absolute top-2 right-2">
-                    <span className="px-2 py-0.5 rounded bg-black/80 text-[11px] font-mono font-bold text-white shadow-sm">
+                  <div className="absolute top-2.5 right-2.5">
+                    <span className="px-2 py-0.5 rounded-md bg-black/80 text-[11px] font-mono font-bold text-white shadow-sm backdrop-blur-sm">
                       {account.code}
                     </span>
                   </div>
 
                   {/* Top Left Status Badge */}
-                  <div className="absolute top-2 left-2">
+                  <div className="absolute top-2.5 left-2.5">
                     {account.status === "AVAILABLE" ? (
-                      <span className="px-2 py-0.5 rounded bg-emerald-600/90 text-white text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
                         <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                         <span>SẴN SÀNG</span>
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 rounded bg-rose-600/90 text-white text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm shadow-sm">
+                      <span className="px-2 py-0.5 rounded-md bg-rose-600/90 text-white text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm shadow-sm">
                         ĐANG THUÊ
                       </span>
                     )}
                   </div>
 
                   {/* Bottom Rank */}
-                  <div className="absolute bottom-2 left-2">
-                    <span className="px-2 py-0.5 rounded bg-white/95 text-slate-900 text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
+                  <div className="absolute bottom-2.5 left-2.5">
+                    <span className="px-2 py-0.5 rounded-md bg-white/95 text-slate-900 text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
                       {account.rank}
                     </span>
                   </div>
@@ -223,7 +223,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => onSelectAccount(account)}
-                    className="h-9 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1"
+                    className="h-9 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <Eye className="w-3.5 h-3.5" />
                     <span>Chi Tiết</span>
@@ -231,7 +231,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
 
                   <button
                     onClick={() => onSelectAccount(account)}
-                    className="h-9 px-2 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-600/20 flex items-center justify-center gap-1 hover:scale-105"
+                    className="h-9 px-2 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-600/20 flex items-center justify-center gap-1 hover:scale-105 cursor-pointer"
                   >
                     <KeyRound className="w-3.5 h-3.5" />
                     <span>Thuê Ngay</span>
@@ -243,11 +243,11 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
         </div>
       </div>
 
-      {/* 2. NÚT LỚN "XEM THÊM" - CHỈNH THÀNH max-w-md mx-auto w-full py-3 text-sm font-semibold rounded-full shadow-md */}
+      {/* 2. NÚT LỚN "XEM THÊM" */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 text-center">
         <button
           onClick={() => setShowFullCatalog(!showFullCatalog)}
-          className={`max-w-md mx-auto w-full py-3 sm:py-3.5 px-6 inline-flex items-center justify-center gap-2.5 rounded-full font-semibold text-sm transition-all duration-300 shadow-md ${
+          className={`max-w-md mx-auto w-full py-3 sm:py-3.5 px-6 inline-flex items-center justify-center gap-2.5 rounded-full font-semibold text-sm transition-all duration-300 shadow-md cursor-pointer ${
             showFullCatalog
               ? "bg-slate-800 text-white hover:bg-slate-900"
               : "bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white shadow-orange-600/25 hover:scale-105"
@@ -409,7 +409,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
             </div>
           </div>
 
-          {/* GRID 4 CỘT TẤT CẢ ACC */}
+          {/* GRID 4 CỘT TẤT CẢ ACC - KHUNG ẢNH VUÔNG ASPECT-SQUARE */}
           {filteredAccounts.length === 0 ? (
             <div className="text-center py-16 bg-white border border-slate-200 rounded-2xl p-8">
               <KeyRound className="w-12 h-12 text-slate-400 mx-auto mb-3" />
@@ -427,36 +427,39 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                   key={account.id}
                   className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between group"
                 >
-                  {/* Top Photo & Badges */}
+                  {/* Top Photo & Badges - KHUNG VUÔNG ASPECT-SQUARE */}
                   <div>
-                    <div className="relative aspect-[16/9] overflow-hidden rounded-xl bg-slate-900 mb-3 border border-slate-100 shadow-inner">
+                    <div className="relative aspect-square w-full overflow-hidden rounded-t-xl sm:rounded-t-2xl rounded-b-lg bg-slate-900 mb-3 border border-slate-100 shadow-inner">
                       <div
-                        className="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+                        className="w-full h-full bg-cover bg-center object-cover transition-transform duration-500 group-hover:scale-105"
                         style={{ backgroundImage: `url(${account.thumbnail})` }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/30" />
 
-                      <div className="absolute top-2 right-2">
-                        <span className="px-2 py-0.5 rounded bg-black/80 text-[11px] font-mono font-bold text-white shadow-sm">
+                      {/* Top Right Code Badge */}
+                      <div className="absolute top-2.5 right-2.5">
+                        <span className="px-2 py-0.5 rounded-md bg-black/80 text-[11px] font-mono font-bold text-white shadow-sm backdrop-blur-sm">
                           {account.code}
                         </span>
                       </div>
 
-                      <div className="absolute top-2 left-2">
+                      {/* Top Left Status Badge */}
+                      <div className="absolute top-2.5 left-2.5">
                         {account.status === "AVAILABLE" ? (
-                          <span className="px-2 py-0.5 rounded bg-emerald-600/90 text-white text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
+                          <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
                             <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                             <span>SẴN SÀNG</span>
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded bg-rose-600/90 text-white text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm shadow-sm">
+                          <span className="px-2 py-0.5 rounded-md bg-rose-600/90 text-white text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm shadow-sm">
                             ĐANG THUÊ
                           </span>
                         )}
                       </div>
 
-                      <div className="absolute bottom-2 left-2">
-                        <span className="px-2 py-0.5 rounded bg-white/95 text-slate-900 text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
+                      {/* Bottom Rank */}
+                      <div className="absolute bottom-2.5 left-2.5">
+                        <span className="px-2 py-0.5 rounded-md bg-white/95 text-slate-900 text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
                           {account.rank}
                         </span>
                       </div>
@@ -497,7 +500,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         onClick={() => onSelectAccount(account)}
-                        className="h-9 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1"
+                        className="h-9 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         <span>Chi Tiết</span>
@@ -505,7 +508,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
 
                       <button
                         onClick={() => onSelectAccount(account)}
-                        className="h-9 px-2 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-600/20 flex items-center justify-center gap-1 hover:scale-105"
+                        className="h-9 px-2 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-600/20 flex items-center justify-center gap-1 hover:scale-105 cursor-pointer"
                       >
                         <KeyRound className="w-3.5 h-3.5" />
                         <span>Thuê Ngay</span>
