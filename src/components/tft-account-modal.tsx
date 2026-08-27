@@ -8,7 +8,6 @@ import {
   Copy,
   Check,
   Sparkles,
-  QrCode,
   MessageCircle,
   ShieldCheck,
   Clock,
@@ -23,45 +22,78 @@ interface TFTAccountModalProps {
 }
 
 export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClose }) => {
-  const [selectedPackage, setSelectedPackage] = useState<"1h" | "3h" | "night" | "1day" | "3days">("1h");
+  const [selectedPackage, setSelectedPackage] = useState<"1h" | "3h" | "night" | "1day">("1h");
   const [copiedCode, setCopiedCode] = useState(false);
-  const [showQR, setShowQR] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   if (!account) return null;
 
-  // Calculate rental price based on selected package
+  // Tính giá tiền dựa theo gói thuê đã chọn
   let rentalPrice = account.hourlyPrice;
-  let packageLabel = "1 Giờ Trải Nghiệm";
+  let packageLabel = "Gói 1 Giờ Trải Nghiệm";
 
   if (selectedPackage === "3h") {
     rentalPrice = Math.round(account.hourlyPrice * 3 * 0.9);
-    packageLabel = "3 Giờ Chiến Game (Giảm 10%)";
+    packageLabel = "Gói 3 Giờ (Giảm 10%)";
   } else if (selectedPackage === "night") {
     rentalPrice = account.nightPrice;
-    packageLabel = "Qua Đêm (22h - 8h Sáng)";
+    packageLabel = "Gói Qua Đêm (22h - 8h Sáng)";
   } else if (selectedPackage === "1day") {
     rentalPrice = account.dailyPrice;
-    packageLabel = "Trọn Gói 1 Ngày (24 Tiếng)";
-  } else if (selectedPackage === "3days") {
-    rentalPrice = Math.round(account.dailyPrice * 3 * 0.85);
-    packageLabel = "Gói 3 Ngày (Tiết Kiệm 15%)";
+    packageLabel = "Gói Trọn 1 Ngày (24 Tiếng)";
   }
 
+  // Copy mã Acc riêng lẻ
   const copyAccCode = () => {
     navigator.clipboard.writeText(account.code);
     setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2500);
+    setTimeout(() => setCopiedCode(false), 2000);
   };
 
-  const zaloRentalMessageUrl = `https://zalo.me/0352867283?text=${encodeURIComponent(
-    `Chào Tuấn, mình muốn thuê tài khoản ĐTCL mã ${account.code} (${account.title}) gói ${packageLabel} giá ${rentalPrice.toLocaleString()}đ trên website.`
-  )}`;
+  // Logic Xử Lý Bấm Nút "NHẬN ACC QUA ZALO"
+  const handleOrderZalo = () => {
+    // 1. Ghép nội dung tin nhắn tự động
+    const orderMessage = `[ĐƠN THUÊ ACC TFT]
+- Mã Acc: ${account.code}
+- Tên Acc: ${account.title}
+- Gói thuê: ${packageLabel}
+- Thành tiền: ${rentalPrice.toLocaleString("vi-VN")}đ
+Nhờ shop gửi STK và bàn giao acc giúp mình!`;
+
+    // 2. Thực hiện sao chép vào clipboard của người dùng
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(orderMessage).catch(() => {});
+    }
+
+    // 3. Hiển thị Toast thông báo trực quan
+    setToastMessage("Đã sao chép thông tin đơn hàng! Hãy dán (Ctrl+V) vào khung chat Zalo với shop.");
+    setTimeout(() => setToastMessage(null), 6000);
+
+    // 4. Mở tab Zalo của shop
+    window.open(PROFILE_INFO.zaloUrl, "_blank");
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
       <div className="bg-white border border-slate-200 max-w-2xl w-full my-8 rounded-2xl overflow-hidden relative animate-fadeIn flex flex-col max-h-[92vh] shadow-2xl">
         {/* Top Accent Line */}
         <div className="h-[3px] bg-gradient-to-r from-orange-500 via-amber-500 to-emerald-500 w-full" />
+
+        {/* TOAST THÔNG BÁO TỰ ĐỘNG SAO CHÉP ĐƠN HÀNG */}
+        {toastMessage && (
+          <div className="absolute top-3 left-4 right-4 z-50 bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-xl flex items-center justify-between gap-3 animate-bounce">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold">
+              <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-white" />
+              <span>{toastMessage}</span>
+            </div>
+            <button
+              onClick={() => setToastMessage(null)}
+              className="p-1 hover:bg-emerald-700 rounded-lg text-white font-bold text-xs"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Header Bar */}
         <div className="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
@@ -183,7 +215,7 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-xs">Gói 1 Giờ Trải Nghiệm</span>
                   <span className="font-bold font-mono text-red-600 text-sm">
-                    {account.hourlyPrice.toLocaleString()}đ
+                    {account.hourlyPrice.toLocaleString("vi-VN")}đ
                   </span>
                 </div>
                 <span className="text-[11px] text-slate-500 mt-0.5 block">Phù hợp test tướng & test bài</span>
@@ -200,7 +232,7 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-xs">Gói 3 Giờ (Giảm 10%)</span>
                   <span className="font-bold font-mono text-red-600 text-sm">
-                    {Math.round(account.hourlyPrice * 3 * 0.9).toLocaleString()}đ
+                    {Math.round(account.hourlyPrice * 3 * 0.9).toLocaleString("vi-VN")}đ
                   </span>
                 </div>
                 <span className="text-[11px] text-slate-500 mt-0.5 block">Tiết kiệm chi phí chơi nhiều trận</span>
@@ -217,7 +249,7 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-xs">Gói Qua Đêm (22h - 8h)</span>
                   <span className="font-bold font-mono text-red-600 text-sm">
-                    {account.nightPrice.toLocaleString()}đ
+                    {account.nightPrice.toLocaleString("vi-VN")}đ
                   </span>
                 </div>
                 <span className="text-[11px] text-slate-500 mt-0.5 block">10 tiếng cày đêm thả ga</span>
@@ -234,7 +266,7 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-xs">Gói Trọn 1 Ngày (24h)</span>
                   <span className="font-bold font-mono text-red-600 text-sm">
-                    {account.dailyPrice.toLocaleString()}đ
+                    {account.dailyPrice.toLocaleString("vi-VN")}đ
                   </span>
                 </div>
                 <span className="text-[11px] text-slate-500 mt-0.5 block">Chơi nguyên ngày cuối tuần</span>
@@ -242,70 +274,41 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
             </div>
           </div>
 
-          {/* TOTAL PRICE & QR PAYMENT OPTION */}
+          {/* TOTAL PRICE BLOCK (ĐÃ XÓA KHỐI QR THANH TOÁN) */}
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-xs text-slate-500 uppercase font-semibold block">Tổng Tiền Thuê:</span>
-                <span className="text-xs text-slate-600">{packageLabel}</span>
+                <span className="text-xs text-slate-700 font-medium">{packageLabel}</span>
               </div>
               <div className="text-right">
                 <span className="text-2xl font-black text-red-600 font-mono">
-                  {rentalPrice.toLocaleString()}đ
+                  {rentalPrice.toLocaleString("vi-VN")}đ
                 </span>
                 <span className="text-[10px] text-emerald-600 block font-semibold">✓ Không phí phát sinh</span>
               </div>
             </div>
 
-            {/* Toggle QR Bank Details */}
-            <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
-              <button
-                onClick={() => setShowQR(!showQR)}
-                className="text-xs text-orange-600 hover:text-orange-700 font-bold flex items-center gap-1.5"
-              >
-                <QrCode className="w-4 h-4" />
-                <span>{showQR ? "Ẩn mã QR thanh toán" : "Hiện mã QR thanh toán nhanh"}</span>
-              </button>
-
+            <div className="pt-2.5 border-t border-slate-200 flex items-center justify-between">
+              <span className="text-xs text-slate-500">Mã định danh tài khoản:</span>
               <button
                 onClick={copyAccCode}
-                className="text-xs text-slate-600 hover:text-slate-900 font-medium flex items-center gap-1"
+                className="text-xs text-slate-700 hover:text-orange-600 font-semibold flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-lg shadow-sm transition-colors"
               >
                 {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedCode ? "Đã copy mã" : "Copy Mã Acc"}</span>
+                <span>{copiedCode ? "Đã copy mã" : `Copy Mã (${account.code})`}</span>
               </button>
             </div>
-
-            {showQR && (
-              <div className="pt-3 border-t border-slate-200 bg-white p-4 rounded-xl border border-slate-200 text-center space-y-3">
-                <div className="inline-block p-2 bg-white rounded-xl border border-slate-200 shadow-sm">
-                  {/* Generated Dynamic VietQR URL */}
-                  <img
-                    src={`https://img.vietqr.io/image/MB-999988886666-compact2.png?amount=${rentalPrice}&addInfo=${encodeURIComponent(
-                      `THUE ${account.code}`
-                    )}&accountName=${encodeURIComponent(PROFILE_INFO.bankInfo.accountHolder)}`}
-                    alt="VietQR Payment"
-                    className="w-48 h-48 mx-auto object-contain rounded-lg"
-                  />
-                </div>
-                <div className="text-xs text-slate-600 space-y-1">
-                  <p>Ngân hàng: <strong>{PROFILE_INFO.bankInfo.bankName}</strong></p>
-                  <p>Số tài khoản: <strong className="font-mono text-orange-600">{PROFILE_INFO.bankInfo.accountNumber}</strong></p>
-                  <p>Chủ tài khoản: <strong>{PROFILE_INFO.bankInfo.accountHolder}</strong></p>
-                  <p>Nội dung CK: <strong className="font-mono text-red-600">THUE {account.code}</strong></p>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Safety Notice */}
           <div className="p-3 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg text-xs text-amber-900 space-y-1">
             <div className="font-bold flex items-center gap-1.5 text-amber-800">
               <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
-              <span>Quy định khi thuê tài khoản:</span>
+              <span>Quy trình thuê tài khoản nhanh:</span>
             </div>
             <p className="text-[11px] leading-relaxed">
-              Nghiêm cấm dùng phần mềm thứ 3 / phá rank / đổi thông tin. Vi phạm sẽ thu hồi ngay lập tức. Sau khi chuyển khoản, vui lòng nhắn tin Zalo để nhận thông tin đăng nhập tự động.
+              Bấm nút <strong>"Nhận Acc Qua Zalo"</strong> bên dưới, hệ thống sẽ tự động sao chép toàn bộ thông tin đơn hàng. Bạn chỉ cần dán (Ctrl+V) vào khung chat Zalo, shop sẽ gửi STK và giao acc trong 30 giây!
             </p>
           </div>
         </div>
@@ -325,15 +328,14 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
               Đóng
             </button>
 
-            <a
-              href={zaloRentalMessageUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-5 py-2.5 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 w-1/2 sm:w-auto"
+            {/* NÚT TỰ ĐỘNG SAO CHÉP ĐƠN HÀNG VÀ MỞ ZALO */}
+            <button
+              onClick={handleOrderZalo}
+              className="px-5 py-2.5 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 w-1/2 sm:w-auto hover:scale-105"
             >
               <MessageCircle className="w-4 h-4" />
               <span>Nhận Acc Qua Zalo</span>
-            </a>
+            </button>
           </div>
         </div>
       </div>
