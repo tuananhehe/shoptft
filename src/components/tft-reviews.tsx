@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { CUSTOMER_REVIEWS, ReviewItem } from "@/data/tft-data";
 import {
   Star,
@@ -8,17 +8,26 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Filter,
   Eye,
   X,
-  ExternalLink,
   Sparkles,
+  Receipt,
+  ExternalLink,
 } from "lucide-react";
 
 export const TFTReviews: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [activeProof, setActiveProof] = useState<ReviewItem | null>(null);
   const [page, setPage] = useState(0);
+
+  // Đóng modal khi nhấn phím Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActiveProof(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const categories = [
     { id: "ALL", label: "Tất Cả Đánh Giá" },
@@ -110,19 +119,19 @@ export const TFTReviews: React.FC = () => {
                 </div>
 
                 {/* Comment */}
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal mb-4">
+                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium mb-4">
                   "{rev.comment}"
                 </p>
               </div>
 
-              {/* Footer with Proof Thumbnail */}
+              {/* Footer with Proof Button */}
               <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs">
                 <span className="text-slate-400 text-[11px]">{rev.date}</span>
 
-                {/* Clickable Proof Image */}
+                {/* Clickable Proof Button */}
                 <button
                   onClick={() => setActiveProof(rev)}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 text-[11px] font-semibold border border-slate-200 transition-colors shadow-sm"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-orange-50 hover:border-orange-300 text-slate-700 hover:text-orange-600 text-[11px] font-semibold border border-slate-200 transition-colors shadow-sm cursor-pointer"
                 >
                   <Eye className="w-3.5 h-3.5 text-orange-600" />
                   <span>Xem ảnh bill</span>
@@ -156,36 +165,75 @@ export const TFTReviews: React.FC = () => {
         )}
       </div>
 
-      {/* Proof Lightbox Modal */}
+      {/* ============================================================ */}
+      {/* MODAL LIGHTBOX XEM ẢNH BILL PHÓNG TO SẮC NÉT                 */}
+      {/* ============================================================ */}
       {activeProof && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 relative shadow-2xl space-y-4">
-            <button
-              onClick={() => setActiveProof(null)}
-              className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
+        <div
+          onClick={() => setActiveProof(null)}
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fadeIn"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-slate-200 rounded-3xl max-w-xl w-full p-5 sm:p-6 relative shadow-2xl space-y-4 animate-scaleUp overflow-hidden"
+          >
+            {/* Top Gradient Line */}
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-orange-500 via-amber-500 to-emerald-500" />
 
-            <div>
-              <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
-                Xác Thực Giao Dịch Thành Công
-              </span>
-              <h3 className="font-bold text-slate-900 text-base mt-0.5">
-                {activeProof.customerName} - {activeProof.accountBought}
-              </h3>
+            {/* Header */}
+            <div className="flex items-start justify-between gap-4 pt-1">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold text-orange-700 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200 uppercase tracking-wider flex items-center gap-1">
+                    <Receipt className="w-3 h-3 text-orange-600" />
+                    <span>Minh Chứng Giao Dịch Thật</span>
+                  </span>
+                  <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 font-bold">
+                    ✓ ĐÃ XÁC THỰC
+                  </span>
+                </div>
+                <h3 className="font-extrabold text-slate-900 text-base sm:text-lg mt-1.5">
+                  {activeProof.customerName}
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  {activeProof.accountBought}
+                </p>
+              </div>
+
+              {/* Nút đóng */}
+              <button
+                onClick={() => setActiveProof(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors flex-shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
-            <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
+            {/* Ảnh bill phóng to 16:9 sắc nét */}
+            <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 shadow-inner group">
               <div
-                className="w-full h-full bg-cover bg-center"
+                className="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
                 style={{ backgroundImage: `url(${activeProof.proofImage})` }}
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-4">
+                <span className="text-white text-xs font-semibold bg-black/70 px-2.5 py-1 rounded-lg backdrop-blur-sm">
+                  {activeProof.verifiedTag}
+                </span>
+              </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 font-mono">
-              <span>Mã GD: {activeProof.transactionCode}</span>
-              <span className="text-emerald-600 font-bold">✓ Đã đối soát Checkscam</span>
+            {/* Nhận xét của khách */}
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-700 italic">
+              "{activeProof.comment}"
+            </div>
+
+            {/* Footer Bill info */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs text-slate-500 font-mono">
+              <span>Mã GD: <strong className="text-slate-800">{activeProof.transactionCode}</strong> • {activeProof.date}</span>
+              <span className="text-emerald-600 font-bold flex items-center gap-1">
+                <ShieldCheck className="w-4 h-4" />
+                <span>Bảo hiểm 30M Checkscam</span>
+              </span>
             </div>
           </div>
         </div>

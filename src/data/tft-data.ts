@@ -117,7 +117,7 @@ export const TFT_RENTAL_ACCOUNTS: TFTRentalAccount[] = [
     allChibi: [
       "Tướng Tí Nị Gwen Búp Bê Trà Sữa (Chưởng Lực Kéo Kéo Kéo)",
       "Tướng Tí Nị Yone Ma Kiếm Đoạt Hồn",
-      "Tướng Tí N vị Lux Nữ Thần Vũ Trụ",
+      "Tướng Tí Nị Lux Nữ Thần Vũ Trụ",
     ],
     mainArena: "Sân Đấu Thần Thoại Đền Tuyết Thần Thoại",
     allArenas: [
@@ -326,9 +326,9 @@ export const TFT_REVIEWS: ReviewItem[] = [
     categoryLabel: "Thuê Acc TFT",
     rating: 5,
     date: "Hôm qua lúc 21:45",
-    comment: "Acc cực mượt, đúng đủ Tí Nị Ahri và Sân Đấu Đổi Nhạc như mô tả. Quét QR xong 30s sau Zalo gửi pass luôn. Rất uy tín!",
+    comment: "Acc cực mượt, đúng đủ Tí Nị Ahri và Sân Đấu Đổi Nhạc như mô tả. Nhắn tin Zalo 30s là shop gửi pass luôn. Rất uy tín!",
     verifiedTag: "Giao Dịch Xác Thực #MB9821",
-    proofImage: "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=600&auto=format&fit=crop",
+    proofImage: "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=800&auto=format&fit=crop",
     transactionCode: "GD-8899-2024",
   },
   {
@@ -340,9 +340,9 @@ export const TFT_REVIEWS: ReviewItem[] = [
     categoryLabel: "Cày Rank ĐTCL",
     rating: 5,
     date: "3 ngày trước",
-    comment: "Tuấn đánh tay 100%, tỷ lệ top 1 cực cao. Giao acc 2 ngày là lên Thách Đấu đúng tiến độ. Có bảo hiểm 30M nên cực kỳ yên tâm giao acc chính.",
+    comment: "Tuấn đánh tay 100%, tỷ lệ vào top cực cao. Giao acc 2 ngày là lên Thách Đấu đúng tiến độ. Có bảo hiểm 30M nên cực kỳ yên tâm giao acc chính.",
     verifiedTag: "Giao Dịch Xác Thực #MB4432",
-    proofImage: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop",
+    proofImage: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&auto=format&fit=crop",
     transactionCode: "GD-4432-2024",
   },
   {
@@ -356,7 +356,7 @@ export const TFT_REVIEWS: ReviewItem[] = [
     date: "1 tuần trước",
     comment: "Học xong 2 buổi vỡ ra bao nhiêu kiến thức xoay bài và giữ máu. Từ Lục Bảo 4 chuỗi thua leo thẳng lên Cao Thủ 250 ĐNG. Đáng từng đồng tiền bát gạo!",
     verifiedTag: "Giao Dịch Xác Thực #MB7719",
-    proofImage: "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=600&auto=format&fit=crop",
+    proofImage: "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=800&auto=format&fit=crop",
     transactionCode: "GD-7719-2024",
   },
   {
@@ -370,7 +370,7 @@ export const TFT_REVIEWS: ReviewItem[] = [
     date: "2 tuần trước",
     comment: "Thuê gói đêm 22h - 8h sáng giá rẻ mà acc xịn đét. Sân đấu đổi nhạc nghe cuốn cực kỳ. Sẽ ủng hộ Tuấn Thái Bình dài dài!",
     verifiedTag: "Giao Dịch Xác Thực #MB3301",
-    proofImage: "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?q=80&w=600&auto=format&fit=crop",
+    proofImage: "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?q=80&w=800&auto=format&fit=crop",
     transactionCode: "GD-3301-2024",
   },
 ];
