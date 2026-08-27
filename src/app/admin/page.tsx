@@ -1,24 +1,32 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { TFT_RENTAL_ACCOUNTS, PROFILE_INFO } from "@/data/tft-data";
 import {
   TrendingUp,
-  Users,
   Gamepad2,
   Receipt,
   DollarSign,
-  ShieldCheck,
-  CheckCircle2,
+  Hourglass,
   Clock,
   ArrowUpRight,
   Sparkles,
   Zap,
-  Plus,
+  Copy,
+  CheckCircle2,
+  RotateCcw,
+  Check,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
   const totalAccounts = TFT_RENTAL_ACCOUNTS.length;
   const availableAccounts = TFT_RENTAL_ACCOUNTS.filter(
     (a) => a.status === "AVAILABLE"
@@ -27,7 +35,7 @@ export default function AdminDashboardPage() {
     (a) => a.status === "RENTED"
   ).length;
 
-  const recentOrders = [
+  const [recentOrders, setRecentOrders] = useState([
     {
       id: "ORD-9821",
       customer: "Nguyễn Hoàng Long",
@@ -36,6 +44,7 @@ export default function AdminDashboardPage() {
       amount: "49.000đ",
       status: "COMPLETED",
       statusLabel: "Đã Bàn Giao",
+      remainingTime: null,
       time: "15 phút trước",
     },
     {
@@ -46,6 +55,7 @@ export default function AdminDashboardPage() {
       amount: "164.000đ",
       status: "RENTING",
       statusLabel: "Đang Thuê",
+      remainingTime: "Còn 1h 20m",
       time: "1 giờ trước",
     },
     {
@@ -56,6 +66,7 @@ export default function AdminDashboardPage() {
       amount: "300.000đ",
       status: "COMPLETED",
       statusLabel: "Đã Hoàn Thành",
+      remainingTime: null,
       time: "3 giờ trước",
     },
     {
@@ -64,22 +75,56 @@ export default function AdminDashboardPage() {
       account: "MS: 7721 - Gwen Búp Bê",
       package: "2 Giờ Trải Nghiệm",
       amount: "43.000đ",
-      status: "COMPLETED",
-      statusLabel: "Đã Bàn Giao",
+      status: "RENTING",
+      statusLabel: "Đang Thuê",
+      remainingTime: "Còn 45m",
       time: "Hôm qua lúc 21:40",
     },
-  ];
+  ]);
+
+  // Copy thông tin đơn hàng
+  const handleCopyOrder = (ord: (typeof recentOrders)[0]) => {
+    const text = `[ĐƠN HÀNG ${ord.id}] Khách: ${ord.customer} | Acc: ${ord.account} | Gói: ${ord.package} | Tiền: ${ord.amount}`;
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(`Đã sao chép thông tin đơn ${ord.id}!`);
+    });
+  };
+
+  // Đánh dấu đã thu hồi acc
+  const handleReclaimOrder = (orderId: string) => {
+    setRecentOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId
+          ? {
+              ...o,
+              status: "COMPLETED",
+              statusLabel: "Đã Thu Hồi",
+              remainingTime: null,
+            }
+          : o
+      )
+    );
+    showToast(`Đã xác nhận thu hồi acc cho đơn ${orderId}!`);
+  };
 
   return (
     <div className="space-y-6">
-      {/* 1. WELCOME BANNER */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 text-white flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl shadow-orange-600/15 relative overflow-hidden">
-        <div className="space-y-2 z-10">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold uppercase tracking-wider backdrop-blur-sm">
+      {/* TOAST THÔNG BÁO */}
+      {toastMessage && (
+        <div className="fixed top-4 right-4 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 text-xs font-bold animate-bounce border border-slate-700">
+          <Check className="w-4 h-4 text-emerald-400" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* 1. WELCOME BANNER - TINH CHỈNH PADDING NHỎ GỌN PY-5 SM:PY-6 */}
+      <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 text-white flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-xl shadow-orange-600/15 relative overflow-hidden">
+        <div className="space-y-1.5 z-10">
+          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/20 text-white text-[11px] font-bold uppercase tracking-wider backdrop-blur-sm">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Chào mừng trở lại, {PROFILE_INFO.realName}</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-black tracking-tight">
             Hệ Thống ShopTFT Mobile Đang Hoạt Động Tốt
           </h2>
           <p className="text-xs sm:text-sm text-orange-100 max-w-xl font-normal leading-relaxed">
@@ -91,7 +136,7 @@ export default function AdminDashboardPage() {
         <div className="flex items-center gap-3 z-10 flex-shrink-0">
           <Link
             href="/admin/accounts"
-            className="px-5 py-3 bg-white hover:bg-slate-50 text-orange-700 font-extrabold text-xs uppercase tracking-wider rounded-2xl shadow-lg transition-all hover:scale-105 flex items-center gap-2"
+            className="px-4 py-2.5 bg-white hover:bg-slate-50 text-orange-700 font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all hover:scale-105 flex items-center gap-2 cursor-pointer"
           >
             <Gamepad2 className="w-4 h-4" />
             <span>Quản Lý Kho Acc</span>
@@ -99,9 +144,10 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* 2. STATS GRID */}
+      {/* 2. STATS GRID - CARD 4: ACC SẮP HẾT GIỜ */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        {/* Card 1 */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
               Doanh Thu Hôm Nay
@@ -118,9 +164,11 @@ export default function AdminDashboardPage() {
               <TrendingUp className="w-3.5 h-3.5 mr-0.5" /> +18.4%
             </span>
           </div>
+          <p className="text-[11px] text-slate-400 font-normal">Đã bao gồm phí dịch vụ</p>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        {/* Card 2 */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
               Lượt Thuê Tháng Này
@@ -137,9 +185,11 @@ export default function AdminDashboardPage() {
               <TrendingUp className="w-3.5 h-3.5 mr-0.5" /> +12.5%
             </span>
           </div>
+          <p className="text-[11px] text-slate-400 font-normal">Tăng trưởng ổn định</p>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        {/* Card 3 */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
               Tỷ Lệ Lấp Đầy Kho
@@ -156,31 +206,36 @@ export default function AdminDashboardPage() {
               {rentedAccounts}/{totalAccounts} Acc
             </span>
           </div>
+          <p className="text-[11px] text-slate-400 font-normal">{availableAccounts} acc đang chờ khách</p>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        {/* Card 4: THAY THÀNH "ACC SẮP HẾT GIỜ" */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Quỹ Bảo Hiểm Checkscam
+              Acc Sắp Hết Giờ
             </span>
-            <span className="p-2 bg-emerald-100 text-emerald-600 rounded-xl">
-              <ShieldCheck className="w-4 h-4" />
+            <span className="p-2 bg-rose-100 text-rose-600 rounded-xl">
+              <Hourglass className="w-4 h-4 animate-pulse" />
             </span>
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-xl font-black text-emerald-700 font-mono">
-              30.000.000đ
+            <span className="text-2xl font-black text-rose-600 font-mono">
+              2 Acc
             </span>
-            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
-              Bảo Chứng
+            <span className="text-[10px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded">
+              Cần Lưu Ý
             </span>
           </div>
+          <p className="text-xs text-slate-500 font-normal">
+            Sắp thu hồi trong 2 giờ tới
+          </p>
         </div>
       </div>
 
       {/* 3. RECENT ORDERS & QUICK STATS */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Đơn Hàng Mới Nhất */}
+        {/* Left 2 Cols: Đơn Hàng Mới Nhất VỚI HOVER ACTIONS & THỜI GIAN CÒN LẠI */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div>
@@ -204,35 +259,73 @@ export default function AdminDashboardPage() {
             {recentOrders.map((ord) => (
               <div
                 key={ord.id}
-                className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                className="py-3.5 px-2.5 rounded-xl hover:bg-slate-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs group"
               >
-                <div className="space-y-0.5">
+                <div className="space-y-0.5 flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-mono font-bold text-slate-900">
                       {ord.id}
                     </span>
-                    <strong className="text-slate-800 font-bold">
+                    <strong className="text-slate-800 font-bold truncate">
                       {ord.customer}
                     </strong>
+                    <span className="text-[10px] text-slate-400 font-normal">
+                      • {ord.time}
+                    </span>
                   </div>
-                  <p className="text-slate-500">
+                  <p className="text-slate-500 truncate">
                     {ord.account} • <span className="text-orange-600 font-semibold">{ord.package}</span>
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between sm:justify-end gap-3">
+                <div className="flex items-center justify-between sm:justify-end gap-3 flex-shrink-0">
+                  {/* Giá tiền */}
                   <span className="font-mono font-bold text-red-600 text-sm">
                     {ord.amount}
                   </span>
-                  <span
-                    className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase ${
-                      ord.status === "COMPLETED"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-amber-100 text-amber-700"
-                    }`}
-                  >
-                    {ord.statusLabel}
-                  </span>
+
+                  {/* Trạng Thái & Thời Gian Còn Lại */}
+                  <div className="flex items-center">
+                    <span
+                      className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase ${
+                        ord.status === "COMPLETED"
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
+                      {ord.statusLabel}
+                    </span>
+
+                    {/* Bổ sung thời gian còn lại nếu đang thuê */}
+                    {ord.remainingTime && (
+                      <span className="text-xs text-slate-400 font-medium ml-2 font-mono">
+                        ({ord.remainingTime})
+                      </span>
+                    )}
+                  </div>
+
+                  {/* THAO TÁC NHANH (HOVER ACTIONS) */}
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1">
+                    {/* Nút Copy */}
+                    <button
+                      onClick={() => handleCopyOrder(ord)}
+                      title="Sao chép thông tin đơn hàng"
+                      className="p-1.5 rounded-lg bg-white hover:bg-slate-200 text-slate-600 border border-slate-200 transition-colors shadow-sm cursor-pointer"
+                    >
+                      <Copy className="w-3.5 h-3.5 text-slate-600" />
+                    </button>
+
+                    {/* Nút Thu hồi acc nếu đang thuê */}
+                    {ord.status === "RENTING" && (
+                      <button
+                        onClick={() => handleReclaimOrder(ord.id)}
+                        title="Đánh dấu đã thu hồi acc"
+                        className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors shadow-sm cursor-pointer"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -273,7 +366,7 @@ export default function AdminDashboardPage() {
                 className="w-full p-3 rounded-xl bg-slate-50 hover:bg-orange-50 hover:border-orange-200 border border-slate-200 flex items-center justify-between text-xs font-bold text-slate-700 hover:text-orange-700 transition-colors"
               >
                 <div className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-sky-600" />
+                  <Clock className="w-4 h-4 text-sky-600" />
                   <span>Cài Đặt Zalo & Hotline</span>
                 </div>
                 <ArrowUpRight className="w-3.5 h-3.5" />
