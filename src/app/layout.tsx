@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Rajdhani, Montserrat } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
@@ -7,6 +7,20 @@ const inter = Inter({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
   variable: "--font-inter",
+  display: "swap",
+});
+
+const rajdhani = Rajdhani({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-rajdhani",
+  display: "swap",
+});
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["700", "800", "900"],
+  variable: "--font-montserrat",
   display: "swap",
 });
 
@@ -114,7 +128,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen bg-[#F8FAFC] text-slate-900 selection:bg-orange-500 selection:text-white font-sans">
+      <body className={`${inter.variable} ${rajdhani.variable} ${montserrat.variable} min-h-screen bg-[#F8FAFC] text-slate-900 selection:bg-orange-500 selection:text-white font-sans antialiased`}>
         <Toaster
           position="top-right"
           reverseOrder={false}

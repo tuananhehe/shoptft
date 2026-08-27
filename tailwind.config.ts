@@ -32,15 +32,15 @@ const config: Config = {
         nav: "0.5px",
       },
       fontFamily: {
-        bmw: [
-          "BMWTypeNextLatin",
+        gaming: [
+          "var(--font-rajdhani)",
+          "var(--font-montserrat)",
           "Inter",
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "Segoe UI",
-          "Roboto",
           "sans-serif",
         ],
+        rajdhani: ["var(--font-rajdhani)", "sans-serif"],
+        montserrat: ["var(--font-montserrat)", "sans-serif"],
+        sans: ["var(--font-inter)", "sans-serif"],
       },
       maxWidth: {
         marketing: "1440px",
