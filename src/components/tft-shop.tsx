@@ -68,13 +68,13 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
 
   const handlePrev = () => {
     if (sliderRef.current) {
-      sliderRef.current.scrollBy({ left: -320, behavior: "smooth" });
+      sliderRef.current.scrollBy({ left: -330, behavior: "smooth" });
     }
   };
 
   const handleNext = () => {
     if (sliderRef.current) {
-      sliderRef.current.scrollBy({ left: 320, behavior: "smooth" });
+      sliderRef.current.scrollBy({ left: 330, behavior: "smooth" });
     }
   };
 
@@ -113,8 +113,8 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
             </p>
           </div>
 
-          {/* 2 NÚT ICON MŨI TÊN ĐIỀU HƯỚNG TRÒN (PREV / NEXT) PHONG CÁCH TỐI GIẢN */}
-          <div className="flex items-center gap-2">
+          {/* 2 NÚT ICON MŨI TÊN ĐIỀU HƯỚNG TRÒN (PREV / NEXT) */}
+          <div className="flex items-center gap-2 self-start md:self-auto">
             <button
               onClick={handlePrev}
               aria-label="Previous accounts"
@@ -133,20 +133,20 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
         </div>
       </div>
 
-      {/* 1. SEAMLESS INFINITE MARQUEE AUTO-LOOP TRACK */}
-      <div className="relative w-full py-2 overflow-hidden mask-gradient">
-        {/* Left & Right fade gradient masks */}
-        <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-20 bg-gradient-to-r from-slate-50 to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-8 sm:w-20 bg-gradient-to-l from-slate-50 to-transparent z-10 pointer-events-none" />
+      {/* 1. SEAMLESS INFINITE MARQUEE AUTO-LOOP TRACK - THÊM PADDING PX-4 LG:PX-8 TRÁNH TRÀN LẸM VIỀN */}
+      <div className="relative w-full py-3 overflow-hidden">
+        {/* Soft edge gradients */}
+        <div className="absolute left-0 top-0 bottom-0 w-6 sm:w-12 bg-gradient-to-r from-slate-50 to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-6 sm:w-12 bg-gradient-to-l from-slate-50 to-transparent z-10 pointer-events-none" />
 
         <div
           ref={sliderRef}
-          className="animate-infinite-loop flex gap-5 px-4 overflow-x-auto no-scrollbar scroll-smooth"
+          className="animate-infinite-loop flex gap-5 px-4 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar scroll-smooth py-2"
         >
           {loopAccounts.map((account, index) => (
             <div
               key={`${account.id}-${index}`}
-              className="w-[280px] sm:w-[310px] flex-shrink-0 bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between group"
+              className="w-[285px] sm:w-[315px] flex-shrink-0 bg-white border border-slate-200/90 rounded-2xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between group"
             >
               {/* Top Photo & Badges */}
               <div>
@@ -186,35 +186,35 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                   </div>
                 </div>
 
-                {/* Tag danh mục nhỏ màu xám nhạt */}
+                {/* Tag danh mục nhỏ */}
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span className="bg-slate-100 text-slate-600 text-[10px] font-semibold px-2 py-0.5 rounded">
+                  <span className="bg-slate-100 text-slate-700 text-[10px] font-semibold px-2 py-0.5 rounded">
                     {account.mainChibi}
                   </span>
                 </div>
 
-                {/* Tên gói/acc in đậm */}
-                <h3 className="text-slate-800 text-sm font-semibold line-clamp-2 leading-snug group-hover:text-orange-600 transition-colors">
+                {/* Tên gói/acc: Thêm min-h-[44px] line-clamp-2 căn đều đáy */}
+                <h3 className="text-slate-800 text-sm font-semibold line-clamp-2 min-h-[44px] leading-snug group-hover:text-orange-600 transition-colors">
                   {account.title}
                 </h3>
 
-                {/* Sân Đấu */}
-                <p className="text-[11px] text-slate-500 line-clamp-1 mt-1 font-normal">
+                {/* Sân Đấu: Chuyển sang text-slate-600 font-medium rõ nét */}
+                <p className="text-[11px] text-slate-600 line-clamp-1 mt-1.5 font-medium">
                   🏟️ {account.mainArena}
                 </p>
               </div>
 
-              {/* Price & Actions */}
+              {/* Price & Actions: Luôn nằm thẳng hàng ngang ở đáy */}
               <div className="pt-3 mt-3 border-t border-slate-100 space-y-2.5">
-                {/* Giá tiền màu đỏ tươi kèm số lượt đã thuê bên cạnh */}
+                {/* Giá tiền đỏ tươi & Số lượt thuê text-slate-600 dễ đọc */}
                 <div className="flex items-baseline justify-between">
                   <div>
                     <span className="text-base sm:text-lg font-bold text-red-600 font-mono">
                       {account.hourlyPrice.toLocaleString()}đ
                     </span>
-                    <span className="text-xs text-slate-500 font-normal"> / Giờ</span>
+                    <span className="text-xs text-slate-600 font-medium"> / Giờ</span>
                   </div>
-                  <span className="text-xs text-slate-400 font-medium">
+                  <span className="text-xs text-slate-600 font-medium">
                     Đã thuê: 120+ lượt
                   </span>
                 </div>
@@ -243,21 +243,21 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
         </div>
       </div>
 
-      {/* 2. NÚT LỚN "XEM THÊM TOÀN BỘ KHO ACC" */}
+      {/* 2. NÚT LỚN "XEM THÊM" - CHỈNH THÀNH max-w-md mx-auto w-full py-3 text-sm font-semibold rounded-full shadow-md */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 text-center">
         <button
           onClick={() => setShowFullCatalog(!showFullCatalog)}
-          className={`h-12 sm:h-14 px-8 inline-flex items-center justify-center gap-3 rounded-full font-bold text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 shadow-md ${
+          className={`max-w-md mx-auto w-full py-3 sm:py-3.5 px-6 inline-flex items-center justify-center gap-2.5 rounded-full font-semibold text-sm transition-all duration-300 shadow-md ${
             showFullCatalog
               ? "bg-slate-800 text-white hover:bg-slate-900"
-              : "bg-orange-600 hover:bg-orange-700 text-white shadow-orange-600/20 hover:scale-105"
+              : "bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white shadow-orange-600/25 hover:scale-105"
           }`}
         >
           <Layers className="w-4 h-4" />
           <span>
             {showFullCatalog
               ? "Thu gọn lại (Chế độ 5 acc tiêu biểu)"
-              : `Xem thêm toàn bộ kho acc cho thuê (${TFT_RENTAL_ACCOUNTS.length}+ acc có sẵn)`}
+              : `Xem thêm toàn bộ kho acc (${TFT_RENTAL_ACCOUNTS.length}+ acc có sẵn)`}
           </span>
           {showFullCatalog ? (
             <ChevronUp className="w-4 h-4" />
@@ -425,7 +425,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
               {filteredAccounts.map((account) => (
                 <div
                   key={account.id}
-                  className="bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between group"
+                  className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between group"
                 >
                   {/* Top Photo & Badges */}
                   <div>
@@ -462,34 +462,34 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                       </div>
                     </div>
 
-                    {/* Tag danh mục nhỏ màu xám nhạt */}
+                    {/* Tag danh mục nhỏ */}
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className="bg-slate-100 text-slate-600 text-[10px] font-semibold px-2 py-0.5 rounded">
+                      <span className="bg-slate-100 text-slate-700 text-[10px] font-semibold px-2 py-0.5 rounded">
                         {account.mainChibi}
                       </span>
                     </div>
 
-                    {/* Tên gói/acc in đậm */}
-                    <h3 className="text-slate-800 text-sm font-semibold line-clamp-2 leading-snug group-hover:text-orange-600 transition-colors">
+                    {/* Tên gói/acc in đậm: min-h-[44px] */}
+                    <h3 className="text-slate-800 text-sm font-semibold line-clamp-2 min-h-[44px] leading-snug group-hover:text-orange-600 transition-colors">
                       {account.title}
                     </h3>
 
-                    {/* Sân Đấu */}
-                    <p className="text-[11px] text-slate-500 line-clamp-1 mt-1 font-normal">
+                    {/* Sân Đấu: text-slate-600 rõ nét */}
+                    <p className="text-[11px] text-slate-600 line-clamp-1 mt-1.5 font-medium">
                       🏟️ {account.mainArena}
                     </p>
                   </div>
 
-                  {/* Price & Actions */}
+                  {/* Price & Actions: Luôn nằm thẳng hàng ở đáy */}
                   <div className="pt-3 mt-3 border-t border-slate-100 space-y-2.5">
                     <div className="flex items-baseline justify-between">
                       <div>
                         <span className="text-base sm:text-lg font-bold text-red-600 font-mono">
                           {account.hourlyPrice.toLocaleString()}đ
                         </span>
-                        <span className="text-xs text-slate-500 font-normal"> / Giờ</span>
+                        <span className="text-xs text-slate-600 font-medium"> / Giờ</span>
                       </div>
-                      <span className="text-xs text-slate-400 font-medium">
+                      <span className="text-xs text-slate-600 font-medium">
                         Đã thuê: 95+ lượt
                       </span>
                     </div>
