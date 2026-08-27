@@ -12,8 +12,35 @@ import {
   X,
   Sparkles,
   Receipt,
-  ExternalLink,
 } from "lucide-react";
+
+// Bảng màu Pastel Gaming cho Avatar chữ cái
+const AVATAR_COLOR_PALETTES = [
+  "bg-orange-100 text-orange-600 border-orange-200",
+  "bg-blue-100 text-blue-600 border-blue-200",
+  "bg-emerald-100 text-emerald-600 border-emerald-200",
+  "bg-purple-100 text-purple-600 border-purple-200",
+  "bg-rose-100 text-rose-600 border-rose-200",
+  "bg-amber-100 text-amber-700 border-amber-200",
+  "bg-indigo-100 text-indigo-600 border-indigo-200",
+  "bg-teal-100 text-teal-600 border-teal-200",
+];
+
+// Hàm lấy chữ cái đầu tiên của tên khách hàng
+const getCustomerInitial = (name: string): string => {
+  // Loại bỏ nội dung trong ngoặc đơn như (Streamer Đức TFT)
+  const clean = name.replace(/\([^)]*\)/g, "").trim();
+  const words = clean.split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "T";
+  // Lấy chữ cái đầu của tên chính (từ cuối cùng)
+  const lastName = words[words.length - 1];
+  return lastName.charAt(0).toUpperCase();
+};
+
+// Hàm lấy màu ngẫu nhiên nhưng cố định theo tên
+const getAvatarColor = (name: string, index: number): string => {
+  return AVATAR_COLOR_PALETTES[index % AVATAR_COLOR_PALETTES.length];
+};
 
 export const TFTReviews: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
@@ -86,59 +113,66 @@ export const TFTReviews: React.FC = () => {
 
         {/* Reviews 3-Card Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          {currentReviews.map((rev) => (
-            <div
-              key={rev.id}
-              className="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl p-6 flex flex-col justify-between hover:shadow-md transition-all shadow-sm group"
-            >
-              <div>
-                {/* Header */}
-                <div className="flex items-center gap-3.5 mb-4">
-                  <div
-                    className="w-12 h-12 rounded-xl bg-cover bg-center border border-slate-200 flex-shrink-0"
-                    style={{ backgroundImage: `url(${rev.avatar})` }}
-                  />
-                  <div>
-                    <h4 className="font-bold text-slate-900 text-sm">{rev.customerName}</h4>
-                    <span className="text-[11px] text-slate-500 font-normal">{rev.accountBought}</span>
-                  </div>
-                </div>
+          {currentReviews.map((rev, index) => {
+            const initial = getCustomerInitial(rev.customerName);
+            const colorClass = getAvatarColor(rev.customerName, index);
 
-                {/* Stars & Tag */}
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <div className="flex text-amber-500">
-                    {[...Array(rev.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-500" />
-                    ))}
+            return (
+              <div
+                key={rev.id}
+                className="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl p-6 flex flex-col justify-between hover:shadow-md transition-all shadow-sm group"
+              >
+                <div>
+                  {/* Header với AVATAR DẠNG CHỮ CÁI (Letter/Initials Avatar) */}
+                  <div className="flex items-center gap-3.5 mb-4">
+                    <div
+                      className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl border flex items-center justify-center font-black text-base sm:text-lg flex-shrink-0 shadow-sm transition-transform group-hover:scale-105 ${colorClass}`}
+                    >
+                      <span>{initial}</span>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm">{rev.customerName}</h4>
+                      <span className="text-[11px] text-slate-500 font-normal">{rev.accountBought}</span>
+                    </div>
                   </div>
 
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                    <span>{rev.verifiedTag}</span>
-                  </span>
+                  {/* Stars & Tag */}
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex text-amber-500">
+                      {[...Array(rev.rating)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 fill-amber-500" />
+                      ))}
+                    </div>
+
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                      <span>{rev.verifiedTag}</span>
+                    </span>
+                  </div>
+
+                  {/* Comment */}
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium mb-4">
+                    "{rev.comment}"
+                  </p>
                 </div>
 
-                {/* Comment */}
-                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium mb-4">
-                  "{rev.comment}"
-                </p>
-              </div>
+                {/* Footer with Proof Button */}
+                <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs">
+                  <span className="text-slate-400 text-[11px]">{rev.date}</span>
 
-              {/* Footer with Proof Button */}
-              <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs">
-                <span className="text-slate-400 text-[11px]">{rev.date}</span>
-
-                {/* Clickable Proof Button */}
-                <button
-                  onClick={() => setActiveProof(rev)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-orange-50 hover:border-orange-300 text-slate-700 hover:text-orange-600 text-[11px] font-semibold border border-slate-200 transition-colors shadow-sm cursor-pointer"
-                >
-                  <Eye className="w-3.5 h-3.5 text-orange-600" />
-                  <span>Xem ảnh bill</span>
-                </button>
+                  {/* Clickable Proof Button */}
+                  <button
+                    onClick={() => setActiveProof(rev)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-orange-50 hover:border-orange-300 text-slate-700 hover:text-orange-600 text-[11px] font-semibold border border-slate-200 transition-colors shadow-sm cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-orange-600" />
+                    <span>Xem ảnh bill</span>
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Pagination */}
