@@ -29,9 +29,10 @@ export const TFTFooter: React.FC = () => {
           <div className="space-y-4 lg:col-span-2">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl p-[2px] bg-gradient-to-tr from-orange-500 to-amber-500 shadow-md flex-shrink-0">
-                <div
-                  className="w-full h-full rounded-[14px] bg-cover bg-center"
-                  style={{ backgroundImage: `url(${PROFILE_INFO.avatarUrl})` }}
+                <img
+                  src={PROFILE_INFO.avatarUrl}
+                  alt="Tuấn Thái Bình - Admin Shop Thuê Acc TFT ĐTCL"
+                  className="w-full h-full rounded-[14px] object-cover"
                 />
               </div>
               <div>

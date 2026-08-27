@@ -16,7 +16,7 @@ export const TFTServices: React.FC = () => {
           </div>
 
           <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900">
-            CÀY THUÊ RANK & COACHING 1-1
+            CÀY THUÊ RANK & COACHING 1-1 ĐTCL
           </h2>
           <p className="text-slate-600 text-sm sm:text-base font-normal">
             Nâng tầm trình độ, phá vỡ giới hạn elo cùng cựu tuyển thủ Cựu Thách Đấu Việt Nam. Bảo mật tuyệt đối danh tính.
@@ -30,55 +30,57 @@ export const TFTServices: React.FC = () => {
               key={srv.id}
               className={`rounded-2xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 relative ${
                 srv.popular
-                  ? "bg-white border-2 border-orange-500 shadow-xl md:-translate-y-2"
-                  : "bg-slate-50 border border-slate-200 hover:border-slate-300 hover:bg-white hover:shadow-md shadow-sm"
+                  ? "bg-white border-2 border-orange-500 shadow-xl shadow-orange-600/10 -translate-y-1"
+                  : "bg-slate-50 border border-slate-200 hover:border-slate-300 hover:shadow-md"
               }`}
             >
               {srv.popular && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-orange-600 text-white text-[11px] font-black uppercase tracking-wider shadow-md">
-                  GÓI ĐƯỢC CHỌN NHIỀU NHẤT
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-orange-600 text-white text-[10px] font-black tracking-wider uppercase shadow-md">
+                  GÓI ĐƯỢC ĐẶT NHIỀU NHẤT
                 </div>
               )}
 
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-4">
-                  <span className="text-xs font-black uppercase tracking-wider text-orange-700 bg-orange-100 px-2.5 py-1 rounded-md border border-orange-200">
+              <div className="space-y-4">
+                <div>
+                  <span className="text-[11px] font-bold text-orange-600 uppercase tracking-wider">
                     {srv.badge}
                   </span>
-                  <div className="flex items-center gap-1 text-[11px] text-emerald-700 font-semibold">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Cam kết bảo mật</span>
-                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 mt-1">
+                    {srv.title}
+                  </h3>
                 </div>
 
-                <h3 className="text-lg font-bold text-slate-900 mb-2">{srv.title}</h3>
-                <div className="text-2xl font-black text-red-600 font-mono mb-6">{srv.price}</div>
+                <div className="py-2 border-y border-slate-100">
+                  <span className="text-2xl font-black text-slate-900 font-mono">
+                    {srv.price}
+                  </span>
+                </div>
 
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-2.5 text-xs text-slate-600">
                   {srv.features.map((feat, idx) => (
-                    <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-600">
-                      <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <Check className="w-3.5 h-3.5" />
-                      </div>
-                      <span className="leading-snug">{feat}</span>
+                    <li key={idx} className="flex items-start gap-2">
+                      <Check className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                      <span>{feat}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <a
-                href={PROFILE_INFO.zaloUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-sm ${
-                  srv.popular
-                    ? "bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white shadow-md hover:shadow-lg"
-                    : "bg-white hover:bg-slate-100 text-slate-800 border border-slate-300"
-                }`}
-              >
-                <MessageCircle className="w-4 h-4 text-sky-500" />
-                <span>Liên Hệ Zalo Đặt Lịch</span>
-              </a>
+              <div className="pt-6">
+                <a
+                  href={PROFILE_INFO.zaloUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    srv.popular
+                      ? "bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white shadow-md shadow-orange-600/20 hover:scale-[1.02]"
+                      : "bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 shadow-sm"
+                  }`}
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Tư Vấn Zalo Ngay</span>
+                </a>
+              </div>
             </div>
           ))}
         </div>

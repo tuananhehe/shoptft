@@ -28,9 +28,10 @@ export const TFTNavbar: React.FC = () => {
           {/* 1. BÊN TRÁI: LOGO + TÊN THƯƠNG HIỆU */}
           <a href="#hero" className="flex items-center gap-3 group flex-shrink-0">
             <div className="relative w-10 h-10 rounded-xl p-[2px] bg-gradient-to-tr from-orange-500 to-amber-500 shadow-sm group-hover:scale-105 transition-transform flex-shrink-0">
-              <div
-                className="w-full h-full rounded-[10px] bg-cover bg-center"
-                style={{ backgroundImage: `url(${PROFILE_INFO.avatarUrl})` }}
+              <img
+                src={PROFILE_INFO.avatarUrl}
+                alt="Logo Tuấn Thái Bình - Shop Thuê Acc TFT ĐTCL Uy Tín"
+                className="w-full h-full rounded-[10px] object-cover"
               />
               <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white animate-pulse" />
             </div>

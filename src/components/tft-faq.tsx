@@ -58,7 +58,7 @@ export const TFTFaq: React.FC = () => {
           </div>
 
           <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900">
-            CÂU HỎI THƯỜNG GẶP
+            HỎI ĐÁP & HƯỚNG DẪN THUÊ ACC TFT
           </h2>
           <p className="text-slate-600 text-sm sm:text-base font-normal">
             Giải đáp chi tiết và minh bạch tất cả các thắc mắc về quy trình nhận acc, bảo hành và chính sách cam kết tại Shop Tuấn Thái Bình.

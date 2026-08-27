@@ -97,7 +97,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
   return (
     <section id="shop" className="pt-8 pb-14 sm:pt-10 sm:pb-16 bg-slate-50 border-t border-slate-200/80 border-b border-slate-200 text-slate-900 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
-        {/* Section Header */}
+        {/* Section Header chuẩn SEO với thẻ H2 */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-100/80 border border-orange-200 text-orange-700 text-xs font-bold uppercase tracking-wider shadow-sm">
@@ -148,12 +148,13 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
               key={`${account.id}-${index}`}
               className="w-[275px] sm:w-[295px] lg:w-[285px] xl:w-[295px] flex-shrink-0 flex flex-col h-full justify-between bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 group"
             >
-              {/* Top Photo & Badges - KHUNG VUÔNG ASPECT-SQUARE */}
+              {/* Top Photo & Badges - KHUNG VUÔNG ASPECT-SQUARE CÓ ALT CHUẨN SEO */}
               <div>
                 <div className="relative aspect-square w-full overflow-hidden rounded-t-xl sm:rounded-t-2xl rounded-b-lg bg-slate-900 mb-3.5 border border-slate-100 shadow-inner">
-                  <div
-                    className="w-full h-full bg-cover bg-center object-cover transition-transform duration-500 group-hover:scale-105"
-                    style={{ backgroundImage: `url(${account.thumbnail})` }}
+                  <img
+                    src={account.thumbnail}
+                    alt={`Thuê acc TFT VIP ${account.code} có ${account.mainChibi} - Tuấn Thái Bình`}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/30" />
 
@@ -178,7 +179,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                     )}
                   </div>
 
-                  {/* Bottom Rank Badge - Nhích lên bottom-3 left-3 không chạm viền */}
+                  {/* Bottom Rank Badge */}
                   <div className="absolute bottom-3 left-3">
                     <span className="px-2.5 py-0.5 rounded-md bg-white/95 text-slate-900 text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
                       {account.rank}
@@ -193,20 +194,19 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                   </span>
                 </div>
 
-                {/* Tên gói/acc: min-h-[3.5rem] line-clamp-2 căn đều đáy */}
+                {/* Tên gói/acc: min-h-[3.5rem] line-clamp-2 */}
                 <h3 className="text-slate-800 text-sm font-semibold line-clamp-2 min-h-[3.5rem] leading-snug group-hover:text-orange-600 transition-colors">
                   {account.title}
                 </h3>
 
-                {/* Sân Đấu: Chuyển sang text-slate-600 font-medium rõ nét */}
+                {/* Sân Đấu: text-slate-600 font-medium rõ nét */}
                 <p className="text-[11px] text-slate-600 line-clamp-1 mt-1.5 font-medium">
                   🏟️ {account.mainArena}
                 </p>
               </div>
 
-              {/* Price & Actions: mt-auto luôn nằm thẳng hàng ngang ở đáy */}
+              {/* Price & Actions: mt-auto luôn nằm thẳng hàng ở đáy */}
               <div className="mt-auto pt-3.5 border-t border-slate-100 space-y-2.5">
-                {/* Giá tiền đỏ tươi & Số lượt thuê text-slate-600 dễ đọc */}
                 <div className="flex items-baseline justify-between">
                   <div>
                     <span className="text-base sm:text-lg font-bold text-red-600 font-mono">
@@ -219,7 +219,6 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                   </span>
                 </div>
 
-                {/* 2 Buttons: Chi Tiết & Thuê Ngay */}
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => onSelectAccount(account)}
@@ -326,7 +325,6 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
           {/* BỘ LỌC & TÌM KIẾM */}
           <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-center">
-              {/* Filter 1 */}
               <div className="lg:col-span-3">
                 <label className="text-[11px] text-slate-500 uppercase font-bold tracking-wider mb-1 block">
                   Thời Gian Thuê
@@ -344,7 +342,6 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                 </select>
               </div>
 
-              {/* Filter 2 */}
               <div className="lg:col-span-3">
                 <label className="text-[11px] text-slate-500 uppercase font-bold tracking-wider mb-1 block">
                   Bậc Rank
@@ -362,7 +359,6 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                 </select>
               </div>
 
-              {/* Filter 3 */}
               <div className="lg:col-span-3">
                 <label className="text-[11px] text-slate-500 uppercase font-bold tracking-wider mb-1 block">
                   Tướng Tí Nị
@@ -380,7 +376,6 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                 </select>
               </div>
 
-              {/* Search */}
               <div className="lg:col-span-3">
                 <label className="text-[11px] text-slate-500 uppercase font-bold tracking-wider mb-1 block">
                   Tìm Theo Mã Số / Tên
@@ -427,12 +422,13 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                   key={account.id}
                   className="flex flex-col h-full justify-between bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 group"
                 >
-                  {/* Top Photo & Badges - KHUNG VUÔNG ASPECT-SQUARE */}
+                  {/* Top Photo & Badges - KHUNG VUÔNG ASPECT-SQUARE CÓ ALT CHUẨN SEO */}
                   <div>
                     <div className="relative aspect-square w-full overflow-hidden rounded-t-xl sm:rounded-t-2xl rounded-b-lg bg-slate-900 mb-3.5 border border-slate-100 shadow-inner">
-                      <div
-                        className="w-full h-full bg-cover bg-center object-cover transition-transform duration-500 group-hover:scale-105"
-                        style={{ backgroundImage: `url(${account.thumbnail})` }}
+                      <img
+                        src={account.thumbnail}
+                        alt={`Thuê acc TFT VIP ${account.code} có ${account.mainChibi} - Tuấn Thái Bình`}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/30" />
 
@@ -457,7 +453,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                         )}
                       </div>
 
-                      {/* Bottom Rank Badge - Nhích lên bottom-3 left-3 */}
+                      {/* Bottom Rank Badge */}
                       <div className="absolute bottom-3 left-3">
                         <span className="px-2.5 py-0.5 rounded-md bg-white/95 text-slate-900 text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
                           {account.rank}

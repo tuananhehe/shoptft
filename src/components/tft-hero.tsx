@@ -42,7 +42,7 @@ export const TFTHero: React.FC = () => {
                 href={PROFILE_INFO.checkscamUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 text-xs font-bold uppercase tracking-wider transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 text-xs font-bold uppercase tracking-wider transition-colors shadow-sm cursor-pointer"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Bảo Hiểm 30M Checkscam</span>
@@ -50,24 +50,25 @@ export const TFTHero: React.FC = () => {
               </a>
             </div>
 
-            {/* Tiêu đề lớn: Cụm từ "Dịch vụ game chuyên nghiệp" Gradient Đỏ - Cam */}
+            {/* Thẻ H1 DUY NHẤT chuẩn SEO On-page */}
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 leading-[1.18] tracking-tight">
               Nền tảng thuê tài khoản ĐTCL &{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500">
                 Dịch vụ game chuyên nghiệp
-              </span>
+              </span>{" "}
+              bởi Tuấn Thái Bình
             </h1>
 
-            {/* Mô tả ngắn gọn */}
+            {/* Mô tả ngắn gọn chứa từ khóa SEO */}
             <p className="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
-              Thuê acc VIP tự động bàn giao 30s, quỹ bảo hiểm 30M Checkscam an toàn tuyệt đối. Đầy đủ Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc, giá chỉ từ 6k/giờ.
+              Shop thuê acc TFT, thuê acc ĐTCL VIP tự động bàn giao 30s. Đầy đủ Tướng Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc với Quỹ bảo hiểm 30M Checkscam an toàn tuyệt đối.
             </p>
 
-            {/* Nút bấm CTA: "Khám phá kho acc" (Màu đỏ/cam bo tròn) */}
+            {/* Nút bấm CTA: "Khám phá kho acc" */}
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 sm:gap-4 pt-1">
               <a
                 href="#shop"
-                className="w-full sm:w-auto px-8 py-3.5 inline-flex items-center justify-center gap-2 rounded-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-orange-600/25 transition-all hover:scale-105"
+                className="w-full sm:w-auto px-8 py-3.5 inline-flex items-center justify-center gap-2 rounded-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-orange-600/25 transition-all hover:scale-105 cursor-pointer"
               >
                 <KeyRound className="w-4 h-4" />
                 <span>Khám phá kho acc</span>
@@ -76,7 +77,7 @@ export const TFTHero: React.FC = () => {
 
               <a
                 href="#about"
-                className="w-full sm:w-auto px-6 py-3.5 inline-flex items-center justify-center gap-2 rounded-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-bold text-sm uppercase tracking-wider transition-all hover:border-slate-400 shadow-sm"
+                className="w-full sm:w-auto px-6 py-3.5 inline-flex items-center justify-center gap-2 rounded-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-bold text-sm uppercase tracking-wider transition-all hover:border-slate-400 shadow-sm cursor-pointer"
               >
                 <span>Về Bản Thân</span>
               </a>
@@ -109,12 +110,10 @@ export const TFTHero: React.FC = () => {
               
               {/* Top Photo: Sáng Rõ Showcase Tướng Tí Nị & Sân Đấu ĐTCL */}
               <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-slate-900 border border-slate-100 shadow-inner">
-                <div
-                  className="w-full h-full bg-cover bg-center transform group-hover:scale-105 transition-transform duration-700"
-                  style={{
-                    backgroundImage:
-                      "url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1000&auto=format&fit=crop')",
-                  }}
+                <img
+                  src="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1000&auto=format&fit=crop"
+                  alt="Thuê acc TFT VIP có Tí Nị Ahri Chiêu Hồn và Yasuo Chân Long - Tuấn Thái Bình"
+                  className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
 
@@ -145,9 +144,10 @@ export const TFTHero: React.FC = () => {
               <div className="pt-3.5 px-1 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div
-                      className="w-8 h-8 rounded-full bg-cover bg-center border border-slate-200"
-                      style={{ backgroundImage: `url(${PROFILE_INFO.avatarUrl})` }}
+                    <img
+                      src={PROFILE_INFO.avatarUrl}
+                      alt="Tuấn Thái Bình - Admin hệ thống ShopTFT Mobile"
+                      className="w-8 h-8 rounded-full object-cover border border-slate-200"
                     />
                     <div>
                       <span className="text-xs font-bold text-slate-900 block leading-tight">{PROFILE_INFO.realName}</span>
@@ -163,14 +163,14 @@ export const TFTHero: React.FC = () => {
 
                 <a
                   href="#shop"
-                  className="w-full py-2.5 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-orange-600/20 transition-all hover:scale-[1.02]"
+                  className="w-full py-2.5 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-orange-600/20 transition-all hover:scale-[1.02] cursor-pointer"
                 >
                   <KeyRound className="w-3.5 h-3.5" />
                   <span>Thuê Acc Nhanh 30s ➔</span>
                 </a>
               </div>
 
-              {/* 1. FLOATING BADGE: Quỹ Bảo Hiểm 30M Checkscam (Đẩy nhích cao -top-5 sm:-top-6, shadow-lg) */}
+              {/* 1. FLOATING BADGE: Quỹ Bảo Hiểm 30M Checkscam */}
               <div className="absolute -top-5 -left-3 sm:-top-6 sm:-left-5 bg-white/95 backdrop-blur-md border border-emerald-200/90 rounded-2xl p-2 sm:p-2.5 shadow-lg shadow-emerald-500/10 flex items-center gap-2.5 hover:scale-105 transition-transform">
                 <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
                   <ShieldCheck className="w-4 h-4" />
@@ -181,7 +181,7 @@ export const TFTHero: React.FC = () => {
                 </div>
               </div>
 
-              {/* 2. FLOATING BADGE: Cựu Thách Đấu 1.134 ĐNG (Đẩy nhích cao -top-5 sm:-top-6, shadow-lg) */}
+              {/* 2. FLOATING BADGE: Cựu Thách Đấu 1.134 ĐNG */}
               <div className="absolute -top-5 -right-3 sm:-top-6 sm:-right-4 bg-white/95 backdrop-blur-md border border-amber-200/90 rounded-2xl p-2 sm:p-2.5 shadow-lg shadow-amber-500/10 flex items-center gap-2 hover:scale-105 transition-transform">
                 <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0">
                   <Trophy className="w-4 h-4" />
@@ -192,7 +192,7 @@ export const TFTHero: React.FC = () => {
                 </div>
               </div>
 
-              {/* 3. FLOATING BADGE: Bàn Giao Tự Động 30s (Góc Dưới Trái, shadow-lg) */}
+              {/* 3. FLOATING BADGE: Bàn Giao Tự Động 30s */}
               <div className="absolute -bottom-4 -left-3 sm:-bottom-5 sm:-left-4 bg-white/95 backdrop-blur-md border border-orange-200/90 rounded-2xl p-2 sm:p-2.5 shadow-lg shadow-orange-500/10 flex items-center gap-2 hover:scale-105 transition-transform">
                 <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0">
                   <Zap className="w-4 h-4" />

@@ -10,25 +10,92 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Tuấn Thái Bình TFT | Nền Tảng Thuê Tài Khoản ĐTCL & Dịch Vụ Game Chuyên Nghiệp",
+  title: "Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Tự Động",
   description:
-    "Hệ thống thuê acc TFT VIP tự động bàn giao 30s, quỹ bảo hiểm 30M Checkscam an toàn tuyệt đối. Đầy đủ Tướng Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc.",
+    "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7. Cung cấp tài khoản full Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc. Admin Tuấn Thái Bình (Cựu Thách Đấu) uy tín - Quỹ bảo hiểm 30M.",
   keywords: [
-    "Shop TFT Mobile",
-    "Thuê Acc TFT",
-    "Tuấn Thái Bình TFT",
-    "Thuê Tài Khoản ĐTCL",
-    "Tí Nị Ahri",
-    "Tí Nị Yasuo",
-    "Cày Thuê TFT",
-    "Coaching TFT",
+    "thuê acc tft",
+    "thuê acc đtcl",
+    "shop tft",
+    "tuấn thái bình tft",
+    "thuê acc tí nị",
+    "cày thuê đtcl",
+    "shop acc tft uy tín",
+    "shop tft mobile",
+    "thuê tài khoản đtcl",
+    "tí nị ahri",
+    "tí nị yasuo",
+    "coaching tft",
   ],
+  authors: [{ name: "Tuấn Thái Bình" }],
+  creator: "Tuấn Thái Bình",
+  publisher: "ShopTFT Mobile",
+  metadataBase: new URL("https://shoptft.vercel.app/"),
+  alternates: {
+    canonical: "https://shoptft.vercel.app/",
+  },
+  openGraph: {
+    title: "Tuấn Thái Bình TFT | Nền Tảng Thuê Acc ĐTCL Uy Tín",
+    description:
+      "Thuê acc VIP ĐTCL tự động 30s, full Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc. Bảo hiểm 30M Checkscam.",
+    url: "https://shoptft.vercel.app/",
+    siteName: "ShopTFT Mobile",
+    images: [
+      {
+        url: "/banner-seo.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Shop Thuê Acc TFT - ĐTCL Uy Tín Tuấn Thái Bình",
+      },
+    ],
+    locale: "vi_VN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tuấn Thái Bình TFT | Nền Tảng Thuê Acc ĐTCL Uy Tín",
+    description:
+      "Thuê acc VIP ĐTCL tự động 30s, full Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc. Bảo hiểm 30M Checkscam.",
+    images: ["/banner-seo.jpg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: "#ea580c",
   width: "device-width",
   initialScale: 1,
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "ShopTFT Mobile - Tuấn Thái Bình",
+  "image": "https://shoptft.vercel.app/logo.png",
+  "description": "Hệ thống cho thuê tài khoản TFT, DTCL uy tín hàng đầu Việt Nam, quản lý bởi Tuấn Thái Bình.",
+  "url": "https://shoptft.vercel.app/",
+  "telephone": "0352867283",
+  "priceRange": "VND",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Thái Bình",
+    "addressCountry": "VN",
+  },
+  "founder": {
+    "@type": "Person",
+    "name": "Tuấn Thái Bình",
+    "jobTitle": "Cựu Thách Đấu ĐTCL",
+  },
 };
 
 export default function RootLayout({
@@ -38,6 +105,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" className={`${inter.variable} bg-[#F8FAFC] antialiased scroll-smooth`}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd),
+          }}
+        />
+      </head>
       <body className="min-h-screen bg-[#F8FAFC] text-slate-900 selection:bg-orange-500 selection:text-white font-sans">
         {children}
       </body>

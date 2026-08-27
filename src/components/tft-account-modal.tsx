@@ -244,9 +244,10 @@ Báo mình khi acc này hết giờ thuê nhé!`;
         <div className="p-6 overflow-y-auto space-y-6 flex-1 text-slate-900">
           {/* Main Account Image */}
           <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
-            <div
-              className="w-full h-full bg-cover bg-center"
-              style={{ backgroundImage: `url(${account.thumbnail})` }}
+            <img
+              src={account.thumbnail}
+              alt={`Thuê acc TFT VIP ${account.code} - ${account.title} - Tuấn Thái Bình`}
+              className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end p-4">
               <div className="text-white">

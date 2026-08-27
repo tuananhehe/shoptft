@@ -70,7 +70,7 @@ export const TFTReviews: React.FC = () => {
           </div>
 
           <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900">
-            MINH BẠCH & UY TÍN
+            ĐÁNH GIÁ THỰC TẾ TỪ KHÁCH HÀNG THUÊ ACC TFT
           </h2>
           <p className="text-slate-600 text-sm sm:text-base font-normal">
             Hơn 4,500+ lượt thuê tài khoản và 1,850+ giao dịch thành công. Phản hồi thực tế từ cộng đồng cờ thủ ĐTCL.
