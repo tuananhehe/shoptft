@@ -101,8 +101,9 @@ export default function AdminAccountsPage() {
       const matchSearch =
         searchTerm.trim() === "" ||
         acc.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        acc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        acc.mainChibi.toLowerCase().includes(searchTerm.toLowerCase());
+        acc.mainChibi.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        acc.mainArena.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (acc.title && acc.title.toLowerCase().includes(searchTerm.toLowerCase()));
 
       const matchStatus =
         statusFilter === "ALL" || acc.status === statusFilter;
@@ -246,10 +247,12 @@ export default function AdminAccountsPage() {
   const handleSaveAccount = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formCode || !formTitle) {
-      alert("Vui lòng điền đầy đủ Mã Acc và Tiêu đề!");
+    if (!formCode || !formMainChibi) {
+      toast.error("Vui lòng điền đầy đủ Mã Acc và Tướng Tí Nị chính!");
       return;
     }
+
+    const effectiveTitle = formTitle || `${formRank} - ${formMainChibi}`;
 
     if (editingAccount) {
       // Chế độ Sửa
@@ -259,7 +262,7 @@ export default function AdminAccountsPage() {
             ? {
                 ...a,
                 code: formCode,
-                title: formTitle,
+                title: effectiveTitle,
                 rank: formRank,
                 thumbnail: formThumbnail,
                 accountValue: formAccountValue,
@@ -280,7 +283,7 @@ export default function AdminAccountsPage() {
       const newAcc: AdminAccount = {
         id: `rent-${Date.now()}`,
         code: formCode,
-        title: formTitle,
+        title: effectiveTitle,
         rank: formRank,
         rankColor: "text-amber-400 border-amber-500/50 bg-amber-500/10",
         rankBadgeBg: "bg-amber-500/15 border-amber-500/40 text-amber-300",
@@ -428,7 +431,7 @@ export default function AdminAccountsPage() {
               <tr>
                 <th className="py-3.5 px-4">Mã Acc</th>
                 <th className="py-3.5 px-4">Hình Ảnh</th>
-                <th className="py-3.5 px-4 min-w-[260px]">Chi Tiết Tài Khoản</th>
+                <th className="py-3.5 px-4 min-w-[250px]">Tướng Tí Nị & Sân Đấu</th>
                 <th className="py-3.5 px-4">Giá Trị Gốc</th>
                 <th className="py-3.5 px-4">Giá Thuê / Giờ</th>
                 <th className="py-3.5 px-4 min-w-[180px]">Trạng Thái (Gạt Bật/Tắt)</th>
@@ -460,32 +463,35 @@ export default function AdminAccountsPage() {
                         <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-slate-900 border border-slate-200 flex-shrink-0 shadow-sm">
                           <img
                             src={account.thumbnail}
-                            alt={account.title}
+                            alt={account.mainChibi}
                             className="w-full h-full object-cover"
                           />
                         </div>
                       </td>
 
-                      {/* Cột 3: TỐI ƯU CỘT CHI TIẾT (Tên Acc to rõ, phân cấp với subtext) */}
+                      {/* Cột 3: TƯỚNG TÍ NỊ & SÂN ĐẤU (THÔNG TIN ĐỊNH DANH CHÍNH - XÓA BỎ TIÊU ĐỀ RƯỜM RÀ) */}
                       <td className="py-4 px-4">
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-2">
                             <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-orange-100 text-orange-700 border border-orange-200">
                               {account.rank}
                             </span>
-                            <span className="text-[11px] font-bold text-slate-700">
-                              ⭐ {account.mainChibi}
-                            </span>
+                            {account.allChibi && account.allChibi.length > 1 && (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                +{account.allChibi.length} Tí Nị
+                              </span>
+                            )}
                           </div>
 
-                          {/* Tên Acc to hơn rõ nét (text-sm font-semibold text-slate-800) */}
-                          <h4 className="text-sm font-semibold text-slate-800 line-clamp-1 group-hover:text-orange-600 transition-colors">
-                            {account.title}
-                          </h4>
+                          {/* Tướng Tí Nị chính to rõ nét (text-sm font-bold text-slate-900) */}
+                          <strong className="text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-orange-600 transition-colors block">
+                            {account.mainChibi}
+                          </strong>
 
-                          {/* Dòng subtext sàn đấu / linh thú nhỏ gọn (text-xs text-slate-500) */}
-                          <p className="text-xs text-slate-500 line-clamp-1 font-normal">
-                            🏟️ {account.mainArena}
+                          {/* Dòng subtext sàn đấu (text-xs text-slate-500 font-medium) */}
+                          <p className="text-xs text-slate-500 line-clamp-1 font-medium flex items-center gap-1.5">
+                            <span>🏟️</span>
+                            <span>{account.mainArena}</span>
                           </p>
                         </div>
                       </td>
@@ -804,18 +810,37 @@ export default function AdminAccountsPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="font-bold text-slate-800 block">
-                      Tiêu Đề / Tên Acc: <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formTitle}
-                      onChange={(e) => setFormTitle(e.target.value)}
-                      placeholder="VD: Acc Thách Đấu VIP - Tí Nị Ahri + Yasuo Chân Long"
-                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-900 focus:outline-none focus:border-orange-500"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="font-bold text-slate-800 block">
+                        Tướng Tí Nị Chính: <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formMainChibi}
+                        onChange={(e) => {
+                          setFormMainChibi(e.target.value);
+                          setFormTitle(`${formRank} - ${e.target.value}`);
+                        }}
+                        placeholder="VD: Tí Nị Ahri Chiêu Hồn"
+                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="font-bold text-slate-800 block">
+                        Sân Đấu Chính: <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formMainArena}
+                        onChange={(e) => setFormMainArena(e.target.value)}
+                        placeholder="VD: Sân Đấu Tiệm Trà Tâm Linh"
+                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-orange-500"
+                      />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
