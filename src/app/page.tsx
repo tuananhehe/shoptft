@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { TFTNavbar } from "@/components/tft-navbar";
 import { TFTHero } from "@/components/tft-hero";
 import { TFTShop } from "@/components/tft-shop";
+import { TFTCloneShop } from "@/components/tft-clone-shop";
 import { TFTAbout } from "@/components/tft-about";
 import { TFTServices } from "@/components/tft-services";
 import { TFTReviews } from "@/components/tft-reviews";
@@ -26,6 +27,9 @@ export default function HomePage() {
 
       {/* 3. Core TFT Account Rental Shop */}
       <TFTShop onSelectAccount={(acc) => setSelectedAccount(acc)} />
+
+      {/* 3.5. Clone / Smurf Account Rental Shop (Thuê Dài Hạn) */}
+      <TFTCloneShop />
 
       {/* 4. About Me & Gamer Achievements */}
       <TFTAbout />

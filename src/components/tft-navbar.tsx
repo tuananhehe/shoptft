@@ -9,7 +9,8 @@ export const TFTNavbar: React.FC = () => {
 
   const navLinks = [
     { label: "Trang Chủ", href: "#hero" },
-    { label: "Kho Acc", href: "#shop" },
+    { label: "Kho Acc VIP", href: "#shop" },
+    { label: "Acc Clone", href: "#clone-shop" },
     { label: "Cày Rank", href: "#services" },
     { label: "Về Tuấn", href: "#about" },
     { label: "Đánh Giá", href: "#reviews" },

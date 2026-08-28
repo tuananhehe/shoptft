@@ -597,8 +597,104 @@ export const FAQS: FAQItem[] = [
   },
 ];
 
+export interface TFTCloneAccount {
+  id: string;
+  code: string;
+  title: string;
+  rankBadge: string;
+  status: "AVAILABLE" | "RENTED";
+  thumbnail: string;
+  features: string[];
+  periodPrice: number;
+  periodUnit: string;
+  durationLabel: string;
+  weeklyPrice: number;
+  monthlyPrice: number;
+  description: string;
+}
+
+export const TFT_CLONE_ACCOUNTS: TFTCloneAccount[] = [
+  {
+    id: "clone-01",
+    code: "CLONE-01",
+    title: "Acc Unranked Trắng Thông Tin",
+    rankBadge: "UNRANKED",
+    status: "AVAILABLE",
+    thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop",
+    features: [
+      "Đủ tướng cơ bản, vào trận ngay",
+      "Hỗ trợ đổi Pass / Bảo hành trọn gói",
+      "Chưa từng đánh Xếp Hạng Set mới",
+    ],
+    periodPrice: 150000,
+    periodUnit: " / Tháng",
+    durationLabel: "Gói 1 Tháng",
+    weeklyPrice: 50000,
+    monthlyPrice: 150000,
+    description: "Tài khoản Unranked trắng thông tin 100%, MMR sạch đẹp thích hợp để test meta hoặc cày chuỗi thắng.",
+  },
+  {
+    id: "clone-02",
+    code: "SMURF-02",
+    title: "Acc Smurf Rank Đồng / Bạc",
+    rankBadge: "RANK ĐỒNG / BẠC",
+    status: "AVAILABLE",
+    thumbnail: "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=600&auto=format&fit=crop",
+    features: [
+      "MMR sạch, cộng nhiều ĐNG",
+      "Đủ linh thú cơ bản để test đội hình",
+      "Hỗ trợ bảo hành 100% thời gian thuê",
+    ],
+    periodPrice: 160000,
+    periodUnit: " / Tháng",
+    durationLabel: "Gói 1 Tháng",
+    weeklyPrice: 55000,
+    monthlyPrice: 160000,
+    description: "Tài khoản Smurf rank thấp, thích hợp kéo rank cùng bạn bè hoặc luyện tập thuần thục giáo án mới.",
+  },
+  {
+    id: "clone-03",
+    code: "CLONE-03",
+    title: "Acc Test Meta Level 35+",
+    rankBadge: "RANK VÀNG / BẠCH KIM",
+    status: "AVAILABLE",
+    thumbnail: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?q=80&w=600&auto=format&fit=crop",
+    features: [
+      "Kèm sẵn 1-2 Tướng Tí Nị thường",
+      "Sẵn sàng Duo leo rank cùng bạn bè",
+      "Bàn giao tài khoản tự động trong 30s",
+    ],
+    periodPrice: 180000,
+    periodUnit: " / Tháng",
+    durationLabel: "Gói 1 Tháng",
+    weeklyPrice: 60000,
+    monthlyPrice: 180000,
+    description: "Tài khoản Level 35+ đầy đủ tính năng, sẵn sàng vào trận leo rank ngay lập tức mà không cần cày cấp.",
+  },
+  {
+    id: "clone-04",
+    code: "SMURF-04",
+    title: "Acc Clone Kèm Sân Đấu Đẹp",
+    rankBadge: "ACC TRẮNG TT 100%",
+    status: "AVAILABLE",
+    thumbnail: "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=600&auto=format&fit=crop",
+    features: [
+      "Trắng thông tin, đổi pass riêng tư",
+      "Full tướng ĐTCL mùa hiện tại",
+      "Hỗ trợ gia hạn dài hạn giá ưu đãi",
+    ],
+    periodPrice: 190000,
+    periodUnit: " / Tháng",
+    durationLabel: "Gói 1 Tháng",
+    weeklyPrice: 65000,
+    monthlyPrice: 190000,
+    description: "Tài khoản trắng thông tin kèm sẵn sân đấu xịn xò, hỗ trợ đổi mật khẩu riêng tư trong suốt thời gian thuê.",
+  },
+];
+
 // Aliases for compatibility
 export const SERVICE_PACKAGES = TFT_SERVICE_PACKAGES;
 export const REVIEWS = TFT_REVIEWS;
 export const CUSTOMER_REVIEWS = TFT_REVIEWS;
 export const RENTAL_ACCOUNTS = TFT_RENTAL_ACCOUNTS;
+export const CLONE_ACCOUNTS = TFT_CLONE_ACCOUNTS;
