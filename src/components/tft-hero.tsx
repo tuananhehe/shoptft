@@ -33,11 +33,11 @@ export const TFTHero: React.FC = () => {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-10 sm:pt-12 sm:pb-12 lg:pt-14 lg:pb-14 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
-          {/* Left Column: Headline, Sub-text & Commitments (7 cols) - TÁCH NHẬP TỪ BÊN TRÁI SANG */}
+          {/* Left Column: Headline, Sub-text & Commitments (7 cols) - TỐI ƯU LCP KHÔNG CHẶN OPACITY 0 TRÊN SSR */}
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
+            initial={false}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
             className="lg:col-span-7 space-y-5 text-center lg:text-left"
           >
             {/* Tag tiêu đề nhỏ đỏ cam Esports HUD */}
@@ -114,9 +114,9 @@ export const TFTHero: React.FC = () => {
 
           {/* Right Column: KHUNG ĐỒ HỌA MOCKUP THẺ ACC VIP ESPORTS CHUẨN TFT HEXTECH & AURA GLOW */}
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
+            initial={false}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+            transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
             className="lg:col-span-5 relative flex justify-center py-4 sm:py-6"
           >
             {/* Gaming Hextech / Mythic Aura Glow (Cyan & Amber/Orange) phía sau thẻ Card */}
@@ -154,6 +154,8 @@ export const TFTHero: React.FC = () => {
                 <img
                   src="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1000&auto=format&fit=crop"
                   alt="Thuê acc TFT VIP có Tí Nị Ahri Chiêu Hồn và Yasuo Chân Long - Tuấn Thái Bình"
+                  fetchPriority="high"
+                  decoding="async"
                   className="w-full h-full object-cover transform group-hover/photo:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent" />

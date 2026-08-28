@@ -121,6 +121,13 @@ export default function RootLayout({
   return (
     <html lang="vi" className={`${inter.variable} bg-[#F8FAFC] antialiased scroll-smooth`}>
       <head>
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+        <link
+          rel="preload"
+          as="image"
+          href="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1000&auto=format&fit=crop"
+          fetchPriority="high"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
