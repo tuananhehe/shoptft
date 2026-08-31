@@ -2,6 +2,7 @@
 
 import React from "react";
 import { PROFILE_INFO } from "@/data/tft-data";
+import { HeroConfig, HomepageImagesConfig } from "@/utils/homepage-service";
 import { motion } from "framer-motion";
 import {
   Trophy,
@@ -17,7 +18,30 @@ import {
   Flame,
 } from "lucide-react";
 
-export const TFTHero: React.FC = () => {
+interface TFTHeroProps {
+  heroConfig?: HeroConfig;
+  imagesConfig?: HomepageImagesConfig;
+}
+
+export const TFTHero: React.FC<TFTHeroProps> = ({ heroConfig, imagesConfig }) => {
+  const cardImage =
+    imagesConfig?.heroCardImage ||
+    "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1000&auto=format&fit=crop";
+  const cardCode = imagesConfig?.heroCardCode || "MS: 8899";
+  const cardChibi = imagesConfig?.heroCardChibi || "Tí Nị Ahri Chiêu Hồn + Yasuo Chân Long";
+  const cardArena =
+    imagesConfig?.heroCardArena || "Sân Đấu Thần Thoại Tiệm Trà Tâm Linh (Đổi Nhạc EDM)";
+  const cardPrice = imagesConfig?.heroCardPrice || "15.000đ/h";
+  const avatar = imagesConfig?.avatarUrl || PROFILE_INFO.avatarUrl;
+
+  const topBadge = heroConfig?.badge || "SHOP TFT MOBILE • HỆ THỐNG GIAO DỊCH TỰ ĐỘNG";
+  const title1 = heroConfig?.titleLine1 || "Nền tảng thuê tài khoản ĐTCL &";
+  const highlight = heroConfig?.titleHighlight || "Dịch vụ game chuyên nghiệp";
+  const title2 = heroConfig?.titleLine2 ? ` ${heroConfig.titleLine2}` : " bởi Tuấn Thái Bình";
+  const subtitle =
+    heroConfig?.subtitle ||
+    "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động bàn giao 30s. Đầy đủ Tướng Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc với Quỹ bảo hiểm 30M Checkscam an toàn tuyệt đối.";
+
   return (
     <section id="hero" className="relative bg-gradient-to-b from-orange-50/50 via-white to-slate-50 text-slate-900 border-b border-slate-200/80 overflow-hidden">
       {/* 1. CYBER GAMING BACKGROUND TEXTURE (SUBTLE GRID & DOT MATRIX) */}
@@ -45,7 +69,7 @@ export const TFTHero: React.FC = () => {
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-orange-100/80 border border-orange-300/80 shadow-sm">
                 <Sparkles className="w-3.5 h-3.5 text-orange-600 animate-pulse" />
                 <span className="text-[11px] font-black text-orange-700 uppercase tracking-wider font-gaming">
-                  SHOP TFT MOBILE • HỆ THỐNG GIAO DỊCH TỰ ĐỘNG
+                  {topBadge}
                 </span>
               </div>
 
@@ -64,16 +88,16 @@ export const TFTHero: React.FC = () => {
 
             {/* Thẻ H1 DUY NHẤT chuẩn SEO On-page & Typography Esports Rajdhani / Montserrat */}
             <h1 className="font-gaming text-3xl sm:text-4xl md:text-5xl lg:text-[3.4rem] font-black uppercase text-slate-900 leading-[1.08] sm:leading-[1.1] tracking-tight">
-              Nền tảng thuê tài khoản ĐTCL &{" "}
+              {title1}{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500">
-                Dịch vụ game chuyên nghiệp
-              </span>{" "}
-              bởi Tuấn Thái Bình
+                {highlight}
+              </span>
+              {title2}
             </h1>
 
             {/* Mô tả ngắn gọn chứa từ khóa SEO */}
             <p className="text-slate-600 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
-              Shop thuê acc TFT, thuê acc ĐTCL VIP tự động bàn giao 30s. Đầy đủ Tướng Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc với Quỹ bảo hiểm 30M Checkscam an toàn tuyệt đối.
+              {subtitle}
             </p>
 
             {/* Nút bấm CTA Gaming Esports (Bo góc góc cạnh rounded-xl, viền border, Gradient nổi bật) */}
@@ -152,18 +176,18 @@ export const TFTHero: React.FC = () => {
                 <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 via-amber-400 to-cyan-400 opacity-20 blur-sm pointer-events-none" />
                 
                 <img
-                  src="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1000&auto=format&fit=crop"
-                  alt="Thuê acc TFT VIP có Tí Nị Ahri Chiêu Hồn và Yasuo Chân Long - Tuấn Thái Bình"
+                  src={cardImage}
+                  alt={`${cardChibi} - Tuấn Thái Bình`}
                   fetchPriority="high"
                   decoding="async"
                   className="w-full h-full object-cover transform group-hover/photo:scale-105 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
                 {/* Top Badge Inside Image */}
                 <div className="absolute top-3 left-3 flex items-center gap-1.5">
                   <span className="px-2.5 py-1 rounded-md bg-orange-600 text-white font-mono font-black text-[11px] uppercase tracking-wider shadow-md">
-                    MS: 8899
+                    {cardCode}
                   </span>
                   <span className="px-2.5 py-1 rounded-md bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wide shadow-md flex items-center gap-1 font-gaming">
                     <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
@@ -175,10 +199,10 @@ export const TFTHero: React.FC = () => {
                 <div className="absolute bottom-3 left-3 right-3 text-white">
                   <div className="text-[11px] text-amber-300 font-black flex items-center gap-1 font-gaming">
                     <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                    <span>Tí Nị Ahri Chiêu Hồn + Yasuo Chân Long</span>
+                    <span>{cardChibi}</span>
                   </div>
                   <div className="text-sm font-black line-clamp-1 text-slate-50 font-gaming uppercase tracking-wide">
-                    Sân Đấu Thần Thoại Tiệm Trà Tâm Linh (Đổi Nhạc EDM)
+                    {cardArena}
                   </div>
                 </div>
               </div>
@@ -188,7 +212,7 @@ export const TFTHero: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <img
-                      src={PROFILE_INFO.avatarUrl}
+                      src={avatar}
                       alt="Tuấn Thái Bình - Admin hệ thống ShopTFT Mobile"
                       className="w-8 h-8 rounded-full object-cover border border-slate-200"
                     />
@@ -200,7 +224,7 @@ export const TFTHero: React.FC = () => {
 
                   <div className="text-right">
                     <span className="text-[10px] text-slate-400 block uppercase font-black font-gaming">Giá Thuê</span>
-                    <span className="text-lg font-black text-red-600 font-mono">15.000đ<span className="text-xs text-slate-500 font-normal">/h</span></span>
+                    <span className="text-lg font-black text-red-600 font-mono">{cardPrice}</span>
                   </div>
                 </div>
 

@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { TFT_RENTAL_ACCOUNTS, PROFILE_INFO } from "@/data/tft-data";
+import { PROFILE_INFO } from "@/data/tft-data";
+import { getVipAndCloneAccounts } from "@/utils/supabase/accounts-service";
 import toast from "react-hot-toast";
 import {
   TrendingUp,
@@ -21,17 +22,22 @@ import {
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
+  const [totalAccounts, setTotalAccounts] = useState(0);
+  const [availableAccounts, setAvailableAccounts] = useState(0);
+  const [rentedAccounts, setRentedAccounts] = useState(0);
+
+  useEffect(() => {
+    getVipAndCloneAccounts().then(({ vipAccounts, cloneAccounts }) => {
+      const all = [...(vipAccounts || []), ...(cloneAccounts || [])];
+      setTotalAccounts(all.length);
+      setAvailableAccounts(all.filter((a) => a.status === "AVAILABLE").length);
+      setRentedAccounts(all.filter((a) => a.status === "RENTED").length);
+    });
+  }, []);
+
   const showToast = (msg: string) => {
     toast.success(msg);
   };
-
-  const totalAccounts = TFT_RENTAL_ACCOUNTS.length;
-  const availableAccounts = TFT_RENTAL_ACCOUNTS.filter(
-    (a) => a.status === "AVAILABLE"
-  ).length;
-  const rentedAccounts = TFT_RENTAL_ACCOUNTS.filter(
-    (a) => a.status === "RENTED"
-  ).length;
 
   const [recentOrders, setRecentOrders] = useState([
     {

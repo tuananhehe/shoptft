@@ -6,7 +6,7 @@ export interface TFTRentalAccount {
   allChibi: string[];
   mainArena: string;
   allArenas: string[];
-  rank: "THÁCH ĐẤU" | "ĐẠI CAO THỦ" | "CAO THỦ" | "KIM CƯƠNG" | "LỤC BẢO" | "VÀNG/BẠCH KIM";
+  rank: "THÁCH ĐẤU" | "ĐẠI CAO THỦ" | "CAO THỦ" | "KIM CƯƠNG" | "LỤC BẢO" | "VÀNG/BẠCH KIM" | "BẠC" | "ĐỒNG" | "SẮT" | "KHÔNG RANK" | string;
   rankColor: string;
   rankBadgeBg: string;
   hourlyPrice: number;
@@ -14,6 +14,7 @@ export interface TFTRentalAccount {
   nightPrice: number;
   accountValue?: number; // Giá trị gốc của tài khoản
   status: "AVAILABLE" | "RENTED";
+  rentedUntil?: string | null;
   totalLittleLegends: number;
   totalArenas: number;
   totalBooms: number;
@@ -603,13 +604,15 @@ export interface TFTCloneAccount {
   title: string;
   rankBadge: string;
   status: "AVAILABLE" | "RENTED";
+  rentedUntil?: string | null;
   thumbnail: string;
   features: string[];
+  price?: number;
   periodPrice: number;
   periodUnit: string;
   durationLabel: string;
-  weeklyPrice: number;
-  monthlyPrice: number;
+  weeklyPrice?: number;
+  monthlyPrice?: number;
   description: string;
 }
 
@@ -627,8 +630,8 @@ export const TFT_CLONE_ACCOUNTS: TFTCloneAccount[] = [
       "Chưa từng đánh Xếp Hạng Set mới",
     ],
     periodPrice: 150000,
-    periodUnit: " / Tháng",
-    durationLabel: "Gói 1 Tháng",
+    periodUnit: " / ∞",
+    durationLabel: "Sở Hữu Vô Cực",
     weeklyPrice: 50000,
     monthlyPrice: 150000,
     description: "Tài khoản Unranked trắng thông tin 100%, MMR sạch đẹp thích hợp để test meta hoặc cày chuỗi thắng.",
@@ -646,8 +649,8 @@ export const TFT_CLONE_ACCOUNTS: TFTCloneAccount[] = [
       "Hỗ trợ bảo hành 100% thời gian thuê",
     ],
     periodPrice: 160000,
-    periodUnit: " / Tháng",
-    durationLabel: "Gói 1 Tháng",
+    periodUnit: " / ∞",
+    durationLabel: "Sở Hữu Vô Cực",
     weeklyPrice: 55000,
     monthlyPrice: 160000,
     description: "Tài khoản Smurf rank thấp, thích hợp kéo rank cùng bạn bè hoặc luyện tập thuần thục giáo án mới.",
@@ -665,8 +668,8 @@ export const TFT_CLONE_ACCOUNTS: TFTCloneAccount[] = [
       "Bàn giao tài khoản tự động trong 30s",
     ],
     periodPrice: 180000,
-    periodUnit: " / Tháng",
-    durationLabel: "Gói 1 Tháng",
+    periodUnit: " / ∞",
+    durationLabel: "Sở Hữu Vô Cực",
     weeklyPrice: 60000,
     monthlyPrice: 180000,
     description: "Tài khoản Level 35+ đầy đủ tính năng, sẵn sàng vào trận leo rank ngay lập tức mà không cần cày cấp.",
@@ -684,11 +687,201 @@ export const TFT_CLONE_ACCOUNTS: TFTCloneAccount[] = [
       "Hỗ trợ gia hạn dài hạn giá ưu đãi",
     ],
     periodPrice: 190000,
-    periodUnit: " / Tháng",
-    durationLabel: "Gói 1 Tháng",
+    periodUnit: " / ∞",
+    durationLabel: "Sở Hữu Vô Cực",
     weeklyPrice: 65000,
     monthlyPrice: 190000,
     description: "Tài khoản trắng thông tin kèm sẵn sân đấu xịn xò, hỗ trợ đổi mật khẩu riêng tư trong suốt thời gian thuê.",
+  },
+  {
+    id: "clone-05",
+    code: "CLONE-05",
+    title: "Acc Smurf Level 40+ Trắng Mail",
+    rankBadge: "UNRANKED / LV 40+",
+    status: "AVAILABLE",
+    thumbnail: "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?q=80&w=600&auto=format&fit=crop",
+    features: [
+      "Level 40+ tích sẵn nhiều mảnh tướng",
+      "Trắng mail gốc, bảo mật tuyệt đối",
+      "Bảo hành vĩnh viễn không lo bị khóa",
+    ],
+    periodPrice: 170000,
+    periodUnit: " / ∞",
+    durationLabel: "Sở Hữu Vô Cực",
+    weeklyPrice: 55000,
+    monthlyPrice: 170000,
+    description: "Tài khoản Level cao đã mở khóa toàn bộ chế độ, thích hợp cho anh em muốn chơi lâu dài.",
+  },
+  {
+    id: "clone-06",
+    code: "SMURF-06",
+    title: "Acc Test Đội Hình Lục Bảo",
+    rankBadge: "RANK LỤC BẢO",
+    status: "AVAILABLE",
+    thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=600&auto=format&fit=crop",
+    features: [
+      "Khung rank Lục Bảo đẹp mắt",
+      "Kèm 2 sàn đấu linh thú độc quyền",
+      "Hỗ trợ đổi thông tin một chạm",
+    ],
+    periodPrice: 210000,
+    periodUnit: " / ∞",
+    durationLabel: "Sở Hữu Vô Cực",
+    weeklyPrice: 70000,
+    monthlyPrice: 210000,
+    description: "Tài khoản Lục Bảo MMR chuẩn chỉ, đánh rank cọ xát với các cao thủ cực kỳ chất lượng.",
+  },
+  {
+    id: "clone-07",
+    code: "CLONE-07",
+    title: "Acc Smurf Kéo Rank Bạn Bè",
+    rankBadge: "RANK ĐỒNG / BẠC",
+    status: "AVAILABLE",
+    thumbnail: "https://images.unsplash.com/photo-1552824722-ddab1374e622?q=80&w=600&auto=format&fit=crop",
+    features: [
+      "MMR thấp, đối thủ vừa sức",
+      "Thoải mái thử các bài dị meta",
+      "Bàn giao siêu tốc trong 30s",
+    ],
+    periodPrice: 155000,
+    periodUnit: " / ∞",
+    durationLabel: "Sở Hữu Vô Cực",
+    weeklyPrice: 50000,
+    monthlyPrice: 155000,
+    description: "Tài khoản Smurf chuyên dụng để kéo bạn bè leo lên Vàng, Bạch Kim dễ dàng.",
+  },
+  {
+    id: "clone-08",
+    code: "SMURF-08",
+    title: "Acc Clone Full Tinh Hoa Lam",
+    rankBadge: "ACC TRẮNG TT 100%",
+    status: "AVAILABLE",
+    thumbnail: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=600&auto=format&fit=crop",
+    features: [
+      "Sẵn 35.000+ Tinh Hoa Lam",
+      "Tự do đổi tên nhân vật theo ý thích",
+      "Tặng kèm 2 biểu cảm độc quyền",
+    ],
+    periodPrice: 165000,
+    periodUnit: " / ∞",
+    durationLabel: "Sở Hữu Vô Cực",
+    weeklyPrice: 55000,
+    monthlyPrice: 165000,
+    description: "Tài khoản dồi dào tài nguyên Tinh Hoa Lam, có thể mua tướng và đổi tên nhân vật tùy ý.",
+  },
+  {
+    id: "clone-09",
+    code: "CLONE-09",
+    title: "Acc Clone Thử Nghiệm Tướng Mới",
+    rankBadge: "UNRANKED",
+    status: "AVAILABLE",
+    thumbnail: "https://images.unsplash.com/photo-1542751110-97427bbecf20?q=80&w=600&auto=format&fit=crop",
+    features: [
+      "Tự do ghép trang bị dị",
+      "Không lo ảnh hưởng lịch sử đấu acc chính",
+      "Hỗ trợ bảo hành 24/7",
+    ],
+    periodPrice: 145000,
+    periodUnit: " / ∞",
+    durationLabel: "Sở Hữu Vô Cực",
+    weeklyPrice: 45000,
+    monthlyPrice: 145000,
+    description: "Acc Clone chuyên dụng cho anh em cờ thủ sáng tạo đội hình mới và thử nghiệm lối chơi dị.",
+  },
+  {
+    id: "clone-10",
+    code: "SMURF-10",
+    title: "Acc Smurf Rank Sắt Siêu Thấp",
+    rankBadge: "RANK SẮT ĐOÀN",
+    status: "AVAILABLE",
+    thumbnail: "https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=600&auto=format&fit=crop",
+    features: [
+      "Rank Sắt dễ chơi dễ win",
+      "Tận hưởng cảm giác Top 1 liên tục",
+      "Bàn giao siêu tốc trong 30s",
+    ],
+    periodPrice: 150000,
+    periodUnit: " / ∞",
+    durationLabel: "Sở Hữu Vô Cực",
+    weeklyPrice: 50000,
+    monthlyPrice: 150000,
+    description: "Tài khoản Rank Sắt đoàn MMR thấp, cực kỳ thư giãn sau những giờ leo rank căng thẳng.",
+  },
+  {
+    id: "clone-11",
+    code: "CLONE-11",
+    title: "Acc Test Giải Đấu & Custom",
+    rankBadge: "TRẮNG THÔNG TIN",
+    status: "AVAILABLE",
+    thumbnail: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?q=80&w=600&auto=format&fit=crop",
+    features: [
+      "Sẵn sàng đánh phòng Custom 8 người",
+      "Đổi mật khẩu riêng tư bảo mật",
+      "Không dính mã xác thực OTP",
+    ],
+    periodPrice: 175000,
+    periodUnit: " / ∞",
+    durationLabel: "Sở Hữu Vô Cực",
+    weeklyPrice: 60000,
+    monthlyPrice: 175000,
+    description: "Tài khoản sạch sẽ thích hợp tham gia các giải đấu giao lưu cộng đồng hoặc phòng Custom bạn bè.",
+  },
+  {
+    id: "clone-12",
+    code: "SMURF-12",
+    title: "Acc Smurf Rank Kim Cương",
+    rankBadge: "RANK KIM CƯƠNG",
+    status: "AVAILABLE",
+    thumbnail: "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=600&auto=format&fit=crop",
+    features: [
+      "Khung Kim Cương sáng chói",
+      "MMR cao gặp tuyển thủ chuyên nghiệp",
+      "Hỗ trợ gia hạn dài hạn giá rẻ",
+    ],
+    periodPrice: 220000,
+    periodUnit: " / ∞",
+    durationLabel: "Sở Hữu Vô Cực",
+    weeklyPrice: 75000,
+    monthlyPrice: 220000,
+    description: "Tài khoản Rank Kim Cương chất lượng cao, thích hợp cho anh em muốn thử sức ở các bậc rank cao.",
+  },
+  {
+    id: "clone-13",
+    code: "CLONE-13",
+    title: "Acc Clone Tặng Kèm 5 Trứng",
+    rankBadge: "UNRANKED / QUÀ TẶNG",
+    status: "AVAILABLE",
+    thumbnail: "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?q=80&w=600&auto=format&fit=crop",
+    features: [
+      "Sẵn 5 Trứng Linh Thú chưa mở",
+      "Trắng mail gốc 100%",
+      "Bảo hành vĩnh viễn trọn đời",
+    ],
+    periodPrice: 185000,
+    periodUnit: " / ∞",
+    durationLabel: "Sở Hữu Vô Cực",
+    weeklyPrice: 60000,
+    monthlyPrice: 185000,
+    description: "Acc Clone có sẵn quà tặng trứng linh thú trong túi đồ, tự tay mở ra các linh thú ngẫu nhiên.",
+  },
+  {
+    id: "clone-14",
+    code: "SMURF-14",
+    title: "Acc Smurf Level 50+ Full Bảng",
+    rankBadge: "LEVEL 50+ / VIP",
+    status: "AVAILABLE",
+    thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=600&auto=format&fit=crop",
+    features: [
+      "Level 50+ mở full mọi chế độ",
+      "Kho biểu cảm đồ sộ",
+      "Hỗ trợ đổi pass và bảo mật tối đa",
+    ],
+    periodPrice: 195000,
+    periodUnit: " / ∞",
+    durationLabel: "Sở Hữu Vô Cực",
+    weeklyPrice: 65000,
+    monthlyPrice: 195000,
+    description: "Tài khoản Level 50+ cày cuốc lâu năm, cực kỳ uy tín và sẵn sàng vào mọi trận đấu.",
   },
 ];
 

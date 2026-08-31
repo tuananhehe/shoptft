@@ -1,14 +1,13 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import { TFT_RENTAL_ACCOUNTS, TFTRentalAccount } from "@/data/tft-data";
+import React, { useState, useRef, useEffect } from "react";
+import { TFTRentalAccount } from "@/data/tft-data";
+import { getVipAndCloneAccounts, formatRentalExpiry } from "@/utils/supabase/accounts-service";
 import { motion, Variants } from "framer-motion";
 import {
   Search,
   KeyRound,
   Eye,
-  ShieldCheck,
-  Sparkles,
   Zap,
   AlertTriangle,
   RefreshCw,
@@ -18,8 +17,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Flame,
-  Star,
   Layers,
+  Loader2,
+  ArrowUpDown,
+  Filter,
 } from "lucide-react";
 
 interface TFTShopProps {
@@ -60,6 +61,9 @@ const RANK_OPTIONS = [
   { id: "KIM CƯƠNG", label: "Kim Cương" },
   { id: "LỤC BẢO", label: "Lục Bảo" },
   { id: "VÀNG/BẠCH KIM", label: "Vàng / Bạch Kim" },
+  { id: "BẠC", label: "Bạc" },
+  { id: "ĐỒNG", label: "Đồng / Sắt" },
+  { id: "KHÔNG RANK", label: "Không Rank / Unranked" },
 ];
 
 const CHIBI_OPTIONS = [
@@ -75,16 +79,36 @@ const CHIBI_OPTIONS = [
 ];
 
 export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
+  const [vipAccounts, setVipAccounts] = useState<TFTRentalAccount[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [showFullCatalog, setShowFullCatalog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDuration, setSelectedDuration] = useState("ALL");
   const [selectedRank, setSelectedRank] = useState("ALL");
   const [selectedChibi, setSelectedChibi] = useState("ALL");
+  const [selectedStatus, setSelectedStatus] = useState<"ALL" | "AVAILABLE" | "RENTED">("ALL");
+  const [selectedSort, setSelectedSort] = useState<"DEFAULT" | "PRICE_ASC" | "PRICE_DESC">("DEFAULT");
   const sliderRef = useRef<HTMLDivElement>(null);
 
-  // Top 6 Featured Accounts for horizontal loop (cân đối hiển thị 4 thẻ trên desktop)
-  const featuredAccounts = TFT_RENTAL_ACCOUNTS.slice(0, 6);
-  const loopAccounts = [...featuredAccounts, ...featuredAccounts];
+  // Fetch dữ liệu thật từ Supabase
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+    getVipAndCloneAccounts().then(({ vipAccounts: fetchedVip }) => {
+      if (isMounted) {
+        setVipAccounts(fetchedVip || []);
+        setIsLoading(false);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Top 6 Featured Accounts for horizontal loop
+  const featuredAccounts = vipAccounts.slice(0, 6);
+  const loopAccounts =
+    featuredAccounts.length > 0 ? [...featuredAccounts, ...featuredAccounts] : [];
 
   const handlePrev = () => {
     if (sliderRef.current) {
@@ -98,26 +122,61 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
     }
   };
 
-  // Filtered Accounts for Full Catalog
-  const filteredAccounts = TFT_RENTAL_ACCOUNTS.filter((acc) => {
-    const matchesRank = selectedRank === "ALL" || acc.rank === selectedRank;
-    const matchesChibi =
-      selectedChibi === "ALL" ||
-      acc.mainChibi.toLowerCase().includes(selectedChibi.toLowerCase()) ||
-      acc.allChibi.some((c) => c.toLowerCase().includes(selectedChibi.toLowerCase()));
+  // Filtered & Sorted Accounts for Full Catalog
+  const filteredAccounts = vipAccounts
+    .filter((acc) => {
+      const isRented = (acc.status || "").toUpperCase() === "RENTED";
+      const matchesStatus =
+        selectedStatus === "ALL" ||
+        (selectedStatus === "RENTED" && isRented) ||
+        (selectedStatus === "AVAILABLE" && !isRented);
 
-    const matchesSearch =
-      acc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      acc.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      acc.mainChibi.toLowerCase().includes(searchTerm.toLowerCase());
+      const rankStr = (acc.rank || "").toUpperCase();
+      const matchesRank =
+        selectedRank === "ALL" ||
+        rankStr === selectedRank ||
+        rankStr.includes(selectedRank) ||
+        (selectedRank === "VÀNG/BẠCH KIM" && (rankStr.includes("VÀNG") || rankStr.includes("BẠCH KIM"))) ||
+        (selectedRank === "ĐỒNG" && (rankStr.includes("ĐỒNG") || rankStr.includes("SẮT")));
 
-    return matchesRank && matchesChibi && matchesSearch;
-  });
+      const mainChibiStr = (acc.mainChibi || "").toLowerCase();
+      const allChibiArr = Array.isArray(acc.allChibi) ? acc.allChibi : [];
+      const chibiQuery = (selectedChibi === "ALL" ? "" : selectedChibi).toLowerCase();
+
+      const matchesChibi =
+        selectedChibi === "ALL" ||
+        mainChibiStr.includes(chibiQuery) ||
+        allChibiArr.some((c) => (c || "").toLowerCase().includes(chibiQuery));
+
+      const query = searchTerm.trim().toLowerCase();
+      const titleStr = (acc.title || "").toLowerCase();
+      const codeStr = (acc.code || "").toLowerCase();
+
+      const matchesSearch =
+        query === "" ||
+        titleStr.includes(query) ||
+        codeStr.includes(query) ||
+        mainChibiStr.includes(query) ||
+        rankStr.toLowerCase().includes(query);
+
+      return matchesStatus && matchesRank && matchesChibi && matchesSearch;
+    })
+    .sort((a, b) => {
+      const priceA = Number(a.hourlyPrice) || 0;
+      const priceB = Number(b.hourlyPrice) || 0;
+      if (selectedSort === "PRICE_ASC") {
+        return priceA - priceB;
+      }
+      if (selectedSort === "PRICE_DESC") {
+        return priceB - priceA;
+      }
+      return 0;
+    });
 
   return (
     <section id="shop" className="pt-8 pb-14 sm:pt-10 sm:pb-16 bg-slate-50 border-t border-slate-200/80 border-b border-slate-200 text-slate-900 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
-        {/* Section Header chuẩn SEO với thẻ H2 - Hiệu ứng whileInView Framer Motion */}
+        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -131,8 +190,8 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
               <span>Tài Khoản & Dịch Vụ Nổi Bật</span>
             </div>
 
-            <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900">
-              KHO CHO THUÊ ACC TFT TỰ ĐỘNG
+            <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900 font-gaming uppercase">
+              KHO THUÊ ACC TFT VIP
             </h2>
             <p className="text-slate-600 text-sm sm:text-base max-w-2xl font-normal">
               Trải nghiệm acc VIP sở hữu Tướng Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc chỉ từ 6k/giờ. Tự động nhận pass sau khi thanh toán.
@@ -159,103 +218,134 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
         </motion.div>
       </div>
 
-      {/* 1. SEAMLESS INFINITE MARQUEE AUTO-LOOP TRACK - HIỂN THỊ RÕ NÉT 100% KHÔNG MỜ VIỀN */}
+      {/* 1. SEAMLESS INFINITE MARQUEE AUTO-LOOP TRACK */}
       <div className="max-w-7xl mx-auto relative w-full py-3 overflow-hidden">
-        <div
-          ref={sliderRef}
-          className="animate-infinite-loop flex gap-5 px-4 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar scroll-smooth py-2"
-        >
-          {loopAccounts.map((account, index) => (
-            <div
-              key={`${account.id}-${index}`}
-              className="w-[270px] sm:w-[290px] lg:w-[280px] xl:w-[290px] flex-shrink-0 flex flex-col h-full justify-between bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 group"
-            >
-              {/* Top Photo & Badges - KHUNG VUÔNG ASPECT-SQUARE CÓ ALT CHUẨN SEO */}
-              <div>
-                <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-slate-900 mb-3 border border-slate-100 shadow-inner">
-                  <img
-                    src={account.thumbnail}
-                    alt={`Thuê acc TFT VIP ${account.code} có ${account.mainChibi} - Tuấn Thái Bình`}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/30" />
-
-                  {/* Top Right Code Badge */}
-                  <div className="absolute top-3 right-3">
-                    <span className="px-2 py-0.5 rounded-md bg-black/80 text-[11px] font-mono font-bold text-white shadow-sm backdrop-blur-sm">
-                      {account.code}
-                    </span>
-                  </div>
-
-                  {/* Top Left Status Badge */}
-                  <div className="absolute top-3 left-3">
-                    {account.status === "AVAILABLE" ? (
-                      <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
-                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                        <span>SẴN SÀNG</span>
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 rounded-md bg-rose-600/90 text-white text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm shadow-sm">
-                        ĐANG THUÊ
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Bottom Rank Badge */}
-                  <div className="absolute bottom-3 left-3">
-                    <span className="px-2.5 py-0.5 rounded-md bg-white/95 text-slate-900 text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
-                      {account.rank}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Tướng Tí Nị - THÔNG TIN ĐỊNH DANH CHÍNH NỔI BẬT */}
-                <div className="text-slate-900 font-bold text-sm sm:text-base leading-snug line-clamp-1 group-hover:text-orange-700 transition-colors">
-                  {account.mainChibi}
-                </div>
-
-                {/* Sân Đấu: text-xs text-slate-500 font-medium */}
-                <p className="text-xs text-slate-500 line-clamp-1 mt-1 font-medium flex items-center gap-1.5">
-                  <span>🏟️</span>
-                  <span>{account.mainArena}</span>
-                </p>
-              </div>
-
-              {/* Price & Actions: mt-auto luôn nằm thẳng hàng ở đáy */}
-              <div className="mt-auto pt-3 border-t border-slate-100 space-y-2.5">
-                <div className="flex items-baseline justify-between">
-                  <div>
-                    <span className="text-base sm:text-lg font-bold text-red-600 font-mono">
-                      {account.hourlyPrice.toLocaleString()}đ
-                    </span>
-                    <span className="text-xs text-slate-600 font-medium"> / Giờ</span>
-                  </div>
-                  <span className="text-xs text-slate-600 font-medium">
-                    Đã thuê: 120+ lượt
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => onSelectAccount(account)}
-                    className="h-9 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>Chi Tiết</span>
-                  </button>
-
-                  <button
-                    onClick={() => onSelectAccount(account)}
-                    className="h-9 px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 hover:scale-105 cursor-pointer"
-                  >
-                    <KeyRound className="w-3.5 h-3.5" />
-                    <span>Thuê Ngay</span>
-                  </button>
+        {isLoading ? (
+          /* SKELETON LOADING STATE CHO KHO VIP */
+          <div className="flex gap-5 px-4 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar py-2">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="w-[270px] sm:w-[290px] lg:w-[280px] xl:w-[290px] flex-shrink-0 bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-4.5 shadow-sm animate-pulse space-y-3"
+              >
+                <div className="aspect-square w-full rounded-xl bg-slate-200" />
+                <div className="h-4 bg-slate-200 rounded w-3/4" />
+                <div className="h-3 bg-slate-200 rounded w-1/2" />
+                <div className="pt-3 border-t border-slate-100 flex justify-between items-center">
+                  <div className="h-4 bg-slate-200 rounded w-1/3" />
+                  <div className="h-8 bg-slate-200 rounded-xl w-1/2" />
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : vipAccounts.length === 0 ? (
+          /* EMPTY STATE */
+          <div className="px-4 py-12 text-center text-slate-500 bg-white mx-4 rounded-2xl border border-slate-200">
+            <p className="text-sm font-semibold">
+              Đang kết nối cơ sở dữ liệu Supabase hoặc chưa có tài khoản VIP nào trong bảng.
+            </p>
+          </div>
+        ) : (
+          <div
+            ref={sliderRef}
+            className="animate-infinite-loop flex gap-5 px-4 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar scroll-smooth py-2"
+          >
+            {loopAccounts.map((account, index) => (
+              <div
+                key={`${account.id}-${index}`}
+                className="w-[270px] sm:w-[290px] lg:w-[280px] xl:w-[290px] flex-shrink-0 flex flex-col h-full justify-between bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 group"
+              >
+                {/* Top Photo & Badges */}
+                <div>
+                  <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-slate-900 mb-3 border border-slate-100 shadow-inner">
+                    <img
+                      src={account.thumbnail}
+                      alt={`Thuê acc TFT VIP ${account.code} có ${account.mainChibi} - Tuấn Thái Bình`}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+
+                    {/* Top Right Code Badge */}
+                    <div className="absolute top-3 right-3">
+                      <span className="px-2 py-0.5 rounded-md bg-black/80 text-[11px] font-mono font-bold text-white shadow-sm backdrop-blur-sm">
+                        {account.code}
+                      </span>
+                    </div>
+
+                    {/* Top Left Status Badge */}
+                    <div className="absolute top-3 left-3">
+                      {account.status === "AVAILABLE" ? (
+                        <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                          <span>SẴN SÀNG</span>
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-md bg-rose-600/90 text-white text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm shadow-sm flex items-center gap-1">
+                          <span>ĐANG THUÊ</span>
+                          {account.rentedUntil && formatRentalExpiry(account.rentedUntil)?.shortCountdown && (
+                            <span className="text-[9px] font-mono bg-black/30 px-1 rounded">
+                              {formatRentalExpiry(account.rentedUntil)?.shortCountdown}
+                            </span>
+                          )}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Bottom Rank Badge */}
+                    <div className="absolute bottom-3 left-3">
+                      <span className="px-2.5 py-0.5 rounded-md bg-white/95 text-slate-900 text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
+                        {account.rank}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Tướng Tí Nị */}
+                  <div className="text-slate-900 font-bold text-sm sm:text-base leading-snug line-clamp-1 group-hover:text-orange-700 transition-colors">
+                    {account.mainChibi}
+                  </div>
+
+                  {/* Sân Đấu */}
+                  <p className="text-xs text-slate-500 line-clamp-1 mt-1 font-medium flex items-center gap-1.5">
+                    <span>🏟️</span>
+                    <span>{account.mainArena}</span>
+                  </p>
+                </div>
+
+                {/* Price & Actions */}
+                <div className="mt-auto pt-3 border-t border-slate-100 space-y-2.5">
+                  <div className="flex items-baseline justify-between">
+                    <div>
+                      <span className="text-base sm:text-lg font-bold text-red-600 font-mono">
+                        {(Number(account.hourlyPrice) || 15000).toLocaleString("vi-VN")}đ
+                      </span>
+                      <span className="text-xs text-slate-600 font-medium"> / Giờ</span>
+                    </div>
+                    <span className="text-xs text-slate-600 font-medium">
+                      Đã thuê: 120+ lượt
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => onSelectAccount(account)}
+                      className="h-9 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Chi Tiết</span>
+                    </button>
+
+                    <button
+                      onClick={() => onSelectAccount(account)}
+                      className="h-9 px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 hover:scale-105 cursor-pointer"
+                    >
+                      <KeyRound className="w-3.5 h-3.5" />
+                      <span>Thuê Ngay</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 2. NÚT LỚN "XEM THÊM" */}
@@ -272,7 +362,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
           <span>
             {showFullCatalog
               ? "Thu gọn lại (Chế độ 6 acc tiêu biểu)"
-              : `Xem thêm toàn bộ kho acc (${TFT_RENTAL_ACCOUNTS.length}+ acc có sẵn)`}
+              : `Xem thêm toàn bộ kho acc (${vipAccounts.length}+ acc có sẵn)`}
           </span>
           {showFullCatalog ? (
             <ChevronUp className="w-4 h-4" />
@@ -339,28 +429,12 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
           </div>
 
           {/* BỘ LỌC & TÌM KIẾM */}
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-center">
-              <div className="lg:col-span-3">
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] space-y-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 items-center">
+              {/* Lọc Rank */}
+              <div>
                 <label className="text-[11px] text-slate-500 uppercase font-bold tracking-wider mb-1 block">
-                  Thời Gian Thuê
-                </label>
-                <select
-                  value={selectedDuration}
-                  onChange={(e) => setSelectedDuration(e.target.value)}
-                  className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-orange-500 transition-colors cursor-pointer"
-                >
-                  {RENTAL_DURATIONS.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="lg:col-span-3">
-                <label className="text-[11px] text-slate-500 uppercase font-bold tracking-wider mb-1 block">
-                  Bậc Rank
+                  Bậc Rank TFT
                 </label>
                 <select
                   value={selectedRank}
@@ -375,9 +449,10 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                 </select>
               </div>
 
-              <div className="lg:col-span-3">
+              {/* Lọc Tướng Tí Nị */}
+              <div>
                 <label className="text-[11px] text-slate-500 uppercase font-bold tracking-wider mb-1 block">
-                  Tướng Tí Nị
+                  Tướng Tí Nị Nổi Bật
                 </label>
                 <select
                   value={selectedChibi}
@@ -392,44 +467,74 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                 </select>
               </div>
 
-              <div className="lg:col-span-3">
+              {/* Lọc Trạng Thái Thuê / Chưa Thuê */}
+              <div>
                 <label className="text-[11px] text-slate-500 uppercase font-bold tracking-wider mb-1 block">
-                  Tìm Theo Mã Số / Tên
+                  Trạng Thái Thuê
                 </label>
-                <div className="relative">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Mã MS: 8899..."
-                    className="w-full h-10 pl-9 pr-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-orange-500 transition-colors"
-                  />
-                </div>
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value as any)}
+                  className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500 transition-colors cursor-pointer"
+                >
+                  <option value="ALL">Tất Cả Trạng Thái</option>
+                  <option value="AVAILABLE">🟢 Sẵn Sàng (Chưa Thuê)</option>
+                  <option value="RENTED">🔴 Đang Cho Thuê</option>
+                </select>
+              </div>
+
+              {/* Sắp Xếp Giá */}
+              <div>
+                <label className="text-[11px] text-slate-500 uppercase font-bold tracking-wider mb-1 block flex items-center justify-between">
+                  <span>Sắp Xếp Giá</span>
+                  <ArrowUpDown className="w-3 h-3 text-slate-400" />
+                </label>
+                <select
+                  value={selectedSort}
+                  onChange={(e) => setSelectedSort(e.target.value as any)}
+                  className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500 transition-colors cursor-pointer"
+                >
+                  <option value="DEFAULT">Mặc Định</option>
+                  <option value="PRICE_ASC">Giá: Thấp đến Cao ↗</option>
+                  <option value="PRICE_DESC">Giá: Cao đến Thấp ↘</option>
+                </select>
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 text-xs text-slate-500">
-              <div>
-                Tìm thấy <strong className="text-slate-900 font-mono">{filteredAccounts.length}</strong> tài khoản cho thuê
-              </div>
-              <div className="flex items-center gap-1.5 text-emerald-600 font-bold">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                <span>🟢 Sẵn sàng bàn giao</span>
+            {/* Thanh Tìm Kiếm */}
+            <div className="pt-2 border-t border-slate-100">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Tìm kiếm mã số (VD: MS: 8899), Tướng Tí Nị, Sân Đấu, Rank..."
+                  className="w-full h-10 pl-9 pr-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 transition-colors"
+                />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               </div>
             </div>
           </div>
 
-          {/* GRID 4 CỘT TẤT CẢ ACC - HIỆU ỨNG STAGGER FRAMER MOTION */}
+          {/* GRID 4 CỘT HIỂN THỊ TOÀN BỘ ACC VIP LỌC ĐƯỢC */}
           {filteredAccounts.length === 0 ? (
-            <div className="text-center py-16 bg-white border border-slate-200 rounded-2xl p-8">
-              <KeyRound className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-slate-800">
-                Không tìm thấy tài khoản phù hợp
-              </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Vui lòng đổi bộ lọc hoặc liên hệ Zalo để tìm acc theo yêu cầu riêng.
+            <div className="p-12 text-center bg-slate-50 rounded-2xl border border-slate-200/80">
+              <p className="text-sm font-semibold text-slate-600">
+                Không tìm thấy tài khoản VIP nào phù hợp với bộ lọc.
               </p>
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedRank("ALL");
+                  setSelectedChibi("ALL");
+                  setSelectedDuration("ALL");
+                  setSelectedStatus("ALL");
+                  setSelectedSort("DEFAULT");
+                }}
+                className="mt-3 px-4 py-2 bg-orange-700 hover:bg-orange-800 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+              >
+                Đặt lại bộ lọc
+              </button>
             </div>
           ) : (
             <motion.div
@@ -443,17 +548,16 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                 <motion.div
                   key={account.id}
                   variants={shopCardVariants}
-                  className="flex flex-col h-full justify-between bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 group"
+                  className="flex flex-col h-full justify-between bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 group"
                 >
-                  {/* Top Photo & Badges - KHUNG VUÔNG ASPECT-SQUARE CÓ ALT CHUẨN SEO */}
+                  {/* Top Photo & Badges */}
                   <div>
                     <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-slate-900 mb-3 border border-slate-100 shadow-inner">
                       <img
                         src={account.thumbnail}
-                        alt={`Thuê acc TFT VIP ${account.code} có ${account.mainChibi} - Tuấn Thái Bình`}
+                        alt={`Thuê acc TFT ${account.code} ${account.title} - Tuấn Thái Bình`}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/30" />
 
                       {/* Top Right Code Badge */}
                       <div className="absolute top-3 right-3">
@@ -470,8 +574,13 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                             <span>SẴN SÀNG</span>
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-md bg-rose-600/90 text-white text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm shadow-sm">
-                            ĐANG THUÊ
+                          <span className="px-2 py-0.5 rounded-md bg-rose-600/90 text-white text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm shadow-sm flex items-center gap-1">
+                            <span>ĐANG THUÊ</span>
+                            {account.rentedUntil && formatRentalExpiry(account.rentedUntil)?.shortCountdown && (
+                              <span className="text-[9px] font-mono bg-black/30 px-1 rounded">
+                                {formatRentalExpiry(account.rentedUntil)?.shortCountdown}
+                              </span>
+                            )}
                           </span>
                         )}
                       </div>
@@ -484,29 +593,29 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                       </div>
                     </div>
 
-                    {/* Tướng Tí Nị - THÔNG TIN ĐỊNH DANH CHÍNH NỔI BẬT */}
+                    {/* Tướng Tí Nị */}
                     <div className="text-slate-900 font-bold text-sm sm:text-base leading-snug line-clamp-1 group-hover:text-orange-700 transition-colors">
                       {account.mainChibi}
                     </div>
 
-                    {/* Sân Đấu: text-xs text-slate-500 font-medium */}
+                    {/* Sân Đấu */}
                     <p className="text-xs text-slate-500 line-clamp-1 mt-1 font-medium flex items-center gap-1.5">
                       <span>🏟️</span>
                       <span>{account.mainArena}</span>
                     </p>
                   </div>
 
-                  {/* Price & Actions: mt-auto luôn nằm thẳng hàng ở đáy */}
+                  {/* Price & Actions */}
                   <div className="mt-auto pt-3 border-t border-slate-100 space-y-2.5">
                     <div className="flex items-baseline justify-between">
                       <div>
                         <span className="text-base sm:text-lg font-bold text-red-600 font-mono">
-                          {account.hourlyPrice.toLocaleString()}đ
+                          {(Number(account.hourlyPrice) || 15000).toLocaleString("vi-VN")}đ
                         </span>
                         <span className="text-xs text-slate-600 font-medium"> / Giờ</span>
                       </div>
                       <span className="text-xs text-slate-600 font-medium">
-                        Đã thuê: 95+ lượt
+                        Đã thuê: 120+ lượt
                       </span>
                     </div>
 
@@ -532,6 +641,21 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
               ))}
             </motion.div>
           )}
+
+          {/* NÚT THU GỌN Ở ĐÁY GRID */}
+          <div className="text-center pt-4">
+            <button
+              onClick={() => {
+                setShowFullCatalog(false);
+                const el = document.getElementById("shop");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
+            >
+              <ChevronUp className="w-4 h-4" />
+              <span>Thu gọn lại (Về chế độ Slider)</span>
+            </button>
+          </div>
         </div>
       )}
     </section>

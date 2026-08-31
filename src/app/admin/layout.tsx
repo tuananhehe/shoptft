@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { PROFILE_INFO } from "@/data/tft-data";
+import toast from "react-hot-toast";
 import {
   LayoutDashboard,
   Gamepad2,
@@ -18,6 +19,10 @@ import {
   Search,
   ExternalLink,
   ChevronRight,
+  Loader2,
+  Lock,
+  Users,
+  Layout,
 } from "lucide-react";
 
 export default function AdminLayout({
@@ -26,7 +31,78 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  // Nếu đang ở trang login thì render trực tiếp không cần bọc layout
+  const isLoginPage = pathname === "/admin/login";
+
+  useEffect(() => {
+    if (isLoginPage) {
+      setIsAuthenticated(true);
+      return;
+    }
+
+    async function checkAuth() {
+      try {
+        const localToken = typeof window !== "undefined" ? localStorage.getItem("shoptft_admin_token") : null;
+        const res = await fetch("/api/admin/auth", {
+          headers: localToken ? { "x-admin-token": localToken } : {},
+        });
+        const data = await res.json();
+        if (data.authenticated) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+          router.replace("/admin/login");
+        }
+      } catch {
+        setIsAuthenticated(false);
+        router.replace("/admin/login");
+      }
+    }
+
+    checkAuth();
+  }, [pathname, isLoginPage, router]);
+
+  const handleLogout = async () => {
+    const toastId = toast.loading("Đang đăng xuất...");
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("shoptft_admin_token");
+      }
+      await fetch("/api/admin/auth", { method: "DELETE" });
+      toast.success("Đã đăng xuất thành công!", { id: toastId });
+      setIsAuthenticated(false);
+      router.replace("/admin/login");
+    } catch {
+      toast.error("Lỗi khi đăng xuất!", { id: toastId });
+    }
+  };
+
+  // Trang đăng nhập render độc lập
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
+
+  // Đang kiểm tra quyền truy cập
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-white space-y-4">
+        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl flex flex-col items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center">
+            <Lock className="w-6 h-6 text-orange-500 animate-pulse" />
+          </div>
+          <p className="text-xs text-slate-300 font-mono font-bold">Đang xác thực quyền Quản Trị...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   const navItems = [
     {
@@ -36,11 +112,25 @@ export default function AdminLayout({
       active: pathname === "/admin",
     },
     {
+      title: "Trang Chủ (CMS)",
+      href: "/admin/homepage",
+      icon: Layout,
+      active: pathname.startsWith("/admin/homepage"),
+      badge: "Giao Diện",
+    },
+    {
       title: "Quản Lý Kho Acc",
       href: "/admin/accounts",
       icon: Gamepad2,
       active: pathname.startsWith("/admin/accounts"),
       badge: "8 Acc",
+    },
+    {
+      title: "Kênh Truyền Thông",
+      href: "/admin/channels",
+      icon: Users,
+      active: pathname.startsWith("/admin/channels"),
+      badge: "Hệ Sinh Thái",
     },
     {
       title: "Đơn Hàng",
@@ -60,7 +150,9 @@ export default function AdminLayout({
   // Lấy tiêu đề trang từ URL hiện tại
   const getPageTitle = () => {
     if (pathname === "/admin") return "Tổng Quan Hệ Thống";
+    if (pathname.startsWith("/admin/homepage")) return "Quản Lý & Tự Setup Trang Chủ";
     if (pathname.startsWith("/admin/accounts")) return "Quản Lý Kho Acc TFT";
+    if (pathname.startsWith("/admin/channels")) return "Hệ Sinh Thái & Kênh Truyền Thông";
     if (pathname.startsWith("/admin/orders")) return "Quản Lý Đơn Hàng";
     if (pathname.startsWith("/admin/settings")) return "Cài Đặt Hệ Thống";
     return "Admin Dashboard";
@@ -204,7 +296,7 @@ export default function AdminLayout({
             <Link
               href="/"
               target="_blank"
-              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors"
+              className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors"
             >
               <div className="flex items-center gap-2.5">
                 <Globe className="w-4 h-4 text-orange-600" />
@@ -212,6 +304,15 @@ export default function AdminLayout({
               </div>
               <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
             </Link>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 transition-colors cursor-pointer"
+            >
+              <LogOut className="w-4 h-4 text-rose-600" />
+              <span>Đăng Xuất Quản Trị</span>
+            </button>
           </div>
         </div>
       </aside>
@@ -264,13 +365,14 @@ export default function AdminLayout({
               <span className="hidden md:inline-block text-xs font-bold text-slate-900">
                 Tuấn Thái Bình
               </span>
-              <Link
-                href="/"
-                title="Đăng xuất / Về trang chủ"
-                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors ml-1"
+              <button
+                type="button"
+                onClick={handleLogout}
+                title="Đăng xuất khỏi Quản Trị"
+                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors ml-1 cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
-              </Link>
+              </button>
             </div>
           </div>
         </header>

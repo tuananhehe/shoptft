@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { PROFILE_INFO } from "@/data/tft-data";
 import toast from "react-hot-toast";
 import {
@@ -14,6 +15,7 @@ import {
   Sparkles,
   Calculator,
   HelpCircle,
+  Users,
 } from "lucide-react";
 
 export default function AdminSettingsPage() {
@@ -32,6 +34,55 @@ export default function AdminSettingsPage() {
   const [bannerContent, setBannerContent] = useState<string>(
     "🎁 Ưu đãi đặc biệt: Tặng thêm 1 giờ chơi và miễn phí phí đổi pass cố định cho khách hàng thuê lần đầu qua Zalo Tuấn Thái Bình!"
   );
+
+  // 4. Đổi Mật Khẩu Quản Trị
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isChangingPass, setIsChangingPass] = useState(false);
+
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error("Vui lòng điền đầy đủ thông tin đổi mật khẩu!");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Mật khẩu mới và xác nhận mật khẩu không khớp!");
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error("Mật khẩu mới phải có tối thiểu 6 ký tự!");
+      return;
+    }
+
+    setIsChangingPass(true);
+    const toastId = toast.loading("Đang cập nhật mật khẩu mới...");
+
+    try {
+      const res = await fetch("/api/admin/auth", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success("✅ Đã đổi mật khẩu quản trị thành công!", { id: toastId });
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        toast.error(data.error || "Không thể đổi mật khẩu!", { id: toastId });
+      }
+    } catch {
+      toast.error("Lỗi kết nối máy chủ!", { id: toastId });
+    } finally {
+      setIsChangingPass(false);
+    }
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,6 +141,19 @@ export default function AdminSettingsPage() {
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-emerald-700 focus:outline-none focus:border-orange-500"
               />
             </div>
+          </div>
+
+          <div className="p-3.5 bg-orange-50/80 border border-orange-200/90 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2 text-orange-900">
+              <Users className="w-4 h-4 text-orange-600 flex-shrink-0" />
+              <span>Quản lý các kênh <strong>TikTok, Nhóm Zalo, Discord, Group Facebook</strong> tại:</span>
+            </div>
+            <Link
+              href="/admin/channels"
+              className="px-3.5 py-2 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 flex-shrink-0"
+            >
+              <span>Quản Lý Kênh Truyền Thông ➔</span>
+            </Link>
           </div>
         </div>
 
@@ -292,6 +356,78 @@ export default function AdminSettingsPage() {
                   : "bg-slate-50 text-slate-400 opacity-50 cursor-not-allowed"
               }`}
             />
+          </div>
+        </div>
+
+        {/* ============================================================ */}
+        {/* CARD 4: BẢO MẬT & ĐỔI MẬT KHẨU QUẢN TRỊ                      */}
+        {/* ============================================================ */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
+          <div className="flex items-center gap-3.5 pb-4 border-b border-slate-100">
+            <div className="bg-amber-100 text-amber-700 p-3 rounded-xl flex items-center justify-center flex-shrink-0">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg text-slate-800">
+                Bảo Mật & Đổi Mật Khẩu Quản Trị
+              </h3>
+              <p className="text-sm text-slate-500 mt-0.5 font-normal">
+                Mật khẩu dùng để đăng nhập vào trang quản trị Admin ShopTFT. Mặc định là <code className="text-orange-600 font-bold bg-orange-50 px-1.5 py-0.5 rounded">tuanthaibinh8888</code>.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-800 block">
+                Mật Khẩu Hiện Tại:
+              </label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Nhập mật khẩu cũ..."
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-800 block">
+                Mật Khẩu Mới:
+              </label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Tối thiểu 6 ký tự..."
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-800 block">
+                Xác Nhận Mật Khẩu Mới:
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Nhập lại mật khẩu mới..."
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-1">
+            <button
+              type="button"
+              disabled={isChangingPass || !newPassword}
+              onClick={handleChangePassword}
+              className="px-5 py-2.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ShieldCheck className="w-4 h-4 text-amber-400" />
+              <span>Cập Nhật Mật Khẩu Mới</span>
+            </button>
           </div>
         </div>
 

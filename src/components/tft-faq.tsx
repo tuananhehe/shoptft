@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { FAQS, PROFILE_INFO, FAQItem } from "@/data/tft-data";
+import { FAQConfigItem } from "@/utils/homepage-service";
 import {
   HelpCircle,
   ChevronDown,
@@ -17,10 +18,16 @@ import {
   CreditCard,
 } from "lucide-react";
 
-export const TFTFaq: React.FC = () => {
+interface TFTFaqProps {
+  customFaqs?: FAQConfigItem[];
+}
+
+export const TFTFaq: React.FC<TFTFaqProps> = ({ customFaqs }) => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const displayFaqs = customFaqs && customFaqs.length > 0 ? customFaqs : FAQS;
 
   const categories = [
     { id: "ALL", label: "Tất Cả Câu Hỏi", icon: HelpCircle },
@@ -32,7 +39,7 @@ export const TFTFaq: React.FC = () => {
 
   // Lọc câu hỏi theo Danh mục và Ô tìm kiếm
   const filteredFaqs = useMemo(() => {
-    return FAQS.filter((faq) => {
+    return displayFaqs.filter((faq) => {
       const matchCategory =
         selectedCategory === "ALL" || faq.category === selectedCategory;
       const matchQuery =
@@ -41,7 +48,7 @@ export const TFTFaq: React.FC = () => {
         faq.a.toLowerCase().includes(searchQuery.toLowerCase());
       return matchCategory && matchQuery;
     });
-  }, [selectedCategory, searchQuery]);
+  }, [displayFaqs, selectedCategory, searchQuery]);
 
   const toggle = (idx: number) => {
     setOpenIndex(openIndex === idx ? null : idx);

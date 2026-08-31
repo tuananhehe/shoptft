@@ -2,9 +2,16 @@
 
 import React from "react";
 import { SERVICE_PACKAGES, PROFILE_INFO } from "@/data/tft-data";
+import { ServicePackageItem } from "@/utils/homepage-service";
 import { Swords, Check, MessageCircle, Zap, ShieldCheck } from "lucide-react";
 
-export const TFTServices: React.FC = () => {
+interface TFTServicesProps {
+  packages?: ServicePackageItem[];
+}
+
+export const TFTServices: React.FC<TFTServicesProps> = ({ packages }) => {
+  const displayPackages = packages && packages.length > 0 ? packages : SERVICE_PACKAGES;
+
   return (
     <section id="services" className="py-20 bg-white text-slate-900 border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -25,7 +32,7 @@ export const TFTServices: React.FC = () => {
 
         {/* 3 Service Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-          {SERVICE_PACKAGES.map((srv) => (
+          {displayPackages.map((srv) => (
             <div
               key={srv.id}
               className={`rounded-2xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 relative ${

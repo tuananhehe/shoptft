@@ -1,0 +1,46 @@
+[
+  {
+    "id": "tiktok",
+    "platform": "tiktok",
+    "title": "Kênh TikTok ShopTFT Mobile",
+    "subtitle": "Xem highlight & test acc VIP",
+    "badge": "1K+ Followers",
+    "link": "https://tiktok.com/@shoptftmobile",
+    "buttonText": "Xem TikTok ➔",
+    "isActive": true,
+    "order": 1
+  },
+  {
+    "id": "zalo",
+    "platform": "zalo",
+    "title": "TFT MOBILE - DTCL | Cộng Đồng Uy Tín 2",
+    "subtitle": "Giao lưu, mua bán & hỗ trợ 24/7",
+    "badge": "900+ Thành viên",
+    "link": "https://zalo.me/g/tfjsec788",
+    "buttonText": "Tham Gia Zalo ➔",
+    "isActive": true,
+    "order": 4
+  },
+  {
+    "id": "discord",
+    "platform": "discord",
+    "title": "Cộng Đồng Discord Game",
+    "subtitle": "Voice chat, tìm đồng đội leo rank",
+    "badge": "50+ Online",
+    "link": "https://discord.gg/shoptftmobile",
+    "buttonText": "Vào Discord ➔",
+    "isActive": true,
+    "order": 3
+  },
+  {
+    "id": "fb-group",
+    "platform": "zalo",
+    "title": "TFT MOBILE - DTCL | Cộng Đồng Uy Tín 3",
+    "subtitle": "Chia sẻ giáo án meta, chia sẻ kinh nghiệm",
+    "badge": "250+ Thành viên",
+    "link": "https://zalo.me/g/s1q7js5mdhckxd4grusk",
+    "buttonText": "Hot (update sớm) ➔",
+    "isActive": true,
+    "order": 2
+  }
+]

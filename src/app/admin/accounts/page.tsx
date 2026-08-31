@@ -1,7 +1,16 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { TFT_RENTAL_ACCOUNTS, TFTRentalAccount } from "@/data/tft-data";
+import React, { useState, useMemo, useEffect } from "react";
+import {
+  getVipAndCloneAccounts,
+  createAccountApi,
+  updateAccountApi,
+  deleteAccountApi,
+  bulkUpdateAccountsApi,
+  bulkDeleteAccountsApi,
+  toLocalDatetimeInputString,
+  formatRentalExpiry,
+} from "@/utils/supabase/accounts-service";
 import toast from "react-hot-toast";
 import {
   Search,
@@ -10,350 +19,664 @@ import {
   Trash2,
   CheckCircle2,
   Clock,
-  Lock,
   Sparkles,
-  Eye,
   AlertTriangle,
   X,
-  Calendar,
-  DollarSign,
-  Filter,
   Layers,
+  Crown,
+  Gamepad2,
+  Loader2,
+  RefreshCw,
   ArrowUpDown,
-  Upload,
-  Tag,
+  CheckSquare,
+  Square,
   Check,
+  Zap,
 } from "lucide-react";
 
-interface AdminAccount extends TFTRentalAccount {
-  rentedUntil?: string; // ISO string format thời gian trả acc
+export type AccountCategoryType = "VIP" | "CLONE";
+
+export interface UnifiedAdminAccount {
+  id: string;
+  category: AccountCategoryType;
+  code: string;
+  title: string;
+  thumbnail: string;
+  status: "AVAILABLE" | "RENTED";
+  rentedUntil?: string | null; // ISO string format thời gian trả acc
+  price?: number;
+
+  // Thuộc tính riêng cho Acc VIP
+  mainChibi?: string;
+  allChibi?: string[];
+  mainArena?: string;
+  allArenas?: string[];
+  rank?:
+    | "THÁCH ĐẤU"
+    | "ĐẠI CAO THỦ"
+    | "CAO THỦ"
+    | "KIM CƯƠNG"
+    | "LỤC BẢO"
+    | "VÀNG/BẠCH KIM"
+    | "BẠC"
+    | "ĐỒNG"
+    | "SẮT"
+    | "KHÔNG RANK"
+    | string;
+  accountValue?: number;
+  hourlyPrice?: number;
+  dailyPrice?: number;
+
+  // Thuộc tính riêng cho Acc Clone / Smurf
+  rankBadge?: string;
+  features?: string[];
+  periodPrice?: number;
+  periodUnit?: string;
+  weeklyPrice?: number;
+  monthlyPrice?: number;
+  description?: string;
 }
 
-// Helper format thời gian: "22:30, 15/10"
-const formatRentedUntil = (isoDateStr?: string) => {
+// Helper format thời gian: "22:30, 15/10/2026" hoặc "Vô Cực (999 Ngày)"
+const formatRentedUntil = (isoDateStr?: string | null) => {
   if (!isoDateStr) return "";
-  try {
-    const d = new Date(isoDateStr);
-    const hours = d.getHours().toString().padStart(2, "0");
-    const minutes = d.getMinutes().toString().padStart(2, "0");
-    const day = d.getDate().toString().padStart(2, "0");
-    const month = (d.getMonth() + 1).toString().padStart(2, "0");
-    return `${hours}:${minutes}, ${day}/${month}`;
-  } catch {
-    return "";
-  }
+  const info = formatRentalExpiry(isoDateStr);
+  return info ? info.expiryFormatted : "";
 };
 
 export default function AdminAccountsPage() {
-  // Khởi tạo state với dữ liệu mock chuẩn từ tft-data
-  const [accounts, setAccounts] = useState<AdminAccount[]>(TFT_RENTAL_ACCOUNTS);
+  const [accounts, setAccounts] = useState<UnifiedAdminAccount[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Multi-select state
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const [bulkRentalModalOpen, setBulkRentalModalOpen] = useState(false);
+  const [bulkDeleteModalOpen, setBulkDeleteModalOpen] = useState(false);
+  const [bulkQuickHours, setBulkQuickHours] = useState<number>(2);
+  const [bulkCustomEndTime, setBulkCustomEndTime] = useState<string>("");
+
+  // Tab lọc danh mục kho hàng: "ALL" | "VIP" | "CLONE"
+  const [activeTab, setActiveTab] = useState<"ALL" | "VIP" | "CLONE">("ALL");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "AVAILABLE" | "RENTED">("ALL");
   const [rankFilter, setRankFilter] = useState("ALL");
+  const [sortFilter, setSortFilter] = useState<"DEFAULT" | "PRICE_ASC" | "PRICE_DESC">("DEFAULT");
 
-  // State cho Modal "Thiết lập thời gian cho thuê"
-  const [statusModalAccount, setStatusModalAccount] = useState<AdminAccount | null>(null);
+  // State cho Modal "Thiết lập thời gian cho thuê đơn lẻ"
+  const [statusModalAccount, setStatusModalAccount] = useState<UnifiedAdminAccount | null>(null);
   const [quickDurationHours, setQuickDurationHours] = useState<number>(2);
   const [customEndTime, setCustomEndTime] = useState<string>("");
 
-  // State cho Modal Confirm Xóa Acc
-  const [deleteConfirmAccount, setDeleteConfirmAccount] = useState<AdminAccount | null>(null);
+  // State cho Modal Confirm Xóa Acc đơn lẻ
+  const [deleteConfirmAccount, setDeleteConfirmAccount] = useState<UnifiedAdminAccount | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // State cho Drawer Thêm / Sửa Acc
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editingAccount, setEditingAccount] = useState<AdminAccount | null>(null);
+  const [editingAccount, setEditingAccount] = useState<UnifiedAdminAccount | null>(null);
 
   // Form State bên trong Drawer
+  const [formCategory, setFormCategory] = useState<AccountCategoryType>("VIP");
   const [formCode, setFormCode] = useState("");
   const [formTitle, setFormTitle] = useState("");
-  const [formRank, setFormRank] = useState<AdminAccount["rank"]>("THÁCH ĐẤU");
   const [formThumbnail, setFormThumbnail] = useState("");
+  const [formDescription, setFormDescription] = useState("");
+
+  // Fields for VIP
+  const [formRank, setFormRank] = useState<UnifiedAdminAccount["rank"]>("THÁCH ĐẤU");
   const [formAccountValue, setFormAccountValue] = useState<number>(850000);
   const [formHourlyPrice, setFormHourlyPrice] = useState<number>(15000);
   const [formMainChibi, setFormMainChibi] = useState("");
-  const [formAllChibi, setFormAllChibi] = useState<string[]>([]);
-  const [formChibiInput, setFormChibiInput] = useState("");
   const [formMainArena, setFormMainArena] = useState("");
+  const [formAllChibi, setFormAllChibi] = useState<string[]>([]);
   const [formAllArenas, setFormAllArenas] = useState<string[]>([]);
-  const [formArenaInput, setFormArenaInput] = useState("");
-  const [formDescription, setFormDescription] = useState("");
 
-  // Toast thông báo
-  const showToast = (msg: string) => {
-    toast.success(msg);
-  };
-
-  // Thống kê nhanh
-  const stats = useMemo(() => {
-    const total = accounts.length;
-    const available = accounts.filter((a) => a.status === "AVAILABLE").length;
-    const rented = accounts.filter((a) => a.status === "RENTED").length;
-    const totalValue = accounts.reduce(
-      (sum, a) => sum + (a.accountValue || a.dailyPrice * 16 || 850000),
-      0
-    );
-    return { total, available, rented, totalValue };
-  }, [accounts]);
-
-  // Bộ lọc danh sách tài khoản
-  const filteredAccounts = useMemo(() => {
-    return accounts.filter((acc) => {
-      const matchSearch =
-        searchTerm.trim() === "" ||
-        acc.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        acc.mainChibi.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        acc.mainArena.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (acc.title && acc.title.toLowerCase().includes(searchTerm.toLowerCase()));
-
-      const matchStatus =
-        statusFilter === "ALL" || acc.status === statusFilter;
-
-      const matchRank =
-        rankFilter === "ALL" || acc.rank === rankFilter;
-
-      return matchSearch && matchStatus && matchRank;
-    });
-  }, [accounts, searchTerm, statusFilter, rankFilter]);
+  // Fields for Clone
+  const [formRankBadge, setFormRankBadge] = useState("UNRANKED");
+  const [formWeeklyPrice, setFormWeeklyPrice] = useState<number>(50000);
+  const [formMonthlyPrice, setFormMonthlyPrice] = useState<number>(150000);
+  const [formFeatures, setFormFeatures] = useState<string[]>([
+    "Đủ tướng cơ bản, vào trận ngay",
+    "Hỗ trợ đổi Pass / Bảo hành trọn gói",
+  ]);
+  const [formFeatureInput, setFormFeatureInput] = useState("");
 
   // ============================================================
-  // LOGIC 1: BẮT SỰ KIỆN NÚT TOGGLE (GẠT TRẠNG THÁI)
+  // 1. FETCH DANH SÁCH TÀI KHOẢN TỪ BACKEND / SUPABASE
   // ============================================================
-  const handleToggleChange = (account: AdminAccount) => {
-    if (account.status === "AVAILABLE") {
-      // Khi gạt từ SẴN SÀNG -> sang ĐANG THUÊ: KHÔNG chuyển ngay mà mở Modal thiết lập thời gian
-      setStatusModalAccount(account);
-      const defaultDate = new Date(Date.now() + 2 * 60 * 60 * 1000);
-      setCustomEndTime(defaultDate.toISOString().slice(0, 16));
-      setQuickDurationHours(2);
-    } else {
-      // Khi gạt từ ĐANG THUÊ -> về SẴN SÀNG: Trực tiếp chuyển về màu Xanh và xóa thời gian kết thúc
-      setAccounts((prev) =>
-        prev.map((a) =>
-          a.id === account.id
-            ? { ...a, status: "AVAILABLE", rentedUntil: undefined }
-            : a
-        )
-      );
-      showToast(`Đã chuyển tài khoản ${account.code} sang trạng thái SẴN SÀNG!`);
+  const fetchAccounts = async (showLoadingSpinner = true) => {
+    if (showLoadingSpinner) setIsLoading(true);
+    try {
+      const { vipAccounts, cloneAccounts } = await getVipAndCloneAccounts();
+      const vipList: UnifiedAdminAccount[] = (vipAccounts || []).map((acc) => ({
+        ...acc,
+        category: "VIP" as const,
+      }));
+      const cloneList: UnifiedAdminAccount[] = (cloneAccounts || []).map((acc) => ({
+        ...acc,
+        category: "CLONE" as const,
+      }));
+      setAccounts([...vipList, ...cloneList]);
+    } catch (err) {
+      console.error("Lỗi khi tải danh sách tài khoản:", err);
+      toast.error("Không thể kết nối với Database!");
+    } finally {
+      if (showLoadingSpinner) setIsLoading(false);
     }
   };
 
-  // Nút chọn nhanh thời gian (+2 Giờ, +7 Ngày, +30 Ngày)
-  const applyQuickDuration = (hours: number) => {
-    setQuickDurationHours(hours);
-    const targetDate = new Date(Date.now() + hours * 60 * 60 * 1000);
-    setCustomEndTime(targetDate.toISOString().slice(0, 16));
+  useEffect(() => {
+    fetchAccounts(true);
+  }, []);
+
+  // Thống kê số liệu nhanh
+  const stats = useMemo(() => {
+    const total = accounts.length;
+    const vipCount = accounts.filter((a) => a.category === "VIP").length;
+    const cloneCount = accounts.filter((a) => a.category === "CLONE").length;
+    const available = accounts.filter((a) => a.status === "AVAILABLE").length;
+    const rented = accounts.filter((a) => a.status === "RENTED").length;
+    const totalValue = accounts.reduce((sum, a) => {
+      if (a.category === "VIP") {
+        return sum + (a.accountValue || (a.dailyPrice || 60000) * 16 || 850000);
+      }
+      return sum + (a.monthlyPrice || 150000);
+    }, 0);
+
+    return { total, vipCount, cloneCount, available, rented, totalValue };
+  }, [accounts]);
+
+  // Bộ lọc danh sách tài khoản theo tab, tìm kiếm, trạng thái, rank, sắp xếp giá
+  const filteredAccounts = useMemo(() => {
+    return accounts
+      .filter((acc) => {
+        if (activeTab === "VIP" && acc.category !== "VIP") return false;
+        if (activeTab === "CLONE" && acc.category !== "CLONE") return false;
+
+        if (statusFilter !== "ALL") {
+          const isRented = (acc.status || "").toUpperCase() === "RENTED";
+          if (statusFilter === "RENTED" && !isRented) return false;
+          if (statusFilter === "AVAILABLE" && isRented) return false;
+        }
+
+        if (rankFilter !== "ALL") {
+          const rankStr = ((acc.category === "VIP" ? acc.rank : acc.rankBadge) || "").toUpperCase();
+          if (rankFilter === "VÀNG/BẠCH KIM") {
+            if (!rankStr.includes("VÀNG") && !rankStr.includes("BẠCH KIM")) return false;
+          } else if (rankFilter === "ĐỒNG") {
+            if (!rankStr.includes("ĐỒNG") && !rankStr.includes("SẮT")) return false;
+          } else if (!rankStr.includes(rankFilter.toUpperCase())) {
+            return false;
+          }
+        }
+
+        if (searchTerm.trim() !== "") {
+          const query = searchTerm.toLowerCase();
+          const codeMatch = acc.code.toLowerCase().includes(query);
+          const titleMatch = acc.title.toLowerCase().includes(query);
+          const chibiMatch = acc.mainChibi?.toLowerCase().includes(query);
+          const arenaMatch = acc.mainArena?.toLowerCase().includes(query);
+          const badgeMatch = acc.rankBadge?.toLowerCase().includes(query);
+
+          if (!codeMatch && !titleMatch && !chibiMatch && !arenaMatch && !badgeMatch) {
+            return false;
+          }
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        const getPrice = (item: UnifiedAdminAccount) => {
+          if (item.category === "VIP") return item.hourlyPrice || 0;
+          return item.price || item.periodPrice || item.monthlyPrice || 0;
+        };
+
+        if (sortFilter === "PRICE_ASC") {
+          return getPrice(a) - getPrice(b);
+        }
+        if (sortFilter === "PRICE_DESC") {
+          return getPrice(b) - getPrice(a);
+        }
+        return 0;
+      });
+  }, [accounts, activeTab, statusFilter, rankFilter, sortFilter, searchTerm]);
+
+  // ============================================================
+  // 2. MULTI-SELECT & BATCH ACTIONS (THAO TÁC HÀNG LOẠT)
+  // ============================================================
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
   };
 
-  // Nút [Xác nhận] trong Modal thiết lập thời gian thuê
-  const confirmRentDuration = () => {
+  const handleSelectAll = () => {
+    if (filteredAccounts.length === 0) return;
+    const allVisibleIds = filteredAccounts.map((a) => a.id);
+    const isAllSelected = allVisibleIds.every((id) => selectedIds.includes(id));
+
+    if (isAllSelected) {
+      // Bỏ chọn tất cả các acc đang hiển thị
+      setSelectedIds((prev) => prev.filter((id) => !allVisibleIds.includes(id)));
+    } else {
+      // Chọn tất cả các acc đang hiển thị
+      setSelectedIds((prev) => Array.from(new Set([...prev, ...allVisibleIds])));
+    }
+  };
+
+  const handleSelectAvailable = () => {
+    const availableIds = filteredAccounts
+      .filter((a) => a.status === "AVAILABLE")
+      .map((a) => a.id);
+    setSelectedIds(availableIds);
+    toast.success(`Đã chọn ${availableIds.length} tài khoản SẴN SÀNG!`);
+  };
+
+  const handleSelectRented = () => {
+    const rentedIds = filteredAccounts
+      .filter((a) => a.status === "RENTED")
+      .map((a) => a.id);
+    setSelectedIds(rentedIds);
+    toast.success(`Đã chọn ${rentedIds.length} tài khoản ĐANG CHO THUÊ!`);
+  };
+
+  // 2.1 BATCH MARK AVAILABLE (TRẢ ACC / ĐẶT SẴN SÀNG HÀNG LOẠT)
+  const handleBulkMarkAvailable = async () => {
+    if (selectedIds.length === 0) return;
+    const toastId = toast.loading(`Đang chuyển ${selectedIds.length} tài khoản sang SẴN SÀNG...`);
+    setIsBulkUpdating(true);
+
+    const res = await bulkUpdateAccountsApi(selectedIds, {
+      status: "AVAILABLE",
+      rented_until: null,
+    });
+
+    if (res.success) {
+      toast.success(`✅ Đã chuyển ${selectedIds.length} tài khoản sang trạng thái SẴN SÀNG!`, {
+        id: toastId,
+      });
+      setSelectedIds([]);
+      await fetchAccounts(false);
+    } else {
+      toast.error(`Lỗi cập nhật: ${res.error}`, { id: toastId });
+    }
+    setIsBulkUpdating(false);
+  };
+
+  // 2.2 BATCH OPEN RENTAL MODAL
+  const handleBulkOpenRentalModal = () => {
+    if (selectedIds.length === 0) return;
+    setBulkQuickHours(2);
+    const d = new Date(Date.now() + 2 * 60 * 60 * 1000);
+    setBulkCustomEndTime(toLocalDatetimeInputString(d));
+    setBulkRentalModalOpen(true);
+  };
+
+  // 2.3 BATCH APPLY RENTAL DURATION
+  const handleBulkApplyRentalDuration = async () => {
+    if (selectedIds.length === 0) return;
+    let targetIso = "";
+    if (bulkQuickHours > 0) {
+      const d = new Date(Date.now() + bulkQuickHours * 60 * 60 * 1000);
+      targetIso = d.toISOString();
+    } else if (bulkCustomEndTime) {
+      const d = new Date(bulkCustomEndTime);
+      targetIso = d.toISOString();
+    }
+
+    const toastId = toast.loading(`Đang đặt thời gian thuê cho ${selectedIds.length} tài khoản...`);
+    setIsBulkUpdating(true);
+
+    const res = await bulkUpdateAccountsApi(selectedIds, {
+      status: "RENTED",
+      rented_until: targetIso,
+    });
+
+    if (res.success) {
+      toast.success(`✅ Đã chuyển ${selectedIds.length} tài khoản sang trạng thái ĐANG THUÊ!`, {
+        id: toastId,
+      });
+      setBulkRentalModalOpen(false);
+      setSelectedIds([]);
+      await fetchAccounts(false);
+    } else {
+      toast.error(`Lỗi cập nhật: ${res.error}`, { id: toastId });
+    }
+    setIsBulkUpdating(false);
+  };
+
+  // 2.4 BATCH SWITCH CATEGORY (VIP <-> CLONE)
+  const handleBulkSwitchCategory = async (targetCategory: AccountCategoryType) => {
+    if (selectedIds.length === 0) return;
+    const toastId = toast.loading(
+      `Đang chuyển ${selectedIds.length} tài khoản sang kho ${targetCategory}...`
+    );
+    setIsBulkUpdating(true);
+
+    const res = await bulkUpdateAccountsApi(selectedIds, {
+      type: targetCategory,
+    });
+
+    if (res.success) {
+      toast.success(`✅ Đã chuyển ${selectedIds.length} tài khoản sang kho ${targetCategory}!`, {
+        id: toastId,
+      });
+      setSelectedIds([]);
+      await fetchAccounts(false);
+    } else {
+      toast.error(`Lỗi cập nhật: ${res.error}`, { id: toastId });
+    }
+    setIsBulkUpdating(false);
+  };
+
+  // 2.5 BATCH CONFIRM DELETE
+  const handleBulkConfirmDelete = async () => {
+    if (selectedIds.length === 0) return;
+    const toastId = toast.loading(`Đang xóa ${selectedIds.length} tài khoản khỏi Database...`);
+    setIsBulkUpdating(true);
+
+    const res = await bulkDeleteAccountsApi(selectedIds);
+
+    if (res.success) {
+      toast.success(`✅ Đã xóa ${selectedIds.length} tài khoản thành công!`, { id: toastId });
+      setBulkDeleteModalOpen(false);
+      setSelectedIds([]);
+      await fetchAccounts(false);
+    } else {
+      toast.error(`Lỗi khi xóa: ${res.error}`, { id: toastId });
+    }
+    setIsBulkUpdating(false);
+  };
+
+  // ============================================================
+  // 3. XỬ LÝ GẠT SWITCH TRẠNG THÁI ĐƠN LẺ
+  // ============================================================
+  const handleToggleChange = async (account: UnifiedAdminAccount) => {
+    if (account.status === "AVAILABLE") {
+      setStatusModalAccount(account);
+      const defaultDurationHours = account.category === "CLONE" ? 23976 : 24;
+      const defaultDate = new Date(Date.now() + defaultDurationHours * 60 * 60 * 1000);
+      setCustomEndTime(toLocalDatetimeInputString(defaultDate));
+      setQuickDurationHours(defaultDurationHours);
+    } else {
+      // Chuyển về AVAILABLE
+      const toastId = toast.loading(`Đang cập nhật ${account.code}...`);
+      const res = await updateAccountApi({
+        id: account.id,
+        code: account.code,
+        status: "AVAILABLE",
+        rented_until: null,
+      });
+
+      if (res.success) {
+        toast.success(`Đã chuyển ${account.code} sang trạng thái SẴN SÀNG!`, { id: toastId });
+        await fetchAccounts(false);
+      } else {
+        toast.error(`Lỗi cập nhật: ${res.error}`, { id: toastId });
+      }
+    }
+  };
+
+  const handleApplyDuration = async () => {
     if (!statusModalAccount) return;
+    let targetIso = "";
+    if (quickDurationHours > 0) {
+      const d = new Date(Date.now() + quickDurationHours * 60 * 60 * 1000);
+      targetIso = d.toISOString();
+    } else if (customEndTime) {
+      const d = new Date(customEndTime);
+      targetIso = d.toISOString();
+    }
 
-    const endTimeDate = customEndTime
-      ? new Date(customEndTime)
-      : new Date(Date.now() + quickDurationHours * 3600000);
+    const toastId = toast.loading(`Đang cập nhật ${statusModalAccount.code}...`);
+    const res = await updateAccountApi({
+      id: statusModalAccount.id,
+      code: statusModalAccount.code,
+      status: "RENTED",
+      rented_until: targetIso,
+    });
 
-    setAccounts((prev) =>
-      prev.map((a) =>
-        a.id === statusModalAccount.id
-          ? {
-              ...a,
-              status: "RENTED",
-              rentedUntil: endTimeDate.toISOString(),
-            }
-          : a
-      )
-    );
-
-    showToast(
-      `Đã chuyển ${statusModalAccount.code} sang ĐANG THUÊ (Hết hạn: ${formatRentedUntil(endTimeDate.toISOString())})`
-    );
-    setStatusModalAccount(null);
+    if (res.success) {
+      toast.success(`Đã chuyển ${statusModalAccount.code} sang trạng thái ĐANG THUÊ!`, {
+        id: toastId,
+      });
+      setStatusModalAccount(null);
+      await fetchAccounts(false);
+    } else {
+      toast.error(`Lỗi cập nhật: ${res.error}`, { id: toastId });
+    }
   };
 
   // ============================================================
-  // LOGIC 2: XÓA ACC VỚI MODAL CONFIRM
+  // 4. MỞ DRAWER THÊM MỚI & CHỈNH SỬA
   // ============================================================
-  const handleDeleteClick = (account: AdminAccount) => {
-    setDeleteConfirmAccount(account);
-  };
-
-  const confirmDeleteAccount = () => {
-    if (!deleteConfirmAccount) return;
-    setAccounts((prev) => prev.filter((a) => a.id !== deleteConfirmAccount.id));
-    showToast(`Đã xóa tài khoản ${deleteConfirmAccount.code} thành công.`);
-    setDeleteConfirmAccount(null);
-  };
-
-  // ============================================================
-  // LOGIC 3: DRAWER THÊM / SỬA TÀI KHOẢN
-  // ============================================================
-  const openCreateDrawer = () => {
+  const openAddDrawer = (defaultCategory: AccountCategoryType = "VIP") => {
     setEditingAccount(null);
-    setFormCode(`MS: ${Math.floor(1000 + Math.random() * 9000)}`);
-    setFormTitle("");
-    setFormRank("THÁCH ĐẤU");
-    setFormThumbnail(
-      "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&auto=format&fit=crop"
+    setFormCategory(defaultCategory);
+    setFormCode(
+      defaultCategory === "VIP"
+        ? `MS: ${Math.floor(1000 + Math.random() * 9000)}`
+        : `CLONE-${accounts.filter((a) => a.category === "CLONE").length + 1 < 10 ? `0${accounts.filter((a) => a.category === "CLONE").length + 1}` : accounts.filter((a) => a.category === "CLONE").length + 1}`
     );
+    setFormTitle("");
+    setFormThumbnail(
+      "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop"
+    );
+    setFormDescription("Tài khoản chính chủ hoạt động tốt.");
+
+    // Reset VIP fields
+    setFormRank("THÁCH ĐẤU");
     setFormAccountValue(850000);
     setFormHourlyPrice(15000);
     setFormMainChibi("Tí Nị Ahri Chiêu Hồn");
-    setFormAllChibi(["Tí Nị Ahri Chiêu Hồn Tinh Quái", "Tí Nị Yasuo Chân Long Kiếm"]);
-    setFormMainArena("Sân Đấu Thần Thoại Tiệm Trà Tâm Linh");
-    setFormAllArenas(["Sân Đấu Thần Thoại Tiệm Trà Tâm Linh"]);
-    setFormDescription("Tài khoản TFT Thần Thoại full tướng Tí Nị HOT nhất.");
+    setFormMainArena("Sân Đấu Tiệm Trà Tâm Linh");
+    setFormAllChibi(["Tí Nị Ahri Chiêu Hồn"]);
+    setFormAllArenas(["Sân Đấu Tiệm Trà Tâm Linh"]);
+
+    // Reset Clone fields
+    setFormRankBadge("UNRANKED");
+    setFormWeeklyPrice(50000);
+    setFormMonthlyPrice(150000);
+    setFormFeatures([
+      "Đủ tướng cơ bản, vào trận ngay",
+      "Hỗ trợ đổi Pass / Bảo hành trọn gói",
+    ]);
+
     setDrawerOpen(true);
   };
 
-  const openEditDrawer = (account: AdminAccount) => {
+  const openEditDrawer = (account: UnifiedAdminAccount) => {
     setEditingAccount(account);
+    setFormCategory(account.category);
     setFormCode(account.code);
     setFormTitle(account.title);
-    setFormRank(account.rank);
     setFormThumbnail(account.thumbnail);
-    setFormAccountValue(account.accountValue || account.dailyPrice * 16 || 850000);
-    setFormHourlyPrice(account.hourlyPrice);
-    setFormMainChibi(account.mainChibi);
-    setFormAllChibi(account.allChibi || []);
-    setFormMainArena(account.mainArena);
-    setFormAllArenas(account.allArenas || []);
-    setFormDescription(account.description);
+    setFormDescription(account.description || "");
+
+    if (account.category === "VIP") {
+      setFormRank(account.rank || "THÁCH ĐẤU");
+      setFormAccountValue(account.accountValue || 850000);
+      setFormHourlyPrice(account.hourlyPrice || 15000);
+      setFormMainChibi(account.mainChibi || "Tí Nị TFT");
+      setFormMainArena(account.mainArena || "Sân Đấu Thần Thoại");
+      setFormAllChibi(account.allChibi || [account.mainChibi || "Tí Nị TFT"]);
+      setFormAllArenas(account.allArenas || [account.mainArena || "Sân Đấu Thần Thoại"]);
+    } else {
+      setFormRankBadge(account.rankBadge || "UNRANKED");
+      setFormWeeklyPrice(account.weeklyPrice || 50000);
+      setFormMonthlyPrice(account.monthlyPrice || account.periodPrice || 150000);
+      setFormFeatures(account.features || ["Đủ tướng cơ bản, vào trận ngay"]);
+    }
+
     setDrawerOpen(true);
   };
 
-  const handleAddChibiTag = () => {
-    if (formChibiInput.trim()) {
-      setFormAllChibi((prev) => [...prev, formChibiInput.trim()]);
-      setFormChibiInput("");
-    }
-  };
-
-  const handleRemoveChibiTag = (index: number) => {
-    setFormAllChibi((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleAddArenaTag = () => {
-    if (formArenaInput.trim()) {
-      setFormAllArenas((prev) => [...prev, formArenaInput.trim()]);
-      setFormArenaInput("");
-    }
-  };
-
-  const handleRemoveArenaTag = (index: number) => {
-    setFormAllArenas((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSaveAccount = (e: React.FormEvent) => {
+  // ============================================================
+  // 5. XỬ LÝ SUBMIT (GỌI API POST / PUT LƯU VÀO DATABASE)
+  // ============================================================
+  const handleSaveAccount = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formCode || !formMainChibi) {
-      toast.error("Vui lòng điền đầy đủ Mã Acc và Tướng Tí Nị chính!");
+    if (!formCode.trim()) {
+      toast.error("Vui lòng nhập Mã Số tài khoản!");
       return;
     }
 
-    const effectiveTitle = formTitle || `${formRank} - ${formMainChibi}`;
-
-    if (editingAccount) {
-      // Chế độ Sửa
-      setAccounts((prev) =>
-        prev.map((a) =>
-          a.id === editingAccount.id
-            ? {
-                ...a,
-                code: formCode,
-                title: effectiveTitle,
-                rank: formRank,
-                thumbnail: formThumbnail,
-                accountValue: formAccountValue,
-                hourlyPrice: formHourlyPrice,
-                dailyPrice: Math.round((formAccountValue * 0.08) / 1000) * 1000,
-                mainChibi: formMainChibi || formAllChibi[0] || "Tí Nị TFT",
-                allChibi: formAllChibi,
-                mainArena: formMainArena || formAllArenas[0] || "Sân Đấu Thần Thoại",
-                allArenas: formAllArenas,
-                description: formDescription,
-              }
-            : a
-        )
-      );
-      showToast(`Đã cập nhật thành công tài khoản ${formCode}!`);
-    } else {
-      // Chế độ Thêm Mới
-      const newAcc: AdminAccount = {
-        id: `rent-${Date.now()}`,
-        code: formCode,
-        title: effectiveTitle,
-        rank: formRank,
-        rankColor: "text-amber-400 border-amber-500/50 bg-amber-500/10",
-        rankBadgeBg: "bg-amber-500/15 border-amber-500/40 text-amber-300",
-        thumbnail: formThumbnail,
-        accountValue: formAccountValue,
-        hourlyPrice: formHourlyPrice,
-        dailyPrice: Math.round((formAccountValue * 0.08) / 1000) * 1000,
-        nightPrice: Math.round((formAccountValue * 0.06) / 1000) * 1000,
-        status: "AVAILABLE",
-        totalLittleLegends: formAllChibi.length * 8,
-        totalArenas: formAllArenas.length * 4,
-        totalBooms: 24,
-        mainChibi: formMainChibi || formAllChibi[0] || "Tí Nị TFT",
-        allChibi: formAllChibi,
-        mainArena: formMainArena || formAllArenas[0] || "Sân Đấu Thần Thoại",
-        allArenas: formAllArenas,
-        description: formDescription,
-        tag: "MỚI",
-      };
-
-      setAccounts((prev) => [newAcc, ...prev]);
-      showToast(`Đã thêm mới tài khoản ${formCode} vào kho!`);
+    if (formCategory === "VIP" && !formMainChibi.trim()) {
+      toast.error("Vui lòng nhập Tướng Tí Nị chính!");
+      return;
     }
 
-    setDrawerOpen(false);
+    const effectiveTitle =
+      formCategory === "VIP"
+        ? formTitle.trim() || `${formRank} - ${formMainChibi.trim()}`
+        : formTitle.trim() || `Acc Clone ${formRankBadge}`;
+
+    const payload: any = {
+      code: formCode.trim(),
+      type: formCategory,
+      title: effectiveTitle,
+      rank: formCategory === "VIP" ? formRank : formRankBadge,
+      price: formCategory === "VIP" ? formAccountValue : formMonthlyPrice,
+      hourly_price: formCategory === "VIP" ? formHourlyPrice : 0,
+      weekly_price: formCategory === "CLONE" ? formWeeklyPrice : 0,
+      period_price: formCategory === "CLONE" ? formMonthlyPrice : 0,
+      champions:
+        formCategory === "VIP"
+          ? formAllChibi.length > 0
+            ? formAllChibi
+            : [formMainChibi.trim()]
+          : [],
+      arenas:
+        formCategory === "VIP"
+          ? formAllArenas.length > 0
+            ? formAllArenas
+            : [formMainArena.trim() || "Sân Đấu Thần Thoại"]
+          : [],
+      features: formCategory === "CLONE" ? formFeatures : [],
+      image_url:
+        formThumbnail.trim() ||
+        "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop",
+      status: "AVAILABLE",
+      description: formDescription.trim() || "Tài khoản chính chủ chất lượng cao.",
+    };
+
+    setIsSubmitting(true);
+
+    try {
+      if (editingAccount) {
+        // CẬP NHẬT TÀI KHOẢN (PUT)
+        payload.id = editingAccount.id;
+        const res = await updateAccountApi(payload);
+
+        if (res.success) {
+          toast.success(`Đã cập nhật tài khoản ${formCode} thành công!`);
+          setDrawerOpen(false);
+          await fetchAccounts(false);
+        } else {
+          toast.error(`Lỗi cập nhật: ${res.error}`);
+        }
+      } else {
+        // THÊM TÀI KHOẢN MỚI (POST)
+        const res = await createAccountApi(payload);
+
+        if (res.success) {
+          toast.success(`Đã thêm tài khoản mới ${formCode} vào Database thành công!`);
+          setDrawerOpen(false);
+          await fetchAccounts(false);
+        } else {
+          toast.error(`Lỗi thêm tài khoản: ${res.error}`);
+        }
+      }
+    } catch (err: any) {
+      console.error("Lỗi submit tài khoản:", err);
+      toast.error(err.message || "Đã xảy ra lỗi khi gửi yêu cầu lên máy chủ!");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  // ============================================================
+  // 6. XỬ LÝ XÓA TÀI KHOẢN ĐƠN LẺ
+  // ============================================================
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmAccount) return;
+    setIsDeleting(true);
+
+    try {
+      const res = await deleteAccountApi(deleteConfirmAccount.id, deleteConfirmAccount.code);
+      if (res.success) {
+        toast.success(`Đã xóa tài khoản ${deleteConfirmAccount.code} khỏi Database!`);
+        setDeleteConfirmAccount(null);
+        await fetchAccounts(false);
+      } else {
+        toast.error(`Lỗi khi xóa: ${res.error}`);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Lỗi khi xóa tài khoản!");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const isAllVisibleSelected =
+    filteredAccounts.length > 0 &&
+    filteredAccounts.every((a) => selectedIds.includes(a.id));
 
   return (
     <div className="space-y-6">
-      {/* 1. SECTION STATS TOP CARDS */}
+      {/* 1. THỐNG KÊ NHANH KHO HÀNG */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">
               Tổng Tài Khoản
             </span>
-            <span className="text-2xl font-black text-slate-900 font-mono mt-1 block">
-              {stats.total} <span className="text-xs text-slate-500 font-normal">Acc</span>
+            <span className="text-2xl sm:text-3xl font-black text-slate-900 font-mono mt-1 block">
+              {stats.total}
+            </span>
+            <span className="text-[11px] text-slate-500 font-medium block mt-1">
+              👑 {stats.vipCount} VIP • 🎮 {stats.cloneCount} Clone
             </span>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
-            <Layers className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">
-              Sẵn Sàng Cho Thuê
-            </span>
-            <span className="text-2xl font-black text-emerald-600 font-mono mt-1 block">
-              {stats.available} <span className="text-xs text-slate-500 font-normal">Acc</span>
-            </span>
-          </div>
-          <div className="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
-            <CheckCircle2 className="w-5 h-5" />
+          <div className="w-12 h-12 rounded-2xl bg-orange-100/70 text-orange-700 flex items-center justify-center flex-shrink-0">
+            <Gamepad2 className="w-6 h-6" />
           </div>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">
-              Đang Có Khách Thuê
+              Sẵn Sàng Thuê (Trống)
             </span>
-            <span className="text-2xl font-black text-rose-600 font-mono mt-1 block">
-              {stats.rented} <span className="text-xs text-slate-500 font-normal">Acc</span>
+            <span className="text-2xl sm:text-3xl font-black text-emerald-600 font-mono mt-1 block">
+              {stats.available}
+            </span>
+            <span className="text-[11px] text-emerald-600 font-medium block mt-1">
+              Đang hiển thị trên Shop
             </span>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold">
-            <Lock className="w-5 h-5" />
+          <div className="w-12 h-12 rounded-2xl bg-emerald-100/70 text-emerald-700 flex items-center justify-center flex-shrink-0">
+            <CheckCircle2 className="w-6 h-6" />
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">
+              Đang Cho Thuê
+            </span>
+            <span className="text-2xl sm:text-3xl font-black text-rose-600 font-mono mt-1 block">
+              {stats.rented}
+            </span>
+            <span className="text-[11px] text-rose-600 font-medium block mt-1">
+              Khách đang trải nghiệm
+            </span>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-rose-100/70 text-rose-700 flex items-center justify-center flex-shrink-0">
+            <Clock className="w-6 h-6" />
           </div>
         </div>
 
@@ -362,100 +685,356 @@ export default function AdminAccountsPage() {
             <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">
               Tổng Giá Trị Kho
             </span>
-            <span className="text-xl font-black text-slate-900 font-mono mt-1 block">
+            <span className="text-xl sm:text-2xl font-black text-slate-900 font-mono mt-1 block">
               {stats.totalValue.toLocaleString("vi-VN")}đ
             </span>
+            <span className="text-[11px] text-slate-500 font-medium block mt-1">
+              Ước tính định giá tài sản
+            </span>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
-            <DollarSign className="w-5 h-5" />
+          <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+            <Sparkles className="w-6 h-6" />
           </div>
         </div>
       </div>
 
-      {/* 2. FILTER BAR & ACTIONS */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          {/* Ô Tìm Kiếm */}
-          <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+      {/* 2. THANH ĐIỀU HƯỚNG TABS KHO HÀNG & NÚT THÊM ACC */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          {/* Cụm Tabs Kho Hàng */}
+          <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl max-w-fit flex-wrap">
+            <button
+              onClick={() => setActiveTab("ALL")}
+              className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab === "ALL"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>Tất Cả ({stats.total})</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("VIP")}
+              className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab === "VIP"
+                  ? "bg-orange-700 text-white shadow-sm"
+                  : "text-slate-600 hover:text-orange-700"
+              }`}
+            >
+              <Crown className="w-3.5 h-3.5" />
+              <span>Kho Acc VIP ({stats.vipCount})</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("CLONE")}
+              className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab === "CLONE"
+                  ? "bg-sky-700 text-white shadow-sm"
+                  : "text-slate-600 hover:text-sky-700"
+              }`}
+            >
+              <Gamepad2 className="w-3.5 h-3.5" />
+              <span>Kho Clone / Smurf ({stats.cloneCount})</span>
+            </button>
+          </div>
+
+          {/* Cụm Nút Thêm Mới & Reload */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => fetchAccounts(true)}
+              className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+              title="Làm mới danh sách từ Database"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin text-orange-600" : ""}`} />
+            </button>
+
+            <button
+              onClick={() => openAddDrawer(activeTab === "CLONE" ? "CLONE" : "VIP")}
+              className="px-4 py-2.5 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-orange-700/20 flex items-center gap-2 cursor-pointer hover:scale-105"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Thêm Tài Khoản Mới</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Thanh Bộ Lọc & Tìm Kiếm */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 pt-2 border-t border-slate-100">
+          <div className="lg:col-span-4 relative">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Tìm mã acc, tên, tí nị..."
-              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 transition-colors"
+              placeholder="Tìm kiếm mã số (MS: 8899, CLONE-01), Tướng Tí Nị, Sân Đấu, Rank..."
+              className="w-full h-10 pl-9 pr-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 transition-colors"
             />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
           </div>
 
-          {/* Lọc Trạng Thái */}
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-orange-500 cursor-pointer"
-          >
-            <option value="ALL">Tất cả trạng thái</option>
-            <option value="AVAILABLE">🟢 Sẵn Sàng ({stats.available})</option>
-            <option value="RENTED">🔴 Đang Thuê ({stats.rented})</option>
-          </select>
+          <div className="lg:col-span-3">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500 cursor-pointer"
+            >
+              <option value="ALL">Tất Cả Trạng Thái</option>
+              <option value="AVAILABLE">🟢 Sẵn Sàng ({stats.available})</option>
+              <option value="RENTED">🔴 Đang Cho Thuê ({stats.rented})</option>
+            </select>
+          </div>
 
-          {/* Lọc Rank */}
-          <select
-            value={rankFilter}
-            onChange={(e) => setRankFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-orange-500 cursor-pointer"
-          >
-            <option value="ALL">Tất cả bậc Rank</option>
-            <option value="THÁCH ĐẤU">Thách Đấu</option>
-            <option value="ĐẠI CAO THỦ">Đại Cao Thủ</option>
-            <option value="CAO THỦ">Cao Thủ</option>
-            <option value="KIM CƯƠNG">Kim Cương</option>
-            <option value="LỤC BẢO">Lục Bảo</option>
-          </select>
+          <div className="lg:col-span-3">
+            <select
+              value={rankFilter}
+              onChange={(e) => setRankFilter(e.target.value)}
+              className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500 cursor-pointer"
+            >
+              <option value="ALL">Tất Cả Bậc Rank</option>
+              <option value="THÁCH ĐẤU">Thách Đấu</option>
+              <option value="ĐẠI CAO THỦ">Đại Cao Thủ</option>
+              <option value="CAO THỦ">Cao Thủ</option>
+              <option value="KIM CƯƠNG">Kim Cương</option>
+              <option value="LỤC BẢO">Lục Bảo</option>
+              <option value="VÀNG/BẠCH KIM">Vàng / Bạch Kim</option>
+              <option value="BẠC">Bạc</option>
+              <option value="ĐỒNG">Đồng</option>
+              <option value="KHÔNG RANK">Không Rank / Unranked</option>
+            </select>
+          </div>
+
+          <div className="lg:col-span-2">
+            <select
+              value={sortFilter}
+              onChange={(e) => setSortFilter(e.target.value as any)}
+              className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500 cursor-pointer"
+            >
+              <option value="DEFAULT">Sắp Xếp Giá</option>
+              <option value="PRICE_ASC">Giá: Thấp ↗ Cao</option>
+              <option value="PRICE_DESC">Giá: Cao ↘ Thấp</option>
+            </select>
+          </div>
         </div>
 
-        {/* NÚT + THÊM ACC MỚI */}
-        <button
-          onClick={openCreateDrawer}
-          className="w-full sm:w-auto px-5 py-2.5 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md shadow-orange-600/20 transition-all hover:scale-105 cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>+ Thêm Acc Mới</span>
-        </button>
+        {/* Thanh Chọn Nhanh (Quick Select Helpers) */}
+        <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-100 flex-wrap gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-[11px] text-slate-700">Chọn nhanh:</span>
+            <button
+              type="button"
+              onClick={handleSelectAll}
+              className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold cursor-pointer"
+            >
+              {isAllVisibleSelected ? "Bỏ chọn tất cả" : "Chọn tất cả hiển thị"}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSelectAvailable}
+              className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-[11px] font-bold cursor-pointer border border-emerald-200"
+            >
+              Chọn Acc Trống ({stats.available})
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSelectRented}
+              className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-[11px] font-bold cursor-pointer border border-rose-200"
+            >
+              Chọn Acc Đang Thuê ({stats.rented})
+            </button>
+
+            {selectedIds.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setSelectedIds([])}
+                className="px-2.5 py-1 text-slate-500 hover:text-slate-800 font-bold text-[11px] cursor-pointer"
+              >
+                Hủy chọn
+              </button>
+            )}
+          </div>
+
+          <div className="text-[11px] font-mono font-semibold">
+            Hiển thị <span className="text-slate-900 font-bold">{filteredAccounts.length}</span> tài khoản
+          </div>
+        </div>
       </div>
 
-      {/* 3. TABLE DANH SÁCH TÀI KHOẢN */}
+      {/* 2.5 THANH THAO TÁC HÀNG LOẠT NỔI BẬT (BULK ACTION FLOATING TOOLBAR) */}
+      {selectedIds.length > 0 && (
+        <div className="bg-slate-900 text-white p-4 rounded-2xl shadow-xl border border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4 animate-fadeIn sticky top-4 z-30">
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <span className="w-9 h-9 rounded-xl bg-orange-600 text-white flex items-center justify-center font-black text-sm shadow-md">
+              {selectedIds.length}
+            </span>
+            <div>
+              <h4 className="font-extrabold text-sm text-white flex items-center gap-2">
+                <span>Đã chọn {selectedIds.length} tài khoản</span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/40">
+                  Hàng loạt
+                </span>
+              </h4>
+              <span className="text-[11px] text-slate-400">
+                Thực hiện thao tác đồng thời 1 lần giúp tiết kiệm tối đa thời gian
+              </span>
+            </div>
+          </div>
+
+          {/* Cụm nút thao tác hàng loạt */}
+          <div className="flex items-center gap-2 flex-wrap w-full md:w-auto justify-end">
+            {/* 1. Đặt Sẵn Sàng (Trống) */}
+            <button
+              type="button"
+              disabled={isBulkUpdating}
+              onClick={handleBulkMarkAvailable}
+              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
+              title="Chuyển tất cả acc đã chọn sang trạng thái SẴN SÀNG"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Đặt Sẵn Sàng</span>
+            </button>
+
+            {/* 2. Cho Thuê Đồng Loạt */}
+            <button
+              type="button"
+              disabled={isBulkUpdating}
+              onClick={handleBulkOpenRentalModal}
+              className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
+              title="Đặt thời gian cho thuê đồng loạt cho các acc đã chọn"
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>Cho Thuê Đồng Loạt</span>
+            </button>
+
+            {/* 3. Chuyển sang VIP */}
+            <button
+              type="button"
+              disabled={isBulkUpdating}
+              onClick={() => handleBulkSwitchCategory("VIP")}
+              className="px-3.5 py-2 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
+              title="Chuyển sang kho Acc VIP"
+            >
+              <Crown className="w-3.5 h-3.5" />
+              <span>Sang VIP</span>
+            </button>
+
+            {/* 4. Chuyển sang Clone */}
+            <button
+              type="button"
+              disabled={isBulkUpdating}
+              onClick={() => handleBulkSwitchCategory("CLONE")}
+              className="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
+              title="Chuyển sang kho Acc Clone"
+            >
+              <Gamepad2 className="w-3.5 h-3.5" />
+              <span>Sang Clone</span>
+            </button>
+
+            {/* 5. Xóa Hàng Loạt */}
+            <button
+              type="button"
+              disabled={isBulkUpdating}
+              onClick={() => setBulkDeleteModalOpen(true)}
+              className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
+              title="Xóa tất cả tài khoản đã chọn"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Xóa ({selectedIds.length})</span>
+            </button>
+
+            {/* Bỏ chọn */}
+            <button
+              type="button"
+              onClick={() => setSelectedIds([])}
+              className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl transition-colors cursor-pointer"
+              title="Bỏ chọn tất cả"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 3. BẢNG QUẢN LÝ TÀI KHOẢN TỔNG HỢP (KẾT NỐI DATABASE) */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-700">
-            <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <thead className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
               <tr>
-                <th className="py-3.5 px-4">Mã Acc</th>
+                {/* Checkbox Header */}
+                <th className="py-3.5 px-3 w-10 text-center">
+                  <input
+                    type="checkbox"
+                    checked={isAllVisibleSelected}
+                    onChange={handleSelectAll}
+                    className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 accent-orange-600 cursor-pointer"
+                    title="Chọn / Bỏ chọn tất cả"
+                  />
+                </th>
+                <th className="py-3.5 px-4">Loại & Mã</th>
                 <th className="py-3.5 px-4">Hình Ảnh</th>
-                <th className="py-3.5 px-4 min-w-[250px]">Tướng Tí Nị & Sân Đấu</th>
-                <th className="py-3.5 px-4">Giá Trị Gốc</th>
-                <th className="py-3.5 px-4">Giá Thuê / Giờ</th>
+                <th className="py-3.5 px-4 min-w-[260px]">Thông Tin Tài Khoản</th>
+                <th className="py-3.5 px-4">Giá Thuê</th>
                 <th className="py-3.5 px-4 min-w-[180px]">Trạng Thái (Gạt Bật/Tắt)</th>
                 <th className="py-3.5 px-4 text-right">Thao Tác</th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-slate-100">
-              {filteredAccounts.length > 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={7} className="py-16 text-center text-slate-500">
+                    <div className="flex flex-col items-center justify-center gap-2.5">
+                      <div className="w-6 h-6 border-2 border-orange-600 border-t-transparent rounded-full animate-spin" />
+                      <span className="font-semibold text-slate-700 text-xs">
+                        Đang tải danh sách tài khoản từ Database...
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredAccounts.length > 0 ? (
                 filteredAccounts.map((account) => {
                   const isRented = account.status === "RENTED";
-                  const baseVal =
-                    account.accountValue || account.dailyPrice * 16 || 850000;
+                  const isVip = account.category === "VIP";
+                  const isSelected = selectedIds.includes(account.id);
 
                   return (
                     <tr
                       key={account.id}
-                      className="hover:bg-slate-50/80 transition-colors group"
+                      className={`transition-colors group ${
+                        isSelected
+                          ? "bg-orange-50/70 hover:bg-orange-50"
+                          : "hover:bg-slate-50/80"
+                      }`}
                     >
-                      {/* Cột 1: Mã Acc */}
+                      {/* Cột Checkbox */}
+                      <td className="py-4 px-3 text-center" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleToggleSelect(account.id)}
+                          className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 accent-orange-600 cursor-pointer"
+                        />
+                      </td>
+
+                      {/* Cột 1: Loại Kho & Mã Acc */}
                       <td className="py-4 px-4 font-mono font-bold text-slate-900">
-                        <span className="px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-800 text-xs">
-                          {account.code}
-                        </span>
+                        <div className="space-y-1">
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
+                              isVip
+                                ? "bg-orange-100 text-orange-800 border border-orange-200"
+                                : "bg-sky-100 text-sky-800 border border-sky-200"
+                            }`}
+                          >
+                            {isVip ? "👑 VIP" : "🎮 CLONE"}
+                          </span>
+                          <div className="font-bold text-xs text-slate-800 font-mono">
+                            {account.code}
+                          </div>
+                        </div>
                       </td>
 
                       {/* Cột 2: Hình Ảnh Vuông */}
@@ -463,65 +1042,93 @@ export default function AdminAccountsPage() {
                         <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-slate-900 border border-slate-200 flex-shrink-0 shadow-sm">
                           <img
                             src={account.thumbnail}
-                            alt={account.mainChibi}
+                            alt={account.title}
                             className="w-full h-full object-cover"
                           />
                         </div>
                       </td>
 
-                      {/* Cột 3: TƯỚNG TÍ NỊ & SÂN ĐẤU (THÔNG TIN ĐỊNH DANH CHÍNH - XÓA BỎ TIÊU ĐỀ RƯỜM RÀ) */}
+                      {/* Cột 3: THÔNG TIN TÀI KHOẢN */}
                       <td className="py-4 px-4">
-                        <div className="space-y-1.5">
-                          <div className="flex items-center gap-2">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-orange-100 text-orange-700 border border-orange-200">
-                              {account.rank}
-                            </span>
-                            {account.allChibi && account.allChibi.length > 1 && (
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                                +{account.allChibi.length} Tí Nị
+                        {isVip ? (
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-orange-100 text-orange-700 border border-orange-200">
+                                {account.rank}
                               </span>
-                            )}
+                              {account.allChibi && account.allChibi.length > 1 && (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                  +{account.allChibi.length} Tí Nị
+                                </span>
+                              )}
+                            </div>
+
+                            <strong className="text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-orange-700 transition-colors block">
+                              {account.mainChibi}
+                            </strong>
+
+                            <p className="text-xs text-slate-500 line-clamp-1 font-medium flex items-center gap-1">
+                              <span>🏟️</span>
+                              <span>{account.mainArena}</span>
+                            </p>
                           </div>
+                        ) : (
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-sky-100 text-sky-700 border border-sky-200">
+                                {account.rankBadge}
+                              </span>
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                Dài Hạn
+                              </span>
+                            </div>
 
-                          {/* Tướng Tí Nị chính to rõ nét (text-sm font-bold text-slate-900) */}
-                          <strong className="text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-orange-600 transition-colors block">
-                            {account.mainChibi}
-                          </strong>
+                            <strong className="text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-sky-700 transition-colors block">
+                              {account.title}
+                            </strong>
 
-                          {/* Dòng subtext sàn đấu (text-xs text-slate-500 font-medium) */}
-                          <p className="text-xs text-slate-500 line-clamp-1 font-medium flex items-center gap-1.5">
-                            <span>🏟️</span>
-                            <span>{account.mainArena}</span>
-                          </p>
-                        </div>
+                            <div className="text-[11px] text-slate-500 font-medium line-clamp-1">
+                              • {account.features?.[0] || "Đủ tướng cơ bản, vào trận ngay"}
+                            </div>
+                          </div>
+                        )}
                       </td>
 
-                      {/* Cột 4: Giá Trị Gốc */}
-                      <td className="py-4 px-4 font-mono font-bold text-slate-900">
-                        {baseVal.toLocaleString("vi-VN")}đ
-                      </td>
-
-                      {/* Cột 5: Giá Thuê Giờ */}
-                      <td className="py-4 px-4 font-mono font-bold text-red-600 text-sm">
-                        {account.hourlyPrice.toLocaleString("vi-VN")}đ
-                      </td>
-
-                      {/* Cột 6: TRẠNG THÁI & NÚT GẠT (SWITCH TOGGLE CÓ HIỂN THỊ HẾT HẠN) */}
+                      {/* Cột 4: Giá Thuê */}
                       <td className="py-4 px-4">
-                        <div className="space-y-1">
+                        {isVip ? (
+                          <div className="space-y-1">
+                            <div className="font-mono font-bold text-sm text-slate-900">
+                              {(account.hourlyPrice || 15000).toLocaleString("vi-VN")}đ
+                              <span className="text-[10px] text-slate-500 font-normal">/h</span>
+                            </div>
+                            <div className="text-[11px] font-mono text-slate-500">
+                              {(account.dailyPrice || (account.hourlyPrice || 15000) * 4).toLocaleString("vi-VN")}đ/ngày
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-1">
+                            <div className="font-mono font-bold text-sm text-sky-700">
+                              {(account.monthlyPrice || account.periodPrice || 150000).toLocaleString("vi-VN")}đ
+                              <span className="text-[10px] text-slate-500 font-normal"> / ∞</span>
+                            </div>
+                            <div className="text-[11px] font-mono text-slate-500">
+                              {(account.weeklyPrice || 50000).toLocaleString("vi-VN")}đ/tuần
+                            </div>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Cột 5: Trạng Thái Cho Thuê (Gạt Switch) */}
+                      <td className="py-4 px-4">
+                        <div className="space-y-2">
                           <div className="flex items-center gap-2.5">
-                            {/* Switch Button */}
                             <button
                               type="button"
                               onClick={() => handleToggleChange(account)}
                               className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                                 isRented ? "bg-rose-500" : "bg-emerald-500"
                               }`}
-                              title={
-                                isRented
-                                  ? "Gạt về để chuyển sang Sẵn Sàng"
-                                  : "Gạt sang để thiết lập thời gian cho thuê"
-                              }
                             >
                               <span
                                 className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
@@ -530,44 +1137,44 @@ export default function AdminAccountsPage() {
                               />
                             </button>
 
-                            {/* Label Trạng Thái */}
-                            {isRented ? (
-                              <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 font-bold text-[10px] uppercase">
-                                Đang Thuê
-                              </span>
-                            ) : (
-                              <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 font-bold text-[10px] uppercase">
-                                Sẵn Sàng
-                              </span>
-                            )}
+                            <span
+                              className={`font-bold text-xs ${
+                                isRented ? "text-rose-600" : "text-emerald-700"
+                              }`}
+                            >
+                              {isRented ? "Đang Cho Thuê" : "Sẵn Sàng"}
+                            </span>
                           </div>
 
-                          {/* Hiển thị thời gian kết thúc bên dưới Toggle khi đang thuê */}
+                          {/* Hiển thị thời gian hết hạn */}
                           {isRented && account.rentedUntil && (
-                            <div className="text-slate-500 text-xs mt-1 font-mono flex items-center gap-1">
-                              <Clock className="w-3 h-3 text-slate-400" />
-                              <span>Hết hạn: {formatRentedUntil(account.rentedUntil)}</span>
+                            <div className="text-[11px] font-mono text-slate-500 flex items-center gap-1 bg-slate-100 px-2 py-1 rounded-md max-w-fit">
+                              <Clock className="w-3 h-3 text-rose-500 flex-shrink-0" />
+                              <span>Đến: {formatRentedUntil(account.rentedUntil)}</span>
                             </div>
                           )}
                         </div>
                       </td>
 
-                      {/* Cột 7: Thao Tác Sửa / Xóa (Có Modal Confirm Xóa) */}
+                      {/* Cột 6: Thao Tác Chỉnh Sửa & Xóa */}
                       <td className="py-4 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
+                            type="button"
                             onClick={() => openEditDrawer(account)}
-                            className="p-1.5 bg-slate-100 hover:bg-orange-50 hover:text-orange-600 text-slate-600 rounded-lg transition-colors cursor-pointer"
-                            title="Chỉnh sửa thông tin acc"
+                            className="p-2 text-slate-400 hover:text-orange-700 hover:bg-orange-50 rounded-xl transition-colors cursor-pointer"
+                            title="Chỉnh sửa tài khoản"
                           >
-                            <Edit2 className="w-3.5 h-3.5" />
+                            <Edit2 className="w-4 h-4" />
                           </button>
+
                           <button
-                            onClick={() => handleDeleteClick(account)}
-                            className="p-1.5 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 rounded-lg transition-colors cursor-pointer"
-                            title="Xóa acc khỏi kho"
+                            type="button"
+                            onClick={() => setDeleteConfirmAccount(account)}
+                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                            title="Xóa tài khoản khỏi Database"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
@@ -576,8 +1183,22 @@ export default function AdminAccountsPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-500">
-                    Không tìm thấy tài khoản nào phù hợp với bộ lọc.
+                  <td colSpan={7} className="py-16 text-center text-slate-500">
+                    <p className="text-sm font-semibold text-slate-700">
+                      Không tìm thấy tài khoản nào phù hợp với bộ lọc!
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveTab("ALL");
+                        setSearchTerm("");
+                        setStatusFilter("ALL");
+                        setRankFilter("ALL");
+                      }}
+                      className="mt-2 text-xs font-bold text-orange-700 hover:underline cursor-pointer"
+                    >
+                      Đặt lại bộ lọc tìm kiếm
+                    </button>
                   </td>
                 </tr>
               )}
@@ -587,106 +1208,197 @@ export default function AdminAccountsPage() {
       </div>
 
       {/* ============================================================ */}
-      {/* 4. MODAL THIẾT LẬP THỜI GIAN CHO THUÊ                        */}
+      {/* 4. MODAL CHO THUÊ ĐỒNG LOẠT (BULK RENTAL DURATION MODAL) */}
       {/* ============================================================ */}
-      {statusModalAccount && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 relative shadow-2xl border border-slate-200 space-y-5 animate-scaleUp">
-            {/* Header Modal */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+      {bulkRentalModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
-                  <Clock className="w-4 h-4" />
+                <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                  <Clock className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-slate-900 text-base">
-                    Thiết lập thời gian cho thuê
+                  <h3 className="font-extrabold text-base text-slate-900">
+                    Cho Thuê Đồng Loạt ({selectedIds.length} Acc)
                   </h3>
-                  <span className="text-xs text-orange-600 font-bold font-mono">
-                    {statusModalAccount.code} - {statusModalAccount.title}
+                  <span className="text-xs text-slate-500 font-medium">
+                    Thiết lập thời gian trả acc cho toàn bộ acc đã chọn
                   </span>
                 </div>
               </div>
 
               <button
-                onClick={() => setStatusModalAccount(null)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
+                type="button"
+                onClick={() => setBulkRentalModalOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Các Nút Chọn Thời Gian Nhanh: [2 Giờ], [7 Ngày], [30 Ngày] */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-700 block">
-                1. Chọn nhanh thời gian thuê:
+                Chọn Nhanh Thời Gian Thuê Chung:
               </label>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => applyQuickDuration(2)}
-                  className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all cursor-pointer ${
-                    quickDurationHours === 2
-                      ? "bg-orange-600 text-white border-orange-600 shadow-md"
-                      : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                  }`}
-                >
-                  ⚡ 2 Giờ
-                </button>
-                <button
-                  type="button"
-                  onClick={() => applyQuickDuration(168)} // 7 ngày
-                  className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all cursor-pointer ${
-                    quickDurationHours === 168
-                      ? "bg-orange-600 text-white border-orange-600 shadow-md"
-                      : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                  }`}
-                >
-                  📅 7 Ngày
-                </button>
-                <button
-                  type="button"
-                  onClick={() => applyQuickDuration(720)} // 30 ngày
-                  className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all cursor-pointer ${
-                    quickDurationHours === 720
-                      ? "bg-orange-600 text-white border-orange-600 shadow-md"
-                      : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                  }`}
-                >
-                  🌙 30 Ngày
-                </button>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { label: "2 Giờ", hours: 2 },
+                  { label: "4 Giờ", hours: 4 },
+                  { label: "12 Giờ (Qua Đêm)", hours: 12 },
+                  { label: "24 Giờ (1 Ngày)", hours: 24 },
+                  { label: "7 Ngày (1 Tuần)", hours: 168 },
+                  { label: "30 Ngày (1 Tháng)", hours: 720 },
+                  { label: "999 Ngày (Vô Cực ∞)", hours: 23976 },
+                ].map((item) => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={() => {
+                      setBulkQuickHours(item.hours);
+                      const d = new Date(Date.now() + item.hours * 60 * 60 * 1000);
+                      setBulkCustomEndTime(toLocalDatetimeInputString(d));
+                    }}
+                    className={`py-2 px-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                      bulkQuickHours === item.hours
+                        ? "bg-amber-600 text-white border-amber-600 shadow-sm"
+                        : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Chọn Ngày & Giờ Tùy Chỉnh (datetime-local) */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 block">
-                2. Hoặc tùy chỉnh ngày & giờ kết thúc:
+                Hoặc Chọn Ngày Giờ Hết Hạn Tùy Chỉnh:
               </label>
               <input
                 type="datetime-local"
-                value={customEndTime}
-                onChange={(e) => setCustomEndTime(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-orange-500 shadow-sm"
+                value={bulkCustomEndTime}
+                onChange={(e) => {
+                  setBulkCustomEndTime(e.target.value);
+                  setBulkQuickHours(0);
+                }}
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-orange-500"
               />
-              <p className="text-[11px] text-slate-500">
-                * Khi xác nhận, nút Toggle sẽ chuyển sang màu đỏ và lưu lại mốc thời gian kết thúc để hiển thị trên bảng.
-              </p>
             </div>
 
-            {/* Modal Actions: [Xác nhận] */}
-            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+            <div className="flex gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setStatusModalAccount(null)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-colors cursor-pointer"
+                onClick={() => setBulkRentalModalOpen(false)}
+                className="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
               >
                 Hủy Bỏ
               </button>
               <button
                 type="button"
-                onClick={confirmRentDuration}
-                className="px-5 py-2 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer"
+                disabled={isBulkUpdating}
+                onClick={handleBulkApplyRentalDuration}
+                className="flex-1 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold uppercase tracking-wider cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center gap-1.5"
+              >
+                {isBulkUpdating && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <span>Áp Dụng Cho {selectedIds.length} Acc</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* 4.1 MODAL CHO THUÊ ĐƠN LẺ */}
+      {/* ============================================================ */}
+      {statusModalAccount && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-700 flex items-center justify-center font-bold">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base text-slate-900">
+                    Thiết Lập Thời Gian Cho Thuê
+                  </h3>
+                  <span className="text-xs text-slate-500 font-medium">
+                    Tài khoản: {statusModalAccount.code} ({statusModalAccount.title})
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setStatusModalAccount(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-700 block">
+                Chọn Nhanh Gói Thuê:
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { label: "2 Giờ", hours: 2 },
+                  { label: "4 Giờ", hours: 4 },
+                  { label: "12 Giờ (Qua Đêm)", hours: 12 },
+                  { label: "24 Giờ (1 Ngày)", hours: 24 },
+                  { label: "7 Ngày (1 Tuần)", hours: 168 },
+                  { label: "30 Ngày (1 Tháng)", hours: 720 },
+                  { label: "+999 Ngày (Vô Cực ∞)", hours: 23976 },
+                ].map((item) => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={() => {
+                      setQuickDurationHours(item.hours);
+                      const d = new Date(Date.now() + item.hours * 60 * 60 * 1000);
+                      setCustomEndTime(toLocalDatetimeInputString(d));
+                    }}
+                    className={`py-2 px-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                      quickDurationHours === item.hours
+                        ? "bg-orange-700 text-white border-orange-700 shadow-sm"
+                        : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 block">
+                Hoặc Chọn Hạn Trả Tùy Chỉnh:
+              </label>
+              <input
+                type="datetime-local"
+                value={customEndTime}
+                onChange={(e) => {
+                  setCustomEndTime(e.target.value);
+                  setQuickDurationHours(0);
+                }}
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-orange-500"
+              />
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setStatusModalAccount(null)}
+                className="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
+              >
+                Hủy Bỏ
+              </button>
+              <button
+                type="button"
+                onClick={handleApplyDuration}
+                className="flex-1 py-2.5 rounded-xl bg-orange-700 hover:bg-orange-800 text-white text-xs font-bold uppercase tracking-wider cursor-pointer shadow-md shadow-orange-700/20"
               >
                 Xác Nhận Cho Thuê
               </button>
@@ -696,42 +1408,41 @@ export default function AdminAccountsPage() {
       )}
 
       {/* ============================================================ */}
-      {/* 5. MODAL CONFIRM XÓA TÀI KHOẢN                               */}
+      {/* 5. MODAL CONFIRM XÓA NHIỀU TÀI KHOẢN (BULK DELETE MODAL) */}
       {/* ============================================================ */}
-      {deleteConfirmAccount && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-6 relative shadow-2xl border border-slate-200 text-center space-y-4 animate-scaleUp">
-            <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
-              <Trash2 className="w-6 h-6" />
+      {bulkDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 space-y-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-6 h-6" />
             </div>
 
             <div className="space-y-1">
-              <h3 className="font-extrabold text-slate-900 text-base">
-                Xác Nhận Xóa Tài Khoản?
+              <h3 className="font-extrabold text-base text-slate-900">
+                Xóa {selectedIds.length} Tài Khoản?
               </h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Bạn có chắc chắn muốn xóa tài khoản{" "}
-                <strong className="text-slate-900 font-mono">
-                  {deleteConfirmAccount.code}
-                </strong>{" "}
-                ({deleteConfirmAccount.title}) khỏi hệ thống? Hành động này không thể hoàn tác.
+              <p className="text-xs text-slate-500">
+                Bạn có chắc chắn muốn xóa vĩnh viễn <strong>{selectedIds.length} tài khoản</strong> đã chọn khỏi Database Supabase? Thao tác này không thể hoàn tác.
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5 pt-2">
+            <div className="flex gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setDeleteConfirmAccount(null)}
-                className="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-colors cursor-pointer"
+                disabled={isBulkUpdating}
+                onClick={() => setBulkDeleteModalOpen(false)}
+                className="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer disabled:opacity-50"
               >
                 Hủy Bỏ
               </button>
               <button
                 type="button"
-                onClick={confirmDeleteAccount}
-                className="py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md transition-all cursor-pointer"
+                disabled={isBulkUpdating}
+                onClick={handleBulkConfirmDelete}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-wider cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center gap-1.5"
               >
-                Xóa Vĩnh Viễn
+                {isBulkUpdating && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <span>Xóa {selectedIds.length} Acc</span>
               </button>
             </div>
           </div>
@@ -739,285 +1450,313 @@ export default function AdminAccountsPage() {
       )}
 
       {/* ============================================================ */}
-      {/* 6. SLIDE-OVER DRAWER THÊM / SỬA ACC (VUỐT TỪ PHẢI SANG)      */}
+      {/* 5.1 MODAL CONFIRM XÓA ĐƠN LẺ */}
+      {/* ============================================================ */}
+      {deleteConfirmAccount && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 space-y-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="font-extrabold text-base text-slate-900">
+                Xác Nhận Xóa Tài Khoản?
+              </h3>
+              <p className="text-xs text-slate-500">
+                Bạn có chắc chắn muốn xóa tài khoản <strong>{deleteConfirmAccount.code}</strong> khỏi Database? Hành động này sẽ xóa vĩnh viễn trên Supabase.
+              </p>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setDeleteConfirmAccount(null)}
+                className="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer disabled:opacity-50"
+              >
+                Hủy Bỏ
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleConfirmDelete}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-wider cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center gap-1.5"
+              >
+                {isDeleting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <span>{isDeleting ? "Đang Xóa..." : "Xóa Vĩnh Viễn"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* 6. DRAWER THÊM / SỬA TÀI KHOẢN (GỌI API POST / PUT LƯU VÀO DB) */}
       {/* ============================================================ */}
       {drawerOpen && (
-        <div className="fixed inset-0 z-50 overflow-hidden animate-fadeIn">
+        <div className="fixed inset-0 z-50 overflow-hidden">
           <div
-            onClick={() => setDrawerOpen(false)}
             className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+            onClick={() => !isSubmitting && setDrawerOpen(false)}
           />
 
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-xl bg-white shadow-2xl flex flex-col justify-between overflow-y-auto">
-              <form onSubmit={handleSaveAccount} className="flex-1 flex flex-col justify-between">
-                <div className="p-6 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
-                      <Sparkles className="w-4 h-4" />
+            <div className="w-screen max-w-md bg-white shadow-2xl border-l border-slate-200 flex flex-col">
+              <form onSubmit={handleSaveAccount} className="flex flex-col h-full">
+                {/* Header Drawer */}
+                <div className="p-5 sm:p-6 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-700 flex items-center justify-center font-bold">
+                      <Sparkles className="w-5 h-5" />
                     </div>
                     <div>
                       <h3 className="font-extrabold text-slate-900 text-base">
                         {editingAccount ? "Chỉnh Sửa Tài Khoản" : "Thêm Tài Khoản Mới"}
                       </h3>
                       <span className="text-xs text-slate-500 font-medium">
-                        Nhập thông tin chi tiết vào kho cho thuê
+                        Lưu trực tiếp vào Database Supabase
                       </span>
                     </div>
                   </div>
 
                   <button
                     type="button"
+                    disabled={isSubmitting}
                     onClick={() => setDrawerOpen(false)}
-                    className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-200"
+                    className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-200 disabled:opacity-50 cursor-pointer"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                <div className="p-6 space-y-5 flex-1 overflow-y-auto text-xs">
-                  <div className="grid grid-cols-2 gap-4">
+                {/* Body Drawer */}
+                <div className="p-6 space-y-4 flex-1 overflow-y-auto text-xs">
+                  {/* Chọn Loại Kho: VIP vs CLONE */}
+                  <div className="space-y-1.5">
+                    <label className="font-bold text-slate-800 block">
+                      Phân Loại Kho Hàng: <span className="text-red-500">*</span>
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setFormCategory("VIP")}
+                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                          formCategory === "VIP"
+                            ? "bg-orange-50 border-orange-600 text-orange-950 font-bold shadow-sm"
+                            : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 font-medium"
+                        }`}
+                      >
+                        <Crown className="w-4 h-4 text-orange-600 mb-1" />
+                        <div>Acc VIP (Theo Giờ)</div>
+                        <span className="text-[10px] text-slate-500 font-normal">
+                          Tướng Tí Nị + Sân Đấu Thần Thoại
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setFormCategory("CLONE")}
+                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                          formCategory === "CLONE"
+                            ? "bg-sky-50 border-sky-600 text-sky-950 font-bold shadow-sm"
+                            : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 font-medium"
+                        }`}
+                      >
+                        <Gamepad2 className="w-4 h-4 text-sky-600 mb-1" />
+                        <div>Acc Clone / Smurf</div>
+                        <span className="text-[10px] text-slate-500 font-normal">
+                          Thuê Dài Hạn Full Info
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Mã Số & Tiêu Đề */}
+                  <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
                       <label className="font-bold text-slate-800 block">
-                        Mã Số Acc: <span className="text-red-500">*</span>
+                        Mã Số (Code): <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         required
                         value={formCode}
                         onChange={(e) => setFormCode(e.target.value)}
-                        placeholder="VD: MS: 8899"
-                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                        placeholder={formCategory === "VIP" ? "MS: 8899" : "CLONE-01"}
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold font-mono text-slate-900 focus:outline-none focus:border-orange-500"
                       />
                     </div>
 
                     <div className="space-y-1.5">
                       <label className="font-bold text-slate-800 block">
-                        Bậc Rank: <span className="text-red-500">*</span>
+                        {formCategory === "VIP" ? "Bậc Rank:" : "Loại Rank:"}
                       </label>
-                      <select
-                        value={formRank}
-                        onChange={(e) => setFormRank(e.target.value as any)}
-                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
-                      >
-                        <option value="THÁCH ĐẤU">Thách Đấu</option>
-                        <option value="ĐẠI CAO THỦ">Đại Cao Thủ</option>
-                        <option value="CAO THỦ">Cao Thủ</option>
-                        <option value="KIM CƯƠNG">Kim Cương</option>
-                        <option value="LỤC BẢO">Lục Bảo</option>
-                        <option value="VÀNG/BẠCH KIM">Vàng / Bạch Kim</option>
-                      </select>
+                      {formCategory === "VIP" ? (
+                        <select
+                          value={formRank}
+                          onChange={(e) => setFormRank(e.target.value as any)}
+                          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-orange-500"
+                        >
+                          <option value="THÁCH ĐẤU">Thách Đấu</option>
+                          <option value="ĐẠI CAO THỦ">Đại Cao Thủ</option>
+                          <option value="CAO THỦ">Cao Thủ</option>
+                          <option value="KIM CƯƠNG">Kim Cương</option>
+                          <option value="LỤC BẢO">Lục Bảo</option>
+                          <option value="VÀNG/BẠCH KIM">Vàng / Bạch Kim</option>
+                          <option value="BẠC">Bạc</option>
+                          <option value="ĐỒNG">Đồng</option>
+                          <option value="KHÔNG RANK">Không Rank / Unranked</option>
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          value={formRankBadge}
+                          onChange={(e) => setFormRankBadge(e.target.value)}
+                          placeholder="UNRANKED / RANK ĐỒNG"
+                          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                        />
+                      )}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="font-bold text-slate-800 block">
-                        Tướng Tí Nị Chính: <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formMainChibi}
-                        onChange={(e) => {
-                          setFormMainChibi(e.target.value);
-                          setFormTitle(`${formRank} - ${e.target.value}`);
-                        }}
-                        placeholder="VD: Tí Nị Ahri Chiêu Hồn"
-                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="font-bold text-slate-800 block">
-                        Sân Đấu Chính: <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formMainArena}
-                        onChange={(e) => setFormMainArena(e.target.value)}
-                        placeholder="VD: Sân Đấu Tiệm Trà Tâm Linh"
-                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-orange-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="font-bold text-slate-800 block">
-                        Giá Trị Gốc Tài Khoản (VNĐ):
-                      </label>
-                      <input
-                        type="number"
-                        step="10000"
-                        value={formAccountValue}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          setFormAccountValue(val);
-                          setFormHourlyPrice(Math.round((val * 0.015) / 1000) * 1000);
-                        }}
-                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-slate-900 focus:outline-none focus:border-orange-500"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="font-bold text-slate-800 block">
-                        Giá Thuê / Giờ (VNĐ):
-                      </label>
-                      <input
-                        type="number"
-                        step="1000"
-                        value={formHourlyPrice}
-                        onChange={(e) => setFormHourlyPrice(Number(e.target.value))}
-                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-red-600 focus:outline-none focus:border-orange-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="font-bold text-slate-800 block">
-                      URL Hình Ảnh (Khung Vuông):
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="url"
-                        value={formThumbnail}
-                        onChange={(e) => setFormThumbnail(e.target.value)}
-                        placeholder="https://images.unsplash.com/..."
-                        className="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500"
-                      />
-                    </div>
-                    {formThumbnail && (
-                      <div className="w-20 h-20 rounded-xl overflow-hidden border border-slate-200 mt-2 shadow-sm">
-                        <img
-                          src={formThumbnail}
-                          alt="Preview"
-                          className="w-full h-full object-cover"
+                  {/* THUỘC TÍNH RIÊNG ACC VIP */}
+                  {formCategory === "VIP" && (
+                    <div className="space-y-3 p-3.5 bg-orange-50/60 rounded-2xl border border-orange-200/80">
+                      <div className="space-y-1.5">
+                        <label className="font-bold text-slate-800 block">
+                          Tướng Tí Nị Chính: <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formMainChibi}
+                          onChange={(e) => setFormMainChibi(e.target.value)}
+                          placeholder="Tí Nị Ahri Chiêu Hồn"
+                          className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
                         />
                       </div>
-                    )}
-                  </div>
 
-                  <div className="space-y-2">
-                    <label className="font-bold text-slate-800 block">
-                      Danh Sách Tướng Tí Nị Trong Acc:
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={formChibiInput}
-                        onChange={(e) => setFormChibiInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleAddChibiTag();
-                          }
-                        }}
-                        placeholder="Nhập tên tướng và ấn Thêm"
-                        className="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-orange-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleAddChibiTag}
-                        className="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold cursor-pointer"
-                      >
-                        Thêm
-                      </button>
+                      <div className="space-y-1.5">
+                        <label className="font-bold text-slate-800 block">Sân Đấu Thần Thoại:</label>
+                        <input
+                          type="text"
+                          value={formMainArena}
+                          onChange={(e) => setFormMainArena(e.target.value)}
+                          placeholder="Sân Đấu Tiệm Trà Tâm Linh (Đổi Nhạc EDM)"
+                          className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-orange-500"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2.5">
+                        <div className="space-y-1.5">
+                          <label className="font-bold text-slate-800 block">Giá Thuê / Giờ (VNĐ):</label>
+                          <input
+                            type="number"
+                            step="1000"
+                            value={formHourlyPrice}
+                            onChange={(e) => setFormHourlyPrice(Number(e.target.value))}
+                            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold font-mono text-orange-700 focus:outline-none focus:border-orange-500"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="font-bold text-slate-800 block">Định Giá Acc (VNĐ):</label>
+                          <input
+                            type="number"
+                            step="50000"
+                            value={formAccountValue}
+                            onChange={(e) => setFormAccountValue(Number(e.target.value))}
+                            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold font-mono text-slate-800 focus:outline-none focus:border-orange-500"
+                          />
+                        </div>
+                      </div>
                     </div>
+                  )}
 
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {formAllChibi.map((chibi, idx) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-50 border border-orange-200 text-orange-700 font-medium text-[11px]"
-                        >
-                          <span>{chibi}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveChibiTag(idx)}
-                            className="hover:text-red-600 font-bold ml-1 cursor-pointer"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
+                  {/* THUỘC TÍNH RIÊNG ACC CLONE */}
+                  {formCategory === "CLONE" && (
+                    <div className="space-y-3 p-3.5 bg-sky-50/60 rounded-2xl border border-sky-200/80">
+                      <div className="space-y-1.5">
+                        <label className="font-bold text-slate-800 block">Tiêu Đề Acc Clone:</label>
+                        <input
+                          type="text"
+                          value={formTitle}
+                          onChange={(e) => setFormTitle(e.target.value)}
+                          placeholder="Acc Unranked Trắng Thông Tin"
+                          className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2.5">
+                        <div className="space-y-1.5">
+                          <label className="font-bold text-slate-800 block">Giá Theo Tuần (VNĐ):</label>
+                          <input
+                            type="number"
+                            step="5000"
+                            value={formWeeklyPrice}
+                            onChange={(e) => setFormWeeklyPrice(Number(e.target.value))}
+                            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold font-mono text-slate-800 focus:outline-none focus:border-orange-500"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="font-bold text-slate-800 block">Giá Trọn Gói / Vô Cực:</label>
+                          <input
+                            type="number"
+                            step="10000"
+                            value={formMonthlyPrice}
+                            onChange={(e) => setFormMonthlyPrice(Number(e.target.value))}
+                            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold font-mono text-sky-700 focus:outline-none focus:border-orange-500"
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  <div className="space-y-2">
-                    <label className="font-bold text-slate-800 block">
-                      Danh Sách Sân Đấu Thần Thoại:
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={formArenaInput}
-                        onChange={(e) => setFormArenaInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleAddArenaTag();
-                          }
-                        }}
-                        placeholder="Nhập tên sân đấu"
-                        className="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-orange-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleAddArenaTag}
-                        className="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold cursor-pointer"
-                      >
-                        Thêm
-                      </button>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {formAllArenas.map((arena, idx) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 font-medium text-[11px]"
-                        >
-                          <span>{arena}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveArenaTag(idx)}
-                            className="hover:text-red-600 font-bold ml-1 cursor-pointer"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
+                  {/* Link Hình Ảnh Thumbnail */}
                   <div className="space-y-1.5">
-                    <label className="font-bold text-slate-800 block">
-                      Mô Tả & Ghi Chú:
-                    </label>
+                    <label className="font-bold text-slate-800 block">Link Ảnh Bìa (Image URL):</label>
+                    <input
+                      type="text"
+                      value={formThumbnail}
+                      onChange={(e) => setFormThumbnail(e.target.value)}
+                      placeholder="https://images.unsplash.com/..."
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono focus:outline-none focus:border-orange-500 text-[11px]"
+                    />
+                  </div>
+
+                  {/* Mô Tả Chi Tiết */}
+                  <div className="space-y-1.5">
+                    <label className="font-bold text-slate-800 block">Mô Tả Tài Khoản:</label>
                     <textarea
                       rows={3}
                       value={formDescription}
                       onChange={(e) => setFormDescription(e.target.value)}
-                      placeholder="Mô tả chi tiết linh thú, chưởng lực, sàn đấu..."
-                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-orange-500"
+                      placeholder="Nhập ghi chú hoặc mô tả nổi bật..."
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-orange-500 leading-relaxed text-xs"
                     />
                   </div>
                 </div>
 
-                <div className="p-5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3">
+                {/* Footer Drawer */}
+                <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2">
                   <button
                     type="button"
+                    disabled={isSubmitting}
                     onClick={() => setDrawerOpen(false)}
-                    className="px-5 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl font-bold text-xs transition-colors cursor-pointer"
+                    className="px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors disabled:opacity-50 cursor-pointer"
                   >
                     Hủy Bỏ
                   </button>
+
                   <button
                     type="submit"
-                    className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md shadow-orange-600/20 transition-all hover:scale-105 cursor-pointer"
+                    disabled={isSubmitting}
+                    className="px-6 py-2.5 rounded-xl bg-orange-700 hover:bg-orange-800 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-orange-700/20 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
                   >
-                    {editingAccount ? "Lưu Thay Đổi" : "Tạo Tài Khoản Mới"}
+                    {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                    <span>{editingAccount ? "Lưu Cập Nhật" : "Thêm Vào Database"}</span>
                   </button>
                 </div>
               </form>
