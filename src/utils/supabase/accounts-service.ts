@@ -248,9 +248,9 @@ export async function getVipAndCloneAccounts(): Promise<{
       const features = Array.isArray(row.features) && row.features.length > 0
         ? row.features
         : [
-            "Đủ tướng cơ bản, vào trận ngay",
-            "Hỗ trợ đổi Pass / Bảo hành trọn gói",
-            "MMR sạch đẹp, cộng nhiều ĐNG",
+            "Tài Khoản An Toàn 100%",
+            "Hỗ Trợ Bàn Giao Thông Về Khách",
+            "Sẵn Sản Phẩm Như Mô Tả 100%",
           ];
       const price = Number(row.price) || Number(row.period_price) || 150000;
 

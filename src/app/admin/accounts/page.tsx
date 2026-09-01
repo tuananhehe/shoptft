@@ -164,8 +164,9 @@ export default function AdminAccountsPage() {
   const [formWeeklyPrice, setFormWeeklyPrice] = useState<number>(50000);
   const [formMonthlyPrice, setFormMonthlyPrice] = useState<number>(150000);
   const [formFeatures, setFormFeatures] = useState<string[]>([
-    "Đủ tướng cơ bản, vào trận ngay",
-    "Hỗ trợ đổi Pass / Bảo hành trọn gói",
+    "Tài Khoản An Toàn 100%",
+    "Hỗ Trợ Bàn Giao Thông Về Khách",
+    "Sẵn Sản Phẩm Như Mô Tả 100%",
   ]);
   const [formFeatureInput, setFormFeatureInput] = useState("");
 
@@ -509,9 +510,11 @@ export default function AdminAccountsPage() {
     setFormWeeklyPrice(50000);
     setFormMonthlyPrice(150000);
     setFormFeatures([
-      "Đủ tướng cơ bản, vào trận ngay",
-      "Hỗ trợ đổi Pass / Bảo hành trọn gói",
+      "Tài Khoản An Toàn 100%",
+      "Hỗ Trợ Bàn Giao Thông Về Khách",
+      "Sẵn Sản Phẩm Như Mô Tả 100%",
     ]);
+    setFormFeatureInput("");
 
     setDrawerOpen(true);
   };
@@ -549,7 +552,16 @@ export default function AdminAccountsPage() {
       setFormRankBadge(account.rankBadge || "UNRANKED");
       setFormWeeklyPrice(account.weeklyPrice || 50000);
       setFormMonthlyPrice(account.monthlyPrice || account.periodPrice || 150000);
-      setFormFeatures(account.features || ["Đủ tướng cơ bản, vào trận ngay"]);
+      setFormFeatures(
+        Array.isArray(account.features) && account.features.length > 0
+          ? account.features
+          : [
+              "Tài Khoản An Toàn 100%",
+              "Hỗ Trợ Bàn Giao Thông Về Khách",
+              "Sẵn Sản Phẩm Như Mô Tả 100%",
+            ]
+      );
+      setFormFeatureInput("");
     }
 
     setDrawerOpen(true);
@@ -1139,7 +1151,7 @@ export default function AdminAccountsPage() {
                             </strong>
 
                             <div className="text-[11px] text-slate-500 font-medium line-clamp-1">
-                              • {account.features?.[0] || "Đủ tướng cơ bản, vào trận ngay"}
+                              • {account.features?.[0] || "Tài Khoản An Toàn 100%"}
                             </div>
                           </div>
                         )}
@@ -1995,6 +2007,66 @@ export default function AdminAccountsPage() {
                             className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold font-mono text-sky-700 focus:outline-none focus:border-orange-500"
                           />
                         </div>
+                      </div>
+
+                      {/* Đặc Điểm & Tính Năng Acc Clone */}
+                      <div className="space-y-1.5 pt-1 border-t border-sky-200/60">
+                        <label className="font-bold text-slate-800 block">
+                          Đặc Điểm & Tính Năng Tài Khoản:
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={formFeatureInput}
+                            onChange={(e) => setFormFeatureInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                if (formFeatureInput.trim()) {
+                                  setFormFeatures((prev) => [...prev, formFeatureInput.trim()]);
+                                  setFormFeatureInput("");
+                                }
+                              }
+                            }}
+                            placeholder="vd: Tài Khoản An Toàn 100%..."
+                            className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (formFeatureInput.trim()) {
+                                setFormFeatures((prev) => [...prev, formFeatureInput.trim()]);
+                                setFormFeatureInput("");
+                              }
+                            }}
+                            className="px-3 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs"
+                          >
+                            + Thêm
+                          </button>
+                        </div>
+
+                        {formFeatures.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {formFeatures.map((feat, idx) => (
+                              <span
+                                key={idx}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-100 text-sky-900 text-[11px] font-bold border border-sky-200"
+                              >
+                                <span>{feat}</span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setFormFeatures((prev) => prev.filter((_, i) => i !== idx))
+                                  }
+                                  className="text-sky-600 hover:text-red-700 font-black cursor-pointer ml-1"
+                                  title="Xóa đặc điểm này"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}

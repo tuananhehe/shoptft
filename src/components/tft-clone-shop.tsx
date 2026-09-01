@@ -842,17 +842,25 @@ export const TFTCloneShop: React.FC = () => {
               ) : (
                 <>
                   {/* Thẻ Quyền Lợi Bàn Giao Toàn Quyền */}
-                  <div className="bg-blue-50/60 rounded-2xl p-4 sm:p-5 space-y-2 text-xs sm:text-sm">
+                  <div className="bg-blue-50/60 rounded-2xl p-4 sm:p-5 space-y-2.5 text-xs sm:text-sm">
                     <div className="flex items-center gap-2 font-bold text-blue-900">
                       <ShieldCheck className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                      <span>Quyền lợi gói thuê lâu dài không thời hạn:</span>
+                      <span>Quyền Lợi Khách Hàng:</span>
                     </div>
-                    <p className="text-slate-600 leading-relaxed pl-6">
-                      • Cấp toàn quyền Riot ID & Mật khẩu riêng, hỗ trợ đổi mật khẩu & mail cá nhân.
-                    </p>
-                    <p className="text-slate-600 leading-relaxed pl-6">
-                      • Bảo hành trọn đời, đổi acc tương đương ngay lập tức nếu có bất kỳ sự cố nào.
-                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                      <div className="flex items-center gap-2 bg-white/80 p-2.5 rounded-xl border border-blue-100 text-slate-800 font-medium">
+                        <CheckCircle2 className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                        <span>Nắm Giữ Thông Tin An Toàn</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-white/80 p-2.5 rounded-xl border border-blue-100 text-slate-800 font-medium">
+                        <CheckCircle2 className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                        <span>Sở Hữu Lâu Dài Chính Chủ</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-white/80 p-2.5 rounded-xl border border-blue-100 text-slate-800 font-medium">
+                        <CheckCircle2 className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                        <span>Bảo Hành Đầy Đủ Theo Chính Sách Shop</span>
+                      </div>
+                    </div>
                   </div>
 
                   {/* KHỐI TỔNG THANH TOÁN (FOCAL POINT NỔI BẬT) */}
