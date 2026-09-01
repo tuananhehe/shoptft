@@ -207,30 +207,35 @@ export async function getVipAndCloneAccounts(): Promise<{
 
     const vipAccounts: TFTRentalAccount[] = vipRows.map((row: AccountDbRow, idx: number) => {
       const { rankColor, rankBadgeBg } = getRankColors(row.rank || "THÁCH ĐẤU");
-      const champions = Array.isArray(row.champions) ? row.champions : [];
-      const arenas = Array.isArray(row.arenas) ? row.arenas : [];
-      const hourly = Number(row.hourly_price) || 15000;
-      const daily = Number(row.price) || 60000;
+      const champions = Array.isArray(row.champions) ? row.champions.filter(Boolean) : [];
+      const arenas = Array.isArray(row.arenas) ? row.arenas.filter(Boolean) : [];
+      const accountValue = Number(row.price) || 850000;
+      const hourly = Number(row.hourly_price) > 0
+        ? Number(row.hourly_price)
+        : Math.round((((accountValue * 0.03) + 20000) / 2) / 1000) * 1000;
+      const daily = Math.round((((accountValue * 0.12) + 20000) / 2) / 1000) * 1000;
+      const mainChibi = champions[0] || "Tí Nị Thần Thoại";
+      const mainArena = arenas[0] || "Sân Đấu Thần Thoại";
 
       return {
         id: String(row.id || `vip-${idx}`),
         code: row.code || `MS: ${8800 + idx}`,
-        title: row.title || `${row.rank} - ${champions[0] || "Tí Nị VIP"}`,
-        mainChibi: champions[0] || "Tí Nị Thần Thoại",
-        allChibi: champions.length > 0 ? champions : ["Tí Nị Thần Thoại"],
-        mainArena: arenas[0] || "Sân Đấu Thần Thoại",
-        allArenas: arenas.length > 0 ? arenas : ["Sân Đấu Thần Thoại"],
+        title: row.title || `${row.rank || "VIP"} - ${mainChibi}`,
+        mainChibi,
+        allChibi: champions.length > 0 ? champions : [mainChibi],
+        mainArena,
+        allArenas: arenas.length > 0 ? arenas : [mainArena],
         rank: (row.rank as any) || "THÁCH ĐẤU",
         rankColor,
         rankBadgeBg,
         hourlyPrice: hourly,
         dailyPrice: daily,
         nightPrice: Math.round(hourly * 2.5),
-        accountValue: Number(row.price) || 850000,
+        accountValue,
         status: String(row.status || "").toUpperCase() === "RENTED" ? "RENTED" : "AVAILABLE",
         rentedUntil: row.rented_until || null,
-        totalLittleLegends: champions.length || 3,
-        totalArenas: arenas.length || 2,
+        totalLittleLegends: champions.length || 1,
+        totalArenas: arenas.length || 1,
         totalBooms: 5,
         thumbnail:
           row.image_url ||

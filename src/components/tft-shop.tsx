@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { TFTRentalAccount } from "@/data/tft-data";
+import { TFTRentalAccount, TFT_RENTAL_ACCOUNTS } from "@/data/tft-data";
 import { getVipAndCloneAccounts, formatRentalExpiry } from "@/utils/supabase/accounts-service";
 import { motion, Variants } from "framer-motion";
 import {
@@ -79,8 +79,9 @@ const CHIBI_OPTIONS = [
 ];
 
 export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
-  const [vipAccounts, setVipAccounts] = useState<TFTRentalAccount[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Khởi tạo sẵn danh sách có sẵn để render tức thì 0s, sau đó fetch ngầm từ Supabase
+  const [vipAccounts, setVipAccounts] = useState<TFTRentalAccount[]>(TFT_RENTAL_ACCOUNTS || []);
+  const [isLoading, setIsLoading] = useState(false);
   const [showFullCatalog, setShowFullCatalog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDuration, setSelectedDuration] = useState("ALL");
@@ -90,14 +91,12 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
   const [selectedSort, setSelectedSort] = useState<"DEFAULT" | "PRICE_ASC" | "PRICE_DESC">("DEFAULT");
   const sliderRef = useRef<HTMLDivElement>(null);
 
-  // Fetch dữ liệu thật từ Supabase
+  // Fetch dữ liệu mới nhất từ Supabase chạy ngầm
   useEffect(() => {
     let isMounted = true;
-    setIsLoading(true);
     getVipAndCloneAccounts().then(({ vipAccounts: fetchedVip }) => {
-      if (isMounted) {
-        setVipAccounts(fetchedVip || []);
-        setIsLoading(false);
+      if (isMounted && fetchedVip && fetchedVip.length > 0) {
+        setVipAccounts(fetchedVip);
       }
     });
     return () => {

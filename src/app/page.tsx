@@ -14,10 +14,12 @@ import { TFTAccountModal } from "@/components/tft-account-modal";
 import { TFTFloatingChat } from "@/components/tft-floating-chat";
 import { TFTRentalAccount } from "@/data/tft-data";
 import { HomepageConfig, getHomepageConfig } from "@/utils/homepage-service";
+import defaultConfig from "@/data/homepage-config.json";
 
 export default function HomePage() {
   const [selectedAccount, setSelectedAccount] = useState<TFTRentalAccount | null>(null);
-  const [config, setConfig] = useState<HomepageConfig | null>(null);
+  // Khởi tạo ngay lập tức với cấu hình đã setup sẵn trong JSON để load ra ngay tại 0.0s (không bị giật text mặc định)
+  const [config, setConfig] = useState<HomepageConfig>(defaultConfig as unknown as HomepageConfig);
 
   useEffect(() => {
     async function loadConfig() {

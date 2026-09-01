@@ -75,19 +75,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const accountPrice = Number(body.price) || Number(body.period_price) || 850000;
+    const computedHourly = Number(body.hourly_price) > 0
+      ? Number(body.hourly_price)
+      : body.type === "VIP"
+      ? Math.round((((accountPrice * 0.03) + 20000) / 2) / 1000) * 1000
+      : 0;
+
     // Chuẩn bị payload khớp 100% với schema DB
     const newAccountData = {
       code: body.code.trim(),
       type: body.type,
       title: body.title || `${body.rank || "VIP"} - ${body.code}`,
       rank: body.rank || (body.type === "VIP" ? "THÁCH ĐẤU" : "UNRANKED"),
-      price: Number(body.price) || Number(body.period_price) || 0,
-      hourly_price: Number(body.hourly_price) || (body.type === "VIP" ? 15000 : 0),
-      weekly_price: 0,
-      period_price: Number(body.period_price) || Number(body.price) || 0,
-      champions: Array.isArray(body.champions) ? body.champions : [],
-      arenas: Array.isArray(body.arenas) ? body.arenas : [],
-      features: Array.isArray(body.features) ? body.features : [],
+      price: accountPrice,
+      hourly_price: computedHourly,
+      weekly_price: Number(body.weekly_price) || 0,
+      period_price: Number(body.period_price) || accountPrice,
+      champions: Array.isArray(body.champions) ? body.champions.filter(Boolean) : [],
+      arenas: Array.isArray(body.arenas) ? body.arenas.filter(Boolean) : [],
+      features: Array.isArray(body.features) ? body.features.filter(Boolean) : [],
       image_url:
         body.image_url ||
         "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop",
@@ -187,13 +194,20 @@ export async function PUT(req: NextRequest) {
     if (body.type !== undefined) updatePayload.type = body.type;
     if (body.title !== undefined) updatePayload.title = body.title;
     if (body.rank !== undefined) updatePayload.rank = body.rank;
-    if (body.price !== undefined) updatePayload.price = Number(body.price);
-    if (body.hourly_price !== undefined) updatePayload.hourly_price = Number(body.hourly_price);
+    if (body.price !== undefined) {
+      updatePayload.price = Number(body.price);
+      if (body.type === "VIP" && (!body.hourly_price || Number(body.hourly_price) === 0)) {
+        updatePayload.hourly_price = Math.round((((Number(body.price) * 0.03) + 20000) / 2) / 1000) * 1000;
+      }
+    }
+    if (body.hourly_price !== undefined && Number(body.hourly_price) > 0) {
+      updatePayload.hourly_price = Number(body.hourly_price);
+    }
     if (body.weekly_price !== undefined) updatePayload.weekly_price = Number(body.weekly_price);
     if (body.period_price !== undefined) updatePayload.period_price = Number(body.period_price);
-    if (body.champions !== undefined) updatePayload.champions = body.champions;
-    if (body.arenas !== undefined) updatePayload.arenas = body.arenas;
-    if (body.features !== undefined) updatePayload.features = body.features;
+    if (body.champions !== undefined) updatePayload.champions = Array.isArray(body.champions) ? body.champions.filter(Boolean) : [];
+    if (body.arenas !== undefined) updatePayload.arenas = Array.isArray(body.arenas) ? body.arenas.filter(Boolean) : [];
+    if (body.features !== undefined) updatePayload.features = Array.isArray(body.features) ? body.features.filter(Boolean) : [];
     if (body.image_url !== undefined) updatePayload.image_url = body.image_url;
     if (body.status !== undefined) updatePayload.status = body.status;
     if (body.rented_until !== undefined) updatePayload.rented_until = body.rented_until;

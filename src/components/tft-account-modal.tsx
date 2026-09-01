@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { TFTRentalAccount, PROFILE_INFO } from "@/data/tft-data";
 import { formatRentalExpiry } from "@/utils/supabase/accounts-service";
+import { getHomepageConfig, PricingConfig } from "@/utils/homepage-service";
 import toast from "react-hot-toast";
 import {
   X,
@@ -39,6 +40,20 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
 
   // Bộ đếm ngược thời gian cho acc đang thuê (tính bằng giây chuẩn từ Database)
   const [countdownSeconds, setCountdownSeconds] = useState<number>(0);
+  const [pricingRates, setPricingRates] = useState<PricingConfig>({
+    passChangeFee: 20000,
+    rate2Hours: 3,
+    rate7Days: 12,
+    rate30Days: 30,
+  });
+
+  useEffect(() => {
+    getHomepageConfig().then((cfg) => {
+      if (cfg?.pricing) {
+        setPricingRates(cfg.pricing);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     // Reset gói và cam kết khi mở acc mới
@@ -93,7 +108,12 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
   };
   const formatMoney = (val: number) => `${roundToThousand(val).toLocaleString("vi-VN")}đ`;
 
-  // Cấu hình 4 gói thời gian thuê
+  const rate2h = (pricingRates.rate2Hours || 3) / 100;
+  const rate7d = (pricingRates.rate7Days || 12) / 100;
+  const rate30d = (pricingRates.rate30Days || 30) / 100;
+  const passFee = pricingRates.passChangeFee ?? 20000;
+
+  // Cấu hình 4 gói thời gian thuê tính tự động theo % định giá acc
   const packageConfigs: Record<PackageKey, {
     id: PackageKey;
     name: string;
@@ -108,32 +128,32 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
     "2h": {
       id: "2h",
       name: "2 Giờ Trải Nghiệm",
-      rate: 0.03,
-      basePrice: roundToThousand(baseAccountValue * 0.03),
-      passFee: 20000,
-      totalPrice: roundToThousand(baseAccountValue * 0.03) + 20000,
-      note: "Đã gồm 20k phí đổi pass",
+      rate: rate2h,
+      basePrice: roundToThousand(baseAccountValue * rate2h),
+      passFee: passFee,
+      totalPrice: roundToThousand(baseAccountValue * rate2h) + passFee,
+      note: passFee > 0 ? `Đã gồm ${Math.round(passFee / 1000)}k phí đổi pass` : "Miễn phí đổi pass",
       tag: "Trải nghiệm nhanh",
       badgeColor: "bg-blue-100 text-blue-700 border-blue-200",
     },
     "7d": {
       id: "7d",
       name: "Thuê 7 Ngày (1 Tuần)",
-      rate: 0.12,
-      basePrice: roundToThousand(baseAccountValue * 0.12),
-      passFee: 20000,
-      totalPrice: roundToThousand(baseAccountValue * 0.12) + 20000,
-      note: "Đã gồm 20k phí đổi pass",
+      rate: rate7d,
+      basePrice: roundToThousand(baseAccountValue * rate7d),
+      passFee: passFee,
+      totalPrice: roundToThousand(baseAccountValue * rate7d) + passFee,
+      note: passFee > 0 ? `Đã gồm ${Math.round(passFee / 1000)}k phí đổi pass` : "Miễn phí đổi pass",
       tag: "Tiết kiệm 45%",
       badgeColor: "bg-amber-100 text-amber-800 border-amber-200",
     },
     "30d": {
       id: "30d",
       name: "Thuê 30 Ngày (1 Tháng)",
-      rate: 0.30,
-      basePrice: roundToThousand(baseAccountValue * 0.30),
+      rate: rate30d,
+      basePrice: roundToThousand(baseAccountValue * rate30d),
       passFee: 0,
-      totalPrice: roundToThousand(baseAccountValue * 0.30),
+      totalPrice: roundToThousand(baseAccountValue * rate30d),
       note: "Miễn phí đổi pass",
       tag: "Miễn phí đổi pass",
       badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
@@ -422,7 +442,7 @@ Báo mình khi acc này hết giờ thuê nhé!`;
                     <div className="flex items-center justify-between text-xs mt-1.5">
                       <span className="text-slate-500 font-medium">{packageConfigs["2h"].note}</span>
                       <span className="text-[10px] font-bold text-blue-800 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
-                        3% + 20k
+                        {pricingRates.rate2Hours}% + {Math.round(pricingRates.passChangeFee / 1000)}k
                       </span>
                     </div>
                   </button>
@@ -448,7 +468,7 @@ Báo mình khi acc này hết giờ thuê nhé!`;
                     <div className="flex items-center justify-between text-xs mt-1.5">
                       <span className="text-slate-500 font-medium">{packageConfigs["7d"].note}</span>
                       <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-                        12% + 20k
+                        {pricingRates.rate7Days}% + {Math.round(pricingRates.passChangeFee / 1000)}k
                       </span>
                     </div>
                   </button>
@@ -474,7 +494,7 @@ Báo mình khi acc này hết giờ thuê nhé!`;
                     <div className="flex items-center justify-between text-xs mt-1.5">
                       <span className="text-emerald-700 font-semibold">{packageConfigs["30d"].note}</span>
                       <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                        30% Giá Acc
+                        {pricingRates.rate30Days}% Giá Acc
                       </span>
                     </div>
                   </button>

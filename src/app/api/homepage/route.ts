@@ -46,6 +46,16 @@ const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
     content:
       "🎁 Ưu đãi đặc biệt: Tặng thêm 1 giờ chơi và miễn phí phí đổi pass cố định cho khách hàng thuê lần đầu qua Zalo Tuấn Thái Bình!",
   },
+  pricing: {
+    passChangeFee: 20000,
+    rate2Hours: 3,
+    rate7Days: 12,
+    rate30Days: 30,
+  },
+  contact: {
+    phoneZalo: "0352.867.283",
+    checkscamFund: "30.000.000đ",
+  },
   servicePackages: [
     {
       id: "srv-01",
@@ -148,6 +158,8 @@ function readConfigFromFile(): HomepageConfig {
           hero: { ...DEFAULT_HOMEPAGE_CONFIG.hero, ...(parsed.hero || {}) },
           images: { ...DEFAULT_HOMEPAGE_CONFIG.images, ...(parsed.images || {}) },
           alertBanner: { ...DEFAULT_HOMEPAGE_CONFIG.alertBanner, ...(parsed.alertBanner || {}) },
+          pricing: { ...DEFAULT_HOMEPAGE_CONFIG.pricing, ...(parsed.pricing || {}) },
+          contact: { ...DEFAULT_HOMEPAGE_CONFIG.contact, ...(parsed.contact || {}) },
         };
         return memoryConfig;
       }
@@ -245,6 +257,14 @@ export async function PUT(req: NextRequest) {
       alertBanner: {
         ...current.alertBanner,
         ...(body.alertBanner || {}),
+      },
+      pricing: {
+        ...(current.pricing || DEFAULT_HOMEPAGE_CONFIG.pricing!),
+        ...(body.pricing || {}),
+      },
+      contact: {
+        ...(current.contact || DEFAULT_HOMEPAGE_CONFIG.contact!),
+        ...(body.contact || {}),
       },
       servicePackages: body.servicePackages || current.servicePackages,
       faqs: body.faqs || current.faqs,

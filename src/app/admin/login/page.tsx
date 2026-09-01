@@ -261,17 +261,6 @@ export default function AdminLoginPage() {
               )}
             </button>
           </form>
-
-          {/* Quick Helper Note */}
-          <div className="p-3.5 bg-slate-950/60 border border-slate-800/80 rounded-2xl text-[11px] text-slate-400 space-y-1">
-            <div className="flex items-center gap-1.5 text-slate-300 font-semibold">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>Ghi chú mật khẩu mặc định:</span>
-            </div>
-            <p className="text-slate-400">
-              Mật khẩu mặc định hệ thống là: <code className="text-orange-400 font-bold bg-slate-900 px-1.5 py-0.5 rounded">tuanthaibinh8888</code> (Bạn có thể đổi mật khẩu này bất kỳ lúc nào trong mục <strong>Cài Đặt</strong>).
-            </p>
-          </div>
         </div>
       </main>
 

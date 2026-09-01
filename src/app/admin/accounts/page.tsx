@@ -11,6 +11,7 @@ import {
   toLocalDatetimeInputString,
   formatRentalExpiry,
 } from "@/utils/supabase/accounts-service";
+import { getHomepageConfig, PricingConfig } from "@/utils/homepage-service";
 import toast from "react-hot-toast";
 import {
   Search,
@@ -128,10 +129,35 @@ export default function AdminAccountsPage() {
   const [formRank, setFormRank] = useState<UnifiedAdminAccount["rank"]>("THÁCH ĐẤU");
   const [formAccountValue, setFormAccountValue] = useState<number>(850000);
   const [formHourlyPrice, setFormHourlyPrice] = useState<number>(15000);
+  const [isAutoPricing, setIsAutoPricing] = useState<boolean>(true);
+  const [pricingRates, setPricingRates] = useState<PricingConfig>({
+    passChangeFee: 20000,
+    rate2Hours: 3,
+    rate7Days: 12,
+    rate30Days: 30,
+  });
+
   const [formMainChibi, setFormMainChibi] = useState("");
   const [formMainArena, setFormMainArena] = useState("");
   const [formAllChibi, setFormAllChibi] = useState<string[]>([]);
   const [formAllArenas, setFormAllArenas] = useState<string[]>([]);
+  const [extraChibiInput, setExtraChibiInput] = useState("");
+  const [extraArenaInput, setExtraArenaInput] = useState("");
+
+  // Helper tính giá thuê 1 giờ tự động theo % định giá acc: [(Giá acc * 3%) + 20k] / 2
+  const calcHourlyFromValue = (val: number, rate2h = pricingRates.rate2Hours, passFee = pricingRates.passChangeFee) => {
+    if (!val || isNaN(val) || val <= 0) return 15000;
+    const pkg2h = (val * (rate2h / 100)) + passFee;
+    return Math.round((pkg2h / 2) / 1000) * 1000;
+  };
+
+  const handleAccountValueChange = (val: number) => {
+    setFormAccountValue(val);
+    if (isAutoPricing) {
+      const calculated = calcHourlyFromValue(val, pricingRates.rate2Hours, pricingRates.passChangeFee);
+      setFormHourlyPrice(calculated);
+    }
+  };
 
   // Fields for Clone
   const [formRankBadge, setFormRankBadge] = useState("UNRANKED");
@@ -169,6 +195,11 @@ export default function AdminAccountsPage() {
 
   useEffect(() => {
     fetchAccounts(true);
+    getHomepageConfig().then((cfg) => {
+      if (cfg?.pricing) {
+        setPricingRates(cfg.pricing);
+      }
+    });
   }, []);
 
   // Thống kê số liệu nhanh
@@ -455,25 +486,23 @@ export default function AdminAccountsPage() {
   const openAddDrawer = (defaultCategory: AccountCategoryType = "VIP") => {
     setEditingAccount(null);
     setFormCategory(defaultCategory);
-    setFormCode(
-      defaultCategory === "VIP"
-        ? `MS: ${Math.floor(1000 + Math.random() * 9000)}`
-        : `CLONE-${accounts.filter((a) => a.category === "CLONE").length + 1 < 10 ? `0${accounts.filter((a) => a.category === "CLONE").length + 1}` : accounts.filter((a) => a.category === "CLONE").length + 1}`
-    );
+    setFormCode(defaultCategory === "VIP" ? "MS: " : "CLONE-");
     setFormTitle("");
-    setFormThumbnail(
-      "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop"
-    );
+    setFormThumbnail("");
     setFormDescription("Tài khoản chính chủ hoạt động tốt.");
 
     // Reset VIP fields
+    const defaultAccVal = 850000;
     setFormRank("THÁCH ĐẤU");
-    setFormAccountValue(850000);
-    setFormHourlyPrice(15000);
-    setFormMainChibi("Tí Nị Ahri Chiêu Hồn");
-    setFormMainArena("Sân Đấu Tiệm Trà Tâm Linh");
-    setFormAllChibi(["Tí Nị Ahri Chiêu Hồn"]);
-    setFormAllArenas(["Sân Đấu Tiệm Trà Tâm Linh"]);
+    setFormAccountValue(defaultAccVal);
+    setFormHourlyPrice(calcHourlyFromValue(defaultAccVal, pricingRates.rate2Hours, pricingRates.passChangeFee));
+    setIsAutoPricing(true);
+    setFormMainChibi("");
+    setFormMainArena("");
+    setFormAllChibi([]);
+    setFormAllArenas([]);
+    setExtraChibiInput("");
+    setExtraArenaInput("");
 
     // Reset Clone fields
     setFormRankBadge("UNRANKED");
@@ -496,13 +525,26 @@ export default function AdminAccountsPage() {
     setFormDescription(account.description || "");
 
     if (account.category === "VIP") {
+      const accVal = account.accountValue || 850000;
+      const mainChibi = account.mainChibi || account.allChibi?.[0] || "";
+      const mainArena = account.mainArena || account.allArenas?.[0] || "";
+      const allChibi = Array.isArray(account.allChibi) && account.allChibi.length > 0
+        ? account.allChibi
+        : (mainChibi ? [mainChibi] : []);
+      const allArenas = Array.isArray(account.allArenas) && account.allArenas.length > 0
+        ? account.allArenas
+        : (mainArena ? [mainArena] : []);
+
       setFormRank(account.rank || "THÁCH ĐẤU");
-      setFormAccountValue(account.accountValue || 850000);
-      setFormHourlyPrice(account.hourlyPrice || 15000);
-      setFormMainChibi(account.mainChibi || "Tí Nị TFT");
-      setFormMainArena(account.mainArena || "Sân Đấu Thần Thoại");
-      setFormAllChibi(account.allChibi || [account.mainChibi || "Tí Nị TFT"]);
-      setFormAllArenas(account.allArenas || [account.mainArena || "Sân Đấu Thần Thoại"]);
+      setFormAccountValue(accVal);
+      setFormHourlyPrice(account.hourlyPrice || calcHourlyFromValue(accVal, pricingRates.rate2Hours, pricingRates.passChangeFee));
+      setIsAutoPricing(false);
+      setFormMainChibi(mainChibi);
+      setFormMainArena(mainArena);
+      setFormAllChibi(allChibi);
+      setFormAllArenas(allArenas);
+      setExtraChibiInput("");
+      setExtraArenaInput("");
     } else {
       setFormRankBadge(account.rankBadge || "UNRANKED");
       setFormWeeklyPrice(account.weeklyPrice || 50000);
@@ -525,13 +567,32 @@ export default function AdminAccountsPage() {
     }
 
     if (formCategory === "VIP" && !formMainChibi.trim()) {
-      toast.error("Vui lòng nhập Tướng Tí Nị chính!");
+      toast.error("Vui lòng nhập Tướng Tí Nị / Linh Thú chính!");
       return;
     }
 
+    // Xử lý danh sách Linh Thú: Đảm bảo Linh Thú chính luôn đứng đầu tiên và không bị lặp
+    const cleanedMainChibi = formMainChibi.trim();
+    const otherChibis = formAllChibi
+      .map((c) => (c || "").trim())
+      .filter((c) => c && c.toLowerCase() !== cleanedMainChibi.toLowerCase());
+    const finalChibis = cleanedMainChibi ? [cleanedMainChibi, ...otherChibis] : otherChibis;
+
+    // Xử lý danh sách Sân Đấu: Đảm bảo Sân Đấu chính luôn đứng đầu tiên và không bị lặp
+    const cleanedMainArena = formMainArena.trim() || "Sân Đấu Thần Thoại";
+    const otherArenas = formAllArenas
+      .map((a) => (a || "").trim())
+      .filter((a) => a && a.toLowerCase() !== cleanedMainArena.toLowerCase());
+    const finalArenas = [cleanedMainArena, ...otherArenas];
+
+    // Xử lý giá theo giờ tự động nếu không nhập
+    const finalHourlyPrice = formHourlyPrice > 0
+      ? formHourlyPrice
+      : calcHourlyFromValue(formAccountValue, pricingRates.rate2Hours, pricingRates.passChangeFee);
+
     const effectiveTitle =
       formCategory === "VIP"
-        ? formTitle.trim() || `${formRank} - ${formMainChibi.trim()}`
+        ? formTitle.trim() || `${formRank} - ${cleanedMainChibi || "Tí Nị VIP"}`
         : formTitle.trim() || `Acc Clone ${formRankBadge}`;
 
     const payload: any = {
@@ -540,21 +601,11 @@ export default function AdminAccountsPage() {
       title: effectiveTitle,
       rank: formCategory === "VIP" ? formRank : formRankBadge,
       price: formCategory === "VIP" ? formAccountValue : formMonthlyPrice,
-      hourly_price: formCategory === "VIP" ? formHourlyPrice : 0,
+      hourly_price: formCategory === "VIP" ? finalHourlyPrice : 0,
       weekly_price: formCategory === "CLONE" ? formWeeklyPrice : 0,
       period_price: formCategory === "CLONE" ? formMonthlyPrice : 0,
-      champions:
-        formCategory === "VIP"
-          ? formAllChibi.length > 0
-            ? formAllChibi
-            : [formMainChibi.trim()]
-          : [],
-      arenas:
-        formCategory === "VIP"
-          ? formAllArenas.length > 0
-            ? formAllArenas
-            : [formMainArena.trim() || "Sân Đấu Thần Thoại"]
-          : [],
+      champions: formCategory === "VIP" ? finalChibis : [],
+      arenas: formCategory === "VIP" ? finalArenas : [],
       features: formCategory === "CLONE" ? formFeatures : [],
       image_url:
         formThumbnail.trim() ||
@@ -1540,7 +1591,12 @@ export default function AdminAccountsPage() {
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
-                        onClick={() => setFormCategory("VIP")}
+                        onClick={() => {
+                          setFormCategory("VIP");
+                          if (!editingAccount && (!formCode || formCode.startsWith("CLONE-") || formCode === "CLONE-")) {
+                            setFormCode("MS: ");
+                          }
+                        }}
                         className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                           formCategory === "VIP"
                             ? "bg-orange-50 border-orange-600 text-orange-950 font-bold shadow-sm"
@@ -1556,7 +1612,12 @@ export default function AdminAccountsPage() {
 
                       <button
                         type="button"
-                        onClick={() => setFormCategory("CLONE")}
+                        onClick={() => {
+                          setFormCategory("CLONE");
+                          if (!editingAccount && (!formCode || formCode.startsWith("MS: ") || formCode === "MS: ")) {
+                            setFormCode("CLONE-");
+                          }
+                        }}
                         className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                           formCategory === "CLONE"
                             ? "bg-sky-50 border-sky-600 text-sky-950 font-bold shadow-sm"
@@ -1622,53 +1683,277 @@ export default function AdminAccountsPage() {
 
                   {/* THUỘC TÍNH RIÊNG ACC VIP */}
                   {formCategory === "VIP" && (
-                    <div className="space-y-3 p-3.5 bg-orange-50/60 rounded-2xl border border-orange-200/80">
+                    <div className="space-y-4 p-4 bg-orange-50/60 rounded-2xl border border-orange-200/80">
+                      {/* 1. TƯỚNG TÍ NỊ / LINH THÚ CHÍNH */}
                       <div className="space-y-1.5">
-                        <label className="font-bold text-slate-800 block">
-                          Tướng Tí Nị Chính: <span className="text-red-500">*</span>
-                        </label>
+                        <div className="flex items-center justify-between">
+                          <label className="font-bold text-slate-800 block">
+                            Tướng Tí Nị / Linh Thú Chính: <span className="text-red-500">*</span>
+                          </label>
+                          <span className="text-[10px] text-orange-700 font-bold">
+                            Hiển thị chính trên thẻ
+                          </span>
+                        </div>
                         <input
                           type="text"
                           required
                           value={formMainChibi}
                           onChange={(e) => setFormMainChibi(e.target.value)}
-                          placeholder="Tí Nị Ahri Chiêu Hồn"
-                          className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                          placeholder="vd: Tí Nị Ahri Chiêu Hồn, Tí Nị Yasuo..."
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
                         />
                       </div>
 
+                      {/* 1.1 DANH SÁCH LINH THÚ KÈM THEO */}
                       <div className="space-y-1.5">
-                        <label className="font-bold text-slate-800 block">Sân Đấu Thần Thoại:</label>
+                        <label className="font-bold text-slate-800 block">
+                          Linh Thú / Tí Nị Kèm Theo (Nhiều Linh Thú):
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={extraChibiInput}
+                            onChange={(e) => setExtraChibiInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                if (extraChibiInput.trim()) {
+                                  setFormAllChibi((prev) => [...prev, extraChibiInput.trim()]);
+                                  setExtraChibiInput("");
+                                }
+                              }
+                            }}
+                            placeholder="Nhập tên Linh Thú rồi bấm Enter hoặc Thêm..."
+                            className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (extraChibiInput.trim()) {
+                                setFormAllChibi((prev) => [...prev, extraChibiInput.trim()]);
+                                setExtraChibiInput("");
+                              }
+                            }}
+                            className="px-3 py-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs"
+                          >
+                            + Thêm
+                          </button>
+                        </div>
+
+                        {formAllChibi.filter((c) => c && c.trim().toLowerCase() !== formMainChibi.trim().toLowerCase()).length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {formAllChibi
+                              .filter((c) => c && c.trim().toLowerCase() !== formMainChibi.trim().toLowerCase())
+                              .map((chibi, idx) => (
+                                <span
+                                  key={idx}
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-100 text-orange-900 text-[11px] font-bold border border-orange-200"
+                                >
+                                  <span>{chibi}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setFormAllChibi((prev) =>
+                                        prev.filter((_, i) => i !== idx)
+                                      )
+                                    }
+                                    className="text-orange-600 hover:text-red-700 font-black cursor-pointer ml-1"
+                                    title="Xóa linh thú này"
+                                  >
+                                    ×
+                                  </button>
+                                </span>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 2. SÂN ĐẤU THẦN THOẠI CHÍNH */}
+                      <div className="space-y-1.5 pt-1 border-t border-orange-200/50">
+                        <label className="font-bold text-slate-800 block">
+                          Sân Đấu Thần Thoại Chính:
+                        </label>
                         <input
                           type="text"
                           value={formMainArena}
                           onChange={(e) => setFormMainArena(e.target.value)}
-                          placeholder="Sân Đấu Tiệm Trà Tâm Linh (Đổi Nhạc EDM)"
-                          className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-orange-500"
+                          placeholder="vd: Sân Đấu Tiệm Trà Tâm Linh (Đổi Nhạc EDM)..."
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-orange-500"
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2.5">
-                        <div className="space-y-1.5">
-                          <label className="font-bold text-slate-800 block">Giá Thuê / Giờ (VNĐ):</label>
+                      {/* 2.1 DANH SÁCH SÂN ĐẤU KÈM THEO */}
+                      <div className="space-y-1.5">
+                        <label className="font-bold text-slate-800 block">
+                          Sân Đấu Kèm Theo (Nhiều Sân Đấu):
+                        </label>
+                        <div className="flex gap-2">
                           <input
-                            type="number"
-                            step="1000"
-                            value={formHourlyPrice}
-                            onChange={(e) => setFormHourlyPrice(Number(e.target.value))}
-                            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold font-mono text-orange-700 focus:outline-none focus:border-orange-500"
+                            type="text"
+                            value={extraArenaInput}
+                            onChange={(e) => setExtraArenaInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                if (extraArenaInput.trim()) {
+                                  setFormAllArenas((prev) => [...prev, extraArenaInput.trim()]);
+                                  setExtraArenaInput("");
+                                }
+                              }
+                            }}
+                            placeholder="Nhập tên Sân Đấu rồi bấm Enter hoặc Thêm..."
+                            className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-orange-500"
                           />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (extraArenaInput.trim()) {
+                                setFormAllArenas((prev) => [...prev, extraArenaInput.trim()]);
+                                setExtraArenaInput("");
+                              }
+                            }}
+                            className="px-3 py-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs"
+                          >
+                            + Thêm
+                          </button>
                         </div>
 
-                        <div className="space-y-1.5">
-                          <label className="font-bold text-slate-800 block">Định Giá Acc (VNĐ):</label>
-                          <input
-                            type="number"
-                            step="50000"
-                            value={formAccountValue}
-                            onChange={(e) => setFormAccountValue(Number(e.target.value))}
-                            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold font-mono text-slate-800 focus:outline-none focus:border-orange-500"
-                          />
+                        {formAllArenas.filter((a) => a && a.trim().toLowerCase() !== formMainArena.trim().toLowerCase()).length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {formAllArenas
+                              .filter((a) => a && a.trim().toLowerCase() !== formMainArena.trim().toLowerCase())
+                              .map((arena, idx) => (
+                                <span
+                                  key={idx}
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 text-[11px] font-bold border border-slate-300"
+                                >
+                                  <span>{arena}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setFormAllArenas((prev) =>
+                                        prev.filter((_, i) => i !== idx)
+                                      )
+                                    }
+                                    className="text-slate-500 hover:text-red-700 font-black cursor-pointer ml-1"
+                                    title="Xóa sân đấu này"
+                                  >
+                                    ×
+                                  </button>
+                                </span>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 3. ĐỊNH GIÁ ACC & TỰ ĐỘNG TÍNH GIÁ THUÊ */}
+                      <div className="space-y-3 pt-2 border-t border-orange-200/60">
+                        <div className="flex items-center justify-between">
+                          <span className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                            <Zap className="w-3.5 h-3.5 text-orange-600" />
+                            <span>Định Giá & Tính Giá Thuê Tự Động</span>
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const nextState = !isAutoPricing;
+                              setIsAutoPricing(nextState);
+                              if (nextState) {
+                                const calculated = calcHourlyFromValue(
+                                  formAccountValue,
+                                  pricingRates.rate2Hours,
+                                  pricingRates.passChangeFee
+                                );
+                                setFormHourlyPrice(calculated);
+                                toast.success("Đã bật tự động tính giá theo % định giá!");
+                              }
+                            }}
+                            className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                              isAutoPricing
+                                ? "bg-orange-600 text-white shadow-xs"
+                                : "bg-slate-200 text-slate-700 hover:bg-slate-300"
+                            }`}
+                          >
+                            <span>⚡ Tự động tính: {isAutoPricing ? "BẬT" : "TẮT"}</span>
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <div className="space-y-1.5">
+                            <label className="font-bold text-slate-800 block">
+                              Định Giá Acc (VNĐ): <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="number"
+                              step="50000"
+                              value={formAccountValue}
+                              onChange={(e) => handleAccountValueChange(Number(e.target.value))}
+                              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold font-mono text-slate-900 focus:outline-none focus:border-orange-500"
+                            />
+                            <span className="text-[10px] text-slate-500 block">
+                              Giá trị gốc của tài khoản
+                            </span>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <label className="font-bold text-slate-800 block">
+                                Giá Thuê / Giờ:
+                              </label>
+                              {isAutoPricing && (
+                                <span className="text-[9px] font-bold text-orange-600 uppercase">
+                                  Tự động
+                                </span>
+                              )}
+                            </div>
+                            <input
+                              type="number"
+                              step="1000"
+                              value={formHourlyPrice}
+                              onChange={(e) => {
+                                setFormHourlyPrice(Number(e.target.value));
+                                setIsAutoPricing(false);
+                              }}
+                              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold font-mono text-orange-700 focus:outline-none focus:border-orange-500"
+                            />
+                            <span className="text-[10px] text-slate-500 block">
+                              Hiển thị trên Shop
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Bảng Minh Họa Xem Trước Các Gói Giá Tự Động */}
+                        <div className="bg-white p-3 rounded-xl border border-orange-200/80 space-y-2 text-[11px]">
+                          <span className="font-bold text-orange-950 block">
+                            📊 Giá các gói thuê tự động (Theo định giá {(Number(formAccountValue) || 0).toLocaleString("vi-VN")}đ):
+                          </span>
+                          <div className="grid grid-cols-2 gap-2 text-slate-700 font-mono">
+                            <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                              <span className="text-[10px] text-slate-500 block font-sans">Gói 2 Giờ (3% + 20k):</span>
+                              <strong className="text-red-600 font-bold">
+                                {(Math.round(((formAccountValue * (pricingRates.rate2Hours / 100)) + pricingRates.passChangeFee) / 1000) * 1000).toLocaleString("vi-VN")}đ
+                              </strong>
+                            </div>
+                            <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                              <span className="text-[10px] text-slate-500 block font-sans">Gói 7 Ngày (12% + 20k):</span>
+                              <strong className="text-red-600 font-bold">
+                                {(Math.round(((formAccountValue * (pricingRates.rate7Days / 100)) + pricingRates.passChangeFee) / 1000) * 1000).toLocaleString("vi-VN")}đ
+                              </strong>
+                            </div>
+                            <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                              <span className="text-[10px] text-slate-500 block font-sans">Gói 30 Ngày (30%):</span>
+                              <strong className="text-red-600 font-bold">
+                                {(Math.round((formAccountValue * (pricingRates.rate30Days / 100)) / 1000) * 1000).toLocaleString("vi-VN")}đ
+                              </strong>
+                            </div>
+                            <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                              <span className="text-[10px] text-slate-500 block font-sans">Gói 999 Ngày (Vô Cực):</span>
+                              <strong className="text-purple-700 font-bold">
+                                {(Number(formAccountValue) || 0).toLocaleString("vi-VN")}đ
+                              </strong>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1715,16 +2000,16 @@ export default function AdminAccountsPage() {
                   )}
 
                   {/* Link Hình Ảnh Thumbnail */}
-                  <div className="space-y-1.5">
-                    <label className="font-bold text-slate-800 block">Link Ảnh Bìa (Image URL):</label>
-                    <input
-                      type="text"
-                      value={formThumbnail}
-                      onChange={(e) => setFormThumbnail(e.target.value)}
-                      placeholder="https://images.unsplash.com/..."
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono focus:outline-none focus:border-orange-500 text-[11px]"
-                    />
-                  </div>
+                    <div className="space-y-1.5">
+                      <label className="font-bold text-slate-800 block">Link Ảnh Bìa (Image URL):</label>
+                      <input
+                        type="text"
+                        value={formThumbnail}
+                        onChange={(e) => setFormThumbnail(e.target.value)}
+                        placeholder="Dán link ảnh bìa tại đây (để trống nếu chưa có)..."
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono focus:outline-none focus:border-orange-500 text-[11px]"
+                      />
+                    </div>
 
                   {/* Mô Tả Chi Tiết */}
                   <div className="space-y-1.5">

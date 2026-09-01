@@ -62,11 +62,25 @@ export interface HomepageImagesConfig {
   coverUrl: string;
 }
 
+export interface PricingConfig {
+  passChangeFee: number;
+  rate2Hours: number;
+  rate7Days: number;
+  rate30Days: number;
+}
+
+export interface ContactConfig {
+  phoneZalo: string;
+  checkscamFund: string;
+}
+
 export interface HomepageConfig {
   sections: HomepageSections;
   hero: HeroConfig;
   images: HomepageImagesConfig;
   alertBanner: AlertBannerConfig;
+  pricing?: PricingConfig;
+  contact?: ContactConfig;
   servicePackages: ServicePackageItem[];
   faqs: FAQConfigItem[];
 }

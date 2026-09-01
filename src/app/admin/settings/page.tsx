@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { PROFILE_INFO } from "@/data/tft-data";
+import { getHomepageConfig, updateHomepageConfig } from "@/utils/homepage-service";
 import toast from "react-hot-toast";
 import {
   Settings,
@@ -16,6 +17,7 @@ import {
   Calculator,
   HelpCircle,
   Users,
+  Loader2,
 } from "lucide-react";
 
 export default function AdminSettingsPage() {
@@ -35,11 +37,41 @@ export default function AdminSettingsPage() {
     "🎁 Ưu đãi đặc biệt: Tặng thêm 1 giờ chơi và miễn phí phí đổi pass cố định cho khách hàng thuê lần đầu qua Zalo Tuấn Thái Bình!"
   );
 
+  const [isLoadingConfig, setIsLoadingConfig] = useState(true);
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
+
   // 4. Đổi Mật Khẩu Quản Trị
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isChangingPass, setIsChangingPass] = useState(false);
+
+  // Fetch cấu hình hiện tại từ backend
+  useEffect(() => {
+    let isMounted = true;
+    getHomepageConfig().then((cfg) => {
+      if (isMounted && cfg) {
+        if (cfg.pricing) {
+          setPassChangeFee(cfg.pricing.passChangeFee ?? 20000);
+          setRate2Hours(cfg.pricing.rate2Hours ?? 3);
+          setRate7Days(cfg.pricing.rate7Days ?? 12);
+          setRate30Days(cfg.pricing.rate30Days ?? 30);
+        }
+        if (cfg.contact) {
+          setPhoneZalo(cfg.contact.phoneZalo || PROFILE_INFO.phoneZalo);
+          setCheckscamFund(cfg.contact.checkscamFund || "30.000.000đ");
+        }
+        if (cfg.alertBanner) {
+          setIsBannerActive(cfg.alertBanner.active ?? true);
+          setBannerContent(cfg.alertBanner.content || "");
+        }
+        setIsLoadingConfig(false);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
@@ -84,9 +116,39 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("✅ Đã lưu toàn bộ cài đặt hệ thống thành công!");
+    setIsSavingConfig(true);
+    const toastId = toast.loading("Đang lưu cài đặt hệ thống...");
+
+    try {
+      const res = await updateHomepageConfig({
+        pricing: {
+          passChangeFee: Number(passChangeFee) || 20000,
+          rate2Hours: Number(rate2Hours) || 3,
+          rate7Days: Number(rate7Days) || 12,
+          rate30Days: Number(rate30Days) || 30,
+        },
+        contact: {
+          phoneZalo: phoneZalo.trim() || PROFILE_INFO.phoneZalo,
+          checkscamFund: checkscamFund.trim() || "30.000.000đ",
+        },
+        alertBanner: {
+          active: isBannerActive,
+          content: bannerContent.trim(),
+        },
+      });
+
+      if (res.success) {
+        toast.success("✅ Đã lưu toàn bộ cài đặt hệ thống thành công!", { id: toastId });
+      } else {
+        toast.error(`Lỗi: ${res.error || "Không thể lưu cài đặt!"}`, { id: toastId });
+      }
+    } catch (err: any) {
+      toast.error(`Lỗi kết nối: ${err.message}`, { id: toastId });
+    } finally {
+      setIsSavingConfig(false);
+    }
   };
 
   // Demo tính giá mẫu dựa trên cấu hình
@@ -372,7 +434,7 @@ export default function AdminSettingsPage() {
                 Bảo Mật & Đổi Mật Khẩu Quản Trị
               </h3>
               <p className="text-sm text-slate-500 mt-0.5 font-normal">
-                Mật khẩu dùng để đăng nhập vào trang quản trị Admin ShopTFT. Mặc định là <code className="text-orange-600 font-bold bg-orange-50 px-1.5 py-0.5 rounded">tuanthaibinh8888</code>.
+                Mật khẩu bảo mật dùng để đăng nhập vào trang quản trị Admin ShopTFT.
               </p>
             </div>
           </div>
@@ -437,10 +499,15 @@ export default function AdminSettingsPage() {
         <div className="pt-2 flex items-center justify-end">
           <button
             type="submit"
-            className="px-7 py-3 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-2xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-orange-600/25 transition-all hover:scale-105 cursor-pointer"
+            disabled={isSavingConfig}
+            className="px-7 py-3 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-2xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-orange-600/25 transition-all hover:scale-105 cursor-pointer disabled:opacity-50"
           >
-            <Save className="w-4 h-4" />
-            <span>Lưu Cài Đặt Hệ Thống</span>
+            {isSavingConfig ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            <span>{isSavingConfig ? "Đang Lưu Cài Đặt..." : "Lưu Cài Đặt Hệ Thống"}</span>
           </button>
         </div>
       </form>

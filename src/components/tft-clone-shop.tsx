@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { TFTCloneAccount, PROFILE_INFO } from "@/data/tft-data";
+import { TFTCloneAccount, TFT_CLONE_ACCOUNTS, PROFILE_INFO } from "@/data/tft-data";
 import { getVipAndCloneAccounts, formatRentalExpiry } from "@/utils/supabase/accounts-service";
 import { motion, Variants } from "framer-motion";
 import {
@@ -65,8 +65,9 @@ const getAccountPrice = (account?: TFTCloneAccount | null): number => {
 };
 
 export const TFTCloneShop: React.FC = () => {
-  const [cloneAccounts, setCloneAccounts] = useState<TFTCloneAccount[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Khởi tạo sẵn danh sách có sẵn để render tức thì 0s, sau đó fetch ngầm từ Supabase
+  const [cloneAccounts, setCloneAccounts] = useState<TFTCloneAccount[]>(TFT_CLONE_ACCOUNTS || []);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedClone, setSelectedClone] = useState<TFTCloneAccount | null>(null);
   const [isAgreed, setIsAgreed] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
@@ -77,14 +78,12 @@ export const TFTCloneShop: React.FC = () => {
   const [selectedSort, setSelectedSort] = useState<"DEFAULT" | "PRICE_ASC" | "PRICE_DESC">("DEFAULT");
   const sliderRef = useRef<HTMLDivElement>(null);
 
-  // Fetch dữ liệu thật từ Supabase
+  // Fetch dữ liệu mới nhất từ Supabase chạy ngầm
   useEffect(() => {
     let isMounted = true;
-    setIsLoading(true);
     getVipAndCloneAccounts().then(({ cloneAccounts: fetchedClone }) => {
-      if (isMounted) {
-        setCloneAccounts(fetchedClone || []);
-        setIsLoading(false);
+      if (isMounted && fetchedClone && fetchedClone.length > 0) {
+        setCloneAccounts(fetchedClone);
       }
     });
     return () => {
