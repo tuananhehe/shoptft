@@ -11,7 +11,6 @@ import { TFTReviews } from "@/components/tft-reviews";
 import { TFTFaq } from "@/components/tft-faq";
 import { TFTFooter } from "@/components/tft-footer";
 import { TFTAccountModal } from "@/components/tft-account-modal";
-import { TFTFloatingChat } from "@/components/tft-floating-chat";
 import { TFTRentalAccount } from "@/data/tft-data";
 import { HomepageConfig, getHomepageConfig } from "@/utils/homepage-service";
 import defaultConfig from "@/data/homepage-config.json";
@@ -44,11 +43,11 @@ export default function HomePage() {
     services: true,
     reviews: true,
     faq: true,
-    floatingChat: true,
+    floatingChat: false,
   };
 
   return (
-    <main className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#F8FAFC] text-slate-900 selection:bg-orange-500 selection:text-white flex flex-col justify-between relative pb-16 sm:pb-0">
+    <main className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#F8FAFC] text-slate-900 selection:bg-orange-500 selection:text-white flex flex-col justify-between relative">
       {/* 1. Sticky Navigation Bar */}
       <TFTNavbar />
 
@@ -81,9 +80,6 @@ export default function HomePage() {
 
       {/* 8. Footer */}
       <TFTFooter />
-
-      {/* 9. Floating Zalo Chat Button (Góc dưới phải) */}
-      {sections.floatingChat !== false && <TFTFloatingChat />}
 
       {/* Detail Rental Account & Fast Order Modal */}
       <TFTAccountModal

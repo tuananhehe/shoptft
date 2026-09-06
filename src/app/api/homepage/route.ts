@@ -16,7 +16,7 @@ const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
     services: true,
     reviews: true,
     faq: true,
-    floatingChat: true,
+    floatingChat: false,
   },
   hero: {
     badge: "HỆ THỐNG THUÊ ACC TFT ĐTCL CHÍNH CHỦ // TUẤN THÁI BÌNH",
