@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   HomepageConfig,
@@ -10,9 +10,11 @@ import {
   AlertBannerConfig,
   ServicePackageItem,
   FAQConfigItem,
+  SEOConfig,
   getHomepageConfig,
   updateHomepageConfig,
   resetHomepageConfig,
+  uploadAdminFile,
 } from "@/utils/homepage-service";
 import toast from "react-hot-toast";
 import {
@@ -39,6 +41,15 @@ import {
   Flame,
   Image as ImageIcon,
   Check,
+  Globe,
+  Search,
+  Upload,
+  Paintbrush,
+  FileText,
+  Share2,
+  Monitor,
+  Smartphone,
+  X,
 } from "lucide-react";
 
 export default function AdminHomepageManagerPage() {
@@ -46,8 +57,18 @@ export default function AdminHomepageManagerPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    "sections" | "hero" | "images" | "banner" | "services" | "faq"
+    "sections" | "images" | "hero" | "banner" | "services" | "faq" | "seo"
   >("sections");
+
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
+  const [uploadingBg, setUploadingBg] = useState(false);
+  const [uploadingOg, setUploadingOg] = useState(false);
+  const [uploadingHeroCard, setUploadingHeroCard] = useState(false);
+
+  const faviconInputRef = useRef<HTMLInputElement>(null);
+  const bgInputRef = useRef<HTMLInputElement>(null);
+  const ogInputRef = useRef<HTMLInputElement>(null);
+  const heroCardInputRef = useRef<HTMLInputElement>(null);
 
   // Form states
   const [sections, setSections] = useState<HomepageSections>({
@@ -86,6 +107,24 @@ export default function AdminHomepageManagerPage() {
     content: "",
   });
 
+  const [seo, setSeo] = useState<SEOConfig>({
+    metaTitle: "Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Tự Động 24/7",
+    metaDescription:
+      "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7. Cung cấp tài khoản full Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc. Admin Tuấn Thái Bình (Cựu Thách Đấu) uy tín - Quỹ bảo hiểm 30M.",
+    metaKeywords:
+      "thuê acc tft, thuê acc đtcl, shop tft, tuấn thái bình tft, thuê acc tí nị, cày thuê đtcl, shop acc tft uy tín, shop tft mobile, thuê tài khoản đtcl, tí nị ahri, tí nị yasuo, coaching tft",
+    canonicalUrl: "https://shoptft.vercel.app/",
+    ogTitle: "Tuấn Thái Bình TFT | Nền Tảng Thuê Acc ĐTCL Uy Tín",
+    ogDescription:
+      "Thuê acc VIP ĐTCL tự động 30s, full Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc. Bảo hiểm 30M Checkscam.",
+    ogImage: "/banner-seo.jpg",
+    faviconUrl: "/favicon.ico",
+    bgImageUrl: "",
+    bgColor: "#F8FAFC",
+    googleVerification: "",
+    author: "Tuấn Thái Bình",
+  });
+
   const [servicePackages, setServicePackages] = useState<ServicePackageItem[]>([]);
   const [faqs, setFaqs] = useState<FAQConfigItem[]>([]);
 
@@ -105,6 +144,66 @@ export default function AdminHomepageManagerPage() {
   const [srvPopular, setSrvPopular] = useState(false);
   const [srvFeaturesText, setSrvFeaturesText] = useState("");
 
+  const handleUploadFavicon = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingFavicon(true);
+    const toastId = toast.loading("Đang tải lên Favicon...");
+    const res = await uploadAdminFile(file, "favicon");
+    setUploadingFavicon(false);
+    if (res.success && res.url) {
+      setSeo((prev) => ({ ...prev, faviconUrl: res.url! }));
+      toast.success("✅ Đã cập nhật Favicon thành công!", { id: toastId });
+    } else {
+      toast.error(`Lỗi: ${res.error || "Không thể upload favicon"}`, { id: toastId });
+    }
+  };
+
+  const handleUploadBackground = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingBg(true);
+    const toastId = toast.loading("Đang tải lên hình nền trang web...");
+    const res = await uploadAdminFile(file, "background");
+    setUploadingBg(false);
+    if (res.success && res.url) {
+      setSeo((prev) => ({ ...prev, bgImageUrl: res.url! }));
+      toast.success("✅ Đã cập nhật hình nền trang web thành công!", { id: toastId });
+    } else {
+      toast.error(`Lỗi: ${res.error || "Không thể upload ảnh nền"}`, { id: toastId });
+    }
+  };
+
+  const handleUploadOgImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingOg(true);
+    const toastId = toast.loading("Đang tải lên ảnh chia sẻ mạng xã hội...");
+    const res = await uploadAdminFile(file, "general");
+    setUploadingOg(false);
+    if (res.success && res.url) {
+      setSeo((prev) => ({ ...prev, ogImage: res.url! }));
+      toast.success("✅ Đã cập nhật ảnh chia sẻ OG!", { id: toastId });
+    } else {
+      toast.error(`Lỗi: ${res.error || "Không thể upload ảnh"}`, { id: toastId });
+    }
+  };
+
+  const handleUploadHeroCard = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingHeroCard(true);
+    const toastId = toast.loading("Đang tải lên ảnh thẻ Hero...");
+    const res = await uploadAdminFile(file, "general");
+    setUploadingHeroCard(false);
+    if (res.success && res.url) {
+      setImages((prev) => ({ ...prev, heroCardImage: res.url! }));
+      toast.success("✅ Đã cập nhật ảnh thẻ Hero thành công!", { id: toastId });
+    } else {
+      toast.error(`Lỗi: ${res.error || "Không thể upload ảnh thẻ"}`, { id: toastId });
+    }
+  };
+
   const loadData = async () => {
     setLoading(true);
     const data = await getHomepageConfig();
@@ -116,6 +215,22 @@ export default function AdminHomepageManagerPage() {
         setImages(data.images);
       }
       setAlertBanner(data.alertBanner);
+      if (data.seo) {
+        setSeo({
+          metaTitle: data.seo.metaTitle || "Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Tự Động 24/7",
+          metaDescription: data.seo.metaDescription || "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7.",
+          metaKeywords: data.seo.metaKeywords || "thuê acc tft, thuê acc đtcl, shop tft, tuấn thái bình tft",
+          canonicalUrl: data.seo.canonicalUrl || "https://shoptft.vercel.app/",
+          ogTitle: data.seo.ogTitle || "Tuấn Thái Bình TFT | Nền Tảng Thuê Acc ĐTCL Uy Tín",
+          ogDescription: data.seo.ogDescription || "Thuê acc VIP ĐTCL tự động 30s.",
+          ogImage: data.seo.ogImage || "/banner-seo.jpg",
+          faviconUrl: data.seo.faviconUrl || "/favicon.ico",
+          bgImageUrl: data.seo.bgImageUrl || "",
+          bgColor: data.seo.bgColor || "#F8FAFC",
+          googleVerification: data.seo.googleVerification || "",
+          author: data.seo.author || "Tuấn Thái Bình",
+        });
+      }
       setServicePackages(data.servicePackages || []);
       setFaqs(data.faqs || []);
     }
@@ -128,13 +243,14 @@ export default function AdminHomepageManagerPage() {
 
   const handleSaveAll = async () => {
     setSaving(true);
-    const toastId = toast.loading("Đang lưu toàn bộ cấu hình trang chủ...");
+    const toastId = toast.loading("Đang lưu toàn bộ cấu hình trang chủ & SEO...");
 
     const payload: HomepageConfig = {
       sections,
       hero,
       images,
       alertBanner,
+      seo,
       servicePackages,
       faqs,
     };
@@ -142,7 +258,7 @@ export default function AdminHomepageManagerPage() {
     const res = await updateHomepageConfig(payload);
 
     if (res.success && res.data) {
-      toast.success("✅ Đã lưu cấu hình trang chủ thành công!", { id: toastId });
+      toast.success("✅ Đã lưu cấu hình trang chủ & SEO thành công!", { id: toastId });
       setConfig(res.data);
     } else {
       toast.error(`Lỗi: ${res.error}`, { id: toastId });
@@ -533,6 +649,18 @@ export default function AdminHomepageManagerPage() {
           <HelpCircle className="w-4 h-4 text-emerald-400" />
           <span>Câu Hỏi FAQ ({faqs.length})</span>
         </button>
+
+        <button
+          onClick={() => setActiveTab("seo")}
+          className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+            activeTab === "seo"
+              ? "bg-slate-900 text-white shadow-sm"
+              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+          }`}
+        >
+          <Globe className="w-4 h-4 text-emerald-400" />
+          <span>SEO, Favicon & Nền Web</span>
+        </button>
       </div>
 
       {/* 3. TAB CONTENT */}
@@ -635,17 +763,41 @@ export default function AdminHomepageManagerPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Hidden file input for hero card */}
+              <input
+                type="file"
+                ref={heroCardInputRef}
+                onChange={handleUploadHeroCard}
+                accept=".png,.jpg,.jpeg,.webp"
+                className="hidden"
+              />
+
               {/* Form cài đặt ảnh & chi tiết */}
               <div className="lg:col-span-7 space-y-4 text-xs">
                 <div className="space-y-1.5">
                   <label className="font-bold text-slate-800 block">Link Ảnh Bìa Thẻ Hero (Image URL):</label>
-                  <input
-                    type="text"
-                    value={images.heroCardImage}
-                    onChange={(e) => setImages({ ...images, heroCardImage: e.target.value })}
-                    placeholder="https://..."
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={images.heroCardImage}
+                      onChange={(e) => setImages({ ...images, heroCardImage: e.target.value })}
+                      placeholder="https://..."
+                      className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500"
+                    />
+                    <button
+                      type="button"
+                      disabled={uploadingHeroCard}
+                      onClick={() => heroCardInputRef.current?.click()}
+                      className="px-3.5 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-xl font-bold flex items-center gap-1.5 cursor-pointer flex-shrink-0 transition-colors shadow-xs"
+                    >
+                      {uploadingHeroCard ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="w-3.5 h-3.5" />
+                      )}
+                      <span>Tải Ảnh</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -1134,6 +1286,428 @@ export default function AdminHomepageManagerPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* 3.7 TAB: SEO, FAVICON & NỀN TRANG WEB */}
+      {activeTab === "seo" && (
+        <div className="space-y-6">
+          {/* Hidden File Inputs for uploads */}
+          <input
+            type="file"
+            ref={faviconInputRef}
+            onChange={handleUploadFavicon}
+            accept=".ico,.png,.jpg,.jpeg,.webp,.svg"
+            className="hidden"
+          />
+          <input
+            type="file"
+            ref={bgInputRef}
+            onChange={handleUploadBackground}
+            accept=".png,.jpg,.jpeg,.webp,.svg"
+            className="hidden"
+          />
+          <input
+            type="file"
+            ref={ogInputRef}
+            onChange={handleUploadOgImage}
+            accept=".png,.jpg,.jpeg,.webp"
+            className="hidden"
+          />
+
+          {/* Header Banner SEO */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-emerald-600" />
+                  <span>Tối Ưu SEO, Favicon & Giao Diện Nền Web</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Tùy chỉnh tiêu đề tìm kiếm Google, mô tả SEO, icon tab trình duyệt (Favicon) và hình nền toàn trang.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                disabled={saving}
+                onClick={handleSaveAll}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 cursor-pointer self-start sm:self-auto"
+              >
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                <span>Lưu Cài Đặt SEO</span>
+              </button>
+            </div>
+
+            {/* GOOGLE SEARCH PREVIEW MOCKUP (SERP) */}
+            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                  <Search className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Mô phỏng kết quả tìm kiếm Google (Google SERP Preview):</span>
+                </span>
+                <span className="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-bold">
+                  ✓ Chuẩn SEO 2026
+                </span>
+              </div>
+
+              <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-sm max-w-2xl space-y-1">
+                <div className="flex items-center gap-2 text-xs text-slate-600">
+                  <div className="w-4 h-4 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center border border-slate-200 flex-shrink-0">
+                    <img
+                      src={seo.faviconUrl || "/favicon.ico"}
+                      alt="Favicon"
+                      className="w-3.5 h-3.5 object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = "none";
+                      }}
+                    />
+                  </div>
+                  <div className="flex flex-col text-[11px] leading-tight truncate">
+                    <span className="text-slate-900 font-medium">ShopTFT Mobile</span>
+                    <span className="text-slate-500 font-mono text-[10px] truncate">{seo.canonicalUrl || "https://shoptft.vercel.app/"}</span>
+                  </div>
+                </div>
+
+                <h4 className="text-blue-700 hover:underline font-medium text-base sm:text-lg leading-snug cursor-pointer line-clamp-1">
+                  {seo.metaTitle || "Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Tự Động"}
+                </h4>
+
+                <p className="text-xs text-slate-600 leading-relaxed line-clamp-2">
+                  {seo.metaDescription || "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7. Cung cấp tài khoản full Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc..."}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* GRID 2 CỘT: META TAGS & FAVICON / NỀN WEB */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            {/* CỘT TRÁI (7 cols): CÁC THẺ META SEO CHÍNH */}
+            <div className="lg:col-span-7 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+              <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+                <FileText className="w-4 h-4 text-orange-600" />
+                <span>1. Thẻ Meta & Thông Tin Tìm Kiếm</span>
+              </h4>
+
+              {/* Meta Title */}
+              <div className="space-y-1.5 text-xs">
+                <div className="flex justify-between items-center">
+                  <label className="font-bold text-slate-800">
+                    Tiêu Đề Trang Web (Meta Title):
+                  </label>
+                  <span className={`text-[10px] font-mono font-bold ${
+                    seo.metaTitle.length > 70 ? "text-rose-600" : "text-slate-500"
+                  }`}>
+                    {seo.metaTitle.length}/60-70 ký tự
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  value={seo.metaTitle}
+                  onChange={(e) => setSeo({ ...seo, metaTitle: e.target.value })}
+                  placeholder="Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Tự Động 24/7"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-orange-500 text-xs"
+                />
+                <p className="text-[10px] text-slate-400">
+                  Xuất hiện trên thanh tiêu đề trình duyệt và dòng tiêu đề lớn màu xanh khi tìm kiếm trên Google.
+                </p>
+              </div>
+
+              {/* Meta Description */}
+              <div className="space-y-1.5 text-xs">
+                <div className="flex justify-between items-center">
+                  <label className="font-bold text-slate-800">
+                    Mô Tả Trang Web (Meta Description):
+                  </label>
+                  <span className={`text-[10px] font-mono font-bold ${
+                    seo.metaDescription.length > 165 ? "text-rose-600" : "text-slate-500"
+                  }`}>
+                    {seo.metaDescription.length}/150-160 ký tự
+                  </span>
+                </div>
+                <textarea
+                  rows={3}
+                  value={seo.metaDescription}
+                  onChange={(e) => setSeo({ ...seo, metaDescription: e.target.value })}
+                  placeholder="Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7..."
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-orange-500 text-xs leading-relaxed"
+                />
+                <p className="text-[10px] text-slate-400">
+                  Tóm tắt ngắn gọn dịch vụ, chứa từ khóa để kích thích người dùng bấm vào trang.
+                </p>
+              </div>
+
+              {/* Meta Keywords */}
+              <div className="space-y-1.5 text-xs">
+                <label className="font-bold text-slate-800 block">
+                  Từ Khóa SEO (Meta Keywords - Phân cách bằng dấu phẩy):
+                </label>
+                <textarea
+                  rows={2}
+                  value={seo.metaKeywords}
+                  onChange={(e) => setSeo({ ...seo, metaKeywords: e.target.value })}
+                  placeholder="thuê acc tft, thuê acc đtcl, shop tft, tuấn thái bình tft, thuê acc tí nị, cày thuê đtcl"
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-orange-500 text-xs leading-relaxed"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                {/* Canonical URL */}
+                <div className="space-y-1 text-xs">
+                  <label className="font-bold text-slate-800 block">Canonical URL (Link chuẩn):</label>
+                  <input
+                    type="text"
+                    value={seo.canonicalUrl}
+                    onChange={(e) => setSeo({ ...seo, canonicalUrl: e.target.value })}
+                    placeholder="https://shoptft.vercel.app/"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500 text-xs"
+                  />
+                </div>
+
+                {/* Author */}
+                <div className="space-y-1 text-xs">
+                  <label className="font-bold text-slate-800 block">Tác Giả / Chủ Sở Hữu:</label>
+                  <input
+                    type="text"
+                    value={seo.author || ""}
+                    onChange={(e) => setSeo({ ...seo, author: e.target.value })}
+                    placeholder="Tuấn Thái Bình"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-orange-500 text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Google Verification */}
+              <div className="space-y-1 text-xs pt-1">
+                <label className="font-bold text-slate-800 block">
+                  Google Search Console Verification Code (Tùy chọn):
+                </label>
+                <input
+                  type="text"
+                  value={seo.googleVerification || ""}
+                  onChange={(e) => setSeo({ ...seo, googleVerification: e.target.value })}
+                  placeholder="VD: google-site-verification=abcxyz123..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500 text-xs"
+                />
+              </div>
+            </div>
+
+            {/* CỘT PHẢI (5 cols): FAVICON, NỀN TRANG WEB & OPEN GRAPH */}
+            <div className="lg:col-span-5 space-y-6">
+              
+              {/* KHỐI 2: FAVICON & ICON TAB TRÌNH DUYỆT */}
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  <span>2. Favicon & Icon Tab Trình Duyệt</span>
+                </h4>
+
+                {/* BROWSER TAB PREVIEW */}
+                <div className="bg-slate-900 p-2.5 rounded-xl text-white text-xs space-y-1">
+                  <span className="text-[9px] font-mono text-slate-400 block uppercase">Xem trước trên Tab trình duyệt:</span>
+                  <div className="inline-flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-t-lg border-t border-x border-slate-700 max-w-xs shadow-inner">
+                    <img
+                      src={seo.faviconUrl || "/favicon.ico"}
+                      alt="Favicon Preview"
+                      className="w-4 h-4 object-contain rounded-xs"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "/avatar.jpg";
+                      }}
+                    />
+                    <span className="text-[11px] font-medium truncate max-w-[180px] text-slate-200">
+                      {seo.metaTitle || "Tuấn Thái Bình TFT"}
+                    </span>
+                    <X className="w-3 h-3 text-slate-500 ml-auto flex-shrink-0" />
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  <label className="font-bold text-slate-800 block">Link Icon Favicon:</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={seo.faviconUrl}
+                      onChange={(e) => setSeo({ ...seo, faviconUrl: e.target.value })}
+                      placeholder="/favicon.ico hoặc https://..."
+                      className="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                    />
+
+                    <button
+                      type="button"
+                      disabled={uploadingFavicon}
+                      onClick={() => faviconInputRef.current?.click()}
+                      className="px-3.5 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold flex items-center gap-1.5 cursor-pointer flex-shrink-0 transition-colors shadow-xs"
+                    >
+                      {uploadingFavicon ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="w-3.5 h-3.5" />
+                      )}
+                      <span>Tải Ảnh Lên</span>
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-400">
+                    Hỗ trợ định dạng: .ico, .png, .svg, .webp (Kích thước khuyến nghị 32x32px hoặc 64x64px).
+                  </p>
+                </div>
+              </div>
+
+              {/* KHỐI 3: HÌNH NỀN & MÀU SẮC TRANG WEB */}
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+                  <Paintbrush className="w-4 h-4 text-purple-600" />
+                  <span>3. Tùy Chỉnh Nền Toàn Trang Web</span>
+                </h4>
+
+                {/* BACKGROUND PREVIEW */}
+                <div
+                  className="h-24 rounded-xl border border-slate-200 p-3 flex flex-col justify-end text-slate-900 relative overflow-hidden transition-all shadow-inner"
+                  style={{
+                    backgroundColor: seo.bgColor || "#F8FAFC",
+                    ...(seo.bgImageUrl
+                      ? {
+                          backgroundImage: `url('${seo.bgImageUrl}')`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }
+                      : {}),
+                  }}
+                >
+                  <div className="bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-md text-[10px] font-bold self-start border border-slate-200 shadow-xs">
+                    {seo.bgImageUrl ? "Đang áp dụng ảnh nền tùy chỉnh" : "Đang dùng nền trơn mặc định"}
+                  </div>
+                </div>
+
+                {/* Upload & Link Background */}
+                <div className="space-y-2 text-xs">
+                  <label className="font-bold text-slate-800 block">Link Ảnh Nền (Background Image URL):</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={seo.bgImageUrl || ""}
+                      onChange={(e) => setSeo({ ...seo, bgImageUrl: e.target.value })}
+                      placeholder="Để trống nếu muốn dùng nền trơn hoặc nhập link..."
+                      className="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                    />
+
+                    <button
+                      type="button"
+                      disabled={uploadingBg}
+                      onClick={() => bgInputRef.current?.click()}
+                      className="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold flex items-center gap-1.5 cursor-pointer flex-shrink-0 transition-colors shadow-xs"
+                    >
+                      {uploadingBg ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="w-3.5 h-3.5" />
+                      )}
+                      <span>Tải Nền</span>
+                    </button>
+                  </div>
+
+                  {seo.bgImageUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setSeo({ ...seo, bgImageUrl: "" })}
+                      className="text-[11px] text-rose-600 hover:text-rose-700 font-bold flex items-center gap-1 cursor-pointer pt-0.5"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>Xóa ảnh nền (Quay về nền mặc định)</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Background Color Picker */}
+                <div className="space-y-1.5 text-xs pt-1">
+                  <label className="font-bold text-slate-800 block">Màu Nền Dự Phòng (Background Color):</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={seo.bgColor || "#F8FAFC"}
+                      onChange={(e) => setSeo({ ...seo, bgColor: e.target.value })}
+                      className="w-9 h-9 rounded-lg border border-slate-300 cursor-pointer p-0.5 bg-white"
+                    />
+                    <input
+                      type="text"
+                      value={seo.bgColor || "#F8FAFC"}
+                      onChange={(e) => setSeo({ ...seo, bgColor: e.target.value })}
+                      placeholder="#F8FAFC"
+                      className="w-32 px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-900"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setSeo({ ...seo, bgColor: "#F8FAFC" })}
+                      className="text-[10px] text-slate-500 hover:text-slate-800 underline cursor-pointer"
+                    >
+                      Mặc định (#F8FAFC)
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* KHỐI 4: CHIA SẺ MẠNG XÃ HỘI (OPEN GRAPH) */}
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+                  <Share2 className="w-4 h-4 text-sky-600" />
+                  <span>4. Chia Sẻ Mạng Xã Hội (Facebook / Zalo OG)</span>
+                </h4>
+
+                <div className="space-y-3 text-xs">
+                  <div className="space-y-1">
+                    <label className="font-bold text-slate-800 block">Tiêu Đề Chia Sẻ (OG Title):</label>
+                    <input
+                      type="text"
+                      value={seo.ogTitle}
+                      onChange={(e) => setSeo({ ...seo, ogTitle: e.target.value })}
+                      placeholder="Tuấn Thái Bình TFT | Nền Tảng Thuê Acc ĐTCL Uy Tín"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-orange-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-bold text-slate-800 block">Mô Tả Chia Sẻ (OG Description):</label>
+                    <textarea
+                      rows={2}
+                      value={seo.ogDescription}
+                      onChange={(e) => setSeo({ ...seo, ogDescription: e.target.value })}
+                      placeholder="Thuê acc VIP ĐTCL tự động 30s..."
+                      className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-orange-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-bold text-slate-800 block">Ảnh Thumbnail Chia Sẻ (OG Image):</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={seo.ogImage}
+                        onChange={(e) => setSeo({ ...seo, ogImage: e.target.value })}
+                        placeholder="/banner-seo.jpg hoặc https://..."
+                        className="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                      />
+
+                      <button
+                        type="button"
+                        disabled={uploadingOg}
+                        onClick={() => ogInputRef.current?.click()}
+                        className="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold flex items-center gap-1.5 cursor-pointer flex-shrink-0 transition-colors shadow-xs"
+                      >
+                        {uploadingOg ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Upload className="w-3.5 h-3.5" />
+                        )}
+                        <span>Tải Ảnh</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
           </div>
         </div>
       )}

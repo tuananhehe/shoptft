@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { TFTRentalAccount, TFT_RENTAL_ACCOUNTS } from "@/data/tft-data";
 import { getVipAndCloneAccounts, formatRentalExpiry } from "@/utils/supabase/accounts-service";
-import { motion, Variants } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import {
   Search,
   KeyRound,
@@ -32,17 +32,19 @@ const shopContainerVariants: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.08,
+      staggerChildren: 0.03,
+      delayChildren: 0.04,
     },
   },
 };
 
 const shopCardVariants: Variants = {
-  hidden: { opacity: 0, y: 25 },
+  hidden: { opacity: 0, y: 14, scale: 0.98 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.45, ease: "easeOut" },
+    scale: 1,
+    transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] },
   },
 };
 
@@ -173,8 +175,8 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
     });
 
   return (
-    <section id="shop" className="pt-8 pb-14 sm:pt-10 sm:pb-16 bg-slate-50 border-t border-slate-200/80 border-b border-slate-200 text-slate-900 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+    <section id="shop" className="pt-16 pb-16 sm:pt-20 sm:pb-20 lg:pt-24 lg:pb-24 bg-[#F8F9FA] border-t border-slate-200/90 border-b border-slate-200/90 text-slate-900 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -221,18 +223,18 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
       <div className="max-w-7xl mx-auto relative w-full py-3 overflow-hidden">
         {isLoading ? (
           /* SKELETON LOADING STATE CHO KHO VIP */
-          <div className="flex gap-5 px-4 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar py-2">
-            {[1, 2, 3, 4].map((i) => (
+          <div className="flex gap-3 sm:gap-5 px-3 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar py-2">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
               <div
                 key={i}
-                className="w-[270px] sm:w-[290px] lg:w-[280px] xl:w-[290px] flex-shrink-0 bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-4.5 shadow-sm animate-pulse space-y-3"
+                className="w-[165px] sm:w-[280px] lg:w-[280px] xl:w-[290px] flex-shrink-0 bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4.5 shadow-xs animate-pulse space-y-2.5"
               >
-                <div className="aspect-square w-full rounded-xl bg-slate-200" />
-                <div className="h-4 bg-slate-200 rounded w-3/4" />
-                <div className="h-3 bg-slate-200 rounded w-1/2" />
-                <div className="pt-3 border-t border-slate-100 flex justify-between items-center">
-                  <div className="h-4 bg-slate-200 rounded w-1/3" />
-                  <div className="h-8 bg-slate-200 rounded-xl w-1/2" />
+                <div className="aspect-square w-full rounded-lg sm:rounded-xl bg-slate-200" />
+                <div className="h-3.5 bg-slate-200 rounded-md w-3/4" />
+                <div className="h-3 bg-slate-100 rounded-md w-1/2" />
+                <div className="pt-2 border-t border-slate-100 flex justify-between items-center gap-2">
+                  <div className="h-3.5 bg-slate-200 rounded-md w-1/3" />
+                  <div className="h-7 sm:h-8 bg-slate-200 rounded-lg sm:rounded-xl w-1/2" />
                 </div>
               </div>
             ))}
@@ -247,41 +249,43 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
         ) : (
           <div
             ref={sliderRef}
-            className="animate-infinite-loop flex gap-5 px-4 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar scroll-smooth py-2"
+            className="animate-infinite-loop flex gap-3 sm:gap-5 px-3 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar scroll-smooth py-2"
           >
             {loopAccounts.map((account, index) => (
               <div
                 key={`${account.id}-${index}`}
-                className="w-[270px] sm:w-[290px] lg:w-[280px] xl:w-[290px] flex-shrink-0 flex flex-col h-full justify-between bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 group"
+                className="w-[165px] sm:w-[280px] lg:w-[280px] xl:w-[290px] flex-shrink-0 flex flex-col h-full justify-between bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 group"
               >
                 {/* Top Photo & Badges */}
                 <div>
-                  <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-slate-900 mb-3 border border-slate-100 shadow-inner">
+                  <div className="relative aspect-square w-full overflow-hidden rounded-lg sm:rounded-xl bg-slate-900 mb-2 sm:mb-3 border border-slate-100 shadow-inner">
                     <img
                       src={account.thumbnail}
                       alt={`Thuê acc TFT VIP ${account.code} có ${account.mainChibi} - Tuấn Thái Bình`}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
 
                     {/* Top Right Code Badge */}
-                    <div className="absolute top-3 right-3">
-                      <span className="px-2 py-0.5 rounded-md bg-black/80 text-[11px] font-mono font-bold text-white shadow-sm backdrop-blur-sm">
+                    <div className="absolute top-1.5 right-1.5 sm:top-3 sm:right-3">
+                      <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-black/80 text-[9px] sm:text-[11px] font-mono font-bold text-white shadow-sm backdrop-blur-sm">
                         {account.code}
                       </span>
                     </div>
 
                     {/* Top Left Status Badge */}
-                    <div className="absolute top-3 left-3">
+                    <div className="absolute top-1.5 left-1.5 sm:top-3 sm:left-3">
                       {account.status === "AVAILABLE" ? (
-                        <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
-                          <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                        <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-emerald-600/90 text-white text-[8px] sm:text-[10px] font-bold tracking-tight sm:tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
+                          <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white animate-pulse" />
                           <span>SẴN SÀNG</span>
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-md bg-rose-600/90 text-white text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm shadow-sm flex items-center gap-1">
+                        <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-rose-600/90 text-white text-[8px] sm:text-[10px] font-bold tracking-tight sm:tracking-wider uppercase backdrop-blur-sm shadow-sm flex items-center gap-1">
                           <span>ĐANG THUÊ</span>
                           {account.rentedUntil && formatRentalExpiry(account.rentedUntil)?.shortCountdown && (
-                            <span className="text-[9px] font-mono bg-black/30 px-1 rounded">
+                            <span className="text-[8px] sm:text-[9px] font-mono bg-black/30 px-0.5 rounded hidden sm:inline">
                               {formatRentalExpiry(account.rentedUntil)?.shortCountdown}
                             </span>
                           )}
@@ -290,53 +294,53 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                     </div>
 
                     {/* Bottom Rank Badge */}
-                    <div className="absolute bottom-3 left-3">
-                      <span className="px-2.5 py-0.5 rounded-md bg-white/95 text-slate-900 text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
+                    <div className="absolute bottom-1.5 left-1.5 sm:bottom-3 sm:left-3">
+                      <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded sm:rounded-md bg-white/95 text-slate-900 text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
                         {account.rank}
                       </span>
                     </div>
                   </div>
 
                   {/* Tướng Tí Nị */}
-                  <div className="text-slate-900 font-bold text-sm sm:text-base leading-snug line-clamp-1 group-hover:text-orange-700 transition-colors">
+                  <div className="text-slate-900 font-bold text-xs sm:text-sm md:text-base leading-snug line-clamp-1 group-hover:text-orange-700 transition-colors">
                     {account.mainChibi}
                   </div>
 
                   {/* Sân Đấu */}
-                  <p className="text-xs text-slate-500 line-clamp-1 mt-1 font-medium flex items-center gap-1.5">
+                  <p className="text-[10px] sm:text-xs text-slate-500 line-clamp-1 mt-0.5 sm:mt-1 font-medium flex items-center gap-1">
                     <span>🏟️</span>
                     <span>{account.mainArena}</span>
                   </p>
                 </div>
 
                 {/* Price & Actions */}
-                <div className="mt-auto pt-3 border-t border-slate-100 space-y-2.5">
-                  <div className="flex items-baseline justify-between">
+                <div className="mt-auto pt-2 sm:pt-3 border-t border-slate-100 space-y-1.5 sm:space-y-2.5">
+                  <div className="flex items-baseline justify-between flex-wrap gap-x-1">
                     <div>
-                      <span className="text-base sm:text-lg font-bold text-red-600 font-mono">
+                      <span className="text-xs sm:text-base md:text-lg font-bold text-red-600 font-mono">
                         {(Number(account.hourlyPrice) || 15000).toLocaleString("vi-VN")}đ
                       </span>
-                      <span className="text-xs text-slate-600 font-medium"> / Giờ</span>
+                      <span className="text-[10px] sm:text-xs text-slate-600 font-medium"> / Giờ</span>
                     </div>
-                    <span className="text-xs text-slate-600 font-medium">
-                      Đã thuê: 120+ lượt
+                    <span className="text-[10px] sm:text-xs text-slate-500 font-medium hidden sm:inline">
+                      120+ lượt
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-1 sm:gap-2">
                     <button
                       onClick={() => onSelectAccount(account)}
-                      className="h-9 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                      className="h-7 sm:h-9 px-1 sm:px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg sm:rounded-xl font-semibold text-[10px] sm:text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
                     >
-                      <Eye className="w-3.5 h-3.5" />
+                      <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                       <span>Chi Tiết</span>
                     </button>
 
                     <button
                       onClick={() => onSelectAccount(account)}
-                      className="h-9 px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 hover:scale-105 cursor-pointer"
+                      className="h-7 sm:h-9 px-1 sm:px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-[10px] sm:text-xs uppercase tracking-wider rounded-lg sm:rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 hover:scale-105 cursor-pointer"
                     >
-                      <KeyRound className="w-3.5 h-3.5" />
+                      <KeyRound className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                       <span>Thuê Ngay</span>
                     </button>
                   </div>
@@ -371,65 +375,12 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
         </button>
       </div>
 
-      {/* 3. KHU VỰC MỞ RỘNG (CAM KẾT + BỘ LỌC + GRID 4 CỘT) */}
+      {/* 3. KHU VỰC MỞ RỘNG (BỘ LỌC + GRID TÀI KHOẢN) */}
       {showFullCatalog && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 pt-8 border-t border-slate-200/80 space-y-8 animate-fadeIn">
-          {/* KHUNG CAM KẾT */}
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-              <div className="flex items-start gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
-                <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0">
-                  <Zap className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="font-bold text-slate-800 uppercase text-[11px]">Bàn Giao Tự Động</p>
-                  <p className="text-slate-500 leading-relaxed mt-0.5">
-                    Nhận ngay ID & Mật Khẩu qua Zalo trong 30 giây sau khi quét QR.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
-                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
-                  <CheckCircle2 className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="font-bold text-slate-800 uppercase text-[11px]">Đúng 100% Ảnh Mô Tả</p>
-                  <p className="text-slate-500 leading-relaxed mt-0.5">
-                    Cam kết đúng Tướng Tí Nị, Sân Đấu và Bậc Rank như mô tả.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
-                <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center flex-shrink-0">
-                  <AlertTriangle className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="font-bold text-slate-800 uppercase text-[11px]">Nghiêm Cấm Hack/Phá</p>
-                  <p className="text-slate-500 leading-relaxed mt-0.5">
-                    Nghiêm cấm dùng phần mềm thứ 3 hoặc phá rank của chủ acc.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
-                <div className="w-8 h-8 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center flex-shrink-0">
-                  <RefreshCw className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="font-bold text-slate-800 uppercase text-[11px]">Hỗ Trợ Đổi Acc 24/7</p>
-                  <p className="text-slate-500 leading-relaxed mt-0.5">
-                    Đổi acc tương đương hoặc bù giờ ngay lập tức nếu có sự cố.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-10 pt-6 sm:pt-8 border-t border-slate-200/80 space-y-6 sm:space-y-8 animate-fadeIn">
           {/* BỘ LỌC & TÌM KIẾM */}
           <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] space-y-3.5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 items-center">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 items-center">
               {/* Lọc Rank */}
               <div>
                 <label className="text-[11px] text-slate-500 uppercase font-bold tracking-wider mb-1 block">
@@ -541,42 +492,44 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, amount: 0.1 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
+              className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5"
             >
               {filteredAccounts.map((account) => (
                 <motion.div
                   key={account.id}
                   variants={shopCardVariants}
-                  className="flex flex-col h-full justify-between bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 group"
+                  className="flex flex-col h-full justify-between bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 group"
                 >
                   {/* Top Photo & Badges */}
                   <div>
-                    <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-slate-900 mb-3 border border-slate-100 shadow-inner">
+                    <div className="relative aspect-square w-full overflow-hidden rounded-lg sm:rounded-xl bg-slate-900 mb-2 sm:mb-3 border border-slate-100 shadow-inner">
                       <img
                         src={account.thumbnail}
                         alt={`Thuê acc TFT ${account.code} ${account.title} - Tuấn Thái Bình`}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
 
                       {/* Top Right Code Badge */}
-                      <div className="absolute top-3 right-3">
-                        <span className="px-2 py-0.5 rounded-md bg-black/80 text-[11px] font-mono font-bold text-white shadow-sm backdrop-blur-sm">
+                      <div className="absolute top-1.5 right-1.5 sm:top-3 sm:right-3">
+                        <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-black/80 text-[9px] sm:text-[11px] font-mono font-bold text-white shadow-sm backdrop-blur-sm">
                           {account.code}
                         </span>
                       </div>
 
                       {/* Top Left Status Badge */}
-                      <div className="absolute top-3 left-3">
+                      <div className="absolute top-1.5 left-1.5 sm:top-3 sm:left-3">
                         {account.status === "AVAILABLE" ? (
-                          <span className="px-2 py-0.5 rounded-md bg-emerald-600/90 text-white text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
-                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                          <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-emerald-600/90 text-white text-[8px] sm:text-[10px] font-bold tracking-tight sm:tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
+                            <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white animate-pulse" />
                             <span>SẴN SÀNG</span>
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-md bg-rose-600/90 text-white text-[10px] font-bold tracking-wider uppercase backdrop-blur-sm shadow-sm flex items-center gap-1">
+                          <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-rose-600/90 text-white text-[8px] sm:text-[10px] font-bold tracking-tight sm:tracking-wider uppercase backdrop-blur-sm shadow-sm flex items-center gap-1">
                             <span>ĐANG THUÊ</span>
                             {account.rentedUntil && formatRentalExpiry(account.rentedUntil)?.shortCountdown && (
-                              <span className="text-[9px] font-mono bg-black/30 px-1 rounded">
+                              <span className="text-[8px] sm:text-[9px] font-mono bg-black/30 px-0.5 rounded hidden sm:inline">
                                 {formatRentalExpiry(account.rentedUntil)?.shortCountdown}
                               </span>
                             )}
@@ -585,53 +538,53 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                       </div>
 
                       {/* Bottom Rank Badge */}
-                      <div className="absolute bottom-3 left-3">
-                        <span className="px-2.5 py-0.5 rounded-md bg-white/95 text-slate-900 text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
+                      <div className="absolute bottom-1.5 left-1.5 sm:bottom-3 sm:left-3">
+                        <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded sm:rounded-md bg-white/95 text-slate-900 text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
                           {account.rank}
                         </span>
                       </div>
                     </div>
 
                     {/* Tướng Tí Nị */}
-                    <div className="text-slate-900 font-bold text-sm sm:text-base leading-snug line-clamp-1 group-hover:text-orange-700 transition-colors">
+                    <div className="text-slate-900 font-bold text-xs sm:text-sm md:text-base leading-snug line-clamp-1 group-hover:text-orange-700 transition-colors">
                       {account.mainChibi}
                     </div>
 
                     {/* Sân Đấu */}
-                    <p className="text-xs text-slate-500 line-clamp-1 mt-1 font-medium flex items-center gap-1.5">
+                    <p className="text-[10px] sm:text-xs text-slate-500 line-clamp-1 mt-0.5 sm:mt-1 font-medium flex items-center gap-1">
                       <span>🏟️</span>
                       <span>{account.mainArena}</span>
                     </p>
                   </div>
 
                   {/* Price & Actions */}
-                  <div className="mt-auto pt-3 border-t border-slate-100 space-y-2.5">
-                    <div className="flex items-baseline justify-between">
+                  <div className="mt-auto pt-2 sm:pt-3 border-t border-slate-100 space-y-1.5 sm:space-y-2.5">
+                    <div className="flex items-baseline justify-between flex-wrap gap-x-1">
                       <div>
-                        <span className="text-base sm:text-lg font-bold text-red-600 font-mono">
+                        <span className="text-xs sm:text-base md:text-lg font-bold text-red-600 font-mono">
                           {(Number(account.hourlyPrice) || 15000).toLocaleString("vi-VN")}đ
                         </span>
-                        <span className="text-xs text-slate-600 font-medium"> / Giờ</span>
+                        <span className="text-[10px] sm:text-xs text-slate-600 font-medium"> / Giờ</span>
                       </div>
-                      <span className="text-xs text-slate-600 font-medium">
-                        Đã thuê: 120+ lượt
+                      <span className="text-[10px] sm:text-xs text-slate-500 font-medium hidden sm:inline">
+                        120+ lượt
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-1 sm:gap-2">
                       <button
                         onClick={() => onSelectAccount(account)}
-                        className="h-9 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                        className="h-7 sm:h-9 px-1 sm:px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg sm:rounded-xl font-semibold text-[10px] sm:text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
                       >
-                        <Eye className="w-3.5 h-3.5" />
+                        <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                         <span>Chi Tiết</span>
                       </button>
 
                       <button
                         onClick={() => onSelectAccount(account)}
-                        className="h-9 px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 hover:scale-105 cursor-pointer"
+                        className="h-7 sm:h-9 px-1 sm:px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-[10px] sm:text-xs uppercase tracking-wider rounded-lg sm:rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 hover:scale-105 cursor-pointer"
                       >
-                        <KeyRound className="w-3.5 h-3.5" />
+                        <KeyRound className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                         <span>Thuê Ngay</span>
                       </button>
                     </div>

@@ -62,6 +62,21 @@ export interface HomepageImagesConfig {
   coverUrl: string;
 }
 
+export interface SEOConfig {
+  metaTitle: string;
+  metaDescription: string;
+  metaKeywords: string;
+  canonicalUrl: string;
+  ogTitle: string;
+  ogDescription: string;
+  ogImage: string;
+  faviconUrl: string;
+  bgImageUrl?: string;
+  bgColor?: string;
+  googleVerification?: string;
+  author?: string;
+}
+
 export interface PricingConfig {
   passChangeFee: number;
   rate2Hours: number;
@@ -79,6 +94,7 @@ export interface HomepageConfig {
   hero: HeroConfig;
   images: HomepageImagesConfig;
   alertBanner: AlertBannerConfig;
+  seo?: SEOConfig;
   pricing?: PricingConfig;
   contact?: ContactConfig;
   servicePackages: ServicePackageItem[];
@@ -95,6 +111,43 @@ const getAuthHeaders = (): Record<string, string> => {
   }
   return headers;
 };
+
+/**
+ * Upload file hình ảnh / favicon lên máy chủ
+ */
+export async function uploadAdminFile(
+  file: File,
+  type: "favicon" | "background" | "general" = "general"
+): Promise<{ success: boolean; url?: string; error?: string }> {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("type", type);
+
+    const headers: Record<string, string> = {};
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("shoptft_admin_token");
+      if (token) {
+        headers["x-admin-token"] = token;
+      }
+    }
+
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      headers,
+      body: formData,
+    });
+
+    const result = await res.json();
+    if (!res.ok || !result.success) {
+      return { success: false, error: result.error || "Không thể tải file lên!" };
+    }
+
+    return { success: true, url: result.url };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Lỗi kết nối máy chủ khi upload!" };
+  }
+}
 
 /**
  * Lấy toàn bộ cấu hình trang chủ

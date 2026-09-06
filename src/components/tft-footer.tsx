@@ -19,7 +19,7 @@ export const TFTFooter: React.FC = () => {
   };
 
   return (
-    <footer className="bg-slate-900 text-slate-300 relative border-t border-slate-800">
+    <footer className="bg-slate-900 text-slate-300 relative border-t border-slate-800 overflow-hidden">
       {/* Top Accent Gradient */}
       <div className="h-[2px] bg-gradient-to-r from-orange-500 via-amber-400 to-emerald-500 w-full" />
 

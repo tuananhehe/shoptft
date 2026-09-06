@@ -33,6 +33,7 @@ import {
   Square,
   Check,
   Zap,
+  Wallet,
 } from "lucide-react";
 
 export type AccountCategoryType = "VIP" | "CLONE";
@@ -208,16 +209,28 @@ export default function AdminAccountsPage() {
     const total = accounts.length;
     const vipCount = accounts.filter((a) => a.category === "VIP").length;
     const cloneCount = accounts.filter((a) => a.category === "CLONE").length;
-    const available = accounts.filter((a) => a.status === "AVAILABLE").length;
-    const rented = accounts.filter((a) => a.status === "RENTED").length;
+    const available = accounts.filter((a) => (a.status || "").toUpperCase() === "AVAILABLE").length;
+    const rented = accounts.filter((a) => (a.status || "").toUpperCase() === "RENTED").length;
+
+    // Vốn acc còn trong kho (tổng số tiền của các acc SẴN SÀNG chưa cho thuê)
+    const availableValue = accounts
+      .filter((a) => (a.status || "").toUpperCase() === "AVAILABLE")
+      .reduce((sum, a) => {
+        if (a.category === "VIP") {
+          return sum + (Number(a.accountValue) || Number(a.price) || 850000);
+        }
+        return sum + (Number(a.monthlyPrice) || Number(a.periodPrice) || Number(a.price) || 150000);
+      }, 0);
+
+    // Tổng định giá toàn bộ kho tài khoản (cả sẵn sàng + đang thuê)
     const totalValue = accounts.reduce((sum, a) => {
       if (a.category === "VIP") {
-        return sum + (a.accountValue || (a.dailyPrice || 60000) * 16 || 850000);
+        return sum + (Number(a.accountValue) || Number(a.price) || 850000);
       }
-      return sum + (a.monthlyPrice || 150000);
+      return sum + (Number(a.monthlyPrice) || Number(a.periodPrice) || Number(a.price) || 150000);
     }, 0);
 
-    return { total, vipCount, cloneCount, available, rented, totalValue };
+    return { total, vipCount, cloneCount, available, rented, availableValue, totalValue };
   }, [accounts]);
 
   // Bộ lọc danh sách tài khoản theo tab, tìm kiếm, trạng thái, rank, sắp xếp giá
@@ -691,10 +704,11 @@ export default function AdminAccountsPage() {
   return (
     <div className="space-y-6">
       {/* 1. THỐNG KÊ NHANH KHO HÀNG */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5 sm:gap-4">
+        {/* Card 1: Tổng số acc */}
+        <div className="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">
+            <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider block">
               Tổng Tài Khoản
             </span>
             <span className="text-2xl sm:text-3xl font-black text-slate-900 font-mono mt-1 block">
@@ -704,15 +718,16 @@ export default function AdminAccountsPage() {
               👑 {stats.vipCount} VIP • 🎮 {stats.cloneCount} Clone
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-orange-100/70 text-orange-700 flex items-center justify-center flex-shrink-0">
-            <Gamepad2 className="w-6 h-6" />
+          <div className="w-11 h-11 rounded-2xl bg-orange-100/70 text-orange-700 flex items-center justify-center flex-shrink-0">
+            <Gamepad2 className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        {/* Card 2: Sẵn sàng thuê */}
+        <div className="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">
-              Sẵn Sàng Thuê (Trống)
+            <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider block">
+              Sẵn Sàng Thuê
             </span>
             <span className="text-2xl sm:text-3xl font-black text-emerald-600 font-mono mt-1 block">
               {stats.available}
@@ -721,14 +736,15 @@ export default function AdminAccountsPage() {
               Đang hiển thị trên Shop
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-emerald-100/70 text-emerald-700 flex items-center justify-center flex-shrink-0">
-            <CheckCircle2 className="w-6 h-6" />
+          <div className="w-11 h-11 rounded-2xl bg-emerald-100/70 text-emerald-700 flex items-center justify-center flex-shrink-0">
+            <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        {/* Card 3: Đang cho thuê */}
+        <div className="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">
+            <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider block">
               Đang Cho Thuê
             </span>
             <span className="text-2xl sm:text-3xl font-black text-rose-600 font-mono mt-1 block">
@@ -738,25 +754,44 @@ export default function AdminAccountsPage() {
               Khách đang trải nghiệm
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-rose-100/70 text-rose-700 flex items-center justify-center flex-shrink-0">
-            <Clock className="w-6 h-6" />
+          <div className="w-11 h-11 rounded-2xl bg-rose-100/70 text-rose-700 flex items-center justify-center flex-shrink-0">
+            <Clock className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        {/* Card 4: Vốn acc còn trong kho (Sẵn sàng chưa cho thuê) */}
+        <div className="bg-gradient-to-br from-emerald-50/70 via-white to-teal-50/40 p-4.5 rounded-2xl border-2 border-emerald-500/30 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">
-              Tổng Giá Trị Kho
+            <span className="text-[11px] text-emerald-800 font-extrabold uppercase tracking-wider block">
+              Vốn Acc Trong Kho
             </span>
-            <span className="text-xl sm:text-2xl font-black text-slate-900 font-mono mt-1 block">
+            <span className="text-lg sm:text-xl font-black text-emerald-700 font-mono mt-1 block">
+              {stats.availableValue.toLocaleString("vi-VN")}đ
+            </span>
+            <span className="text-[11px] text-emerald-600 font-bold block mt-1">
+              Tổng tiền {stats.available} acc sẵn sàng
+            </span>
+          </div>
+          <div className="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center flex-shrink-0 shadow-xs">
+            <Wallet className="w-5 h-5" />
+          </div>
+        </div>
+
+        {/* Card 5: Tổng định giá kho */}
+        <div className="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+          <div>
+            <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider block">
+              Tổng Định Giá Kho
+            </span>
+            <span className="text-lg sm:text-xl font-black text-slate-900 font-mono mt-1 block">
               {stats.totalValue.toLocaleString("vi-VN")}đ
             </span>
             <span className="text-[11px] text-slate-500 font-medium block mt-1">
-              Ước tính định giá tài sản
+              Toàn bộ {stats.total} acc trong kho
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
-            <Sparkles className="w-6 h-6" />
+          <div className="w-11 h-11 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+            <Sparkles className="w-5 h-5" />
           </div>
         </div>
       </div>

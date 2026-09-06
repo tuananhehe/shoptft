@@ -48,7 +48,7 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#F8FAFC] text-slate-900 selection:bg-orange-500 selection:text-white flex flex-col justify-between relative pb-16 sm:pb-0">
+    <main className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#F8FAFC] text-slate-900 selection:bg-orange-500 selection:text-white flex flex-col justify-between relative pb-16 sm:pb-0">
       {/* 1. Sticky Navigation Bar */}
       <TFTNavbar />
 

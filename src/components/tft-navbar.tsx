@@ -9,8 +9,8 @@ export const TFTNavbar: React.FC = () => {
 
   const navLinks = [
     { label: "Trang Chủ", href: "#hero" },
-    { label: "Kho Acc VIP", href: "#shop" },
-    { label: "Acc Clone", href: "#clone-shop" },
+    { label: "Kho VIP", href: "#shop" },
+    { label: "Kho Clone", href: "#clone-shop" },
     { label: "Cày Rank", href: "#services" },
     { label: "Về Tuấn", href: "#about" },
     { label: "Đánh Giá", href: "#reviews" },
@@ -42,7 +42,7 @@ export const TFTNavbar: React.FC = () => {
                 <span className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 group-hover:text-orange-600 transition-colors">
                   {PROFILE_INFO.realName}
                 </span>
-                <span className="bg-orange-100 text-orange-700 text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider border border-orange-200">
+                <span className="hidden sm:inline-block bg-orange-100 text-orange-700 text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider border border-orange-200">
                   PRO
                 </span>
               </div>
@@ -52,13 +52,13 @@ export const TFTNavbar: React.FC = () => {
             </div>
           </a>
 
-          {/* 2. Ở GIỮA: DÀN ĐỀU CÁC MENU ĐIỀU HƯỚNG VỚI KHOẢNG CÁCH THÔNG THOÁNG (GAP-8) */}
-          <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold text-slate-600">
+          {/* 2. Ở GIỮA: DÀN ĐỀU CÁC MENU ĐIỀU HƯỚNG VỚI KHOẢNG CÁCH THÔNG THOÁNG */}
+          <nav className="hidden lg:flex items-center gap-7 xl:gap-9 text-sm font-semibold text-slate-700">
             {navLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
-                className="hover:text-orange-600 transition-colors py-1 relative group whitespace-nowrap"
+                className="hover:text-orange-600 transition-colors py-1.5 px-0.5 relative group whitespace-nowrap tracking-tight"
               >
                 {link.label}
                 <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-orange-600 group-hover:w-full transition-all duration-300 rounded-full" />
@@ -68,10 +68,10 @@ export const TFTNavbar: React.FC = () => {
 
           {/* 3. BÊN PHẢI: NÚT THUÊ ACC & NÚT MOBILE MENU */}
           <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
-            {/* Nút Thuê Acc - Đổi sang bg-orange-700 để tăng độ tương phản WCAG */}
+            {/* Nút Thuê Acc - Ẩn trên mobile để giao diện thông thoáng, hiển thị từ màn sm trở lên */}
             <a
               href="#shop"
-              className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2.5 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-orange-700/20 hover:shadow-lg transition-all hover:scale-105"
+              className="hidden sm:inline-flex items-center gap-1.5 px-4 sm:px-5 py-2.5 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-orange-700/20 hover:shadow-lg transition-all hover:scale-105"
             >
               <KeyRound className="w-4 h-4" />
               <span>Thuê Acc</span>

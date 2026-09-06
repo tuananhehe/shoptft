@@ -13,7 +13,7 @@ export const TFTServices: React.FC<TFTServicesProps> = ({ packages }) => {
   const displayPackages = packages && packages.length > 0 ? packages : SERVICE_PACKAGES;
 
   return (
-    <section id="services" className="py-20 bg-white text-slate-900 border-b border-slate-200">
+    <section id="services" className="py-14 sm:py-20 bg-white text-slate-900 border-b border-slate-200 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-14 space-y-2.5">

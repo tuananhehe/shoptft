@@ -46,6 +46,23 @@ const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
     content:
       "🎁 Ưu đãi đặc biệt: Tặng thêm 1 giờ chơi và miễn phí phí đổi pass cố định cho khách hàng thuê lần đầu qua Zalo Tuấn Thái Bình!",
   },
+  seo: {
+    metaTitle: "Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Tự Động 24/7",
+    metaDescription:
+      "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7. Cung cấp tài khoản full Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc. Admin Tuấn Thái Bình (Cựu Thách Đấu) uy tín - Quỹ bảo hiểm 30M.",
+    metaKeywords:
+      "thuê acc tft, thuê acc đtcl, shop tft, tuấn thái bình tft, thuê acc tí nị, cày thuê đtcl, shop acc tft uy tín, shop tft mobile, thuê tài khoản đtcl, tí nị ahri, tí nị yasuo, coaching tft",
+    canonicalUrl: "https://shoptft.vercel.app/",
+    ogTitle: "Tuấn Thái Bình TFT | Nền Tảng Thuê Acc ĐTCL Uy Tín",
+    ogDescription:
+      "Thuê acc VIP ĐTCL tự động 30s, full Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc. Bảo hiểm 30M Checkscam.",
+    ogImage: "/banner-seo.jpg",
+    faviconUrl: "/favicon.ico",
+    bgImageUrl: "",
+    bgColor: "#F8FAFC",
+    googleVerification: "",
+    author: "Tuấn Thái Bình",
+  },
   pricing: {
     passChangeFee: 20000,
     rate2Hours: 3,
