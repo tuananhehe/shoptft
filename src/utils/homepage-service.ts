@@ -74,6 +74,7 @@ export interface SEOConfig {
   bgImageUrl?: string;
   bgColor?: string;
   googleVerification?: string;
+  bingVerification?: string;
   author?: string;
 }
 

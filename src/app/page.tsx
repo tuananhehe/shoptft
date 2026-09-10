@@ -10,6 +10,7 @@ import { TFTServices } from "@/components/tft-services";
 import { TFTReviews } from "@/components/tft-reviews";
 import { TFTFaq } from "@/components/tft-faq";
 import { TFTFooter } from "@/components/tft-footer";
+import { TFTMobileBottomBar } from "@/components/tft-mobile-bottom-bar";
 import { TFTAccountModal } from "@/components/tft-account-modal";
 import { TFTRentalAccount } from "@/data/tft-data";
 import { HomepageConfig, getHomepageConfig } from "@/utils/homepage-service";
@@ -80,6 +81,9 @@ export default function HomePage() {
 
       {/* 8. Footer */}
       <TFTFooter />
+
+      {/* Floating Bottom Navigation Bar for Mobile */}
+      <TFTMobileBottomBar />
 
       {/* Detail Rental Account & Fast Order Modal */}
       <TFTAccountModal

@@ -122,6 +122,7 @@ export default function AdminHomepageManagerPage() {
     bgImageUrl: "",
     bgColor: "#F8FAFC",
     googleVerification: "",
+    bingVerification: "",
     author: "Tuấn Thái Bình",
   });
 
@@ -1488,9 +1489,42 @@ export default function AdminHomepageManagerPage() {
                   type="text"
                   value={seo.googleVerification || ""}
                   onChange={(e) => setSeo({ ...seo, googleVerification: e.target.value })}
-                  placeholder="VD: google-site-verification=abcxyz123..."
+                  placeholder="VD: google-site-verification=abcxyz123... hoặc dán toàn bộ thẻ HTML"
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500 text-xs"
                 />
+                <p className="text-[10px] text-slate-400">
+                  Dùng để xác minh quyền sở hữu trang web trong Google Search Console (Hỗ trợ dán cả thẻ meta hoặc chuỗi mã).
+                </p>
+              </div>
+
+              {/* Bing Webmaster Verification */}
+              <div className="space-y-1 text-xs pt-1">
+                <label className="font-bold text-slate-800 block">
+                  Bing Webmaster Tools Verification Code (msvalidate.01):
+                </label>
+                <input
+                  type="text"
+                  value={seo.bingVerification || ""}
+                  onChange={(e) => setSeo({ ...seo, bingVerification: e.target.value })}
+                  placeholder="VD: msvalidate.01=abcxyz123... hoặc chuỗi mã xác minh Bing"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500 text-xs"
+                />
+                <p className="text-[10px] text-slate-400">
+                  Dùng để xác minh và kích hoạt lập chỉ mục nhanh trên Bing Webmaster Tools & Yahoo Search.
+                </p>
+              </div>
+
+              {/* Hộp Thông Tin Hướng Dẫn Index Google & Bing */}
+              <div className="p-3.5 rounded-xl bg-blue-50/80 border border-blue-200 text-xs space-y-2 mt-2">
+                <div className="font-bold text-blue-900 flex items-center gap-1.5 text-[11px]">
+                  <Zap className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Mẹo Sửa Lỗi Lập Chỉ Mục (Google & Bing Indexing):</span>
+                </div>
+                <ul className="text-[10px] text-blue-800 space-y-1 leading-relaxed list-disc list-inside">
+                  <li><strong>Sitemap:</strong> Gửi link <code className="bg-blue-100/80 px-1 py-0.5 rounded font-mono text-blue-900">{seo.canonicalUrl ? `${seo.canonicalUrl.replace(/\/+$/, "")}/sitemap.xml` : "https://shoptftmobile.net/sitemap.xml"}</code> vào Google Search Console & Bing Webmaster.</li>
+                  <li><strong>Lỗi URL không hợp lệ (#):</strong> Hệ thống đã tự động loại bỏ các hash (#shop, #clone-shop...) khỏi sitemap để đảm bảo 100% hợp lệ.</li>
+                  <li><strong>Kiểm tra URL:</strong> Trong Google Search Console, dán link trang chủ vào thanh tìm kiếm trên cùng và bấm <em>"Yêu cầu lập chỉ mục" (Request Indexing)</em>.</li>
+                </ul>
               </div>
             </div>
 

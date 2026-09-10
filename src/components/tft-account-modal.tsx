@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { TFTRentalAccount, PROFILE_INFO } from "@/data/tft-data";
 import { formatRentalExpiry } from "@/utils/supabase/accounts-service";
 import { getHomepageConfig, PricingConfig } from "@/utils/homepage-service";
+import { LazyAccountImage } from "@/components/lazy-account-image";
 import toast from "react-hot-toast";
 import {
   X,
@@ -16,13 +17,10 @@ import {
   Clock,
   KeyRound,
   Zap,
-  AlertTriangle,
-  Flame,
-  Crown,
   Lock,
   BellRing,
-  Hourglass,
-  Info,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 interface TFTAccountModalProps {
@@ -33,12 +31,10 @@ interface TFTAccountModalProps {
 type PackageKey = "2h" | "7d" | "30d" | "perm";
 
 export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClose }) => {
-  // State chọn gói và cam kết
-  const [selectedPackage, setSelectedPackage] = useState<PackageKey | null>(null);
-  const [isAgreed, setIsAgreed] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<PackageKey>("2h");
+  const [isAgreed, setIsAgreed] = useState(true);
   const [copiedCode, setCopiedCode] = useState(false);
-
-  // Bộ đếm ngược thời gian cho acc đang thuê (tính bằng giây chuẩn từ Database)
+  const [showAllChibis, setShowAllChibis] = useState(false);
   const [countdownSeconds, setCountdownSeconds] = useState<number>(0);
   const [pricingRates, setPricingRates] = useState<PricingConfig>({
     passChangeFee: 20000,
@@ -56,9 +52,9 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
   }, []);
 
   useEffect(() => {
-    // Reset gói và cam kết khi mở acc mới
-    setSelectedPackage(null);
-    setIsAgreed(false);
+    setSelectedPackage("2h");
+    setIsAgreed(true);
+    setShowAllChibis(false);
 
     if (account?.status === "RENTED") {
       const info = formatRentalExpiry(account.rentedUntil);
@@ -66,7 +62,6 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
     }
   }, [account]);
 
-  // Hook đếm lùi từng giây theo thời gian thực chuẩn Database
   useEffect(() => {
     if (!account || account.status !== "RENTED") return;
 
@@ -77,7 +72,6 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
 
     updateTimer();
     const timer = setInterval(updateTimer, 1000);
-
     return () => clearInterval(timer);
   }, [account]);
 
@@ -86,7 +80,6 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
   const isRented = account.status === "RENTED";
   const rentalInfo = formatRentalExpiry(account.rentedUntil);
 
-  // Định dạng ngày:giờ:phút:giây
   const days = Math.floor(countdownSeconds / (24 * 3600));
   const hours = Math.floor((countdownSeconds % (24 * 3600)) / 3600);
   const minutes = Math.floor((countdownSeconds % 3600) / 60);
@@ -94,14 +87,12 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
   const pad = (n: number) => n.toString().padStart(2, "0");
   const isInfinite = days > 365 || (rentalInfo ? rentalInfo.isInfinite : false);
 
-  // Giá trị gốc của tài khoản (Luôn đảm bảo là số hợp lệ)
   const baseAccountValue =
     Number(account.accountValue) ||
     (account.dailyPrice ? Number(account.dailyPrice) * 16 : 0) ||
     (account.hourlyPrice ? Number(account.hourlyPrice) * 50 : 0) ||
     850000;
 
-  // Hàm làm tròn tiền đến hàng nghìn
   const roundToThousand = (val: number) => {
     if (isNaN(val) || !val) return 0;
     return Math.round(val / 1000) * 1000;
@@ -113,68 +104,59 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
   const rate30d = (pricingRates.rate30Days || 30) / 100;
   const passFee = pricingRates.passChangeFee ?? 20000;
 
-  // Cấu hình 4 gói thời gian thuê tính tự động theo % định giá acc
-  const packageConfigs: Record<PackageKey, {
-    id: PackageKey;
-    name: string;
-    rate: number;
-    basePrice: number;
-    passFee: number;
-    totalPrice: number;
-    note: string;
-    tag: string;
-    badgeColor: string;
-  }> = {
+  const packageConfigs: Record<
+    PackageKey,
+    {
+      id: PackageKey;
+      name: string;
+      sub: string;
+      totalPrice: number;
+      basePrice: number;
+      passFee: number;
+      tag?: string;
+    }
+  > = {
     "2h": {
       id: "2h",
-      name: "2 Giờ Trải Nghiệm",
-      rate: rate2h,
+      name: "2 Giờ",
+      sub: "Trải nghiệm nhanh",
       basePrice: roundToThousand(baseAccountValue * rate2h),
       passFee: passFee,
       totalPrice: roundToThousand(baseAccountValue * rate2h) + passFee,
-      note: passFee > 0 ? `Đã gồm ${Math.round(passFee / 1000)}k phí đổi pass` : "Miễn phí đổi pass",
-      tag: "Trải nghiệm nhanh",
-      badgeColor: "bg-blue-100 text-blue-700 border-blue-200",
+      tag: "Phổ biến",
     },
     "7d": {
       id: "7d",
-      name: "Thuê 7 Ngày (1 Tuần)",
-      rate: rate7d,
+      name: "7 Ngày",
+      sub: "Tiết kiệm 45%",
       basePrice: roundToThousand(baseAccountValue * rate7d),
       passFee: passFee,
       totalPrice: roundToThousand(baseAccountValue * rate7d) + passFee,
-      note: passFee > 0 ? `Đã gồm ${Math.round(passFee / 1000)}k phí đổi pass` : "Miễn phí đổi pass",
-      tag: "Tiết kiệm 45%",
-      badgeColor: "bg-amber-100 text-amber-800 border-amber-200",
+      tag: "Tiết kiệm",
     },
     "30d": {
       id: "30d",
-      name: "Thuê 30 Ngày (1 Tháng)",
-      rate: rate30d,
+      name: "30 Ngày",
+      sub: "Free đổi pass",
       basePrice: roundToThousand(baseAccountValue * rate30d),
       passFee: 0,
       totalPrice: roundToThousand(baseAccountValue * rate30d),
-      note: "Miễn phí đổi pass",
-      tag: "Miễn phí đổi pass",
-      badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+      tag: "Hot nhất",
     },
     "perm": {
       id: "perm",
-      name: "Thuê Lâu Dài 999 Ngày",
-      rate: 1.00,
+      name: "Lâu Dài (∞)",
+      sub: "Bàn giao full quyền",
       basePrice: roundToThousand(baseAccountValue),
       passFee: 0,
       totalPrice: roundToThousand(baseAccountValue),
-      note: "Bàn giao full thông tin cho khách",
-      tag: "Bàn giao full thông tin cho khách",
-      badgeColor: "bg-purple-100 text-purple-800 border-purple-200",
+      tag: "Sở hữu",
     },
   };
 
-  const activePkg = selectedPackage ? packageConfigs[selectedPackage] : null;
-  const canSubmit = selectedPackage !== null && isAgreed;
+  const activePkg = packageConfigs[selectedPackage];
+  const canSubmit = isAgreed && !isRented;
 
-  // Copy mã Acc riêng lẻ
   const copyAccCode = () => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(account.code).catch(() => {});
@@ -184,10 +166,9 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
-  // Logic Xử Lý Bấm Nút "NHẬN ACC QUA ZALO" (Khi acc có sẵn)
   const handleOrderZalo = () => {
-    if (!canSubmit || !activePkg) {
-      toast.error("Vui lòng chọn gói thuê và đồng ý với điều khoản!");
+    if (!isAgreed) {
+      toast.error("Vui lòng tích đồng ý với quy định thuê!");
       return;
     }
 
@@ -199,7 +180,7 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
     const orderMessage = `[ĐƠN ĐẶT ACC TFT]
 - Mã Acc: ${account.code}
 - Tên Acc: ${account.title}
-- Thời hạn: ${activePkg.name}
+- Gói thuê: ${activePkg.name} (${activePkg.sub})
 - Tổng thanh toán: ${formatMoney(activePkg.totalPrice)}
 Nhờ shop gửi STK và hỗ trợ bàn giao thông tin!${upgradeNote}`;
 
@@ -211,7 +192,6 @@ Nhờ shop gửi STK và hỗ trợ bàn giao thông tin!${upgradeNote}`;
     window.open(PROFILE_INFO.zaloUrl, "_blank");
   };
 
-  // Logic Xử Lý Bấm Nút "ĐẶT LỊCH THUÊ SỚM QUA ZALO" (Khi acc đang có khách thuê)
   const handlePreOrderZalo = () => {
     const preOrderMessage = `[ĐẶT TRƯỚC ACC]
 - Mã Acc: ${account.code}
@@ -222,457 +202,328 @@ Báo mình khi acc này hết giờ thuê nhé!`;
       navigator.clipboard.writeText(preOrderMessage).catch(() => {});
     }
 
-    toast.success("Đã sao chép yêu cầu đặt trước! Hãy dán (Ctrl+V) vào Zalo để shop xếp lịch giữ acc cho bạn.");
+    toast.success("Đã sao chép yêu cầu đặt trước! Hãy dán (Ctrl+V) vào Zalo để shop xếp lịch.");
     window.open(PROFILE_INFO.zaloUrl, "_blank");
   };
 
+  const allChibis = account.allChibi || [account.mainChibi || "Tí Nị Thần Thoại"];
+  const allArenas = account.allArenas || [account.mainArena || "Sân Đấu Thần Thoại"];
+  const displayChibis = showAllChibis ? allChibis : allChibis.slice(0, 4);
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white border border-slate-200/90 max-w-2xl w-full my-6 sm:my-8 rounded-3xl overflow-hidden relative animate-fadeIn flex flex-col max-h-[92vh] shadow-2xl">
-        {/* Top Accent Line */}
-        <div className="h-1 bg-gradient-to-r from-orange-600 via-amber-500 to-emerald-500 w-full flex-shrink-0" />
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs sm:backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+      <div className="bg-white border-t sm:border border-slate-200 w-full sm:max-w-xl md:max-w-2xl rounded-t-[24px] sm:rounded-3xl overflow-hidden relative animate-fadeIn flex flex-col max-h-[92vh] sm:max-h-[88vh] shadow-2xl">
+        {/* Top Drag Indicator for Mobile */}
+        <div className="pt-2.5 pb-1 flex justify-center sm:hidden bg-slate-50">
+          <div className="w-10 h-1 rounded-full bg-slate-300" />
+        </div>
 
         {/* 1. Header Bar */}
-        <div className="px-5 py-4 sm:px-6 sm:py-4.5 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between flex-shrink-0">
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-2.5 py-0.5 rounded-lg bg-orange-100 border border-orange-200 text-orange-800 font-mono font-bold text-xs">
-                {account.code}
+        <div className="px-4 py-3 sm:px-6 sm:py-3.5 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={copyAccCode}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-100/90 border border-orange-200 text-orange-800 font-mono font-bold text-[11px] active:scale-95 transition-transform cursor-pointer"
+              title="Bấm để sao chép mã"
+            >
+              <span>{account.code}</span>
+              {copiedCode ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-400" />}
+            </button>
+
+            <span className="px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-extrabold uppercase bg-slate-200/80 text-slate-800">
+              {account.rank}
+            </span>
+
+            {!isRented ? (
+              <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[10px] sm:text-[11px] flex items-center gap-1 border border-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                <span>SẴN SÀNG</span>
               </span>
-              <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-bold uppercase bg-slate-200 text-slate-800">
-                {account.rank}
+            ) : (
+              <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-bold text-[10px] sm:text-[11px] flex items-center gap-1 border border-rose-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse" />
+                <span>ĐANG THUÊ</span>
               </span>
-              {!isRented ? (
-                <span className="px-2.5 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-[11px] flex items-center gap-1.5 border border-emerald-200">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                  <span>SẴN SÀNG</span>
-                </span>
-              ) : (
-                <span className="px-2.5 py-0.5 rounded-lg bg-rose-100 text-rose-800 font-bold text-[11px] flex items-center gap-1.5 border border-rose-200">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse" />
-                  <span>ĐANG CÓ KHÁCH THUÊ</span>
-                </span>
-              )}
-            </div>
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight mt-1.5">
-              {account.title}
-            </h3>
+            )}
           </div>
 
           <button
             onClick={onClose}
-            aria-label="Đóng modal"
-            className="w-9 h-9 rounded-2xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 flex items-center justify-center font-bold shadow-sm transition-colors cursor-pointer flex-shrink-0 ml-2"
+            aria-label="Đóng"
+            className="w-8 h-8 rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 flex items-center justify-center font-bold shadow-xs transition-colors cursor-pointer flex-shrink-0 ml-2"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* 2. Modal Scrollable Content - SPACING & WHITESPACE THOÁNG ĐÃNG */}
-        <div className="p-5 sm:p-7 overflow-y-auto space-y-6 text-slate-900 flex-1">
-          {/* Main Account Image - Khung Vuông Chuẩn 1:1 Hiển Thị 100% Màu Gốc Ảnh Sáng Rõ */}
-          <div className="relative aspect-square max-w-[320px] sm:max-w-[380px] mx-auto w-full rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-md">
-            <img
-              src={account.thumbnail}
-              alt={`Thuê acc TFT VIP ${account.code} - ${account.title} - Tuấn Thái Bình`}
-              className="w-full h-full object-cover"
-            />
+        {/* 2. Scrollable Body Content */}
+        <div className="p-4 sm:p-5 overflow-y-auto space-y-4 text-slate-900 flex-1 overscroll-contain">
+          {/* COMPACT HERO CARD: Thumbnail + Title + Specs gọn gàng */}
+          <div className="flex gap-3 sm:gap-4 p-3 sm:p-3.5 bg-slate-50/90 border border-slate-200/90 rounded-2xl items-center">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-xl overflow-hidden bg-slate-900 border border-slate-200 shadow-xs relative">
+              <LazyAccountImage
+                src={account.thumbnail}
+                alt={`Acc ${account.code}`}
+                containerClassName="w-full h-full"
+                priority
+              />
+              <span className="absolute bottom-1 left-1 px-1 py-0.2 bg-black/80 text-[8px] sm:text-[9px] font-bold text-white rounded">
+                VIP
+              </span>
+            </div>
+
+            <div className="flex-1 min-w-0 space-y-1">
+              <h3 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1">
+                {account.title}
+              </h3>
+              <p className="text-[11px] sm:text-xs text-slate-600 font-medium line-clamp-1 flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-orange-600 flex-shrink-0" />
+                <span className="truncate">{account.mainChibi}</span>
+              </p>
+              <p className="text-[11px] sm:text-xs text-slate-500 line-clamp-1 flex items-center gap-1">
+                <span>🏟️</span>
+                <span className="truncate">{account.mainArena}</span>
+              </p>
+              <div className="flex items-center gap-2 pt-0.5">
+                <span className="text-[10px] font-semibold text-slate-500 bg-white border border-slate-200 px-1.5 py-0.5 rounded">
+                  {allChibis.length} Tí Nị
+                </span>
+                <span className="text-[10px] font-semibold text-slate-500 bg-white border border-slate-200 px-1.5 py-0.5 rounded">
+                  {allArenas.length} Sân Đấu
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* Key Specs Breakdown */}
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="bg-slate-50 border border-slate-200/80 p-3.5 rounded-2xl shadow-xs">
-              <span className="text-[11px] text-slate-500 uppercase font-semibold block">Tướng Tí Nị VIP</span>
-              <span className="text-base sm:text-lg font-black text-slate-900 font-mono mt-0.5 block">{(account.allChibi || []).length} Tướng</span>
-            </div>
-            <div className="bg-slate-50 border border-slate-200/80 p-3.5 rounded-2xl shadow-xs">
-              <span className="text-[11px] text-slate-500 uppercase font-semibold block">Sân Đấu Thần Thoại</span>
-              <span className="text-base sm:text-lg font-black text-slate-900 font-mono mt-0.5 block">{(account.allArenas || []).length} Sân Đấu</span>
-            </div>
-            <div className="bg-slate-50 border border-slate-200/80 p-3.5 rounded-2xl shadow-xs">
-              <span className="text-[11px] text-slate-500 uppercase font-semibold block">Bậc Rank</span>
-              <span className="text-base sm:text-lg font-black text-orange-600 font-mono mt-0.5 block">{account.rank || "UNRANKED"}</span>
-            </div>
-          </div>
-
-          {/* Detailed Inventory Lists - GIẢM BORDER, GỌN GÀNG */}
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-bold text-slate-800 text-xs sm:text-sm mb-2.5 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-orange-600" />
-                <span>Danh Sách Tướng Tí Nị Trong Acc:</span>
-              </h4>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm">
-                {(account.allChibi || [account.mainChibi || "Tí Nị VIP"]).map((chibi, idx) => (
-                  <li key={idx} className="bg-slate-50/90 p-3 rounded-xl flex items-center gap-2.5 text-slate-700 font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                    <span className="truncate">{chibi}</span>
-                  </li>
-                ))}
-              </ul>
+          {/* INVENTORY BADGE CHIPS (Gọn gàng, có nút xem thêm) */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+              <span className="flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-orange-600" />
+                <span>Tướng Tí Nị & Sân Đấu Trong Acc:</span>
+              </span>
+              {allChibis.length > 4 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllChibis(!showAllChibis)}
+                  className="text-[11px] text-orange-600 hover:text-orange-700 font-bold flex items-center gap-0.5 cursor-pointer"
+                >
+                  <span>{showAllChibis ? "Thu gọn" : `+${allChibis.length - 4} xem thêm`}</span>
+                  {showAllChibis ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                </button>
+              )}
             </div>
 
-            <div>
-              <h4 className="font-bold text-slate-800 text-xs sm:text-sm mb-2.5 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-orange-600" />
-                <span>Danh Sách Sân Đấu Thần Thoại:</span>
-              </h4>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm">
-                {(account.allArenas || [account.mainArena || "Sân Đấu Thần Thoại"]).map((arena, idx) => (
-                  <li key={idx} className="bg-slate-50/90 p-3 rounded-xl flex items-center gap-2.5 text-slate-700 font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                    <span className="truncate">{arena}</span>
-                  </li>
-                ))}
-              </ul>
+            <div className="flex flex-wrap gap-1.5">
+              {displayChibis.map((chibi, idx) => (
+                <span
+                  key={idx}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-50/80 border border-orange-200/80 text-orange-900 text-[11px] font-medium"
+                >
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600 flex-shrink-0" />
+                  <span className="truncate max-w-[200px]">{chibi}</span>
+                </span>
+              ))}
+              {allArenas.map((arena, idx) => (
+                <span
+                  key={`arena-${idx}`}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-medium"
+                >
+                  <span>🏟️</span>
+                  <span className="truncate max-w-[200px]">{arena}</span>
+                </span>
+              ))}
             </div>
           </div>
 
           {/* ============================================================ */}
-          {/* TRƯỜNG HỢP 1: ACC ĐANG CÓ KHÁCH THUÊ -> HIỆN KHỐI COUNTDOWN */}
+          {/* TRƯỜNG HỢP 1: ACC ĐANG ĐƯỢC THUÊ (COUNTDOWN GỌN GÀNG) */}
           {/* ============================================================ */}
           {isRented ? (
-            <div className="bg-rose-50/80 rounded-3xl p-5 sm:p-6 text-center space-y-4 shadow-sm border border-rose-200/80">
-              <div className="flex items-center justify-center gap-2 text-rose-800 font-extrabold text-sm sm:text-base">
-                <Lock className="w-5 h-5 text-rose-600 animate-pulse" />
-                <span>TÀI KHOẢN ĐANG ĐƯỢC THUÊ</span>
+            <div className="bg-rose-50/90 border border-rose-200 rounded-2xl p-4 text-center space-y-3">
+              <div className="flex items-center justify-center gap-1.5 text-rose-800 font-bold text-xs sm:text-sm">
+                <Lock className="w-4 h-4 text-rose-600 animate-pulse" />
+                <span>TÀI KHOẢN ĐANG CÓ KHÁCH THUÊ</span>
               </div>
 
-              {/* Countdown Timer dạng Thông Minh (Vô Cực / Ngày / Giờ / Phút / Giây) */}
               {isInfinite ? (
-                <div className="flex items-center justify-center gap-2 text-base sm:text-lg font-black text-rose-700 bg-white border border-rose-200/90 py-3 px-5 rounded-2xl shadow-inner font-mono">
-                  <span>∞ Đang Cho Thuê Dài Hạn (Vô Cực)</span>
-                </div>
-              ) : days > 0 ? (
-                <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 font-mono">
-                  <div className="bg-white border border-rose-200/90 px-2.5 sm:px-3 py-2 rounded-2xl shadow-inner text-center min-w-[55px] sm:min-w-[65px]">
-                    <span className="text-xl sm:text-2xl font-black text-rose-600 block leading-none">{pad(days)}</span>
-                    <span className="text-[10px] text-slate-500 uppercase font-bold mt-1 block">Ngày</span>
-                  </div>
-                  <span className="text-xl sm:text-2xl font-black text-rose-400">:</span>
-                  <div className="bg-white border border-rose-200/90 px-2.5 sm:px-3 py-2 rounded-2xl shadow-inner text-center min-w-[55px] sm:min-w-[65px]">
-                    <span className="text-xl sm:text-2xl font-black text-rose-600 block leading-none">{pad(hours)}</span>
-                    <span className="text-[10px] text-slate-500 uppercase font-bold mt-1 block">Giờ</span>
-                  </div>
-                  <span className="text-xl sm:text-2xl font-black text-rose-400">:</span>
-                  <div className="bg-white border border-rose-200/90 px-2.5 sm:px-3 py-2 rounded-2xl shadow-inner text-center min-w-[55px] sm:min-w-[65px]">
-                    <span className="text-xl sm:text-2xl font-black text-rose-600 block leading-none">{pad(minutes)}</span>
-                    <span className="text-[10px] text-slate-500 uppercase font-bold mt-1 block">Phút</span>
-                  </div>
-                  <span className="text-xl sm:text-2xl font-black text-rose-400">:</span>
-                  <div className="bg-white border border-rose-200/90 px-2.5 sm:px-3 py-2 rounded-2xl shadow-inner text-center min-w-[55px] sm:min-w-[65px]">
-                    <span className="text-xl sm:text-2xl font-black text-rose-600 block leading-none">{pad(seconds)}</span>
-                    <span className="text-[10px] text-slate-500 uppercase font-bold mt-1 block">Giây</span>
-                  </div>
+                <div className="py-2 px-3 bg-white border border-rose-200 rounded-xl font-mono text-sm font-bold text-rose-700">
+                  ∞ Thuê Lâu Dài (Vô Cực)
                 </div>
               ) : (
-                <div className="flex items-center justify-center gap-2 sm:gap-3 font-mono">
-                  <div className="bg-white border border-rose-200/90 px-3.5 py-2 rounded-2xl shadow-inner text-center min-w-[70px]">
-                    <span className="text-2xl font-black text-rose-600 block leading-none">{pad(hours)}</span>
-                    <span className="text-[10px] text-slate-500 uppercase font-bold mt-1 block">Giờ</span>
+                <div className="flex items-center justify-center gap-1 sm:gap-2 font-mono">
+                  {days > 0 && (
+                    <>
+                      <div className="bg-white border border-rose-200 px-2 py-1 rounded-xl text-center min-w-[48px]">
+                        <span className="text-base sm:text-lg font-black text-rose-600 block leading-tight">{pad(days)}</span>
+                        <span className="text-[9px] text-slate-500 font-bold block">Ngày</span>
+                      </div>
+                      <span className="font-bold text-rose-400">:</span>
+                    </>
+                  )}
+                  <div className="bg-white border border-rose-200 px-2 py-1 rounded-xl text-center min-w-[48px]">
+                    <span className="text-base sm:text-lg font-black text-rose-600 block leading-tight">{pad(hours)}</span>
+                    <span className="text-[9px] text-slate-500 font-bold block">Giờ</span>
                   </div>
-                  <span className="text-2xl font-black text-rose-400">:</span>
-                  <div className="bg-white border border-rose-200/90 px-3.5 py-2 rounded-2xl shadow-inner text-center min-w-[70px]">
-                    <span className="text-2xl font-black text-rose-600 block leading-none">{pad(minutes)}</span>
-                    <span className="text-[10px] text-slate-500 uppercase font-bold mt-1 block">Phút</span>
+                  <span className="font-bold text-rose-400">:</span>
+                  <div className="bg-white border border-rose-200 px-2 py-1 rounded-xl text-center min-w-[48px]">
+                    <span className="text-base sm:text-lg font-black text-rose-600 block leading-tight">{pad(minutes)}</span>
+                    <span className="text-[9px] text-slate-500 font-bold block">Phút</span>
                   </div>
-                  <span className="text-2xl font-black text-rose-400">:</span>
-                  <div className="bg-white border border-rose-200/90 px-3.5 py-2 rounded-2xl shadow-inner text-center min-w-[70px]">
-                    <span className="text-2xl font-black text-rose-600 block leading-none">{pad(seconds)}</span>
-                    <span className="text-[10px] text-slate-500 uppercase font-bold mt-1 block">Giây</span>
+                  <span className="font-bold text-rose-400">:</span>
+                  <div className="bg-white border border-rose-200 px-2 py-1 rounded-xl text-center min-w-[48px]">
+                    <span className="text-base sm:text-lg font-black text-rose-600 block leading-tight">{pad(seconds)}</span>
+                    <span className="text-[9px] text-slate-500 font-bold block">Giây</span>
                   </div>
                 </div>
               )}
 
-              {/* Hiển thị thời điểm hết hạn cụ thể khớp với Admin */}
-              {rentalInfo && (
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white border border-rose-200 text-rose-800 text-xs font-bold shadow-xs">
-                  <Clock className="w-3.5 h-3.5 text-rose-600" />
-                  <span>
-                    {rentalInfo.isInfinite
-                      ? "Thời hạn: Thuê Vô Cực (Không giới hạn)"
-                      : `Hạn trả dự kiến: ${rentalInfo.expiryFormatted}`}
-                  </span>
-                </div>
-              )}
-
-              <p className="text-sm text-slate-600 leading-relaxed font-normal">
-                Dự kiến bàn giao cho lượt thuê tiếp theo sau khi hết thời gian đếm ngược. Bạn có thể đặt lịch trước để được ưu tiên nhận acc ngay khi trống!
+              <p className="text-[11px] text-slate-600">
+                {rentalInfo?.expiryFormatted ? `Dự kiến trả acc: ${rentalInfo.expiryFormatted}. ` : ""}
+                Bạn có thể đặt trước để ưu tiên nhận tài khoản ngay khi trống!
               </p>
             </div>
           ) : (
             /* ============================================================ */
-            /* TRƯỜNG HỢP 2: ACC CÓ SẴN -> CHỌN GÓI & THANH TOÁN (REFACTORED) */
+            /* TRƯỜNG HỢP 2: ACC CÓ SẴN -> BẢNG CHỌN GÓI 2x2 CỰC GỌN */
             /* ============================================================ */
-            <div className="space-y-6 pt-1">
-              {/* 1. CHỌN GÓI THỜI GIAN THUÊ */}
-              <div className="space-y-3.5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-                  <h4 className="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-orange-600" />
-                    <span>Chọn Gói Thời Gian Thuê:</span>
-                  </h4>
-                  
-                  {!selectedPackage && (
-                    <span className="text-xs font-bold text-orange-600 flex items-center gap-1">
-                      👇 Vui lòng chọn 1 gói thời gian bên dưới
-                    </span>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  {/* Gói 1: 2 Giờ Trải Nghiệm */}
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPackage("2h")}
-                    className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer relative ${
-                      selectedPackage === "2h"
-                        ? "bg-orange-50/80 border-orange-600 text-slate-900 shadow-md ring-4 ring-orange-500/10"
-                        : "bg-slate-50/60 border-slate-200/80 text-slate-700 hover:bg-white hover:border-slate-300"
-                    }`}
-                  >
-                    <div className="flex justify-between items-baseline mb-1">
-                      <span className="font-bold text-sm text-slate-900">
-                        {packageConfigs["2h"].name}
-                      </span>
-                      <span className="font-black font-mono text-red-600 text-base">
-                        {formatMoney(packageConfigs["2h"].totalPrice)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs mt-1.5">
-                      <span className="text-slate-500 font-medium">{packageConfigs["2h"].note}</span>
-                      <span className="text-[10px] font-bold text-blue-800 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
-                        {pricingRates.rate2Hours}% + {Math.round(pricingRates.passChangeFee / 1000)}k
-                      </span>
-                    </div>
-                  </button>
-
-                  {/* Gói 2: Thuê 7 Ngày (1 Tuần) */}
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPackage("7d")}
-                    className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer relative ${
-                      selectedPackage === "7d"
-                        ? "bg-orange-50/80 border-orange-600 text-slate-900 shadow-md ring-4 ring-orange-500/10"
-                        : "bg-slate-50/60 border-slate-200/80 text-slate-700 hover:bg-white hover:border-slate-300"
-                    }`}
-                  >
-                    <div className="flex justify-between items-baseline mb-1">
-                      <span className="font-bold text-sm text-slate-900">
-                        {packageConfigs["7d"].name}
-                      </span>
-                      <span className="font-black font-mono text-red-600 text-base">
-                        {formatMoney(packageConfigs["7d"].totalPrice)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs mt-1.5">
-                      <span className="text-slate-500 font-medium">{packageConfigs["7d"].note}</span>
-                      <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-                        {pricingRates.rate7Days}% + {Math.round(pricingRates.passChangeFee / 1000)}k
-                      </span>
-                    </div>
-                  </button>
-
-                  {/* Gói 3: Thuê 30 Ngày (1 Tháng) */}
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPackage("30d")}
-                    className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer relative ${
-                      selectedPackage === "30d"
-                        ? "bg-orange-50/80 border-orange-600 text-slate-900 shadow-md ring-4 ring-orange-500/10"
-                        : "bg-slate-50/60 border-slate-200/80 text-slate-700 hover:bg-white hover:border-slate-300"
-                    }`}
-                  >
-                    <div className="flex justify-between items-baseline mb-1">
-                      <span className="font-bold text-sm text-slate-900">
-                        {packageConfigs["30d"].name}
-                      </span>
-                      <span className="font-black font-mono text-red-600 text-base">
-                        {formatMoney(packageConfigs["30d"].totalPrice)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs mt-1.5">
-                      <span className="text-emerald-700 font-semibold">{packageConfigs["30d"].note}</span>
-                      <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                        {pricingRates.rate30Days}% Giá Acc
-                      </span>
-                    </div>
-                  </button>
-
-                  {/* Gói 4: Thuê Lâu Dài 999 Ngày */}
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPackage("perm")}
-                    className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer relative ${
-                      selectedPackage === "perm"
-                        ? "bg-orange-50/80 border-orange-600 text-slate-900 shadow-md ring-4 ring-orange-500/10"
-                        : "bg-slate-50/60 border-slate-200/80 text-slate-700 hover:bg-white hover:border-slate-300"
-                    }`}
-                  >
-                    <div className="flex justify-between items-baseline mb-1">
-                      <span className="font-bold text-sm text-slate-900">
-                        {packageConfigs["perm"].name}
-                      </span>
-                      <span className="font-black font-mono text-red-600 text-base">
-                        {formatMoney(packageConfigs["perm"].totalPrice)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs mt-1.5">
-                      <span className="text-purple-700 font-semibold">{packageConfigs["perm"].note}</span>
-                      <span className="text-[10px] font-bold text-purple-800 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">
-                        100% Lâu Dài
-                      </span>
-                    </div>
-                  </button>
-                </div>
-              </div>
-
-              {/* 2. ĐẶC QUYỀN NÂNG CẤP - THẺ KHÔNG VIỀN, NỀN XANH CỰC NHẠT (REDUCED BORDERS) */}
-              <div className="bg-blue-50/60 rounded-2xl p-4 sm:p-5 space-y-1.5">
-                <div className="flex items-center gap-2 font-bold text-sm text-blue-900">
-                  <Zap className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                  <span>Đặc quyền nâng cấp (Rent-to-Own):</span>
-                </div>
-                <p className="text-sm text-slate-600 leading-relaxed font-normal">
-                  Bạn có thể bù phần % chênh lệch để nâng cấp lên gói Thuê Lâu Dài bất cứ lúc nào trong thời gian đang thuê (và tối đa 24h sau khi hết hạn). Ví dụ: Đã thuê gói 30 ngày (30%), bạn chỉ cần bù thêm 70% là được bàn giao full thông tin sở hữu acc.
-                </p>
-              </div>
-
-              {/* 3. ĐIỂM CHẠM CHÍNH: TỔNG THANH TOÁN (FOCAL POINT NỔI BẬT) */}
-              <div className="p-5 sm:p-6 bg-gradient-to-br from-orange-50/70 via-white to-amber-50/40 border-2 border-orange-500/30 rounded-3xl space-y-4 shadow-sm">
-                {activePkg ? (
-                  <>
-                    <div className="flex items-baseline justify-between gap-2">
-                      <div>
-                        <span className="text-xs text-slate-500 uppercase font-bold tracking-wider block">
-                          TỔNG THANH TOÁN:
-                        </span>
-                        <span className="text-sm sm:text-base text-slate-900 font-extrabold mt-0.5 block">
-                          {activePkg.name}
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-2xl sm:text-3xl font-black text-red-600 font-mono tracking-tight block">
-                          {formatMoney(activePkg.totalPrice)}
-                        </span>
-                        <span className="text-[11px] text-emerald-700 font-medium block mt-0.5">
-                          ✓ Đã làm tròn đến hàng nghìn
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Bóc tách phí rõ ràng, thoáng đãng */}
-                    <div className="pt-3.5 border-t border-orange-100/90 text-sm space-y-2">
-                      <div className="flex items-center justify-between text-slate-600">
-                        <span>Tiền thuê gốc:</span>
-                        <span className="font-mono font-bold text-slate-900">
-                          {formatMoney(activePkg.basePrice)}
-                        </span>
-                      </div>
-
-                      {activePkg.passFee > 0 ? (
-                        <div className="flex items-center justify-between text-slate-600">
-                          <span>Phí hoàn trả acc (phí đổi pass):</span>
-                          <span className="font-mono font-bold text-orange-700">
-                            +{formatMoney(activePkg.passFee)}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-between text-emerald-700 font-medium">
-                          <span>Phí hoàn trả acc (phí đổi pass):</span>
-                          <span className="font-bold text-emerald-800">Miễn phí (0đ)</span>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center py-3 space-y-1">
-                    <span className="text-xs text-slate-500 uppercase font-bold tracking-wider block">
-                      TỔNG THANH TOÁN:
-                    </span>
-                    <p className="text-base font-bold text-orange-700">
-                      Vui lòng chọn 1 gói thời gian thuê ở trên
-                    </p>
-                  </div>
-                )}
-
-                {/* Mã định danh tài khoản */}
-                <div className="flex items-center justify-between pt-3 border-t border-slate-200/80 text-xs text-slate-500">
-                  <span>Mã định danh tài khoản:</span>
-                  <button
-                    type="button"
-                    onClick={copyAccCode}
-                    className="text-slate-800 hover:text-orange-700 font-mono font-bold flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 rounded-xl shadow-xs transition-colors cursor-pointer"
-                  >
-                    {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
-                    <span>{copiedCode ? "Đã copy" : account.code}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* 4. CHECKBOX ĐỒNG Ý - TÁCH BIỆT, DỄ BẤM (SPACED OUT) */}
-              <label className="flex items-start gap-3.5 p-4 sm:p-5 rounded-2xl bg-orange-50/50 hover:bg-orange-50/80 border border-orange-200/70 cursor-pointer text-sm select-none transition-colors shadow-xs">
-                <input
-                  type="checkbox"
-                  checked={isAgreed}
-                  onChange={(e) => setIsAgreed(e.target.checked)}
-                  className="mt-0.5 w-5 h-5 text-orange-600 rounded-lg border-slate-300 focus:ring-orange-500 cursor-pointer accent-orange-600 flex-shrink-0"
-                />
-                <span className="text-slate-700 font-medium leading-relaxed">
-                  Tôi đã đọc và cam kết không sử dụng phần mềm thứ 3 / phá rank, đồng ý với quy định thuê của Shop Tuấn Thái Bình.
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-orange-600" />
+                  <span>Chọn Gói Thời Gian Thuê:</span>
                 </span>
-              </label>
+                <span className="text-[10px] text-slate-500 font-medium">Bấm để đổi gói</span>
+              </div>
 
-              {/* 5. QUY TRÌNH THUÊ TÀI KHOẢN - THẺ KHÔNG VIỀN, NỀN XÁM NHẠT (REDUCED BORDERS) */}
-              <div className="p-4 sm:p-5 bg-slate-50/80 rounded-2xl text-sm space-y-1.5">
-                <div className="font-bold flex items-center gap-2 text-slate-800">
-                  <Info className="w-4 h-4 text-orange-600 flex-shrink-0" />
-                  <span>Quy trình thuê tài khoản:</span>
+              {/* GRID 2x2 COMPACT PACKAGE CARDS */}
+              <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+                {(Object.keys(packageConfigs) as PackageKey[]).map((key) => {
+                  const pkg = packageConfigs[key];
+                  const isSelected = selectedPackage === key;
+
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setSelectedPackage(key)}
+                      className={`p-2.5 sm:p-3 rounded-xl border text-left transition-all relative cursor-pointer ${
+                        isSelected
+                          ? "bg-orange-50/90 border-orange-600 text-slate-900 shadow-sm ring-2 ring-orange-500/20"
+                          : "bg-slate-50/70 border-slate-200 text-slate-700 hover:bg-white hover:border-slate-300"
+                      }`}
+                    >
+                      {pkg.tag && (
+                        <span
+                          className={`absolute top-1.5 right-1.5 text-[8px] sm:text-[9px] font-bold px-1.5 py-0.2 rounded ${
+                            isSelected
+                              ? "bg-orange-600 text-white"
+                              : "bg-slate-200 text-slate-700"
+                          }`}
+                        >
+                          {pkg.tag}
+                        </span>
+                      )}
+
+                      <div className="font-bold text-xs sm:text-sm text-slate-900 pr-10">
+                        {pkg.name}
+                      </div>
+
+                      <div className="font-black font-mono text-red-600 text-xs sm:text-sm mt-0.5">
+                        {formatMoney(pkg.totalPrice)}
+                      </div>
+
+                      <div className="text-[10px] text-slate-500 mt-0.5 truncate">
+                        {pkg.sub}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* CHI TIẾT BÓC TÁCH GIÁ GỌN GÀNG */}
+              <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1.5 text-[11px] text-slate-600">
+                <div className="flex items-center justify-between">
+                  <span>Tiền thuê gốc ({activePkg.name}):</span>
+                  <span className="font-mono font-bold text-slate-900">{formatMoney(activePkg.basePrice)}</span>
                 </div>
-                <p className="text-sm text-slate-600 leading-relaxed font-normal">
-                  Sau khi chọn gói và tích cam kết, bấm nút &ldquo;Nhận Acc Qua Zalo&rdquo;. Hệ thống sẽ tự động sao chép cú pháp để bạn dán (Ctrl+V) vào Zalo shop, shop sẽ gửi STK và giao acc siêu tốc trong 30 giây!
-                </p>
+                <div className="flex items-center justify-between">
+                  <span>Phí đổi pass hoàn trả:</span>
+                  <span className={`font-mono font-bold ${activePkg.passFee > 0 ? "text-orange-700" : "text-emerald-700"}`}>
+                    {activePkg.passFee > 0 ? `+${formatMoney(activePkg.passFee)}` : "Miễn phí (0đ)"}
+                  </span>
+                </div>
+                <div className="pt-1 border-t border-slate-200/80 flex items-center justify-between font-bold text-slate-900 text-xs">
+                  <span>Tổng thanh toán:</span>
+                  <span className="font-mono font-black text-red-600 text-sm">{formatMoney(activePkg.totalPrice)}</span>
+                </div>
+              </div>
+
+              {/* GỢI Ý NÂNG CẤP LÂU DÀI 1 DÒNG */}
+              <div className="flex items-start gap-1.5 px-3 py-2 bg-blue-50/70 border border-blue-200/60 rounded-xl text-[11px] text-blue-900">
+                <Zap className="w-3.5 h-3.5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <span>
+                  <strong>Đặc quyền:</strong> Thuê gói 30 ngày chỉ cần bù thêm 70% để nâng cấp lên Thuê Lâu Dài bất cứ lúc nào.
+                </span>
               </div>
             </div>
           )}
+
+          {/* CHECKBOX CAM KẾT */}
+          {!isRented && (
+            <label className="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-xl bg-orange-50/60 border border-orange-200/70 cursor-pointer text-xs select-none">
+              <input
+                type="checkbox"
+                checked={isAgreed}
+                onChange={(e) => setIsAgreed(e.target.checked)}
+                className="w-4 h-4 text-orange-600 rounded border-slate-300 focus:ring-orange-500 cursor-pointer accent-orange-600 flex-shrink-0"
+              />
+              <span className="text-slate-700 font-medium leading-tight">
+                Cam kết không hack / phá rank & đồng ý điều khoản shop.
+              </span>
+            </label>
+          )}
         </div>
 
-        {/* 3. Modal Action Footer */}
-        <div className="px-5 py-4 sm:px-6 sm:py-4.5 bg-slate-50 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 flex-shrink-0">
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Quỹ bảo hiểm 30.000.000đ Checkscam.vn bảo chứng</span>
+        {/* 3. Sticky Action Footer */}
+        <div className="px-4 py-3 sm:px-6 sm:py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 flex-shrink-0">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+              {isRented ? "Trạng thái:" : "Thanh toán:"}
+            </span>
+            <span className="font-black font-mono text-sm sm:text-base text-red-600 leading-tight">
+              {isRented ? "Đang có khách" : formatMoney(activePkg.totalPrice)}
+            </span>
           </div>
 
-          <div className="flex items-center gap-2.5 w-full sm:w-auto">
+          <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl font-bold text-xs transition-colors w-1/2 sm:w-auto shadow-xs cursor-pointer"
+              className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl font-bold text-xs transition-colors cursor-pointer"
             >
               Đóng
             </button>
 
-            {/* NÚT HÀNH ĐỘNG PHÂN BIỆT RÕ: CÓ SẴN VS ĐANG THUÊ */}
             {isRented ? (
               <button
                 onClick={handlePreOrderZalo}
-                className="px-5 py-2.5 bg-gradient-to-r from-orange-600 to-rose-600 hover:from-orange-700 hover:to-rose-700 active:from-orange-800 active:to-rose-800 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 w-1/2 sm:w-auto hover:scale-105 shadow-orange-600/20 cursor-pointer"
+                className="px-4 py-2 bg-gradient-to-r from-orange-600 to-rose-600 hover:from-orange-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm flex items-center gap-1.5 active:scale-95 cursor-pointer"
               >
-                <BellRing className="w-4 h-4" />
-                <span>Đặt Lịch Thuê Sớm Qua Zalo</span>
+                <BellRing className="w-3.5 h-3.5" />
+                <span>Đặt Lịch Thuê</span>
               </button>
             ) : (
               <button
                 onClick={handleOrderZalo}
-                className={`px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 w-1/2 sm:w-auto cursor-pointer ${
+                disabled={!canSubmit}
+                className={`px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer ${
                   canSubmit
-                    ? "bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white shadow-md hover:scale-105 shadow-orange-700/20"
-                    : "bg-slate-200 hover:bg-slate-300 text-slate-500 border border-slate-300 shadow-xs"
+                    ? "bg-orange-700 hover:bg-orange-800 text-white shadow-md shadow-orange-700/20"
+                    : "bg-slate-200 text-slate-400 cursor-not-allowed"
                 }`}
               >
-                {!canSubmit && <Lock className="w-3.5 h-3.5" />}
-                {canSubmit && <MessageCircle className="w-4 h-4" />}
-                <span>Nhận Acc Qua Zalo</span>
+                <MessageCircle className="w-3.5 h-3.5" />
+                <span>Nhận Acc Zalo</span>
               </button>
             )}
           </div>
@@ -681,3 +532,4 @@ Báo mình khi acc này hết giờ thuê nhé!`;
     </div>
   );
 };
+

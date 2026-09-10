@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { TFTCloneAccount, TFT_CLONE_ACCOUNTS, PROFILE_INFO } from "@/data/tft-data";
 import { getVipAndCloneAccounts, formatRentalExpiry } from "@/utils/supabase/accounts-service";
 import { LazyAccountImage } from "@/components/lazy-account-image";
+import { TFTImageLightbox } from "@/components/tft-image-lightbox";
 import { motion, Variants } from "framer-motion";
 import {
   Sparkles,
@@ -68,11 +69,72 @@ const getAccountPrice = (account?: TFTCloneAccount | null): number => {
   return Number(account.price) || Number(account.periodPrice) || Number(account.monthlyPrice) || 150000;
 };
 
+/**
+ * Chuẩn hóa chuỗi tiếng Việt
+ */
+const removeVietnameseAccents = (str?: string | null): string => {
+  if (!str) return "";
+  return str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "d")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
+/**
+ * Helper tìm kiếm thông minh cho acc Clone / Smurf
+ */
+const matchesCloneSearch = (acc: TFTCloneAccount, query: string): boolean => {
+  const trimmed = (query || "").trim();
+  if (!trimmed) return true;
+
+  const featuresStr = Array.isArray(acc.features) ? acc.features.join(" ") : "";
+  const fullText = [
+    acc.code,
+    acc.title,
+    acc.rankBadge,
+    featuresStr,
+    acc.description,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const rawLowerTarget = fullText.toLowerCase();
+  const rawLowerQuery = trimmed.toLowerCase();
+
+  // 1. Khớp chuỗi trực tiếp
+  if (rawLowerTarget.includes(rawLowerQuery)) return true;
+
+  // 2. Chuẩn hóa không dấu
+  const targetNorm = removeVietnameseAccents(fullText);
+  const queryNorm = removeVietnameseAccents(trimmed);
+
+  if (targetNorm.includes(queryNorm)) return true;
+
+  // 3. Khớp không khoảng trắng
+  const targetCompact = targetNorm.replace(/\s+/g, "");
+  const queryCompact = queryNorm.replace(/\s+/g, "");
+  if (queryCompact && targetCompact.includes(queryCompact)) return true;
+
+  // 4. Khớp đa từ khóa
+  const queryTokens = queryNorm.split(" ").filter(Boolean);
+  if (queryTokens.length > 1) {
+    return queryTokens.every((token) => targetNorm.includes(token));
+  }
+
+  return false;
+};
+
 export const TFTCloneShop: React.FC = () => {
   // Khởi tạo sẵn danh sách có sẵn để render tức thì 0s, sau đó fetch ngầm từ Supabase
   const [cloneAccounts, setCloneAccounts] = useState<TFTCloneAccount[]>(TFT_CLONE_ACCOUNTS || []);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedClone, setSelectedClone] = useState<TFTCloneAccount | null>(null);
+  const [previewClone, setPreviewClone] = useState<TFTCloneAccount | null>(null);
   const [isAgreed, setIsAgreed] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [showFullCatalog, setShowFullCatalog] = useState(false);
@@ -97,6 +159,22 @@ export const TFTCloneShop: React.FC = () => {
     };
   }, []);
 
+  // Thống kê trạng thái thực tế của kho acc clone
+  const cloneStatusStats = useMemo(() => {
+    let availableCount = 0;
+    let rentedCount = 0;
+    cloneAccounts.forEach((acc) => {
+      const isRented = (acc.status || "").toUpperCase() === "RENTED";
+      if (isRented) rentedCount++;
+      else availableCount++;
+    });
+    return {
+      total: cloneAccounts.length,
+      available: availableCount,
+      rented: rentedCount,
+    };
+  }, [cloneAccounts]);
+
   // Reset số lượng tài khoản hiển thị ban đầu khi đổi bộ lọc
   useEffect(() => {
     setVisibleCount(12);
@@ -107,45 +185,42 @@ export const TFTCloneShop: React.FC = () => {
     cloneAccounts.length > 0 ? [...cloneAccounts, ...cloneAccounts] : [];
 
   // Lọc & Sắp xếp tài khoản khi mở rộng toàn bộ kho
-  const filteredCloneAccounts = cloneAccounts
-    .filter((acc) => {
-      const isRented = (acc.status || "").toUpperCase() === "RENTED";
-      const matchesStatus =
-        selectedStatus === "ALL" ||
-        (selectedStatus === "RENTED" && isRented) ||
-        (selectedStatus === "AVAILABLE" && !isRented);
+  const filteredCloneAccounts = useMemo(() => {
+    return cloneAccounts
+      .filter((acc) => {
+        // 1. Khớp trạng thái thuê
+        const isRented = (acc.status || "").toUpperCase() === "RENTED";
+        const matchesStatus =
+          selectedStatus === "ALL" ||
+          (selectedStatus === "RENTED" && isRented) ||
+          (selectedStatus === "AVAILABLE" && !isRented);
 
-      const query = searchTerm.trim().toLowerCase();
-      const titleStr = (acc.title || "").toLowerCase();
-      const codeStr = (acc.code || "").toLowerCase();
-      const badgeStr = (acc.rankBadge || "").toUpperCase();
+        // 2. Khớp Tìm kiếm thông minh
+        const matchesSearch = matchesCloneSearch(acc, searchTerm);
 
-      const matchesSearch =
-        query === "" ||
-        titleStr.includes(query) ||
-        codeStr.includes(query) ||
-        badgeStr.toLowerCase().includes(query);
+        // 3. Khớp Phân loại Rank
+        const badgeNorm = removeVietnameseAccents(acc.rankBadge);
+        const matchesRank =
+          selectedRankFilter === "ALL" ||
+          (selectedRankFilter === "UNRANKED" && (badgeNorm.includes("unranked") || badgeNorm.includes("trang tt") || badgeNorm.includes("khong rank"))) ||
+          (selectedRankFilter === "ĐỒNG" && (badgeNorm.includes("dong") || badgeNorm.includes("sat") || badgeNorm.includes("bac"))) ||
+          (selectedRankFilter === "VÀNG" && (badgeNorm.includes("vang") || badgeNorm.includes("bach kim"))) ||
+          (selectedRankFilter === "LỤC BẢO" && (badgeNorm.includes("luc bao") || badgeNorm.includes("kim cuong")));
 
-      const matchesRank =
-        selectedRankFilter === "ALL" ||
-        (selectedRankFilter === "UNRANKED" && (badgeStr.includes("UNRANKED") || badgeStr.includes("TRẮNG TT"))) ||
-        (selectedRankFilter === "ĐỒNG" && (badgeStr.includes("ĐỒNG") || badgeStr.includes("SẮT") || badgeStr.includes("BẠC"))) ||
-        (selectedRankFilter === "VÀNG" && (badgeStr.includes("VÀNG") || badgeStr.includes("BẠCH KIM"))) ||
-        (selectedRankFilter === "LỤC BẢO" && (badgeStr.includes("LỤC BẢO") || badgeStr.includes("KIM CƯƠNG")));
-
-      return matchesStatus && matchesSearch && matchesRank;
-    })
-    .sort((a, b) => {
-      const priceA = getAccountPrice(a);
-      const priceB = getAccountPrice(b);
-      if (selectedSort === "PRICE_ASC") {
-        return priceA - priceB;
-      }
-      if (selectedSort === "PRICE_DESC") {
-        return priceB - priceA;
-      }
-      return 0;
-    });
+        return matchesStatus && matchesSearch && matchesRank;
+      })
+      .sort((a, b) => {
+        const priceA = getAccountPrice(a);
+        const priceB = getAccountPrice(b);
+        if (selectedSort === "PRICE_ASC") {
+          return priceA - priceB;
+        }
+        if (selectedSort === "PRICE_DESC") {
+          return priceB - priceA;
+        }
+        return 0;
+      });
+  }, [cloneAccounts, selectedStatus, searchTerm, selectedRankFilter, selectedSort]);
 
   // Tải lũy tiến cho kho Clone
   const visibleCloneAccounts = filteredCloneAccounts.slice(0, visibleCount);
@@ -314,7 +389,10 @@ export const TFTCloneShop: React.FC = () => {
                 >
                   {/* TOP KHUNG ẢNH VUÔNG ASPECT-SQUARE HIỂN THỊ 100% MÀU GỐC */}
                   <div>
-                    <div className="relative aspect-square w-full overflow-hidden rounded-lg sm:rounded-xl bg-slate-100 mb-2 sm:mb-3 border border-slate-100 shadow-inner">
+                    <div
+                      onClick={() => setPreviewClone(account)}
+                      className="relative aspect-square w-full overflow-hidden rounded-lg sm:rounded-xl bg-slate-100 mb-2 sm:mb-3 border border-slate-100 shadow-inner cursor-pointer group-hover:border-orange-300 transition-colors"
+                    >
                       <LazyAccountImage
                         src={account.thumbnail}
                         alt={`Thuê acc clone TFT ${account.code} ${account.title} - Tuấn Thái Bình`}
@@ -393,7 +471,7 @@ export const TFTCloneShop: React.FC = () => {
                     {/* Cụm 2 Nút Bấm: Chi Tiết & Thuê Ngay (Tương tự Kho VIP) */}
                     <div className="grid grid-cols-2 gap-1 sm:gap-2">
                       <button
-                        onClick={() => openCloneModal(account)}
+                        onClick={() => setPreviewClone(account)}
                         className="h-7 sm:h-9 px-1 sm:px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg sm:rounded-xl font-semibold text-[10px] sm:text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
                       >
                         <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
@@ -445,6 +523,60 @@ export const TFTCloneShop: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-10 pt-6 sm:pt-8 border-t border-slate-200/80 space-y-6 sm:space-y-8 animate-fadeIn">
           {/* BỘ LỌC & TÌM KIẾM ACC CLONE */}
           <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] space-y-3.5">
+            {/* Quick Status Pills for Fast Touch on Mobile */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
+              <button
+                type="button"
+                onClick={() => setSelectedStatus("ALL")}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  selectedStatus === "ALL"
+                    ? "bg-slate-900 text-white shadow-xs"
+                    : "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                }`}
+              >
+                Tất Cả ({cloneStatusStats.total})
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedStatus("AVAILABLE")}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                  selectedStatus === "AVAILABLE"
+                    ? "bg-emerald-600 text-white shadow-xs shadow-emerald-600/20"
+                    : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/60"
+                }`}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Sẵn Sàng ({cloneStatusStats.available})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedStatus("RENTED")}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                  selectedStatus === "RENTED"
+                    ? "bg-rose-600 text-white shadow-xs shadow-rose-600/20"
+                    : "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/60"
+                }`}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                <span>Đang Thuê ({cloneStatusStats.rented})</span>
+              </button>
+              {(selectedStatus !== "ALL" || selectedRankFilter !== "ALL" || searchTerm || selectedSort !== "DEFAULT") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedStatus("ALL");
+                    setSelectedRankFilter("ALL");
+                    setSearchTerm("");
+                    setSelectedSort("DEFAULT");
+                  }}
+                  className="px-2.5 py-1.5 rounded-full text-xs font-semibold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 whitespace-nowrap flex items-center gap-1 transition-colors cursor-pointer ml-auto"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  <span>Đặt lại</span>
+                </button>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3.5 items-center">
               {/* Lọc Rank */}
               <div>
@@ -474,14 +606,14 @@ export const TFTCloneShop: React.FC = () => {
                   onChange={(e) => setSelectedStatus(e.target.value as any)}
                   className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500 transition-colors cursor-pointer"
                 >
-                  <option value="ALL">Tất Cả Trạng Thái</option>
-                  <option value="AVAILABLE">🟢 Sẵn Sàng (Chưa Thuê)</option>
-                  <option value="RENTED">🔴 Đang Cho Thuê</option>
+                  <option value="ALL">Tất Cả ({cloneStatusStats.total})</option>
+                  <option value="AVAILABLE">🟢 Sẵn Sàng ({cloneStatusStats.available})</option>
+                  <option value="RENTED">🔴 Đang Cho Thuê ({cloneStatusStats.rented})</option>
                 </select>
               </div>
 
               {/* Sắp Xếp Giá */}
-              <div>
+              <div className="col-span-2 lg:col-span-1">
                 <label className="text-[11px] text-slate-500 uppercase font-bold tracking-wider mb-1 block flex items-center justify-between">
                   <span>Sắp Xếp Giá</span>
                   <ArrowUpDown className="w-3 h-3 text-slate-400" />
@@ -505,10 +637,20 @@ export const TFTCloneShop: React.FC = () => {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Nhập mã số (CLONE-01), rank, hoặc từ khóa..."
-                  className="w-full h-10 pl-9 pr-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 transition-colors"
+                  placeholder="🔍 Nhập mã số (CLONE-01), rank (Unranked, Đồng, Vàng), tính năng..."
+                  className="w-full h-10.5 pl-9.5 pr-9 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 transition-colors"
                 />
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchTerm("")}
+                    className="w-6 h-6 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 absolute right-2.5 top-2.5 flex items-center justify-center text-xs transition-colors cursor-pointer"
+                    title="Xóa tìm kiếm"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -532,21 +674,42 @@ export const TFTCloneShop: React.FC = () => {
               ))}
             </div>
           ) : filteredCloneAccounts.length === 0 ? (
-            <div className="p-12 text-center bg-slate-50 rounded-2xl border border-slate-200/80">
-              <p className="text-sm font-semibold text-slate-600">
+            <div className="p-8 sm:p-12 text-center bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3 animate-fadeIn">
+              <div className="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mx-auto">
+                <Search className="w-6 h-6" />
+              </div>
+              <h4 className="text-sm sm:text-base font-bold text-slate-800">
                 Không tìm thấy tài khoản clone nào phù hợp với bộ lọc.
+              </h4>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                {selectedStatus === "RENTED" && cloneStatusStats.rented === 0
+                  ? "Hiện tại toàn bộ tài khoản Clone đều đang Sẵn Sàng (chưa có acc nào đang cho thuê)."
+                  : selectedStatus === "AVAILABLE" && cloneStatusStats.available === 0
+                  ? "Hiện tại toàn bộ tài khoản Clone đều đang có khách thuê."
+                  : "Bạn có thể thử tìm kiếm với từ khóa khác hoặc đặt lại bộ lọc."}
               </p>
-              <button
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedRankFilter("ALL");
-                  setSelectedStatus("ALL");
-                  setSelectedSort("DEFAULT");
-                }}
-                className="mt-3 px-4 py-2 bg-orange-700 hover:bg-orange-800 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
-              >
-                Đặt lại bộ lọc
-              </button>
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setSelectedRankFilter("ALL");
+                    setSelectedStatus("ALL");
+                    setSelectedSort("DEFAULT");
+                  }}
+                  className="px-4 py-2 bg-orange-700 hover:bg-orange-800 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Đặt lại bộ lọc
+                </button>
+
+                {selectedStatus !== "ALL" && (
+                  <button
+                    onClick={() => setSelectedStatus("ALL")}
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    Xem tất cả ({cloneStatusStats.total} acc)
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             <>
@@ -579,7 +742,10 @@ export const TFTCloneShop: React.FC = () => {
                     >
                       {/* Top Photo & Badges */}
                       <div>
-                        <div className="relative aspect-square w-full overflow-hidden rounded-lg sm:rounded-xl bg-slate-100 mb-2 sm:mb-3 border border-slate-100 shadow-inner">
+                        <div
+                          onClick={() => setPreviewClone(account)}
+                          className="relative aspect-square w-full overflow-hidden rounded-lg sm:rounded-xl bg-slate-100 mb-2 sm:mb-3 border border-slate-100 shadow-inner cursor-pointer group-hover:border-orange-300 transition-colors"
+                        >
                           <LazyAccountImage
                             src={account.thumbnail}
                             alt={`Thuê acc clone TFT ${account.code} ${account.title} - Tuấn Thái Bình`}
@@ -656,7 +822,7 @@ export const TFTCloneShop: React.FC = () => {
 
                         <div className="grid grid-cols-2 gap-1 sm:gap-2">
                           <button
-                            onClick={() => openCloneModal(account)}
+                            onClick={() => setPreviewClone(account)}
                             className="h-7 sm:h-9 px-1 sm:px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg sm:rounded-xl font-semibold text-[10px] sm:text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
                           >
                             <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
@@ -722,96 +888,107 @@ export const TFTCloneShop: React.FC = () => {
       {/* 5. MODAL XEM CHI TIẾT & BÀN GIAO FULL THÔNG TIN ACC CLONE */}
       {/* ============================================================ */}
       {selectedClone && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white border border-slate-200/90 max-w-2xl w-full my-6 sm:my-8 rounded-3xl overflow-hidden relative animate-fadeIn flex flex-col max-h-[92vh] shadow-2xl">
-            {/* Top Accent Line */}
-            <div className="h-1 bg-gradient-to-r from-sky-500 via-orange-500 to-amber-500 w-full flex-shrink-0" />
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs sm:backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+          <div className="bg-white border-t sm:border border-slate-200 w-full sm:max-w-xl md:max-w-2xl rounded-t-[24px] sm:rounded-3xl overflow-hidden relative animate-fadeIn flex flex-col max-h-[92vh] sm:max-h-[88vh] shadow-2xl">
+            {/* Top Drag Indicator for Mobile */}
+            <div className="pt-2.5 pb-1 flex justify-center sm:hidden bg-slate-50">
+              <div className="w-10 h-1 rounded-full bg-slate-300" />
+            </div>
 
             {/* Header Bar */}
-            <div className="px-5 py-4 sm:px-6 sm:py-4.5 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between flex-shrink-0">
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-2.5 py-0.5 rounded-lg bg-sky-100 border border-sky-200 text-sky-800 font-mono font-bold text-xs">
-                    {selectedClone.code}
+            <div className="px-4 py-3 sm:px-6 sm:py-3.5 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={() => copyAccCode(selectedClone.code)}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-100 border border-sky-200 text-sky-800 font-mono font-bold text-[11px] active:scale-95 transition-transform cursor-pointer"
+                  title="Bấm để sao chép mã"
+                >
+                  <span>{selectedClone.code}</span>
+                  {copiedCode ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-400" />}
+                </button>
+
+                <span className="px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-extrabold uppercase bg-slate-200/80 text-slate-800">
+                  {selectedClone.rankBadge}
+                </span>
+
+                {(selectedClone.status || "").toUpperCase() !== "RENTED" ? (
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[10px] sm:text-[11px] flex items-center gap-1 border border-emerald-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                    <span>SẴN SÀNG</span>
                   </span>
-                  <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-bold uppercase bg-slate-200 text-slate-800">
-                    {selectedClone.rankBadge}
+                ) : (
+                  <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-bold text-[10px] sm:text-[11px] flex items-center gap-1 border border-rose-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse" />
+                    <span>ĐANG THUÊ</span>
                   </span>
-                  {(selectedClone.status || "").toUpperCase() !== "RENTED" ? (
-                    <span className="px-2.5 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-[11px] flex items-center gap-1.5 border border-emerald-200">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                      <span>SẴN SÀNG BÀN GIAO</span>
-                    </span>
-                  ) : (
-                    <span className="px-2.5 py-0.5 rounded-lg bg-rose-100 text-rose-800 font-bold text-[11px] flex items-center gap-1.5 border border-rose-200">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse" />
-                      <span>ĐANG CÓ KHÁCH THUÊ</span>
-                    </span>
-                  )}
-                </div>
-                <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight mt-1.5">
-                  {selectedClone.title}
-                </h3>
+                )}
               </div>
 
               <button
                 onClick={() => setSelectedClone(null)}
-                aria-label="Đóng modal"
-                className="w-9 h-9 rounded-2xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 flex items-center justify-center font-bold shadow-sm transition-colors cursor-pointer flex-shrink-0 ml-2"
+                aria-label="Đóng"
+                className="w-8 h-8 rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 flex items-center justify-center font-bold shadow-xs transition-colors cursor-pointer flex-shrink-0 ml-2"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Body Modal Chi Tiết */}
-            <div className="p-5 sm:p-7 overflow-y-auto space-y-6 text-slate-900 flex-1">
-              {/* Main Account Image - Khung Vuông Chuẩn 1:1 Hiển Thị 100% Màu Gốc Sáng Rõ */}
-              <div className="relative aspect-square max-w-[320px] sm:max-w-[380px] mx-auto w-full rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-md">
-                <img
-                  src={selectedClone.thumbnail}
-                  alt={`Thuê acc clone TFT ${selectedClone.code} - ${selectedClone.title} - Tuấn Thái Bình`}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+            <div className="p-4 sm:p-5 overflow-y-auto space-y-4 text-slate-900 flex-1 overscroll-contain">
+              {/* COMPACT HERO CARD */}
+              <div className="flex gap-3 sm:gap-4 p-3 sm:p-3.5 bg-slate-50/90 border border-slate-200/90 rounded-2xl items-center">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shadow-xs relative">
+                  <LazyAccountImage
+                    src={selectedClone.thumbnail}
+                    alt={`Acc ${selectedClone.code}`}
+                    containerClassName="w-full h-full"
+                    priority
+                  />
+                  <span className="absolute bottom-1 left-1 px-1 py-0.2 bg-black/80 text-[8px] sm:text-[9px] font-bold text-white rounded">
+                    CLONE
+                  </span>
+                </div>
 
-              {/* Key Specs Breakdown */}
-              <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="bg-slate-50 border border-slate-200/80 p-3.5 rounded-2xl shadow-xs">
-                  <span className="text-[11px] text-slate-500 uppercase font-semibold block">Bậc Rank</span>
-                  <span className="text-sm sm:text-base font-black text-sky-700 font-mono mt-0.5 block">{selectedClone.rankBadge}</span>
-                </div>
-                <div className="bg-slate-50 border border-slate-200/80 p-3.5 rounded-2xl shadow-xs">
-                  <span className="text-[11px] text-slate-500 uppercase font-semibold block">Thời Hạn Thuê</span>
-                  <span className="text-sm sm:text-base font-black text-slate-900 mt-0.5 block">Vô Cực (∞)</span>
-                </div>
-                <div className="bg-slate-50 border border-slate-200/80 p-3.5 rounded-2xl shadow-xs">
-                  <span className="text-[11px] text-slate-500 uppercase font-semibold block">Hình Thức</span>
-                  <span className="text-sm sm:text-base font-black text-emerald-600 mt-0.5 block">Bàn Giao Full</span>
+                <div className="flex-1 min-w-0 space-y-1">
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1">
+                    {selectedClone.title}
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-slate-600 font-medium line-clamp-1 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-orange-600 flex-shrink-0" />
+                    <span>Thuê lâu dài (Sở hữu vô cực ∞)</span>
+                  </p>
+                  <p className="text-[11px] sm:text-xs text-emerald-700 font-semibold flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 flex-shrink-0" />
+                    <span>Bàn giao full quyền Riot ID & Pass</span>
+                  </p>
                 </div>
               </div>
 
               {/* Danh sách đặc điểm nổi bật */}
-              <div>
-                <h4 className="font-bold text-slate-800 text-xs sm:text-sm mb-2.5 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-orange-600" />
-                  <span>Đặc Điểm & Tính Năng Tài Khoản:</span>
-                </h4>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm">
+              <div className="space-y-2">
+                <div className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-orange-600" />
+                  <span>Đặc Điểm & Cam Kết Bàn Giao:</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
                   {selectedClone.features.map((feat, idx) => (
-                    <li key={idx} className="bg-slate-50/90 p-3 rounded-xl flex items-center gap-2.5 text-slate-700 font-medium">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50/80 border border-emerald-200/80 text-emerald-900 text-[11px] font-medium"
+                    >
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600 flex-shrink-0" />
                       <span>{feat}</span>
-                    </li>
+                    </span>
                   ))}
-                </ul>
+                </div>
               </div>
 
               {/* TRƯỜNG HỢP ACC ĐANG ĐƯỢC THUÊ */}
               {(selectedClone.status || "").toUpperCase() === "RENTED" ? (
-                <div className="bg-rose-50/80 rounded-3xl p-5 sm:p-6 text-center space-y-4 shadow-sm border border-rose-200/80">
-                  <div className="flex items-center justify-center gap-2 text-rose-800 font-extrabold text-sm sm:text-base">
-                    <Lock className="w-5 h-5 text-rose-600 animate-pulse" />
-                    <span>TÀI KHOẢN ĐANG ĐƯỢC THUÊ</span>
+                <div className="bg-rose-50/90 border border-rose-200 rounded-2xl p-4 text-center space-y-3">
+                  <div className="flex items-center justify-center gap-1.5 text-rose-800 font-bold text-xs sm:text-sm">
+                    <Lock className="w-4 h-4 text-rose-600 animate-pulse" />
+                    <span>TÀI KHOẢN ĐANG CÓ KHÁCH THUÊ</span>
                   </div>
 
                   {(() => {
@@ -820,156 +997,103 @@ export const TFTCloneShop: React.FC = () => {
                     const pad = (n: number) => n.toString().padStart(2, "0");
 
                     return (
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         {info.isInfinite ? (
-                          <div className="flex items-center justify-center gap-2 text-base sm:text-lg font-black text-rose-700 bg-white border border-rose-200/90 py-3 px-5 rounded-2xl shadow-inner font-mono">
-                            <span>∞ Đang Cho Thuê Dài Hạn (Vô Cực)</span>
+                          <div className="py-2 px-3 bg-white border border-rose-200 rounded-xl font-mono text-sm font-bold text-rose-700">
+                            ∞ Thuê Lâu Dài (Vô Cực)
                           </div>
                         ) : (
-                          <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 font-mono">
+                          <div className="flex items-center justify-center gap-1 sm:gap-2 font-mono">
                             {info.days > 0 && (
                               <>
-                                <div className="bg-white border border-rose-200/90 px-2.5 sm:px-3 py-2 rounded-2xl shadow-inner text-center min-w-[55px] sm:min-w-[65px]">
-                                  <span className="text-xl sm:text-2xl font-black text-rose-600 block leading-none">{pad(info.days)}</span>
-                                  <span className="text-[10px] text-slate-500 uppercase font-bold mt-1 block">Ngày</span>
+                                <div className="bg-white border border-rose-200 px-2 py-1 rounded-xl text-center min-w-[48px]">
+                                  <span className="text-base sm:text-lg font-black text-rose-600 block leading-tight">{pad(info.days)}</span>
+                                  <span className="text-[9px] text-slate-500 font-bold block">Ngày</span>
                                 </div>
-                                <span className="text-xl sm:text-2xl font-black text-rose-400">:</span>
+                                <span className="font-bold text-rose-400">:</span>
                               </>
                             )}
-                            <div className="bg-white border border-rose-200/90 px-2.5 sm:px-3 py-2 rounded-2xl shadow-inner text-center min-w-[55px] sm:min-w-[65px]">
-                              <span className="text-xl sm:text-2xl font-black text-rose-600 block leading-none">{pad(info.hours)}</span>
-                              <span className="text-[10px] text-slate-500 uppercase font-bold mt-1 block">Giờ</span>
+                            <div className="bg-white border border-rose-200 px-2 py-1 rounded-xl text-center min-w-[48px]">
+                              <span className="text-base sm:text-lg font-black text-rose-600 block leading-tight">{pad(info.hours)}</span>
+                              <span className="text-[9px] text-slate-500 font-bold block">Giờ</span>
                             </div>
-                            <span className="text-xl sm:text-2xl font-black text-rose-400">:</span>
-                            <div className="bg-white border border-rose-200/90 px-2.5 sm:px-3 py-2 rounded-2xl shadow-inner text-center min-w-[55px] sm:min-w-[65px]">
-                              <span className="text-xl sm:text-2xl font-black text-rose-600 block leading-none">{pad(info.minutes)}</span>
-                              <span className="text-[10px] text-slate-500 uppercase font-bold mt-1 block">Phút</span>
+                            <span className="font-bold text-rose-400">:</span>
+                            <div className="bg-white border border-rose-200 px-2 py-1 rounded-xl text-center min-w-[48px]">
+                              <span className="text-base sm:text-lg font-black text-rose-600 block leading-tight">{pad(info.minutes)}</span>
+                              <span className="text-[9px] text-slate-500 font-bold block">Phút</span>
                             </div>
-                            <span className="text-xl sm:text-2xl font-black text-rose-400">:</span>
-                            <div className="bg-white border border-rose-200/90 px-2.5 sm:px-3 py-2 rounded-2xl shadow-inner text-center min-w-[55px] sm:min-w-[65px]">
-                              <span className="text-xl sm:text-2xl font-black text-rose-600 block leading-none">{pad(info.seconds)}</span>
-                              <span className="text-[10px] text-slate-500 uppercase font-bold mt-1 block">Giây</span>
+                            <span className="font-bold text-rose-400">:</span>
+                            <div className="bg-white border border-rose-200 px-2 py-1 rounded-xl text-center min-w-[48px]">
+                              <span className="text-base sm:text-lg font-black text-rose-600 block leading-tight">{pad(info.seconds)}</span>
+                              <span className="text-[9px] text-slate-500 font-bold block">Giây</span>
                             </div>
                           </div>
                         )}
 
-                        {/* Hiển thị hạn trả cụ thể */}
-                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white border border-rose-200 text-rose-800 text-xs font-bold shadow-xs">
-                          <Clock className="w-3.5 h-3.5 text-rose-600" />
-                          <span>
-                            {info.isInfinite
-                              ? "Thời hạn: Thuê Vô Cực (Không giới hạn)"
-                              : `Hạn trả dự kiến: ${info.expiryFormatted}`}
-                          </span>
-                        </div>
+                        <p className="text-[11px] text-slate-600">
+                          {info.expiryFormatted ? `Dự kiến hết hạn: ${info.expiryFormatted}. ` : ""}
+                          Bạn có thể đặt trước qua Zalo để nhận acc ngay khi trống!
+                        </p>
                       </div>
                     );
                   })()}
-
-                  <p className="text-sm text-slate-600 leading-relaxed font-normal">
-                    Dự kiến bàn giao cho lượt thuê tiếp theo sau khi hết thời gian đếm ngược. Bạn có thể đặt lịch trước qua Zalo để shop ưu tiên giao acc khi trống!
-                  </p>
                 </div>
               ) : (
-                <>
-                  {/* Thẻ Quyền Lợi Bàn Giao Toàn Quyền */}
-                  <div className="bg-blue-50/60 rounded-2xl p-4 sm:p-5 space-y-2.5 text-xs sm:text-sm">
-                    <div className="flex items-center gap-2 font-bold text-blue-900">
-                      <ShieldCheck className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                      <span>Quyền Lợi Khách Hàng:</span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-                      <div className="flex items-center gap-2 bg-white/80 p-2.5 rounded-xl border border-blue-100 text-slate-800 font-medium">
-                        <CheckCircle2 className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                        <span>Nắm Giữ Thông Tin An Toàn</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-white/80 p-2.5 rounded-xl border border-blue-100 text-slate-800 font-medium">
-                        <CheckCircle2 className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                        <span>Sở Hữu Lâu Dài Chính Chủ</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-white/80 p-2.5 rounded-xl border border-blue-100 text-slate-800 font-medium">
-                        <CheckCircle2 className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                        <span>Bảo Hành Đầy Đủ Theo Chính Sách Shop</span>
+                <div className="space-y-3">
+                  {/* BẢNG GIÁ & QUYỀN LỢI */}
+                  <div className="p-3.5 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-700">Giá sở hữu lâu dài:</span>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-lg sm:text-xl font-black font-mono text-red-600">
+                          {getAccountPrice(selectedClone).toLocaleString("vi-VN")}đ
+                        </span>
+                        <span className="text-sm font-bold text-slate-800">/ ∞</span>
                       </div>
                     </div>
-                  </div>
-
-                  {/* KHỐI TỔNG THANH TOÁN (FOCAL POINT NỔI BẬT) */}
-                  <div className="p-5 sm:p-6 bg-gradient-to-br from-orange-50/70 via-white to-amber-50/40 border-2 border-orange-500/30 rounded-3xl space-y-4 shadow-sm">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <div>
-                        <span className="text-xs text-slate-500 uppercase font-bold tracking-wider block">
-                          TỔNG THANH TOÁN SỞ HỮU:
-                        </span>
-                        <span className="text-sm sm:text-base text-slate-900 font-extrabold mt-0.5 block">
-                          Thuê Lâu Dài (Sở Hữu Vô Cực ∞)
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <div className="flex items-baseline justify-end gap-1">
-                          <span className="text-2xl sm:text-3xl font-black text-red-600 font-mono tracking-tight block">
-                            {getAccountPrice(selectedClone).toLocaleString("vi-VN")}đ
-                          </span>
-                          <span className="text-lg text-slate-700 font-black"> / ∞</span>
-                        </div>
-                        <span className="text-[11px] text-emerald-700 font-medium block mt-0.5">
-                          ✓ Bàn giao full thông tin cho khách
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Mã định danh tài khoản */}
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-200/80 text-xs text-slate-500">
-                      <span>Mã định danh tài khoản:</span>
-                      <button
-                        type="button"
-                        onClick={() => copyAccCode(selectedClone.code)}
-                        className="text-slate-800 hover:text-orange-700 font-mono font-bold flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 rounded-xl shadow-xs transition-colors cursor-pointer"
-                      >
-                        {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
-                        <span>{copiedCode ? "Đã copy" : selectedClone.code}</span>
-                      </button>
+                    <div className="pt-2 border-t border-slate-200 text-[11px] text-slate-600 space-y-1">
+                      <p className="flex items-center gap-1 text-emerald-700 font-medium">
+                        ✓ Bàn giao đầy đủ Riot ID, Mật khẩu và hỗ trợ đổi Mail
+                      </p>
+                      <p className="flex items-center gap-1 text-slate-600">
+                        ✓ Miễn phí bảo hành và hỗ trợ kỹ thuật trọn gói
+                      </p>
                     </div>
                   </div>
 
                   {/* CHECKBOX CAM KẾT */}
-                  <label className="flex items-start gap-3.5 p-4 sm:p-5 rounded-2xl bg-orange-50/50 hover:bg-orange-50/80 border border-orange-200/70 cursor-pointer text-sm select-none transition-colors shadow-xs">
+                  <label className="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-xl bg-orange-50/60 border border-orange-200/70 cursor-pointer text-xs select-none">
                     <input
                       type="checkbox"
                       checked={isAgreed}
                       onChange={(e) => setIsAgreed(e.target.checked)}
-                      className="mt-0.5 w-5 h-5 text-orange-600 rounded-lg border-slate-300 focus:ring-orange-500 cursor-pointer accent-orange-600 flex-shrink-0"
+                      className="w-4 h-4 text-orange-600 rounded border-slate-300 focus:ring-orange-500 cursor-pointer accent-orange-600 flex-shrink-0"
                     />
-                    <span className="text-slate-700 font-medium leading-relaxed">
-                      Tôi đã đọc và đồng ý với chính sách bàn giao full quyền sở hữu tài khoản và bảo hành trọn gói của Shop Tuấn Thái Bình.
+                    <span className="text-slate-700 font-medium leading-tight">
+                      Đồng ý với chính sách bàn giao & bảo hành của Shop Tuấn Thái Bình.
                     </span>
                   </label>
-
-                  {/* QUY TRÌNH NHẬN ACC */}
-                  <div className="p-4 sm:p-5 bg-slate-50/80 rounded-2xl text-sm space-y-1.5">
-                    <div className="font-bold flex items-center gap-2 text-slate-800">
-                      <Info className="w-4 h-4 text-orange-600 flex-shrink-0" />
-                      <span>Quy trình nhận tài khoản:</span>
-                    </div>
-                    <p className="text-sm text-slate-600 leading-relaxed font-normal">
-                      Sau khi tích cam kết, bấm nút &ldquo;Nhận Acc Full Quyền Qua Zalo&rdquo;. Hệ thống sẽ tự sao chép cú pháp để bạn dán (Ctrl+V) vào Zalo, shop sẽ gửi STK và bàn giao Riot ID & Mật Khẩu siêu tốc trong 30 giây!
-                    </p>
-                  </div>
-                </>
+                </div>
               )}
             </div>
 
             {/* Footer Modal */}
-            <div className="px-5 py-4 sm:px-6 sm:py-4.5 bg-slate-50 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 flex-shrink-0">
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>Quỹ bảo hiểm 30.000.000đ Checkscam.vn bảo chứng</span>
+            <div className="px-4 py-3 sm:px-6 sm:py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 flex-shrink-0">
+              <div className="flex flex-col">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                  {(selectedClone.status || "").toUpperCase() === "RENTED" ? "Trạng thái:" : "Thanh toán:"}
+                </span>
+                <span className="font-black font-mono text-sm sm:text-base text-red-600 leading-tight">
+                  {(selectedClone.status || "").toUpperCase() === "RENTED"
+                    ? "Đang có khách"
+                    : `${getAccountPrice(selectedClone).toLocaleString("vi-VN")}đ`}
+                </span>
               </div>
 
-              <div className="flex items-center gap-2.5 w-full sm:w-auto">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => setSelectedClone(null)}
-                  className="px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl font-bold text-xs transition-colors w-1/2 sm:w-auto shadow-xs cursor-pointer"
+                  className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl font-bold text-xs transition-colors cursor-pointer"
                 >
                   Đóng
                 </button>
@@ -982,23 +1106,23 @@ export const TFTCloneShop: React.FC = () => {
                       toast.success("Đã sao chép cú pháp! Dán (Ctrl+V) vào Zalo để đặt trước acc.");
                       window.open(PROFILE_INFO.zaloUrl, "_blank");
                     }}
-                    className="px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider bg-rose-700 hover:bg-rose-800 text-white shadow-md hover:scale-105 transition-all flex items-center justify-center gap-2 w-1/2 sm:w-auto cursor-pointer"
+                    className="px-4 py-2 bg-gradient-to-r from-orange-600 to-rose-600 hover:from-orange-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm flex items-center gap-1.5 active:scale-95 cursor-pointer"
                   >
-                    <MessageCircle className="w-4 h-4" />
-                    <span>Đặt Lịch Thuê Sớm</span>
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    <span>Đặt Lịch Thuê</span>
                   </button>
                 ) : (
                   <button
                     onClick={() => handleOrderZalo(selectedClone)}
-                    className={`px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 w-1/2 sm:w-auto cursor-pointer ${
+                    disabled={!isAgreed}
+                    className={`px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer ${
                       isAgreed
-                        ? "bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white shadow-md hover:scale-105 shadow-orange-700/20"
-                        : "bg-slate-200 hover:bg-slate-300 text-slate-500 border border-slate-300 shadow-xs"
+                        ? "bg-orange-700 hover:bg-orange-800 text-white shadow-md shadow-orange-700/20"
+                        : "bg-slate-200 text-slate-400 cursor-not-allowed"
                     }`}
                   >
-                    {!isAgreed && <Lock className="w-3.5 h-3.5" />}
-                    {isAgreed && <MessageCircle className="w-4 h-4" />}
-                    <span>Nhận Acc Full Quyền</span>
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    <span>Nhận Acc Zalo</span>
                   </button>
                 )}
               </div>
@@ -1006,6 +1130,23 @@ export const TFTCloneShop: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Lightbox Phóng to ảnh chi tiết tài khoản Clone */}
+      <TFTImageLightbox
+        isOpen={!!previewClone}
+        imageUrl={previewClone?.thumbnail || ""}
+        title={previewClone?.title || ""}
+        code={previewClone?.code || ""}
+        rank={previewClone?.rankBadge}
+        price={`${getAccountPrice(previewClone).toLocaleString("vi-VN")}đ / Vô Cực ∞`}
+        status={previewClone?.status}
+        onClose={() => setPreviewClone(null)}
+        onRentNow={() => {
+          if (previewClone) {
+            openCloneModal(previewClone);
+          }
+        }}
+      />
     </section>
   );
 };

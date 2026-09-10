@@ -28,34 +28,76 @@ const montserrat = Montserrat({
 
 const CONFIG_FILE_PATH = path.join(process.cwd(), "src", "data", "homepage-config.json");
 
-function getLiveSEOConfig() {
+/**
+ * Trích xuất mã xác minh sạch nếu người dùng dán toàn bộ thẻ <meta> hoặc chuỗi raw
+ */
+function cleanVerificationCode(raw?: string): string | undefined {
+  if (!raw) return undefined;
+  const trimmed = raw.trim();
+  if (!trimmed) return undefined;
+
+  // Nếu người dùng dán cả thẻ <meta ... content="XYZ" ... />
+  const metaMatch = trimmed.match(/content=["']([^"']+)["']/i);
+  if (metaMatch && metaMatch[1]) {
+    return metaMatch[1].trim();
+  }
+
+  // Nếu người dùng dán dạng key=value (VD: google-site-verification=XYZ hoặc msvalidate.01=XYZ)
+  if (trimmed.includes("=")) {
+    const parts = trimmed.split("=");
+    return parts[parts.length - 1].replace(/["';>]/g, "").trim();
+  }
+
+  return trimmed;
+}
+
+function getLiveSiteData() {
   try {
     if (fs.existsSync(CONFIG_FILE_PATH)) {
       const fileData = fs.readFileSync(CONFIG_FILE_PATH, "utf8");
       const data = JSON.parse(fileData);
-      if (data && data.seo) {
-        return data.seo;
-      }
+      return {
+        seo: data?.seo || {},
+        faqs: Array.isArray(data?.faqs) ? data.faqs : [],
+      };
     }
   } catch (e) {
-    console.error("Error reading SEO config in layout:", e);
+    console.error("Error reading live config in layout:", e);
   }
   return {
-    metaTitle: "Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Tự Động 24/7",
+    seo: {},
+    faqs: [],
+  };
+}
+
+function getLiveSEOConfig() {
+  const { seo } = getLiveSiteData();
+  const rawCanonical = seo.canonicalUrl || process.env.NEXT_PUBLIC_SITE_URL || "https://shoptftmobile.net";
+  const canonicalUrl = rawCanonical.trim().replace(/\/+$/, "");
+
+  return {
+    metaTitle:
+      seo.metaTitle || "Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Tự Động 24/7",
     metaDescription:
+      seo.metaDescription ||
       "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7. Cung cấp tài khoản full Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc. Admin Tuấn Thái Bình (Cựu Thách Đấu) uy tín - Quỹ bảo hiểm 30M.",
     metaKeywords:
+      seo.metaKeywords ||
       "thuê acc tft, thuê acc đtcl, shop tft, tuấn thái bình tft, thuê acc tí nị, cày thuê đtcl, shop acc tft uy tín, shop tft mobile, thuê tài khoản đtcl, tí nị ahri, tí nị yasuo, coaching tft",
-    canonicalUrl: "https://shoptft.vercel.app/",
-    ogTitle: "Tuấn Thái Bình TFT | Nền Tảng Thuê Acc ĐTCL Uy Tín",
+    canonicalUrl,
+    ogTitle:
+      seo.ogTitle || seo.metaTitle || "Tuấn Thái Bình TFT | Nền Tảng Thuê Acc ĐTCL Uy Tín",
     ogDescription:
+      seo.ogDescription ||
+      seo.metaDescription ||
       "Thuê acc VIP ĐTCL tự động 30s, full Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc. Bảo hiểm 30M Checkscam.",
-    ogImage: "/banner-seo.jpg",
-    faviconUrl: "/favicon.ico",
-    bgImageUrl: "",
-    bgColor: "#F8FAFC",
-    googleVerification: "",
-    author: "Tuấn Thái Bình",
+    ogImage: seo.ogImage || "/banner-seo.jpg",
+    faviconUrl: seo.faviconUrl || "/favicon.ico",
+    bgImageUrl: seo.bgImageUrl || "",
+    bgColor: seo.bgColor || "#F8FAFC",
+    googleVerification: cleanVerificationCode(seo.googleVerification),
+    bingVerification: cleanVerificationCode(seo.bingVerification),
+    author: seo.author || "Tuấn Thái Bình",
   };
 }
 
@@ -68,30 +110,49 @@ export async function generateMetadata(): Promise<Metadata> {
         .filter(Boolean)
     : [];
 
+  const absoluteOgImage = seo.ogImage.startsWith("http")
+    ? seo.ogImage
+    : `${seo.canonicalUrl}${seo.ogImage.startsWith("/") ? "" : "/"}${seo.ogImage}`;
+
+  const otherMeta: Record<string, string> = {
+    bingbot: "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1",
+  };
+
+  if (seo.bingVerification) {
+    otherMeta["msvalidate.01"] = seo.bingVerification;
+  }
+  if (seo.googleVerification) {
+    otherMeta["google-site-verification"] = seo.googleVerification;
+  }
+
   return {
     title: seo.metaTitle,
     description: seo.metaDescription,
     keywords: keywordsList,
-    authors: [{ name: seo.author || "Tuấn Thái Bình" }],
-    creator: seo.author || "Tuấn Thái Bình",
-    publisher: "ShopTFT Mobile",
-    metadataBase: new URL(seo.canonicalUrl || "https://shoptft.vercel.app/"),
+    authors: [{ name: seo.author }],
+    creator: seo.author,
+    publisher: "ShopTFT Mobile - Tuấn Thái Bình",
+    applicationName: "ShopTFT Mobile",
+    metadataBase: new URL(seo.canonicalUrl),
     alternates: {
-      canonical: seo.canonicalUrl || "https://shoptft.vercel.app/",
+      canonical: seo.canonicalUrl,
     },
     icons: {
-      icon: seo.faviconUrl || "/favicon.ico",
+      icon: [
+        { url: seo.faviconUrl || "/favicon.ico" },
+        { url: seo.faviconUrl || "/favicon.ico", sizes: "32x32", type: "image/png" },
+      ],
       shortcut: seo.faviconUrl || "/favicon.ico",
       apple: seo.faviconUrl || "/apple-touch-icon.png",
     },
     openGraph: {
-      title: seo.ogTitle || seo.metaTitle,
-      description: seo.ogDescription || seo.metaDescription,
-      url: seo.canonicalUrl || "https://shoptft.vercel.app/",
-      siteName: "ShopTFT Mobile",
+      title: seo.ogTitle,
+      description: seo.ogDescription,
+      url: seo.canonicalUrl,
+      siteName: "ShopTFT Mobile - Tuấn Thái Bình",
       images: [
         {
-          url: seo.ogImage || "/banner-seo.jpg",
+          url: absoluteOgImage,
           width: 1200,
           height: 630,
           alt: "Shop Thuê Acc TFT - ĐTCL Uy Tín Tuấn Thái Bình",
@@ -102,24 +163,28 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: seo.ogTitle || seo.metaTitle,
-      description: seo.ogDescription || seo.metaDescription,
-      images: [seo.ogImage || "/banner-seo.jpg"],
+      title: seo.ogTitle,
+      description: seo.ogDescription,
+      images: [absoluteOgImage],
     },
-    verification: seo.googleVerification
-      ? { google: seo.googleVerification }
-      : undefined,
+    verification: {
+      google: seo.googleVerification || undefined,
+      other: otherMeta,
+    },
     robots: {
       index: true,
       follow: true,
+      nocache: false,
       googleBot: {
         index: true,
         follow: true,
+        noimageindex: false,
         "max-video-preview": -1,
         "max-image-preview": "large",
         "max-snippet": -1,
       },
     },
+    other: otherMeta,
   };
 }
 
@@ -138,60 +203,102 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const seo = getLiveSEOConfig();
+  const { faqs } = getLiveSiteData();
+
+  const absoluteBannerUrl = seo.ogImage.startsWith("http")
+    ? seo.ogImage
+    : `${seo.canonicalUrl}${seo.ogImage.startsWith("/") ? "" : "/"}${seo.ogImage}`;
+
+  const jsonLdGraph: any[] = [
+    {
+      "@type": "WebSite",
+      "@id": `${seo.canonicalUrl}/#website`,
+      url: seo.canonicalUrl,
+      name: "ShopTFT Mobile - Tuấn Thái Bình",
+      description: seo.metaDescription,
+      inLanguage: "vi-VN",
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${seo.canonicalUrl}/?q={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
+    },
+    {
+      "@type": "LocalBusiness",
+      "@id": `${seo.canonicalUrl}/#localbusiness`,
+      name: "ShopTFT Mobile - Tuấn Thái Bình",
+      image: absoluteBannerUrl,
+      logo: `${seo.canonicalUrl}/avatar.jpg`,
+      description: seo.metaDescription,
+      url: seo.canonicalUrl,
+      telephone: "0352.867.283",
+      priceRange: "6.000đ - 1.200.000đ",
+      currenciesAccepted: "VND",
+      paymentAccepted: "Chuyển khoản Ngân Hàng, VietQR, ZaloPay, MoMo",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "Thái Bình",
+        addressCountry: "VN",
+      },
+      founder: {
+        "@type": "Person",
+        name: "Tuấn Thái Bình",
+        jobTitle: "Cựu Thách Đấu TFT 1.134 ĐNG",
+        url: seo.canonicalUrl,
+      },
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: "4.98",
+        reviewCount: "1850",
+        bestRating: "5",
+        worstRating: "1",
+      },
+      openingHoursSpecification: [
+        {
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+          ],
+          opens: "00:00",
+          closes: "23:59",
+        },
+      ],
+      sameAs: [
+        "https://zalo.me/0352867283",
+        "https://checkscam.vn",
+        "https://www.tiktok.com/@tuan.tft",
+      ],
+    },
+  ];
+
+  // Schema FAQPage: Tự động trích xuất các câu hỏi thường gặp để Google & Bing hiển thị rich FAQ accordion
+  if (Array.isArray(faqs) && faqs.length > 0) {
+    jsonLdGraph.push({
+      "@type": "FAQPage",
+      "@id": `${seo.canonicalUrl}/#faq`,
+      mainEntity: faqs.map((f: any) => ({
+        "@type": "Question",
+        name: f.q || "",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: f.a || "",
+        },
+      })),
+    });
+  }
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebSite",
-        "@id": `${seo.canonicalUrl || "https://shoptft.vercel.app/"}#website`,
-        url: seo.canonicalUrl || "https://shoptft.vercel.app/",
-        name: "ShopTFT Mobile - Tuấn Thái Bình",
-        description: seo.metaDescription,
-        inLanguage: "vi-VN",
-      },
-      {
-        "@type": "LocalBusiness",
-        "@id": `${seo.canonicalUrl || "https://shoptft.vercel.app/"}#localbusiness`,
-        name: "ShopTFT Mobile - Tuấn Thái Bình",
-        image: `${seo.canonicalUrl || "https://shoptft.vercel.app/"}logo.png`,
-        description: seo.metaDescription,
-        url: seo.canonicalUrl || "https://shoptft.vercel.app/",
-        telephone: "0352.867.283",
-        priceRange: "6.000đ - 1.200.000đ",
-        address: {
-          "@type": "PostalAddress",
-          addressLocality: "Thái Bình",
-          addressCountry: "VN",
-        },
-        founder: {
-          "@type": "Person",
-          name: "Tuấn Thái Bình",
-          jobTitle: "Cựu Thách Đấu TFT 1.134 ĐNG",
-        },
-        openingHoursSpecification: [
-          {
-            "@type": "OpeningHoursSpecification",
-            dayOfWeek: [
-              "Monday",
-              "Tuesday",
-              "Wednesday",
-              "Thursday",
-              "Friday",
-              "Saturday",
-              "Sunday",
-            ],
-            opens: "00:00",
-            closes: "23:59",
-          },
-        ],
-        sameAs: [
-          "https://zalo.me/0352867283",
-          "https://checkscam.vn",
-          "https://www.tiktok.com/@tuan.tft",
-        ],
-      },
-    ],
+    "@graph": jsonLdGraph,
   };
 
   const bodyStyle: React.CSSProperties = {
@@ -212,6 +319,7 @@ export default function RootLayout({
       <head>
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
+        <link rel="canonical" href={seo.canonicalUrl} />
         <link rel="icon" href={seo.faviconUrl || "/favicon.ico"} sizes="any" />
         <link rel="apple-touch-icon" href={seo.faviconUrl || "/apple-touch-icon.png"} />
         <link rel="preload" href="/banner-seo.jpg" as="image" type="image/jpeg" />

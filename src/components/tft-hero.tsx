@@ -104,40 +104,42 @@ export const TFTHero: React.FC<TFTHeroProps> = ({ heroConfig, imagesConfig }) =>
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-2.5 sm:gap-3.5 pt-1">
               <a
                 href="#shop"
-                className="w-full sm:w-auto px-6 sm:px-7 py-3.5 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-700 hover:to-amber-600 active:from-orange-800 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-orange-600/25 hover:shadow-orange-600/35 border border-orange-400/50 transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.02] cursor-pointer font-gaming"
+                className="w-full sm:w-auto px-5 sm:px-7 py-3 sm:py-3.5 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-700 hover:to-amber-600 active:from-orange-800 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-orange-600/25 hover:shadow-orange-600/35 border border-orange-400/50 transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.02] active:scale-95 cursor-pointer font-gaming"
               >
                 <KeyRound className="w-4 h-4" />
-                <span>Khám phá kho acc</span>
+                <span>Thuê Acc VIP Ngay</span>
                 <ArrowRight className="w-4 h-4 ml-0.5" />
               </a>
 
               <a
-                href="#about"
-                className="w-full sm:w-auto px-6 sm:px-7 py-3.5 inline-flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-slate-100 text-slate-800 hover:text-slate-950 border border-slate-300 hover:border-slate-400 font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5 hover:scale-[1.02] cursor-pointer font-gaming"
+                href="#clone-shop"
+                className="w-full sm:w-auto px-5 sm:px-7 py-3 sm:py-3.5 inline-flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-slate-100 text-slate-800 hover:text-slate-950 border border-slate-300 hover:border-slate-400 font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5 hover:scale-[1.02] active:scale-95 cursor-pointer font-gaming"
               >
-                <span>Về Bản Thân</span>
+                <span>Kho Acc Clone ∞</span>
               </a>
             </div>
 
-            {/* Hàng 3 tính năng/Cam kết: Gom gọn gàng, tăng độ tương phản icon & text */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-2.5 pt-1.5 w-full">
-              <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white border border-slate-200/90 shadow-xs text-xs font-bold text-slate-800 justify-center sm:justify-start font-gaming hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors">
-                <div className="w-6 h-6 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            {/* Hàng 3 tính năng/Cam kết: Tối ưu 3 cột gọn đẹp trên Mobile */}
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 pt-1.5 w-full">
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:px-3 sm:py-2.5 rounded-xl bg-white border border-slate-200/90 shadow-xs text-[10px] sm:text-xs font-bold text-slate-800 justify-center sm:justify-start font-gaming hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors text-center sm:text-left">
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
+                  <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600" />
                 </div>
-                <span className="whitespace-nowrap">Tài khoản an toàn 100%</span>
+                <span className="leading-tight sm:whitespace-nowrap">An Toàn 100%</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white border border-slate-200/90 shadow-xs text-xs font-bold text-slate-800 justify-center sm:justify-start font-gaming hover:border-orange-200 hover:bg-orange-50/30 transition-colors">
-                <div className="w-6 h-6 rounded-lg bg-orange-50 border border-orange-200 flex items-center justify-center flex-shrink-0">
-                  <Zap className="w-3.5 h-3.5 text-orange-600" />
+
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:px-3 sm:py-2.5 rounded-xl bg-white border border-slate-200/90 shadow-xs text-[10px] sm:text-xs font-bold text-slate-800 justify-center sm:justify-start font-gaming hover:border-orange-200 hover:bg-orange-50/30 transition-colors text-center sm:text-left">
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-orange-50 border border-orange-200 flex items-center justify-center flex-shrink-0">
+                  <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-600" />
                 </div>
-                <span className="whitespace-nowrap">Bàn giao tự động 30s</span>
+                <span className="leading-tight sm:whitespace-nowrap">Bàn Giao 30s</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white border border-slate-200/90 shadow-xs text-xs font-bold text-slate-800 justify-center sm:justify-start font-gaming hover:border-sky-200 hover:bg-sky-50/30 transition-colors">
-                <div className="w-6 h-6 rounded-lg bg-sky-50 border border-sky-200 flex items-center justify-center flex-shrink-0">
-                  <PhoneCall className="w-3.5 h-3.5 text-sky-600" />
+
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:px-3 sm:py-2.5 rounded-xl bg-white border border-slate-200/90 shadow-xs text-[10px] sm:text-xs font-bold text-slate-800 justify-center sm:justify-start font-gaming hover:border-sky-200 hover:bg-sky-50/30 transition-colors text-center sm:text-left">
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-sky-50 border border-sky-200 flex items-center justify-center flex-shrink-0">
+                  <PhoneCall className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-sky-600" />
                 </div>
-                <span className="whitespace-nowrap">Hỗ trợ trực tiếp 24/7</span>
+                <span className="leading-tight sm:whitespace-nowrap">Hỗ Trợ 24/7</span>
               </div>
             </div>
           </motion.div>
