@@ -46,6 +46,47 @@ export async function GET() {
 }
 
 /**
+ * Helper tự động lọc bỏ các cột chưa tồn tại trong Supabase schema và thử lại truy vấn
+ */
+async function executeSupabaseWithSchemaFallback<T>(
+  action: (payload: Record<string, any>) => Promise<{ data: T | null; error: any }>,
+  initialPayload: Record<string, any>
+): Promise<{ data: T | null; error: any }> {
+  let currentPayload = { ...initialPayload };
+  let attempts = 0;
+
+  while (attempts < 10) {
+    attempts++;
+    const result = await action(currentPayload);
+    if (!result.error) {
+      return result;
+    }
+
+    const errorMsg = result.error.message || "";
+    // Match 1: Could not find the 'xyz' column of 'accounts' in the schema cache
+    const match1 = errorMsg.match(/Could not find the '([^']+)' column of/i);
+    // Match 2: column "xyz" of relation "accounts" does not exist
+    const match2 = errorMsg.match(/column "([^"]+)" of relation/i);
+    // Match 3: column xyz of relation accounts does not exist
+    const match3 = errorMsg.match(/column ([a-zA-Z0-9_]+) of relation/i);
+
+    const missingCol = match1?.[1] || match2?.[1] || match3?.[1];
+
+    if (missingCol && Object.prototype.hasOwnProperty.call(currentPayload, missingCol)) {
+      console.warn(
+        `[Supabase Auto-Fallback] Cột '${missingCol}' chưa có trong bảng Supabase. Đang tự động loại bỏ và thử lại...`
+      );
+      delete currentPayload[missingCol];
+      continue;
+    }
+
+    return result;
+  }
+
+  return { data: null, error: { message: "Đã vượt quá số lần thử lại kết nối Supabase." } };
+}
+
+/**
  * POST /api/accounts
  * Thêm một tài khoản mới vào bảng accounts trên Supabase
  */
@@ -83,7 +124,7 @@ export async function POST(req: NextRequest) {
       : 0;
 
     // Chuẩn bị payload khớp 100% với schema DB
-    const newAccountData = {
+    const newAccountData: Record<string, any> = {
       code: body.code.trim(),
       type: body.type,
       title: body.title || `${body.rank || "VIP"} - ${body.code}`,
@@ -108,12 +149,10 @@ export async function POST(req: NextRequest) {
       description: body.description || "Tài khoản chính chủ chất lượng cao.",
     };
 
-    // Insert vào Supabase
-    const { data, error } = await supabase
-      .from("accounts")
-      .insert([newAccountData])
-      .select()
-      .single();
+    // Insert vào Supabase kèm cơ chế tự động thử lại nếu DB chưa có cột mới
+    const { data, error } = await executeSupabaseWithSchemaFallback(async (payload) => {
+      return await supabase.from("accounts").insert([payload]).select().single();
+    }, newAccountData);
 
     if (error) {
       console.error("Lỗi khi thêm tài khoản vào Supabase:", error);
@@ -172,10 +211,10 @@ export async function PUT(req: NextRequest) {
       if (body.custom_price !== undefined) batchPayload.custom_price = body.custom_price ? Number(body.custom_price) : null;
       if (body.custom_price_unit !== undefined) batchPayload.custom_price_unit = body.custom_price_unit;
 
-      const { error } = await supabase
-        .from("accounts")
-        .update(batchPayload)
-        .in("id", body.ids);
+      const { error } = await executeSupabaseWithSchemaFallback(async (payload) => {
+        const res = await supabase.from("accounts").update(payload).in("id", body.ids);
+        return { data: null, error: res.error };
+      }, batchPayload);
 
       if (error) {
         console.error("Lỗi cập nhật hàng loạt Supabase:", error);
@@ -228,15 +267,16 @@ export async function PUT(req: NextRequest) {
     if (body.rented_until !== undefined) updatePayload.rented_until = body.rented_until;
     if (body.description !== undefined) updatePayload.description = body.description;
 
-    let query = supabase.from("accounts").update(updatePayload);
-
-    if (body.id) {
-      query = query.eq("id", body.id);
-    } else {
-      query = query.eq("code", body.code);
-    }
-
-    const { data, error } = await query.select().single();
+    // Update vào Supabase kèm cơ chế tự động thử lại nếu DB chưa có cột mới
+    const { data, error } = await executeSupabaseWithSchemaFallback(async (payload) => {
+      let query = supabase.from("accounts").update(payload);
+      if (body.id) {
+        query = query.eq("id", body.id);
+      } else {
+        query = query.eq("code", body.code);
+      }
+      return await query.select().single();
+    }, updatePayload);
 
     if (error) {
       console.error("Lỗi khi cập nhật tài khoản trên Supabase:", error);

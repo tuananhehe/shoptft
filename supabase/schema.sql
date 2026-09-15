@@ -1,9 +1,16 @@
 -- ============================================================
--- SCRIPT TẠO BẢNG KHO ACC (ACCOUNTS) TRÊN SUPABASE (ĐỒNG BỘ HOÀN TOÀN)
+-- SCRIPT TẠO & CẬP NHẬT BẢNG KHO ACC (ACCOUNTS) TRÊN SUPABASE
 -- Dành cho hệ thống Shop TFT Tuấn Thái Bình
 -- ============================================================
 
--- 1. TẠO BẢNG ACCOUNTS (NẾU CHƯA CÓ)
+-- BƯỚC 1: NẾU ĐÃ CÓ BẢNG ACCOUNTS CŨ, HÃY CHẠY CÁC DÒNG ALTER TABLE DƯỚI ĐÂY ĐỂ BỔ SUNG CỘT:
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS daily_price BIGINT DEFAULT 0;
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS period_unit TEXT DEFAULT ' / ∞';
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS price_display_type TEXT DEFAULT 'AUTO';
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS custom_price BIGINT DEFAULT 0;
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS custom_price_unit TEXT DEFAULT ' / Giờ';
+
+-- BƯỚC 2: TẠO BẢNG ACCOUNTS ĐẦY ĐỦ (NẾU LÀ DỰ ÁN MỚI CHƯA CÓ BẢNG)
 CREATE TABLE IF NOT EXISTS accounts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code TEXT NOT NULL UNIQUE,
@@ -12,8 +19,13 @@ CREATE TABLE IF NOT EXISTS accounts (
     rank TEXT NOT NULL,
     price BIGINT DEFAULT 0,
     hourly_price BIGINT DEFAULT 15000,
+    daily_price BIGINT DEFAULT 0,
     weekly_price BIGINT DEFAULT 0,
     period_price BIGINT DEFAULT 150000,
+    period_unit TEXT DEFAULT ' / ∞',
+    price_display_type TEXT DEFAULT 'AUTO',
+    custom_price BIGINT DEFAULT 0,
+    custom_price_unit TEXT DEFAULT ' / Giờ',
     champions TEXT[] DEFAULT '{}',
     arenas TEXT[] DEFAULT '{}',
     features TEXT[] DEFAULT '{}',
@@ -24,17 +36,23 @@ CREATE TABLE IF NOT EXISTS accounts (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. BẬT ROW LEVEL SECURITY (RLS) & CẤP QUYỀN TRUY CẬP CÔNG KHAI
+-- BƯỚC 3: BẬT ROW LEVEL SECURITY (RLS) & CẤP QUYỀN TRUY CẬP CÔNG KHAI
 ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow public read access on accounts" 
-ON accounts FOR SELECT 
-USING (true);
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies WHERE tablename = 'accounts' AND policyname = 'Allow public read access on accounts'
+    ) THEN
+        CREATE POLICY "Allow public read access on accounts" ON accounts FOR SELECT USING (true);
+    END IF;
 
-CREATE POLICY "Allow all access on accounts" 
-ON accounts FOR ALL 
-USING (true) 
-WITH CHECK (true);
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies WHERE tablename = 'accounts' AND policyname = 'Allow all access on accounts'
+    ) THEN
+        CREATE POLICY "Allow all access on accounts" ON accounts FOR ALL USING (true) WITH CHECK (true);
+    END IF;
+END $$;
 
 -- 3. ĐỔ DỮ LIỆU MẪU BAN ĐẦU (SEED DATA - 6 ACC VIP & 8 ACC CLONE THUÊ LÂU DÀI)
 INSERT INTO accounts (code, type, title, rank, price, hourly_price, weekly_price, period_price, champions, arenas, features, image_url, status, description)
