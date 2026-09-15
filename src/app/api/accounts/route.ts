@@ -90,8 +90,13 @@ export async function POST(req: NextRequest) {
       rank: body.rank || (body.type === "VIP" ? "THÁCH ĐẤU" : "UNRANKED"),
       price: accountPrice,
       hourly_price: computedHourly,
+      daily_price: Number(body.daily_price) || Math.round((((accountPrice * 0.12) + 20000) / 2) / 1000) * 1000,
       weekly_price: Number(body.weekly_price) || 0,
       period_price: Number(body.period_price) || accountPrice,
+      period_unit: body.period_unit || (body.type === "CLONE" ? " / ∞" : " / Giờ"),
+      price_display_type: body.price_display_type || (body.type === "CLONE" ? "LONG_TERM" : "HOURLY"),
+      custom_price: body.custom_price ? Number(body.custom_price) : null,
+      custom_price_unit: body.custom_price_unit || null,
       champions: Array.isArray(body.champions) ? body.champions.filter(Boolean) : [],
       arenas: Array.isArray(body.arenas) ? body.arenas.filter(Boolean) : [],
       features: Array.isArray(body.features) ? body.features.filter(Boolean) : [],
@@ -158,9 +163,14 @@ export async function PUT(req: NextRequest) {
       if (body.type !== undefined) batchPayload.type = body.type;
       if (body.rank !== undefined) batchPayload.rank = body.rank;
       if (body.hourly_price !== undefined) batchPayload.hourly_price = Number(body.hourly_price);
+      if (body.daily_price !== undefined) batchPayload.daily_price = Number(body.daily_price);
       if (body.price !== undefined) batchPayload.price = Number(body.price);
       if (body.weekly_price !== undefined) batchPayload.weekly_price = Number(body.weekly_price);
       if (body.period_price !== undefined) batchPayload.period_price = Number(body.period_price);
+      if (body.period_unit !== undefined) batchPayload.period_unit = body.period_unit;
+      if (body.price_display_type !== undefined) batchPayload.price_display_type = body.price_display_type;
+      if (body.custom_price !== undefined) batchPayload.custom_price = body.custom_price ? Number(body.custom_price) : null;
+      if (body.custom_price_unit !== undefined) batchPayload.custom_price_unit = body.custom_price_unit;
 
       const { error } = await supabase
         .from("accounts")
@@ -203,8 +213,13 @@ export async function PUT(req: NextRequest) {
     if (body.hourly_price !== undefined && Number(body.hourly_price) > 0) {
       updatePayload.hourly_price = Number(body.hourly_price);
     }
+    if (body.daily_price !== undefined) updatePayload.daily_price = Number(body.daily_price);
     if (body.weekly_price !== undefined) updatePayload.weekly_price = Number(body.weekly_price);
     if (body.period_price !== undefined) updatePayload.period_price = Number(body.period_price);
+    if (body.period_unit !== undefined) updatePayload.period_unit = body.period_unit;
+    if (body.price_display_type !== undefined) updatePayload.price_display_type = body.price_display_type;
+    if (body.custom_price !== undefined) updatePayload.custom_price = body.custom_price ? Number(body.custom_price) : null;
+    if (body.custom_price_unit !== undefined) updatePayload.custom_price_unit = body.custom_price_unit;
     if (body.champions !== undefined) updatePayload.champions = Array.isArray(body.champions) ? body.champions.filter(Boolean) : [];
     if (body.arenas !== undefined) updatePayload.arenas = Array.isArray(body.arenas) ? body.arenas.filter(Boolean) : [];
     if (body.features !== undefined) updatePayload.features = Array.isArray(body.features) ? body.features.filter(Boolean) : [];

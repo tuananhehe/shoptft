@@ -83,6 +83,8 @@ export interface PricingConfig {
   rate2Hours: number;
   rate7Days: number;
   rate30Days: number;
+  defaultPriceDisplayMode?: "HOURLY" | "DAILY" | "LONG_TERM" | "AUTO";
+  displayUnit?: string;
 }
 
 export interface ContactConfig {

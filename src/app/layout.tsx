@@ -80,7 +80,7 @@ function getLiveSEOConfig() {
       seo.metaTitle || "Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Tự Động 24/7",
     metaDescription:
       seo.metaDescription ||
-      "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7. Cung cấp tài khoản full Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc. Admin Tuấn Thái Bình (Cựu Thách Đấu) uy tín - Quỹ bảo hiểm 30M.",
+      "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7 bàn giao 30s. Đầy đủ Tướng Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc EDM & Cày Rank uy tín bởi Tuấn Thái Bình (Bảo hiểm 30M).",
     metaKeywords:
       seo.metaKeywords ||
       "thuê acc tft, thuê acc đtcl, shop tft, tuấn thái bình tft, thuê acc tí nị, cày thuê đtcl, shop acc tft uy tín, shop tft mobile, thuê tài khoản đtcl, tí nị ahri, tí nị yasuo, coaching tft",
@@ -90,7 +90,7 @@ function getLiveSEOConfig() {
     ogDescription:
       seo.ogDescription ||
       seo.metaDescription ||
-      "Thuê acc VIP ĐTCL tự động 30s, full Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc. Bảo hiểm 30M Checkscam.",
+      "Thuê acc VIP ĐTCL / TFT Mobile tự động bàn giao 30s, trọn bộ Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc EDM. Quỹ bảo hiểm 30M Checkscam uy tín số 1.",
     ogImage: seo.ogImage || "/banner-seo.jpg",
     faviconUrl: seo.faviconUrl || "/favicon.ico",
     bgImageUrl: seo.bgImageUrl || "",
@@ -319,6 +319,10 @@ export default function RootLayout({
       <head>
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+        <link rel="preconnect" href="https://doihinhtft.vn" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://doihinhtft.vn" />
         <link rel="canonical" href={seo.canonicalUrl} />
         <link rel="icon" href={seo.faviconUrl || "/favicon.ico"} sizes="any" />
         <link rel="apple-touch-icon" href={seo.faviconUrl || "/apple-touch-icon.png"} />

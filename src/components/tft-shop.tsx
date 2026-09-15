@@ -1,11 +1,15 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo, useDeferredValue } from "react";
+import Link from "next/link";
 import { TFTRentalAccount, TFT_RENTAL_ACCOUNTS } from "@/data/tft-data";
 import { getVipAndCloneAccounts, formatRentalExpiry } from "@/utils/supabase/accounts-service";
+import { getHomepageConfig } from "@/utils/homepage-service";
+import { getAccountProductUrl } from "@/utils/account-lookup";
 import { LazyAccountImage } from "@/components/lazy-account-image";
 import { TFTImageLightbox } from "@/components/tft-image-lightbox";
 import { motion, AnimatePresence, Variants } from "framer-motion";
+import toast from "react-hot-toast";
 import {
   Search,
   KeyRound,
@@ -24,6 +28,7 @@ import {
   ArrowUpDown,
   Filter,
   X,
+  Share2,
 } from "lucide-react";
 
 interface TFTShopProps {
@@ -70,6 +75,55 @@ const BASE_RANK_OPTIONS = [
   { id: "ĐỒNG", label: "Đồng / Sắt" },
   { id: "KHÔNG RANK", label: "Không Rank / Unranked" },
 ];
+
+/**
+ * Helper lấy thông tin hiển thị giá thuê linh hoạt theo cấu hình Admin & Cấu hình Toàn Cục
+ */
+export const getAccountDisplayPrice = (account: TFTRentalAccount, globalMode?: string) => {
+  const effectiveMode =
+    account.priceDisplayType && account.priceDisplayType !== "AUTO"
+      ? account.priceDisplayType
+      : globalMode && globalMode !== "AUTO"
+      ? globalMode
+      : "HOURLY";
+
+  if (effectiveMode === "DAILY") {
+    const amount = account.dailyPrice || (Number(account.hourlyPrice) || 15000) * 3;
+    return {
+      price: amount,
+      unit: " / Ngày",
+      badge: "Gói Ngày",
+    };
+  }
+  if (effectiveMode === "LONG_TERM") {
+    const baseValue =
+      Number(account.accountValue) ||
+      Number(account.periodPrice) ||
+      Number(account.monthlyPrice) ||
+      ((Number(account.hourlyPrice) || 15000) * 50) ||
+      850000;
+    const amount = Number(account.periodPrice) || Number(account.monthlyPrice) || baseValue;
+    return {
+      price: amount,
+      unit: account.periodUnit || " / ∞",
+      badge: "Lâu Dài",
+    };
+  }
+  if (effectiveMode === "CUSTOM") {
+    const amount = account.customPrice || Number(account.hourlyPrice) || 15000;
+    return {
+      price: amount,
+      unit: account.customPriceUnit ? ` ${account.customPriceUnit}` : "",
+      badge: "Đặc Biệt",
+    };
+  }
+  // Default HOURLY
+  return {
+    price: Number(account.hourlyPrice) || 15000,
+    unit: " / Giờ",
+    badge: "",
+  };
+};
 
 /**
  * Chuẩn hóa chuỗi tiếng Việt: chuyển chữ thường, bỏ dấu, chuyển ký tự đặc biệt thành khoảng trắng
@@ -141,13 +195,12 @@ const matchesAccountSearch = (acc: TFTRentalAccount, query: string): boolean => 
 export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
   // Khởi tạo sẵn danh sách có sẵn để render tức thì 0s, sau đó fetch ngầm từ Supabase
   const [vipAccounts, setVipAccounts] = useState<TFTRentalAccount[]>(TFT_RENTAL_ACCOUNTS || []);
+  const [globalPriceMode, setGlobalPriceMode] = useState<string>("AUTO");
   const [isLoading, setIsLoading] = useState(false);
   const [showFullCatalog, setShowFullCatalog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDuration, setSelectedDuration] = useState("ALL");
-  const [selectedRank, setSelectedRank] = useState("ALL");
-  const [selectedChibi, setSelectedChibi] = useState("ALL");
-  const [selectedArena, setSelectedArena] = useState("ALL");
+  const deferredSearchTerm = useDeferredValue(searchTerm);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [selectedStatus, setSelectedStatus] = useState<"ALL" | "AVAILABLE" | "RENTED">("ALL");
   const [selectedSort, setSelectedSort] = useState<"DEFAULT" | "PRICE_ASC" | "PRICE_DESC">("DEFAULT");
   const [visibleCount, setVisibleCount] = useState(12);
@@ -155,12 +208,17 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
   const sliderRef = useRef<HTMLDivElement>(null);
   const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
 
-  // Fetch dữ liệu mới nhất từ Supabase chạy ngầm
+  // Fetch dữ liệu mới nhất từ Supabase & cấu hình giá toàn cục chạy ngầm
   useEffect(() => {
     let isMounted = true;
     getVipAndCloneAccounts().then(({ vipAccounts: fetchedVip }) => {
       if (isMounted && fetchedVip && fetchedVip.length > 0) {
         setVipAccounts(fetchedVip);
+      }
+    });
+    getHomepageConfig().then((cfg) => {
+      if (isMounted && cfg?.pricing?.defaultPriceDisplayMode) {
+        setGlobalPriceMode(cfg.pricing.defaultPriceDisplayMode);
       }
     });
     return () => {
@@ -184,42 +242,10 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
     };
   }, [vipAccounts]);
 
-  // Trích xuất danh sách Tướng Tí Nị thực tế có trong kho
-  const dynamicChibiOptions = useMemo(() => {
-    const chibis = new Set<string>();
-    vipAccounts.forEach((acc) => {
-      if (acc.mainChibi && acc.mainChibi !== "Tí Nị Thần Thoại") {
-        chibis.add(acc.mainChibi.trim());
-      }
-      if (Array.isArray(acc.allChibi)) {
-        acc.allChibi.forEach((c) => {
-          if (c && c !== "Tí Nị Thần Thoại") chibis.add(c.trim());
-        });
-      }
-    });
-    return Array.from(chibis).slice(0, 30);
-  }, [vipAccounts]);
-
-  // Trích xuất danh sách Sân Đấu thực tế có trong kho
-  const dynamicArenaOptions = useMemo(() => {
-    const arenas = new Set<string>();
-    vipAccounts.forEach((acc) => {
-      if (acc.mainArena && acc.mainArena !== "Sân Đấu Thần Thoại") {
-        arenas.add(acc.mainArena.trim());
-      }
-      if (Array.isArray(acc.allArenas)) {
-        acc.allArenas.forEach((a) => {
-          if (a && a !== "Sân Đấu Thần Thoại") arenas.add(a.trim());
-        });
-      }
-    });
-    return Array.from(arenas).slice(0, 30);
-  }, [vipAccounts]);
-
   // Reset số lượng tài khoản hiển thị ban đầu khi người dùng đổi bộ lọc/tìm kiếm
   useEffect(() => {
     setVisibleCount(12);
-  }, [searchTerm, selectedRank, selectedChibi, selectedArena, selectedStatus, selectedSort, showFullCatalog]);
+  }, [searchTerm, selectedStatus, selectedSort, showFullCatalog]);
 
   // Top 6 Featured Accounts for horizontal loop
   const featuredAccounts = vipAccounts.slice(0, 6);
@@ -249,32 +275,10 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
           (selectedStatus === "RENTED" && isRented) ||
           (selectedStatus === "AVAILABLE" && !isRented);
 
-        // 2. Khớp Bậc Rank
-        const rankStr = (acc.rank || "").toUpperCase();
-        const rankNorm = removeVietnameseAccents(acc.rank);
-        const selRankNorm = removeVietnameseAccents(selectedRank);
-        const matchesRank =
-          selectedRank === "ALL" ||
-          rankStr === selectedRank ||
-          rankNorm.includes(selRankNorm) ||
-          (selectedRank === "VÀNG/BẠCH KIM" && (rankNorm.includes("vang") || rankNorm.includes("bach kim"))) ||
-          (selectedRank === "ĐỒNG" && (rankNorm.includes("dong") || rankNorm.includes("sat"))) ||
-          (selectedRank === "KHÔNG RANK" && (rankNorm.includes("khong rank") || rankNorm.includes("unranked")));
+        // 2. Khớp Tìm kiếm toàn diện (Sân đấu, Tướng, Rank, Mã số, Mô tả, v.v.)
+        const matchesSearch = matchesAccountSearch(acc, deferredSearchTerm);
 
-        // 3. Khớp Tướng Tí Nị
-        const chibiNorm = removeVietnameseAccents(selectedChibi);
-        const accChibiNorm = removeVietnameseAccents(`${acc.mainChibi || ""} ${(acc.allChibi || []).join(" ")}`);
-        const matchesChibi = selectedChibi === "ALL" || accChibiNorm.includes(chibiNorm);
-
-        // 4. Khớp Sân Đấu
-        const arenaNorm = removeVietnameseAccents(selectedArena);
-        const accArenaNorm = removeVietnameseAccents(`${acc.mainArena || ""} ${(acc.allArenas || []).join(" ")}`);
-        const matchesArena = selectedArena === "ALL" || accArenaNorm.includes(arenaNorm);
-
-        // 5. Khớp Tìm kiếm toàn diện (Sân đấu, Tướng, Rank, Mã số, Mô tả, v.v.)
-        const matchesSearch = matchesAccountSearch(acc, searchTerm);
-
-        return matchesStatus && matchesRank && matchesChibi && matchesArena && matchesSearch;
+        return matchesStatus && matchesSearch;
       })
       .sort((a, b) => {
         const priceA = Number(a.hourlyPrice) || 0;
@@ -287,7 +291,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
         }
         return 0;
       });
-  }, [vipAccounts, selectedStatus, selectedRank, selectedChibi, selectedArena, searchTerm, selectedSort]);
+  }, [vipAccounts, selectedStatus, deferredSearchTerm, selectedSort]);
 
   // Tải lũy tiến: Chỉ render số lượng acc hiện tại để tránh giật lag khi danh sách có hàng trăm acc
   const visibleAccounts = filteredAccounts.slice(0, visibleCount);
@@ -386,12 +390,12 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
         ) : (
           <div
             ref={sliderRef}
-            className="animate-infinite-loop flex gap-3 sm:gap-5 px-3 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar scroll-smooth py-2"
+            className="animate-infinite-loop flex items-stretch gap-3 sm:gap-4 px-3 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar scroll-smooth py-2"
           >
             {loopAccounts.map((account, index) => (
               <div
                 key={`${account.id}-${index}`}
-                className="w-[165px] sm:w-[280px] lg:w-[280px] xl:w-[290px] flex-shrink-0 flex flex-col h-full justify-between bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 group"
+                className="w-[170px] min-w-[170px] max-w-[170px] sm:w-[270px] sm:min-w-[270px] sm:max-w-[270px] flex-shrink-0 flex flex-col justify-between bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group select-none"
               >
                 {/* Top Photo & Badges */}
                 <div>
@@ -407,14 +411,14 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                     />
 
                     {/* Top Right Code Badge */}
-                    <div className="absolute top-1.5 right-1.5 sm:top-3 sm:right-3">
+                    <div className="absolute top-1.5 right-1.5 sm:top-2.5 sm:right-2.5">
                       <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-black/80 text-[9px] sm:text-[11px] font-mono font-bold text-white shadow-sm backdrop-blur-sm">
                         {account.code}
                       </span>
                     </div>
 
                     {/* Top Left Status Badge */}
-                    <div className="absolute top-1.5 left-1.5 sm:top-3 sm:left-3">
+                    <div className="absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5">
                       {account.status === "AVAILABLE" ? (
                         <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-emerald-600/90 text-white text-[8px] sm:text-[10px] font-bold tracking-tight sm:tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
                           <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white animate-pulse" />
@@ -433,43 +437,56 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                     </div>
 
                     {/* Bottom Rank Badge */}
-                    <div className="absolute bottom-1.5 left-1.5 sm:bottom-3 sm:left-3">
+                    <div className="absolute bottom-1.5 left-1.5 sm:bottom-2.5 sm:left-2.5">
                       <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded sm:rounded-md bg-white/95 text-slate-900 text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
                         {account.rank}
                       </span>
                     </div>
                   </div>
 
-                  {/* Tướng Tí Nị */}
-                  <div className="text-slate-900 font-bold text-xs sm:text-sm md:text-base leading-snug line-clamp-1 group-hover:text-orange-700 transition-colors">
+                  {/* Tướng Tí Nị - Cố định chiều cao dòng */}
+                  <div
+                    onClick={() => onSelectAccount(account)}
+                    className="text-slate-900 font-bold text-xs sm:text-sm leading-snug line-clamp-1 truncate group-hover:text-orange-700 transition-colors h-4 sm:h-5 cursor-pointer"
+                  >
                     {account.mainChibi}
                   </div>
 
-                  {/* Sân Đấu */}
-                  <p className="text-[10px] sm:text-xs text-slate-500 line-clamp-1 mt-0.5 sm:mt-1 font-medium flex items-center gap-1">
+                  {/* Sân Đấu - Cố định chiều cao dòng */}
+                  <p
+                    onClick={() => onSelectAccount(account)}
+                    className="text-[10px] sm:text-xs text-slate-500 line-clamp-1 truncate mt-0.5 sm:mt-1 font-medium flex items-center gap-1 h-3.5 sm:h-4 cursor-pointer"
+                  >
                     <span>🏟️</span>
-                    <span>{account.mainArena}</span>
+                    <span className="truncate">{account.mainArena}</span>
                   </p>
                 </div>
 
                 {/* Price & Actions */}
-                <div className="mt-auto pt-2 sm:pt-3 border-t border-slate-100 space-y-1.5 sm:space-y-2.5">
-                  <div className="flex items-baseline justify-between flex-wrap gap-x-1">
-                    <div>
-                      <span className="text-xs sm:text-base md:text-lg font-bold text-red-600 font-mono">
-                        {(Number(account.hourlyPrice) || 15000).toLocaleString("vi-VN")}đ
-                      </span>
-                      <span className="text-[10px] sm:text-xs text-slate-600 font-medium"> / Giờ</span>
-                    </div>
-                    <span className="text-[10px] sm:text-xs text-slate-500 font-medium hidden sm:inline">
-                      120+ lượt
-                    </span>
-                  </div>
+                <div className="mt-auto pt-2 sm:pt-3 border-t border-slate-100 space-y-1.5 sm:space-y-2">
+                  {(() => {
+                    const displayInfo = getAccountDisplayPrice(account, globalPriceMode);
+                    return (
+                      <div className="flex items-center justify-between gap-1 h-5 sm:h-6 overflow-hidden">
+                        <div className="flex items-baseline gap-0.5 min-w-0 truncate">
+                          <span className="text-xs sm:text-base font-bold text-red-600 font-mono truncate">
+                            {displayInfo.price.toLocaleString("vi-VN")}đ
+                          </span>
+                          <span className="text-[10px] sm:text-xs text-slate-600 font-medium whitespace-nowrap">{displayInfo.unit}</span>
+                        </div>
+                        {displayInfo.badge && (
+                          <span className="text-[9px] sm:text-[10px] font-bold text-purple-700 bg-purple-50 border border-purple-200/80 px-1 sm:px-1.5 py-0.5 rounded-md whitespace-nowrap flex-shrink-0">
+                            {displayInfo.badge}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
 
-                  <div className="grid grid-cols-2 gap-1 sm:gap-2">
+                  <div className="grid grid-cols-2 gap-1 sm:gap-2 pt-0.5">
                     <button
                       onClick={() => setPreviewAccount(account)}
-                      className="h-7 sm:h-9 px-1 sm:px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg sm:rounded-xl font-semibold text-[10px] sm:text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                      className="h-7 sm:h-8.5 px-1 sm:px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg sm:rounded-xl font-semibold text-[10px] sm:text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
                     >
                       <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                       <span>Chi Tiết</span>
@@ -477,7 +494,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
 
                     <button
                       onClick={() => onSelectAccount(account)}
-                      className="h-7 sm:h-9 px-1 sm:px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-[10px] sm:text-xs uppercase tracking-wider rounded-lg sm:rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 hover:scale-105 cursor-pointer"
+                      className="h-7 sm:h-8.5 px-1 sm:px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-[10px] sm:text-xs uppercase tracking-wider rounded-lg sm:rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 hover:scale-105 cursor-pointer"
                     >
                       <KeyRound className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                       <span>Thuê Ngay</span>
@@ -517,174 +534,146 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
       {/* 3. KHU VỰC MỞ RỘNG (BỘ LỌC + GRID TÀI KHOẢN) */}
       {showFullCatalog && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-10 pt-6 sm:pt-8 border-t border-slate-200/80 space-y-6 sm:space-y-8 animate-fadeIn">
-          {/* BỘ LỌC & TÌM KIẾM */}
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] space-y-3.5">
-            {/* Quick Status & Rank Pills for Fast Touch on Mobile */}
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
+          {/* BỘ LỌC & TÌM KIẾM TINH GỌN (UI/UX CHUẨN MOBILE & DESKTOP) */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-3 sm:p-5 shadow-[0_4px_20px_rgba(0,0,0,0.04)] space-y-3">
+            {/* 1. Thanh Tìm Kiếm Đa Năng */}
+            <div className="relative flex items-center">
+              {/* Nút / Hitbox icon Tìm kiếm (tối thiểu 44px) - Click để focus nhanh */}
               <button
                 type="button"
-                onClick={() => setSelectedStatus("ALL")}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                  selectedStatus === "ALL"
-                    ? "bg-slate-900 text-white shadow-xs"
-                    : "bg-slate-100 hover:bg-slate-200 text-slate-700"
-                }`}
+                onClick={() => searchInputRef.current?.focus()}
+                aria-label="Kích hoạt tìm kiếm"
+                className="w-11 sm:w-12 h-full absolute left-0 top-0 flex items-center justify-center text-slate-400 hover:text-orange-600 active:scale-95 transition-all cursor-pointer z-10"
               >
-                Tất Cả ({statusStats.total})
+                <Search className="w-4.5 h-4.5" />
               </button>
-              <button
-                type="button"
-                onClick={() => setSelectedStatus("AVAILABLE")}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                  selectedStatus === "AVAILABLE"
-                    ? "bg-emerald-600 text-white shadow-xs shadow-emerald-600/20"
-                    : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/60"
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Sẵn Sàng ({statusStats.available})</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedStatus("RENTED")}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                  selectedStatus === "RENTED"
-                    ? "bg-rose-600 text-white shadow-xs shadow-rose-600/20"
-                    : "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/60"
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-                <span>Đang Thuê ({statusStats.rented})</span>
-              </button>
-              {(selectedStatus !== "ALL" || selectedRank !== "ALL" || selectedChibi !== "ALL" || selectedArena !== "ALL" || searchTerm || selectedSort !== "DEFAULT") && (
+
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="🔍 Tìm kiếm Tướng Tí Nị, Sân Đấu, Mã số (MS: 8899), Rank..."
+                className="w-full h-11 sm:h-12 pl-11 sm:pl-12 pr-11 sm:pr-12 bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 focus:border-orange-500 rounded-xl text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all shadow-2xs"
+              />
+
+              {/* Nút / Hitbox Xóa từ khóa (tối thiểu 44px) - Click 1 chạm trên Mobile */}
+              {searchTerm && (
                 <button
                   type="button"
                   onClick={() => {
-                    setSelectedStatus("ALL");
-                    setSelectedRank("ALL");
-                    setSelectedChibi("ALL");
-                    setSelectedArena("ALL");
                     setSearchTerm("");
-                    setSelectedSort("DEFAULT");
+                    searchInputRef.current?.focus();
                   }}
-                  className="px-2.5 py-1.5 rounded-full text-xs font-semibold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 whitespace-nowrap flex items-center gap-1 transition-colors cursor-pointer ml-auto"
+                  aria-label="Xóa từ khóa tìm kiếm"
+                  className="w-11 sm:w-12 h-full absolute right-0 top-0 flex items-center justify-center text-slate-400 hover:text-slate-700 active:scale-95 transition-all cursor-pointer z-10 group"
+                  title="Xóa tìm kiếm"
                 >
-                  <RefreshCw className="w-3 h-3" />
-                  <span>Đặt lại</span>
+                  <span className="w-6.5 h-6.5 rounded-full bg-slate-200 group-hover:bg-slate-300 text-slate-600 flex items-center justify-center text-xs transition-colors shadow-2xs">
+                    <X className="w-3.5 h-3.5" />
+                  </span>
                 </button>
               )}
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3.5 items-center">
-              {/* 1. Lọc Rank */}
-              <div>
-                <label className="text-[11px] text-slate-500 uppercase font-bold tracking-wider mb-1 block">
-                  Bậc Rank TFT
-                </label>
-                <select
-                  value={selectedRank}
-                  onChange={(e) => setSelectedRank(e.target.value)}
-                  className="w-full h-10 px-2.5 sm:px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-orange-500 transition-colors cursor-pointer truncate"
+            {/* 2. Hàng Bộ Lọc: Trạng Thái Thuê & Lọc Theo Giá (Thiết kế Touch-Friendly) */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1">
+              {/* Lọc Trạng Thái Thuê (Segmented Controls) */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+                <button
+                  type="button"
+                  onClick={() => setSelectedStatus("ALL")}
+                  className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                    selectedStatus === "ALL"
+                      ? "bg-slate-900 text-white shadow-xs"
+                      : "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                  }`}
                 >
-                  {BASE_RANK_OPTIONS.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.label}
-                    </option>
-                  ))}
-                </select>
+                  Tất Cả ({statusStats.total})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedStatus("AVAILABLE")}
+                  className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                    selectedStatus === "AVAILABLE"
+                      ? "bg-emerald-600 text-white shadow-xs shadow-emerald-600/20"
+                      : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/60"
+                  }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Sẵn Sàng ({statusStats.available})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedStatus("RENTED")}
+                  className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                    selectedStatus === "RENTED"
+                      ? "bg-rose-600 text-white shadow-xs shadow-rose-600/20"
+                      : "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/60"
+                  }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                  <span>Đang Thuê ({statusStats.rented})</span>
+                </button>
               </div>
 
-              {/* 2. Lọc Tướng Tí Nị */}
-              <div>
-                <label className="text-[11px] text-slate-500 uppercase font-bold tracking-wider mb-1 block">
-                  Tướng Tí Nị
-                </label>
-                <select
-                  value={selectedChibi}
-                  onChange={(e) => setSelectedChibi(e.target.value)}
-                  className="w-full h-10 px-2.5 sm:px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-orange-500 transition-colors cursor-pointer truncate"
-                >
-                  <option value="ALL">Tất cả tướng Tí Nị ({dynamicChibiOptions.length})</option>
-                  {dynamicChibiOptions.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* 3. Lọc Sân Đấu */}
-              <div>
-                <label className="text-[11px] text-slate-500 uppercase font-bold tracking-wider mb-1 block">
-                  Sân Đấu Thần Thoại
-                </label>
-                <select
-                  value={selectedArena}
-                  onChange={(e) => setSelectedArena(e.target.value)}
-                  className="w-full h-10 px-2.5 sm:px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-orange-500 transition-colors cursor-pointer truncate"
-                >
-                  <option value="ALL">Tất cả sân đấu ({dynamicArenaOptions.length})</option>
-                  {dynamicArenaOptions.map((a) => (
-                    <option key={a} value={a}>
-                      {a}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* 4. Lọc Trạng Thái Thuê / Chưa Thuê */}
-              <div>
-                <label className="text-[11px] text-slate-500 uppercase font-bold tracking-wider mb-1 block">
-                  Trạng Thái Thuê
-                </label>
-                <select
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value as any)}
-                  className="w-full h-10 px-2.5 sm:px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500 transition-colors cursor-pointer truncate"
-                >
-                  <option value="ALL">Tất Cả ({statusStats.total})</option>
-                  <option value="AVAILABLE">🟢 Sẵn Sàng ({statusStats.available})</option>
-                  <option value="RENTED">🔴 Đang Cho Thuê ({statusStats.rented})</option>
-                </select>
-              </div>
-
-              {/* 5. Sắp Xếp Giá */}
-              <div className="col-span-2 sm:col-span-1">
-                <label className="text-[11px] text-slate-500 uppercase font-bold tracking-wider mb-1 block flex items-center justify-between">
-                  <span>Sắp Xếp Giá</span>
-                  <ArrowUpDown className="w-3 h-3 text-slate-400" />
-                </label>
-                <select
-                  value={selectedSort}
-                  onChange={(e) => setSelectedSort(e.target.value as any)}
-                  className="w-full h-10 px-2.5 sm:px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500 transition-colors cursor-pointer truncate"
-                >
-                  <option value="DEFAULT">Mặc Định</option>
-                  <option value="PRICE_ASC">Giá: Thấp đến Cao ↗</option>
-                  <option value="PRICE_DESC">Giá: Cao đến Thấp ↘</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Thanh Tìm Kiếm Đa Năng */}
-            <div className="pt-2 border-t border-slate-100">
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="🔍 Tìm kiếm Sân Đấu (VD: Tiệm Trà, Paris, Sân Xanh, KDA...), Tướng Tí Nị, Mã số (MS: 735), Rank..."
-                  className="w-full h-10.5 pl-9.5 pr-9 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 transition-colors"
-                />
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
-                {searchTerm && (
+              {/* Lọc Theo Giá & Nút Đặt Lại */}
+              <div className="flex items-center gap-2 self-end sm:self-auto w-full sm:w-auto justify-between sm:justify-end">
+                {/* Sắp xếp giá */}
+                <div className="inline-flex items-center gap-1 p-0.5 bg-slate-100 rounded-xl border border-slate-200/80">
                   <button
                     type="button"
-                    onClick={() => setSearchTerm("")}
-                    className="w-6 h-6 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 absolute right-2.5 top-2.5 flex items-center justify-center text-xs transition-colors cursor-pointer"
-                    title="Xóa tìm kiếm"
+                    onClick={() => setSelectedSort("DEFAULT")}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                      selectedSort === "DEFAULT"
+                        ? "bg-white text-slate-900 shadow-2xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
                   >
-                    <X className="w-3.5 h-3.5" />
+                    Mặc định
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSort("PRICE_ASC")}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1 ${
+                      selectedSort === "PRICE_ASC"
+                        ? "bg-white text-orange-600 shadow-2xs font-extrabold"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                    title="Giá từ thấp đến cao"
+                  >
+                    <span>Giá</span>
+                    <span className="text-xs">↗</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSort("PRICE_DESC")}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1 ${
+                      selectedSort === "PRICE_DESC"
+                        ? "bg-white text-orange-600 shadow-2xs font-extrabold"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                    title="Giá từ cao đến thấp"
+                  >
+                    <span>Giá</span>
+                    <span className="text-xs">↘</span>
+                  </button>
+                </div>
+
+                {/* Nút Đặt lại bộ lọc */}
+                {(selectedStatus !== "ALL" || searchTerm || selectedSort !== "DEFAULT") && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedStatus("ALL");
+                      setSearchTerm("");
+                      setSelectedSort("DEFAULT");
+                    }}
+                    className="px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 whitespace-nowrap flex items-center gap-1 transition-colors cursor-pointer"
+                    title="Xóa tất cả bộ lọc"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span>Đặt lại</span>
                   </button>
                 )}
               </div>
@@ -711,10 +700,6 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                 <button
                   onClick={() => {
                     setSearchTerm("");
-                    setSelectedRank("ALL");
-                    setSelectedChibi("ALL");
-                    setSelectedArena("ALL");
-                    setSelectedDuration("ALL");
                     setSelectedStatus("ALL");
                     setSelectedSort("DEFAULT");
                   }}
@@ -807,12 +792,18 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                       </div>
 
                       {/* Tướng Tí Nị */}
-                      <div className="text-slate-900 font-bold text-xs sm:text-sm md:text-base leading-snug line-clamp-1 group-hover:text-orange-700 transition-colors">
+                      <div
+                        onClick={() => onSelectAccount(account)}
+                        className="text-slate-900 font-bold text-xs sm:text-sm md:text-base leading-snug line-clamp-1 group-hover:text-orange-700 transition-colors cursor-pointer"
+                      >
                         {account.mainChibi}
                       </div>
 
                       {/* Sân Đấu */}
-                      <p className="text-[10px] sm:text-xs text-slate-500 line-clamp-1 mt-0.5 sm:mt-1 font-medium flex items-center gap-1">
+                      <p
+                        onClick={() => onSelectAccount(account)}
+                        className="text-[10px] sm:text-xs text-slate-500 line-clamp-1 mt-0.5 sm:mt-1 font-medium flex items-center gap-1 cursor-pointer"
+                      >
                         <span>🏟️</span>
                         <span>{account.mainArena}</span>
                       </p>
@@ -820,17 +811,28 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
 
                     {/* Price & Actions */}
                     <div className="mt-auto pt-2 sm:pt-3 border-t border-slate-100 space-y-1.5 sm:space-y-2.5">
-                      <div className="flex items-baseline justify-between flex-wrap gap-x-1">
-                        <div>
-                          <span className="text-xs sm:text-base md:text-lg font-bold text-red-600 font-mono">
-                            {(Number(account.hourlyPrice) || 15000).toLocaleString("vi-VN")}đ
-                          </span>
-                          <span className="text-[10px] sm:text-xs text-slate-600 font-medium"> / Giờ</span>
-                        </div>
-                        <span className="text-[10px] sm:text-xs text-slate-500 font-medium hidden sm:inline">
-                          120+ lượt
-                        </span>
-                      </div>
+                      {(() => {
+                        const displayInfo = getAccountDisplayPrice(account, globalPriceMode);
+                        return (
+                          <div className="flex items-baseline justify-between flex-wrap gap-x-1">
+                            <div>
+                              <span className="text-xs sm:text-base md:text-lg font-bold text-red-600 font-mono">
+                                {displayInfo.price.toLocaleString("vi-VN")}đ
+                              </span>
+                              <span className="text-[10px] sm:text-xs text-slate-600 font-medium">{displayInfo.unit}</span>
+                            </div>
+                            {displayInfo.badge ? (
+                              <span className="text-[9px] sm:text-[10px] font-bold text-purple-700 bg-purple-50 border border-purple-200/80 px-1 sm:px-1.5 py-0.5 rounded-md">
+                                {displayInfo.badge}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] sm:text-xs text-slate-500 font-medium hidden sm:inline">
+                                120+ lượt
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
 
                       <div className="grid grid-cols-2 gap-1 sm:gap-2">
                         <button

@@ -34,6 +34,7 @@ import {
   CheckCircle2,
   Loader2,
   ExternalLink,
+  ShieldCheck,
   Megaphone,
   Layers,
   Star,
@@ -108,15 +109,15 @@ export default function AdminHomepageManagerPage() {
   });
 
   const [seo, setSeo] = useState<SEOConfig>({
-    metaTitle: "Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Tự Động 24/7",
+    metaTitle: "Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Mobile Uy Tín",
     metaDescription:
-      "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7. Cung cấp tài khoản full Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc. Admin Tuấn Thái Bình (Cựu Thách Đấu) uy tín - Quỹ bảo hiểm 30M.",
+      "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7 bàn giao 30s. Đầy đủ Tướng Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc EDM & Cày Rank uy tín bởi Tuấn Thái Bình (Bảo hiểm 30M).",
     metaKeywords:
       "thuê acc tft, thuê acc đtcl, shop tft, tuấn thái bình tft, thuê acc tí nị, cày thuê đtcl, shop acc tft uy tín, shop tft mobile, thuê tài khoản đtcl, tí nị ahri, tí nị yasuo, coaching tft",
-    canonicalUrl: "https://shoptft.vercel.app/",
+    canonicalUrl: "https://shoptftmobile.net/",
     ogTitle: "Tuấn Thái Bình TFT | Nền Tảng Thuê Acc ĐTCL Uy Tín",
     ogDescription:
-      "Thuê acc VIP ĐTCL tự động 30s, full Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc. Bảo hiểm 30M Checkscam.",
+      "Thuê acc VIP ĐTCL / TFT Mobile tự động bàn giao 30s, trọn bộ Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc EDM. Quỹ bảo hiểm 30M Checkscam uy tín số 1.",
     ogImage: "/banner-seo.jpg",
     faviconUrl: "/favicon.ico",
     bgImageUrl: "",
@@ -331,6 +332,48 @@ export default function AdminHomepageManagerPage() {
       heroCardChibi: p.name,
       heroCardArena: p.arena,
       heroCardPrice: p.price,
+    }));
+    toast.success(`Đã áp dụng mẫu: ${p.name}`);
+  };
+
+  const heroPresets = [
+    {
+      name: "Shop Thuê Acc TFT ĐTCL Việt Nam Uy Tín Hàng Đầu",
+      badge: "HỆ THỐNG THUÊ ACC TFT ĐTCL CHÍNH CHỦ // TUẤN THÁI BÌNH",
+      titleLine1: "Shop Thuê Acc TFT ĐTCL",
+      titleHighlight: "Việt Nam",
+      titleLine2: "Uy Tín Hàng Đầu",
+      subtitle:
+        "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7 bàn giao 30s. Sở hữu trọn bộ Tướng Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc EDM và Dịch vụ Cày Rank ĐTCL uy tín số 1 bởi Cựu Thách Đấu Tuấn Thái Bình (1.134 ĐNG - Bảo hiểm 30M Checkscam).",
+    },
+    {
+      name: "Hệ Thống Thuê Acc ĐTCL Tự Động 24/7 Bàn Giao 30 Giây",
+      badge: "THUÊ ACC ĐTCL MOBILE & PC // TỰ ĐỘNG 24/7",
+      titleLine1: "Hệ Thống Thuê Acc ĐTCL",
+      titleHighlight: "Tự Động 24/7",
+      titleLine2: "Bàn Giao 30 Giây",
+      subtitle:
+        "Hệ thống thuê acc TFT tự động nhận thông tin ngay sau 30s. Trọn bộ Tướng Tí Nị HOT nhất, Sân Đấu Thần Thoại và Dịch vụ Cày Rank uy tín số 1 bởi Cựu Thách Đấu Tuấn Thái Bình (1.134 ĐNG).",
+    },
+    {
+      name: "Nền Tảng Thuê Acc TFT & Cày Rank ĐTCL Số 1 Việt Nam",
+      badge: "TUẤN THÁI BÌNH // CỰU THÁCH ĐẤU 1.134 ĐNG",
+      titleLine1: "Nền Tảng Thuê Acc TFT &",
+      titleHighlight: "Cày Rank ĐTCL",
+      titleLine2: "Số 1 Việt Nam",
+      subtitle:
+        "Chuyên cung cấp tài khoản ĐTCL VIP, Tướng Tí Nị Thần Thoại và dịch vụ Cày Rank, Coaching 1-1 trực tiếp bởi Cựu Thách Đấu Tuấn Thái Bình (Bảo hiểm 30M Checkscam).",
+    },
+  ];
+
+  const applyHeroPreset = (p: (typeof heroPresets)[0]) => {
+    setHero((prev) => ({
+      ...prev,
+      badge: p.badge,
+      titleLine1: p.titleLine1,
+      titleHighlight: p.titleHighlight,
+      titleLine2: p.titleLine2,
+      subtitle: p.subtitle,
     }));
     toast.success(`Đã áp dụng mẫu: ${p.name}`);
   };
@@ -989,109 +1032,224 @@ export default function AdminHomepageManagerPage() {
 
       {/* 3.3 TAB: HERO BANNER & SỐ LIỆU */}
       {activeTab === "hero" && (
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-6">
-          <div>
-            <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
-              <Zap className="w-5 h-5 text-amber-500" />
-              <span>Cấu Hình Hero Banner & Số Liệu Uy Tín</span>
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Tùy chỉnh các dòng chữ tiêu đề lớn và 4 thông số vàng hiển thị ở đầu trang chủ.
-            </p>
-          </div>
-
-          <div className="space-y-4 text-xs">
-            {/* Top Badge */}
-            <div className="space-y-1.5">
-              <label className="font-bold text-slate-800 block">Huy Hiệu Nhỏ (Top Badge):</label>
-              <input
-                type="text"
-                value={hero.badge}
-                onChange={(e) => setHero({ ...hero, badge: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
-              />
-            </div>
-
-            {/* Title Lines */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="space-y-1.5">
-                <label className="font-bold text-slate-800 block">Tiêu Đề Dòng 1:</label>
-                <input
-                  type="text"
-                  value={hero.titleLine1}
-                  onChange={(e) => setHero({ ...hero, titleLine1: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
-                />
+        <div className="space-y-6">
+          {/* Card 1: Form Chỉnh Sửa Tiêu Đề & Mô Tả */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100">
+              <div>
+                <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-amber-500" />
+                  <span>Cấu Hình Tiêu Đề & Lời Chào Mở Đầu (Hero Banner)</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Tùy chỉnh tiêu đề H1 lớn, đoạn văn mô tả giới thiệu SEO và huy hiệu đầu trang chủ.
+                </p>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="font-bold text-slate-800 block">Tiêu Đề Dòng 2:</label>
-                <input
-                  type="text"
-                  value={hero.titleLine2}
-                  onChange={(e) => setHero({ ...hero, titleLine2: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="font-bold text-slate-800 block">Chữ Nổi Bật (Gradient Cam):</label>
-                <input
-                  type="text"
-                  value={hero.titleHighlight}
-                  onChange={(e) => setHero({ ...hero, titleHighlight: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-orange-600 focus:outline-none focus:border-orange-500"
-                />
-              </div>
-            </div>
-
-            {/* Subtitle */}
-            <div className="space-y-1.5">
-              <label className="font-bold text-slate-800 block">Đoạn Mô Tả Giới Thiệu (Subtitle):</label>
-              <textarea
-                rows={3}
-                value={hero.subtitle}
-                onChange={(e) => setHero({ ...hero, subtitle: e.target.value })}
-                className="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-orange-500 leading-relaxed"
-              />
-            </div>
-
-            {/* 4 Stats Cards */}
-            <div className="pt-2">
-              <label className="font-bold text-slate-800 block mb-2">4 Chỉ Số Thống Kê Uy Tín:</label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {(hero.stats || []).map((st, index) => (
-                  <div key={st.id || index} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
-                    <div className="space-y-1">
-                      <span className="text-[10px] text-slate-400 font-mono">Tên chỉ số #{index + 1}:</span>
-                      <input
-                        type="text"
-                        value={st.label}
-                        onChange={(e) => {
-                          const updated = [...hero.stats];
-                          updated[index] = { ...st, label: e.target.value };
-                          setHero({ ...hero, stats: updated });
-                        }}
-                        className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <span className="text-[10px] text-slate-400 font-mono">Giá trị hiển thị:</span>
-                      <input
-                        type="text"
-                        value={st.value}
-                        onChange={(e) => {
-                          const updated = [...hero.stats];
-                          updated[index] = { ...st, value: e.target.value };
-                          setHero({ ...hero, stats: updated });
-                        }}
-                        className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-orange-600 font-mono"
-                      />
-                    </div>
-                  </div>
+              {/* Quick Preset Selector */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[11px] font-bold text-slate-500">Mẫu Gợi Ý:</span>
+                {heroPresets.map((p, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => applyHeroPreset(p)}
+                    className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 rounded-lg text-[10px] font-bold text-amber-900 transition-colors cursor-pointer"
+                  >
+                    Mẫu {idx + 1}
+                  </button>
                 ))}
               </div>
+            </div>
+
+            {/* LIVE PREVIEW BOX */}
+            <div className="p-4 sm:p-6 bg-gradient-to-b from-orange-50/70 via-white to-slate-50 border border-orange-200/80 rounded-2xl shadow-inner space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-orange-700 flex items-center gap-1">
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>Xem Trước Trực Tiếp Ngoài Trang Chủ</span>
+                </span>
+                <span className="text-[10px] font-semibold text-slate-400">Thời gian thực (Real-time)</span>
+              </div>
+
+              {/* Render Preview */}
+              <div className="space-y-3 pt-1">
+                {/* Top Badge & Tags */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {hero.badge && (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-orange-100 border border-orange-300 text-orange-700 text-[10px] font-black uppercase tracking-wider font-gaming">
+                      <Sparkles className="w-3 h-3 text-orange-600 animate-pulse" />
+                      <span>{hero.badge}</span>
+                    </div>
+                  )}
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-300 text-emerald-700 text-[10px] font-black uppercase font-gaming">
+                    <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                    <span>Bảo Hiểm 30M Checkscam</span>
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase bg-blue-600 text-white font-gaming">
+                    Trưng Bày
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase bg-rose-600 text-white font-gaming">
+                    Không Mua Bán
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase bg-amber-500 text-white font-gaming">
+                    Demo
+                  </span>
+                </div>
+
+                {/* H1 Heading Preview */}
+                <h1 className="font-gaming text-xl sm:text-2xl lg:text-3xl font-black uppercase text-slate-900 leading-tight">
+                  {hero.titleLine1 ? `${hero.titleLine1} ` : ""}
+                  {hero.titleHighlight ? (
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500">
+                      {hero.titleHighlight}
+                    </span>
+                  ) : null}
+                  {hero.titleLine2 ? ` ${hero.titleLine2.trim()}` : ""}
+                </h1>
+
+                {/* Subtitle Preview */}
+                <p className="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed max-w-3xl">
+                  {hero.subtitle || "Chưa có đoạn mô tả giới thiệu."}
+                </p>
+              </div>
+            </div>
+
+            {/* FORM INPUTS */}
+            <div className="space-y-4 text-xs">
+              {/* Top Badge */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-800 block flex items-center justify-between">
+                  <span>1. Huy Hiệu Nhỏ Trên Đầu (Top Badge):</span>
+                  <span className="text-[10px] font-normal text-slate-400 font-mono">Hiển thị góc trên tiêu đề</span>
+                </label>
+                <input
+                  type="text"
+                  value={hero.badge}
+                  onChange={(e) => setHero({ ...hero, badge: e.target.value })}
+                  placeholder="HỆ THỐNG THUÊ ACC TFT ĐTCL CHÍNH CHỦ // TUẤN THÁI BÌNH"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                />
+              </div>
+
+              {/* Title Lines */}
+              <div className="space-y-2">
+                <label className="font-bold text-slate-800 block">
+                  2. Tiêu Đề Chính (Thẻ H1 Trang Chủ):
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <span className="text-[11px] text-slate-500 block font-semibold">Phần trước chữ cam:</span>
+                    <input
+                      type="text"
+                      value={hero.titleLine1}
+                      onChange={(e) => setHero({ ...hero, titleLine1: e.target.value })}
+                      placeholder="Shop Thuê Acc TFT ĐTCL"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[11px] text-orange-600 block font-bold">Chữ nổi bật (Màu cam gradient):</span>
+                    <input
+                      type="text"
+                      value={hero.titleHighlight}
+                      onChange={(e) => setHero({ ...hero, titleHighlight: e.target.value })}
+                      placeholder="Việt Nam"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-orange-300 rounded-xl font-bold text-orange-600 focus:outline-none focus:border-orange-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[11px] text-slate-500 block font-semibold">Phần sau chữ cam:</span>
+                    <input
+                      type="text"
+                      value={hero.titleLine2}
+                      onChange={(e) => setHero({ ...hero, titleLine2: e.target.value })}
+                      placeholder="Uy Tín Hàng Đầu"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Subtitle */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-slate-800 block">
+                    3. Đoạn Mô Tả Giới Thiệu (Subtitle / SEO Intro):
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono text-slate-400">
+                      {hero.subtitle?.length || 0} ký tự
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSeo((prev) => ({ ...prev, metaDescription: hero.subtitle }));
+                        toast.success("Đã đồng bộ đoạn mô tả sang SEO Meta Description!");
+                      }}
+                      className="text-[10px] font-bold text-orange-600 hover:text-orange-700 underline cursor-pointer"
+                    >
+                      Đồng bộ sang SEO Meta
+                    </button>
+                  </div>
+                </div>
+                <textarea
+                  rows={4}
+                  value={hero.subtitle}
+                  onChange={(e) => setHero({ ...hero, subtitle: e.target.value })}
+                  placeholder="Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7 bàn giao 30s. Sở hữu trọn bộ Tướng Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc EDM và Dịch vụ Cày Rank ĐTCL uy tín số 1 bởi Cựu Thách Đấu Tuấn Thái Bình (1.134 ĐNG - Bảo hiểm 30M Checkscam)."
+                  className="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-orange-500 leading-relaxed text-xs"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: 4 Thông Số Vàng Thống Kê */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <div>
+              <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                <Award className="w-5 h-5 text-orange-600" />
+                <span>4 Chỉ Số Thống Kê Uy Tín (Stats Cards)</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                4 thẻ chỉ số chứng minh uy tín hiển thị bên dưới banner trang chủ.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              {(hero.stats || []).map((st, index) => (
+                <div key={st.id || index} className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5">
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-slate-400 font-mono">Tên chỉ số #{index + 1}:</span>
+                    <input
+                      type="text"
+                      value={st.label}
+                      onChange={(e) => {
+                        const updated = [...hero.stats];
+                        updated[index] = { ...st, label: e.target.value };
+                        setHero({ ...hero, stats: updated });
+                      }}
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-800"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-slate-400 font-mono">Giá trị hiển thị:</span>
+                    <input
+                      type="text"
+                      value={st.value}
+                      onChange={(e) => {
+                        const updated = [...hero.stats];
+                        updated[index] = { ...st, value: e.target.value };
+                        setHero({ ...hero, stats: updated });
+                      }}
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-orange-600 font-mono"
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

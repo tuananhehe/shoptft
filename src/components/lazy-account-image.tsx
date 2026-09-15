@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ImageOff, Sparkles } from "lucide-react";
 
 interface LazyAccountImageProps {
@@ -20,9 +20,18 @@ export const LazyAccountImage: React.FC<LazyAccountImageProps> = ({
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   const fallbackUrl = "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop";
   const imageSource = !src || hasError ? fallbackUrl : src;
+
+  useEffect(() => {
+    if (imgRef.current && imgRef.current.complete) {
+      if (imgRef.current.naturalWidth > 0) {
+        setIsLoaded(true);
+      }
+    }
+  }, [imageSource]);
 
   return (
     <div className={`relative ${containerClassName}`}>
@@ -37,10 +46,12 @@ export const LazyAccountImage: React.FC<LazyAccountImageProps> = ({
 
       {/* 2. THẺ ẢNH VỚI ASYNC DECODING VÀ FADE-IN NGAY KHI XONG */}
       <img
+        ref={imgRef}
         src={imageSource}
         alt={alt}
         loading={priority ? "eager" : "lazy"}
         decoding="async"
+        referrerPolicy="no-referrer"
         onLoad={() => setIsLoaded(true)}
         onError={() => {
           setHasError(true);

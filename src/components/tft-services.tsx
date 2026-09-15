@@ -1,8 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { SERVICE_PACKAGES, PROFILE_INFO } from "@/data/tft-data";
 import { ServicePackageItem } from "@/utils/homepage-service";
+import { copyToClipboard } from "@/utils/clipboard-helper";
+import { ZaloRedirectModal } from "@/components/zalo-redirect-modal";
 import { Swords, Check, MessageCircle, Zap, ShieldCheck } from "lucide-react";
 
 interface TFTServicesProps {
@@ -10,7 +12,14 @@ interface TFTServicesProps {
 }
 
 export const TFTServices: React.FC<TFTServicesProps> = ({ packages }) => {
+  const [zaloRedirectMessage, setZaloRedirectMessage] = useState<string | null>(null);
   const displayPackages = packages && packages.length > 0 ? packages : SERVICE_PACKAGES;
+
+  const handleOrderService = async (srv: ServicePackageItem) => {
+    const msg = `Chào Tuấn Thái Bình, mình muốn tư vấn dịch vụ ${srv.title} (${srv.price}).`;
+    await copyToClipboard(msg);
+    setZaloRedirectMessage(msg);
+  };
 
   return (
     <section id="services" className="py-14 sm:py-20 bg-white text-slate-900 border-b border-slate-200 overflow-hidden">
@@ -74,10 +83,9 @@ export const TFTServices: React.FC<TFTServicesProps> = ({ packages }) => {
               </div>
 
               <div className="pt-6">
-                <a
-                  href={PROFILE_INFO.zaloUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={() => handleOrderService(srv)}
                   className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
                     srv.popular
                       ? "bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white shadow-md shadow-orange-700/20 hover:scale-[1.02]"
@@ -86,12 +94,20 @@ export const TFTServices: React.FC<TFTServicesProps> = ({ packages }) => {
                 >
                   <MessageCircle className="w-4 h-4" />
                   <span>Tư Vấn Zalo Ngay</span>
-                </a>
+                </button>
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {/* Zalo Redirect Confirmation Modal ("Oki bae") */}
+      <ZaloRedirectModal
+        isOpen={!!zaloRedirectMessage}
+        onClose={() => setZaloRedirectMessage(null)}
+        orderMessage={zaloRedirectMessage || ""}
+        zaloUrl={PROFILE_INFO.zaloUrl}
+      />
     </section>
   );
 };

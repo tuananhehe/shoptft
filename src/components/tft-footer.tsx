@@ -44,21 +44,33 @@ export const TFTFooter: React.FC = () => {
             </div>
 
             <p className="text-slate-400 font-normal leading-relaxed max-w-md text-xs sm:text-sm">
-              Shop Acc TFT Chính Chủ Uy Tín, cung cấp các acc Tướng Tí Nị VIP, Sân đấu thần thoại đổi nhạc và dịch vụ cày rank an toàn, bảo mật tuyệt đối.
+              Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7. Cung cấp Tướng Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc EDM và Dịch vụ Cày Rank ĐTCL uy tín bởi Cựu Thách Đấu Tuấn Thái Bình.
             </p>
 
-            {/* Checkscam badge in footer */}
-            <div className="pt-1">
+            {/* Checkscam badge & Tags in footer */}
+            <div className="pt-1 flex flex-wrap items-center gap-2">
               <a
                 href={PROFILE_INFO.checkscamUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold hover:bg-emerald-500/25 transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold hover:bg-emerald-500/25 transition-colors"
               >
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>Bảo Hiểm 30.000.000đ Checkscam.vn</span>
+                <span>Bảo Hiểm 30M Checkscam</span>
                 <ExternalLink className="w-3.5 h-3.5 ml-0.5" />
               </a>
+
+              <div className="inline-flex items-center gap-1.5 flex-wrap">
+                <span className="px-2 py-0.5 rounded bg-blue-500/20 border border-blue-400/30 text-blue-300 font-bold text-[11px]">
+                  Trưng Bày
+                </span>
+                <span className="px-2 py-0.5 rounded bg-rose-500/20 border border-rose-400/30 text-rose-300 font-bold text-[11px]">
+                  Không Mua Bán
+                </span>
+                <span className="px-2 py-0.5 rounded bg-amber-500/20 border border-amber-400/30 text-amber-300 font-bold text-[11px]">
+                  Demo
+                </span>
+              </div>
             </div>
           </div>
 

@@ -30,6 +30,7 @@ export default function AdminSettingsPage() {
   const [rate2Hours, setRate2Hours] = useState<number>(3);
   const [rate7Days, setRate7Days] = useState<number>(12);
   const [rate30Days, setRate30Days] = useState<number>(30);
+  const [defaultPriceDisplayMode, setDefaultPriceDisplayMode] = useState<"HOURLY" | "DAILY" | "LONG_TERM" | "AUTO">("AUTO");
 
   // 3. Banner thông báo trang chủ (State chuẩn theo thiết kế)
   const [isBannerActive, setIsBannerActive] = useState<boolean>(true);
@@ -56,6 +57,7 @@ export default function AdminSettingsPage() {
           setRate2Hours(cfg.pricing.rate2Hours ?? 3);
           setRate7Days(cfg.pricing.rate7Days ?? 12);
           setRate30Days(cfg.pricing.rate30Days ?? 30);
+          setDefaultPriceDisplayMode(cfg.pricing.defaultPriceDisplayMode || "AUTO");
         }
         if (cfg.contact) {
           setPhoneZalo(cfg.contact.phoneZalo || PROFILE_INFO.phoneZalo);
@@ -128,6 +130,7 @@ export default function AdminSettingsPage() {
           rate2Hours: Number(rate2Hours) || 3,
           rate7Days: Number(rate7Days) || 12,
           rate30Days: Number(rate30Days) || 30,
+          defaultPriceDisplayMode: defaultPriceDisplayMode,
         },
         contact: {
           phoneZalo: phoneZalo.trim() || PROFILE_INFO.phoneZalo,
@@ -316,6 +319,97 @@ export default function AdminSettingsPage() {
                 </span>
               </div>
               <span className="text-[10px] text-slate-500 block">Công thức: Giá acc * 30% (Free pass)</span>
+            </div>
+          </div>
+
+          {/* Chế độ hiển thị giá mặc định toàn trang */}
+          <div className="space-y-3 pt-4 border-t border-slate-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                  <Calculator className="w-4 h-4 text-orange-600" />
+                  <span>Chế Độ Hiển Thị Giá Thuê Mặc Định Toàn Trang:</span>
+                </label>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Quyết định loại giá sẽ ưu tiên xuất hiện trên các thẻ tài khoản ngoài trang chủ
+                </p>
+              </div>
+              <span className="text-[10px] font-bold text-orange-700 bg-orange-100 border border-orange-200 px-2 py-0.5 rounded-md uppercase">
+                {defaultPriceDisplayMode === "HOURLY" ? "⚡ Theo Giờ" : defaultPriceDisplayMode === "DAILY" ? "📅 Theo Ngày" : defaultPriceDisplayMode === "LONG_TERM" ? "👑 Lâu Dài (Vô Cực)" : "✨ Tự Động Theo Acc"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+              {[
+                {
+                  id: "AUTO",
+                  title: "Tự Động Theo Từng Acc",
+                  desc: "Acc VIP hiện giá Giờ, Acc Clone hiện giá Vô Cực hoặc theo cài đặt riêng của từng acc",
+                  badge: "Linh hoạt nhất",
+                  icon: "✨",
+                },
+                {
+                  id: "HOURLY",
+                  title: "Ưu Tiên Theo Giờ",
+                  desc: "Hiển thị giá dạng: 15.000đ / Giờ (Thích hợp đẩy mạnh lượng khách thuê trải nghiệm ngắn hạn)",
+                  badge: "/ Giờ",
+                  icon: "⚡",
+                },
+                {
+                  id: "DAILY",
+                  title: "Ưu Tiên Theo Ngày",
+                  desc: "Hiển thị giá dạng: 45.000đ / Ngày (Thích hợp cho mùa cao điểm leo rank 24/7)",
+                  badge: "/ Ngày",
+                  icon: "📅",
+                },
+                {
+                  id: "LONG_TERM",
+                  title: "Ưu Tiên Lâu Dài / Trọn Gói",
+                  desc: "Hiển thị giá dạng: 150.000đ / ∞ hoặc / Tháng (Tạo cảm giác sở hữu vĩnh viễn, hấp dẫn)",
+                  badge: "/ ∞",
+                  icon: "👑",
+                },
+              ].map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setDefaultPriceDisplayMode(opt.id as any)}
+                  className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                    defaultPriceDisplayMode === opt.id
+                      ? "bg-orange-50/80 border-orange-600 shadow-sm ring-1 ring-orange-500"
+                      : "bg-slate-50 border-slate-200 hover:bg-slate-100 hover:border-slate-300"
+                  }`}
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-base">{opt.icon}</span>
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                        defaultPriceDisplayMode === opt.id
+                          ? "bg-orange-600 text-white"
+                          : "bg-slate-200 text-slate-700"
+                      }`}>
+                        {opt.badge}
+                      </span>
+                    </div>
+                    <div className={`font-bold text-xs ${
+                      defaultPriceDisplayMode === opt.id ? "text-orange-950" : "text-slate-800"
+                    }`}>
+                      {opt.title}
+                    </div>
+                    <p className="text-[10px] text-slate-500 leading-relaxed">
+                      {opt.desc}
+                    </p>
+                  </div>
+                  <div className="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center gap-1.5 text-[10px] font-bold">
+                    <span className={`w-2 h-2 rounded-full ${
+                      defaultPriceDisplayMode === opt.id ? "bg-orange-600" : "bg-slate-300"
+                    }`} />
+                    <span className={defaultPriceDisplayMode === opt.id ? "text-orange-700" : "text-slate-500"}>
+                      {defaultPriceDisplayMode === opt.id ? "Đang chọn" : "Bấm để chọn"}
+                    </span>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
 

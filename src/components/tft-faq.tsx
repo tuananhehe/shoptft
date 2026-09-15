@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useDeferredValue } from "react";
 import { FAQS, PROFILE_INFO, FAQItem } from "@/data/tft-data";
 import { FAQConfigItem } from "@/utils/homepage-service";
 import {
@@ -16,6 +16,7 @@ import {
   Lock,
   Swords,
   CreditCard,
+  X,
 } from "lucide-react";
 
 interface TFTFaqProps {
@@ -26,6 +27,8 @@ export const TFTFaq: React.FC<TFTFaqProps> = ({ customFaqs }) => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+  const faqInputRef = useRef<HTMLInputElement>(null);
 
   const displayFaqs = customFaqs && customFaqs.length > 0 ? customFaqs : FAQS;
 
@@ -42,13 +45,14 @@ export const TFTFaq: React.FC<TFTFaqProps> = ({ customFaqs }) => {
     return displayFaqs.filter((faq) => {
       const matchCategory =
         selectedCategory === "ALL" || faq.category === selectedCategory;
+      const queryTrimmed = deferredSearchQuery.trim().toLowerCase();
       const matchQuery =
-        searchQuery.trim() === "" ||
-        faq.q.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        faq.a.toLowerCase().includes(searchQuery.toLowerCase());
+        queryTrimmed === "" ||
+        faq.q.toLowerCase().includes(queryTrimmed) ||
+        faq.a.toLowerCase().includes(queryTrimmed);
       return matchCategory && matchQuery;
     });
-  }, [displayFaqs, selectedCategory, searchQuery]);
+  }, [displayFaqs, selectedCategory, deferredSearchQuery]);
 
   const toggle = (idx: number) => {
     setOpenIndex(openIndex === idx ? null : idx);
@@ -74,22 +78,40 @@ export const TFTFaq: React.FC<TFTFaqProps> = ({ customFaqs }) => {
 
         {/* Search Bar & Category Filter */}
         <div className="space-y-4 mb-10">
-          {/* Ô Tìm Kiếm Nhanh */}
-          <div className="relative max-w-md mx-auto">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          {/* Ô Tìm Kiếm Nhanh với Hitbox mở rộng */}
+          <div className="relative max-w-md mx-auto flex items-center">
+            <button
+              type="button"
+              onClick={() => faqInputRef.current?.focus()}
+              aria-label="Kích hoạt tìm kiếm FAQ"
+              className="w-11 sm:w-12 h-full absolute left-0 top-0 flex items-center justify-center text-slate-400 hover:text-orange-600 active:scale-95 transition-all cursor-pointer z-10"
+            >
+              <Search className="w-4.5 h-4.5" />
+            </button>
+
             <input
+              ref={faqInputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm nhanh: đổi pass, hoàn tiền, cọc, mobile..."
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 shadow-sm transition-all"
+              className="w-full h-11 sm:h-12 pl-11 sm:pl-12 pr-11 sm:pr-12 bg-white hover:bg-slate-50/80 focus:bg-white border border-slate-300 focus:border-orange-500 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 shadow-sm transition-all"
             />
+
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-600"
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  faqInputRef.current?.focus();
+                }}
+                aria-label="Xóa từ khóa FAQ"
+                className="w-11 sm:w-12 h-full absolute right-0 top-0 flex items-center justify-center text-slate-400 hover:text-slate-700 active:scale-95 transition-all cursor-pointer z-10 group"
+                title="Xóa tìm kiếm"
               >
-                ✕
+                <span className="w-6 h-6 rounded-full bg-slate-200 group-hover:bg-slate-300 text-slate-600 flex items-center justify-center text-xs transition-colors">
+                  <X className="w-3.5 h-3.5" />
+                </span>
               </button>
             )}
           </div>

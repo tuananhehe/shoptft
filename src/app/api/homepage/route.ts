@@ -24,7 +24,7 @@ const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
     titleLine2: "Uy Tín Hàng Đầu",
     titleHighlight: "Việt Nam",
     subtitle:
-      "Hệ thống phân phối tài khoản Tướng Tí Nị VIP, Sân Đấu Thần Thoại đổi nhạc EDM và Dịch vụ Cày Rank uy tín số 1 bởi Cựu Thách Đấu Tuấn Thái Bình (1.134 ĐNG).",
+      "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7 bàn giao 30s. Sở hữu trọn bộ Tướng Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc EDM và Dịch vụ Cày Rank ĐTCL uy tín số 1 bởi Cựu Thách Đấu Tuấn Thái Bình (1.134 ĐNG - Bảo hiểm 30M Checkscam).",
     stats: [
       { id: "clients", label: "Khách Hàng Phục Vụ", value: "1,850+" },
       { id: "insurance", label: "Quỹ Checkscam.vn", value: "30.000.000đ" },
@@ -47,15 +47,15 @@ const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
       "🎁 Ưu đãi đặc biệt: Tặng thêm 1 giờ chơi và miễn phí phí đổi pass cố định cho khách hàng thuê lần đầu qua Zalo Tuấn Thái Bình!",
   },
   seo: {
-    metaTitle: "Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Tự Động 24/7",
+    metaTitle: "Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Mobile Uy Tín",
     metaDescription:
-      "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7. Cung cấp tài khoản full Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc. Admin Tuấn Thái Bình (Cựu Thách Đấu) uy tín - Quỹ bảo hiểm 30M.",
+      "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7 bàn giao 30s. Đầy đủ Tướng Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc EDM & Cày Rank uy tín bởi Tuấn Thái Bình (Bảo hiểm 30M).",
     metaKeywords:
       "thuê acc tft, thuê acc đtcl, shop tft, tuấn thái bình tft, thuê acc tí nị, cày thuê đtcl, shop acc tft uy tín, shop tft mobile, thuê tài khoản đtcl, tí nị ahri, tí nị yasuo, coaching tft",
-    canonicalUrl: "https://shoptft.vercel.app/",
+    canonicalUrl: "https://shoptftmobile.net/",
     ogTitle: "Tuấn Thái Bình TFT | Nền Tảng Thuê Acc ĐTCL Uy Tín",
     ogDescription:
-      "Thuê acc VIP ĐTCL tự động 30s, full Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc. Bảo hiểm 30M Checkscam.",
+      "Thuê acc VIP ĐTCL / TFT Mobile tự động bàn giao 30s, trọn bộ Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc EDM. Quỹ bảo hiểm 30M Checkscam uy tín số 1.",
     ogImage: "/banner-seo.jpg",
     faviconUrl: "/favicon.ico",
     bgImageUrl: "",

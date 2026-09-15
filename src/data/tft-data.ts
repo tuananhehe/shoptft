@@ -12,7 +12,14 @@ export interface TFTRentalAccount {
   hourlyPrice: number;
   dailyPrice: number;
   nightPrice: number;
+  periodPrice?: number;
+  periodUnit?: string;
+  monthlyPrice?: number;
+  weeklyPrice?: number;
   accountValue?: number; // Giá trị gốc của tài khoản
+  priceDisplayType?: "HOURLY" | "DAILY" | "LONG_TERM" | "CUSTOM" | "AUTO"; // Kiểu hiển thị giá cho khách
+  customPrice?: number;
+  customPriceUnit?: string;
   status: "AVAILABLE" | "RENTED";
   rentedUntil?: string | null;
   totalLittleLegends: number;
@@ -615,6 +622,12 @@ export interface TFTCloneAccount {
   durationLabel: string;
   weeklyPrice?: number;
   monthlyPrice?: number;
+  hourlyPrice?: number;
+  dailyPrice?: number;
+  nightPrice?: number;
+  priceDisplayType?: "HOURLY" | "DAILY" | "LONG_TERM" | "CUSTOM" | "AUTO";
+  customPrice?: number;
+  customPriceUnit?: string;
   description: string;
 }
 

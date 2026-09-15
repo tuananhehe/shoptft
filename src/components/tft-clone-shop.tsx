@@ -1,10 +1,16 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo, useDeferredValue } from "react";
+import { createPortal } from "react-dom";
+import Link from "next/link";
 import { TFTCloneAccount, TFT_CLONE_ACCOUNTS, PROFILE_INFO } from "@/data/tft-data";
 import { getVipAndCloneAccounts, formatRentalExpiry } from "@/utils/supabase/accounts-service";
+import { getHomepageConfig } from "@/utils/homepage-service";
+import { getAccountProductUrl } from "@/utils/account-lookup";
+import { copyToClipboard, buildZaloOrderUrl } from "@/utils/clipboard-helper";
 import { LazyAccountImage } from "@/components/lazy-account-image";
 import { TFTImageLightbox } from "@/components/tft-image-lightbox";
+import { ZaloRedirectModal } from "@/components/zalo-redirect-modal";
 import { motion, Variants } from "framer-motion";
 import {
   Sparkles,
@@ -31,6 +37,7 @@ import {
   ArrowUpDown,
   Clock,
   Loader2,
+  Share2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -55,18 +62,54 @@ const cloneCardVariants: Variants = {
   },
 };
 
-const CLONE_RANK_FILTERS = [
-  { id: "ALL", label: "Tất cả loại rank" },
-  { id: "UNRANKED", label: "Unranked / Trắng TT" },
-  { id: "ĐỒNG", label: "Rank Sắt / Đồng / Bạc" },
-  { id: "VÀNG", label: "Rank Vàng / Bạch Kim" },
-  { id: "LỤC BẢO", label: "Rank Lục Bảo / Kim Cương" },
-];
-
 // Helper lấy giá acc clone an toàn
 const getAccountPrice = (account?: TFTCloneAccount | null): number => {
   if (!account) return 150000;
   return Number(account.price) || Number(account.periodPrice) || Number(account.monthlyPrice) || 150000;
+};
+
+// Helper lấy thông tin hiển thị giá thuê cho acc Clone linh hoạt theo cấu hình Admin & Cấu hình Toàn Cục
+export const getCloneDisplayPrice = (account?: TFTCloneAccount | null, globalMode?: string) => {
+  if (!account) return { price: 150000, unit: " / ∞", badge: "Full Sở Hữu" };
+  const effectiveMode =
+    account.priceDisplayType && account.priceDisplayType !== "AUTO"
+      ? account.priceDisplayType
+      : globalMode && globalMode !== "AUTO"
+      ? globalMode
+      : "LONG_TERM";
+
+  if (effectiveMode === "HOURLY") {
+    const amount = Number(account.hourlyPrice) || 10000;
+    return {
+      price: amount,
+      unit: " / Giờ",
+      badge: "⚡ Thuê Giờ",
+    };
+  }
+  if (effectiveMode === "DAILY") {
+    const weekly = Number(account.weeklyPrice) || 0;
+    const amount = account.dailyPrice || (weekly > 0 ? Math.round(weekly / 7) : 25000);
+    return {
+      price: amount,
+      unit: " / Ngày",
+      badge: "📅 Thuê Ngày",
+    };
+  }
+  if (effectiveMode === "CUSTOM") {
+    const amount = account.customPrice || getAccountPrice(account);
+    return {
+      price: amount,
+      unit: account.customPriceUnit ? ` ${account.customPriceUnit}` : "",
+      badge: "Đặc Biệt",
+    };
+  }
+  // Default LONG_TERM
+  const amount = Number(account.price) || Number(account.periodPrice) || Number(account.monthlyPrice) || 150000;
+  return {
+    price: amount,
+    unit: account.periodUnit || " / ∞",
+    badge: "Full Sở Hữu",
+  };
 };
 
 /**
@@ -132,6 +175,7 @@ const matchesCloneSearch = (acc: TFTCloneAccount, query: string): boolean => {
 export const TFTCloneShop: React.FC = () => {
   // Khởi tạo sẵn danh sách có sẵn để render tức thì 0s, sau đó fetch ngầm từ Supabase
   const [cloneAccounts, setCloneAccounts] = useState<TFTCloneAccount[]>(TFT_CLONE_ACCOUNTS || []);
+  const [globalPriceMode, setGlobalPriceMode] = useState<string>("AUTO");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedClone, setSelectedClone] = useState<TFTCloneAccount | null>(null);
   const [previewClone, setPreviewClone] = useState<TFTCloneAccount | null>(null);
@@ -139,19 +183,53 @@ export const TFTCloneShop: React.FC = () => {
   const [copiedCode, setCopiedCode] = useState(false);
   const [showFullCatalog, setShowFullCatalog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedRankFilter, setSelectedRankFilter] = useState("ALL");
+  const deferredSearchTerm = useDeferredValue(searchTerm);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [selectedStatus, setSelectedStatus] = useState<"ALL" | "AVAILABLE" | "RENTED">("ALL");
   const [selectedSort, setSelectedSort] = useState<"DEFAULT" | "PRICE_ASC" | "PRICE_DESC">("DEFAULT");
   const [visibleCount, setVisibleCount] = useState(12);
+  const [zaloRedirectMessage, setZaloRedirectMessage] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
   const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
 
-  // Fetch dữ liệu mới nhất từ Supabase chạy ngầm
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Khóa cuộn trang khi modal clone mở
+  useEffect(() => {
+    if (selectedClone) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [selectedClone]);
+
+  // Đóng bằng phím ESC
+  useEffect(() => {
+    if (!selectedClone) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelectedClone(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedClone]);
+
+  // Fetch dữ liệu mới nhất từ Supabase & cấu hình giá toàn cục chạy ngầm
   useEffect(() => {
     let isMounted = true;
     getVipAndCloneAccounts().then(({ cloneAccounts: fetchedClone }) => {
       if (isMounted && fetchedClone && fetchedClone.length > 0) {
         setCloneAccounts(fetchedClone);
+      }
+    });
+    getHomepageConfig().then((cfg) => {
+      if (isMounted && cfg?.pricing?.defaultPriceDisplayMode) {
+        setGlobalPriceMode(cfg.pricing.defaultPriceDisplayMode);
       }
     });
     return () => {
@@ -178,7 +256,7 @@ export const TFTCloneShop: React.FC = () => {
   // Reset số lượng tài khoản hiển thị ban đầu khi đổi bộ lọc
   useEffect(() => {
     setVisibleCount(12);
-  }, [searchTerm, selectedRankFilter, selectedStatus, selectedSort, showFullCatalog]);
+  }, [searchTerm, selectedStatus, selectedSort, showFullCatalog]);
 
   // Mảng tài khoản nhân đôi cho hiệu ứng trượt vô tận mượt mà y hệt Kho VIP
   const loopCloneAccounts =
@@ -195,19 +273,10 @@ export const TFTCloneShop: React.FC = () => {
           (selectedStatus === "RENTED" && isRented) ||
           (selectedStatus === "AVAILABLE" && !isRented);
 
-        // 2. Khớp Tìm kiếm thông minh
-        const matchesSearch = matchesCloneSearch(acc, searchTerm);
+        // 2. Khớp Tìm kiếm thông minh (Mã số, Rank, Tiêu đề, Tính năng, Mô tả)
+        const matchesSearch = matchesCloneSearch(acc, deferredSearchTerm);
 
-        // 3. Khớp Phân loại Rank
-        const badgeNorm = removeVietnameseAccents(acc.rankBadge);
-        const matchesRank =
-          selectedRankFilter === "ALL" ||
-          (selectedRankFilter === "UNRANKED" && (badgeNorm.includes("unranked") || badgeNorm.includes("trang tt") || badgeNorm.includes("khong rank"))) ||
-          (selectedRankFilter === "ĐỒNG" && (badgeNorm.includes("dong") || badgeNorm.includes("sat") || badgeNorm.includes("bac"))) ||
-          (selectedRankFilter === "VÀNG" && (badgeNorm.includes("vang") || badgeNorm.includes("bach kim"))) ||
-          (selectedRankFilter === "LỤC BẢO" && (badgeNorm.includes("luc bao") || badgeNorm.includes("kim cuong")));
-
-        return matchesStatus && matchesSearch && matchesRank;
+        return matchesStatus && matchesSearch;
       })
       .sort((a, b) => {
         const priceA = getAccountPrice(a);
@@ -220,7 +289,7 @@ export const TFTCloneShop: React.FC = () => {
         }
         return 0;
       });
-  }, [cloneAccounts, selectedStatus, searchTerm, selectedRankFilter, selectedSort]);
+  }, [cloneAccounts, selectedStatus, deferredSearchTerm, selectedSort]);
 
   // Tải lũy tiến cho kho Clone
   const visibleCloneAccounts = filteredCloneAccounts.slice(0, visibleCount);
@@ -271,25 +340,29 @@ export const TFTCloneShop: React.FC = () => {
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
-  const getZaloMessage = (account: TFTCloneAccount) => {
-    const price = getAccountPrice(account);
-    return `Chào Tuấn Thái Bình, mình muốn THUÊ LÂU DÀI (BÀN GIAO FULL THÔNG TIN) Acc Clone mã [${account.code}] - ${account.title} (Giá ${price.toLocaleString("vi-VN")}đ / ∞). Hỗ trợ kiểm tra và bàn giao tài khoản cho mình nhé!`;
+  const copyCloneLink = (account: TFTCloneAccount) => {
+    if (typeof window !== "undefined") {
+      const url = `${window.location.origin}${getAccountProductUrl(account)}`;
+      navigator.clipboard.writeText(url).catch(() => {});
+      toast.success("Đã sao chép đường link riêng của acc!", { icon: "🔗" });
+    }
   };
 
-  const handleOrderZalo = (account: TFTCloneAccount) => {
+  const getZaloMessage = (account: TFTCloneAccount) => {
+    const price = getAccountPrice(account);
+    const link = typeof window !== "undefined" ? ` (Link: ${window.location.origin}${getAccountProductUrl(account)})` : "";
+    return `Chào Tuấn Thái Bình, mình muốn THUÊ LÂU DÀI (BÀN GIAO FULL THÔNG TIN) Acc Clone mã [${account.code}] - ${account.title} (Giá ${price.toLocaleString("vi-VN")}đ / ∞)${link}. Hỗ trợ kiểm tra và bàn giao tài khoản cho mình nhé!`;
+  };
+
+  const handleOrderZalo = async (account: TFTCloneAccount) => {
     if (!isAgreed) {
       toast.error("Vui lòng tích đồng ý với cam kết bàn giao trước khi tiếp tục!");
       return;
     }
 
     const msg = getZaloMessage(account);
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(msg).catch(() => {});
-    }
-    toast.success("Đã sao chép nội dung đơn hàng! Hãy dán (Ctrl+V) vào Zalo với shop.");
-    setTimeout(() => {
-      window.open(PROFILE_INFO.zaloUrl, "_blank");
-    }, 350);
+    await copyToClipboard(msg);
+    setZaloRedirectMessage(msg);
   };
 
   return (
@@ -310,7 +383,7 @@ export const TFTCloneShop: React.FC = () => {
             {/* Tag phụ (Badge nền cam nhạt) */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-100/80 border border-orange-200 text-orange-700 text-xs font-bold uppercase tracking-wider shadow-sm font-gaming">
               <Sparkles className="w-3.5 h-3.5 text-orange-600 animate-pulse" />
-              <span>Sở Hữu Vô Cực • Bàn Giao Full Thông Tin</span>
+              <span>Sở Hữu Vô Cực • Bàn Giao Về Chính Chủ</span>
             </div>
 
             {/* Tiêu đề chính h2 font Esports Gaming */}
@@ -323,7 +396,7 @@ export const TFTCloneShop: React.FC = () => {
 
             {/* Mô tả ngắn */}
             <p className="text-slate-600 text-sm sm:text-base max-w-2xl font-normal">
-              Thuê lâu dài không thời hạn, bàn giao toàn quyền Riot ID & Mật khẩu cho khách. Đổi mật khẩu và bảo hành trọn đời uy tín.
+              Thuê lâu dài không thời hạn, bàn giao thông tin acc về chính chủ, sở hữu lâu dài. Hỗ trợ đổi mật khẩu, mail và bảo hành trọn đời uy tín.
             </p>
           </div>
 
@@ -377,7 +450,7 @@ export const TFTCloneShop: React.FC = () => {
         ) : (
           <div
             ref={sliderRef}
-            className="animate-infinite-loop flex gap-3 sm:gap-5 px-3 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar scroll-smooth py-2"
+            className="animate-infinite-loop flex items-stretch gap-3 sm:gap-4 px-3 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar scroll-smooth py-2"
           >
             {loopCloneAccounts.map((account, index) => {
               const accPrice = getAccountPrice(account);
@@ -385,9 +458,9 @@ export const TFTCloneShop: React.FC = () => {
               return (
                 <div
                   key={`${account.id}-${index}`}
-                  className="w-[165px] sm:w-[280px] lg:w-[280px] xl:w-[290px] flex-shrink-0 flex flex-col h-full justify-between bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 group snap-start"
+                  className="w-[170px] min-w-[170px] max-w-[170px] sm:w-[270px] sm:min-w-[270px] sm:max-w-[270px] flex-shrink-0 flex flex-col justify-between bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group select-none snap-start"
                 >
-                  {/* TOP KHUNG ẢNH VUÔNG ASPECT-SQUARE HIỂN THỊ 100% MÀU GỐC */}
+                  {/* TOP KHUNG ẢNH VUÔNG ASPECT-SQUARE */}
                   <div>
                     <div
                       onClick={() => setPreviewClone(account)}
@@ -401,14 +474,14 @@ export const TFTCloneShop: React.FC = () => {
                       />
 
                       {/* Top Right: Mã Acc */}
-                      <div className="absolute top-1.5 right-1.5 sm:top-3 sm:right-3">
+                      <div className="absolute top-1.5 right-1.5 sm:top-2.5 sm:right-2.5">
                         <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-black/80 text-[9px] sm:text-[11px] font-mono font-bold text-white shadow-sm backdrop-blur-sm">
                           {account.code}
                         </span>
                       </div>
 
                       {/* Top Left: Trạng Thái */}
-                      <div className="absolute top-1.5 left-1.5 sm:top-3 sm:left-3">
+                      <div className="absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5">
                         {account.status === "AVAILABLE" ? (
                           <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-emerald-600/90 text-white text-[8px] sm:text-[10px] font-bold tracking-tight sm:tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
                             <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white animate-pulse" />
@@ -427,52 +500,63 @@ export const TFTCloneShop: React.FC = () => {
                       </div>
 
                       {/* Bottom Left: Huy Hiệu Rank Clone/Unranked */}
-                      <div className="absolute bottom-1.5 left-1.5 sm:bottom-3 sm:left-3">
+                      <div className="absolute bottom-1.5 left-1.5 sm:bottom-2.5 sm:left-2.5">
                         <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded sm:rounded-md bg-white/95 text-slate-900 text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
                           {account.rankBadge}
                         </span>
                       </div>
                     </div>
 
-                    {/* TÊN ĐỊNH DANH ACC */}
-                    <div className="text-slate-900 font-bold text-xs sm:text-sm md:text-base leading-snug line-clamp-1 group-hover:text-orange-700 transition-colors">
+                    {/* TÊN ĐỊNH DANH ACC - Cố định chiều cao dòng */}
+                    <div
+                      onClick={() => openCloneModal(account)}
+                      className="text-slate-900 font-bold text-xs sm:text-sm leading-snug line-clamp-1 truncate group-hover:text-orange-700 transition-colors h-4 sm:h-5 cursor-pointer"
+                    >
                       {account.title}
                     </div>
 
-                    {/* GẠCH ĐẦU DÒNG TÍNH NĂNG NGẮN GỌN */}
-                    <ul className="mt-1.5 sm:mt-2.5 space-y-1 sm:space-y-1.5 text-[10px] sm:text-xs text-slate-600 font-medium">
-                      {account.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-1 sm:gap-1.5 line-clamp-1">
-                          <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 flex-shrink-0 mt-0.5" />
-                          <span>{feature}</span>
+                    {/* GẠCH ĐẦU DÒNG TÍNH NĂNG NGẮN GỌN - Cố định 2 dòng */}
+                    <ul
+                      onClick={() => openCloneModal(account)}
+                      className="mt-1 sm:mt-1.5 space-y-0.5 text-[10px] sm:text-xs text-slate-600 font-medium h-7 sm:h-8 overflow-hidden cursor-pointer"
+                    >
+                      {account.features.slice(0, 2).map((feature, idx) => (
+                        <li key={idx} className="flex items-center gap-1 truncate line-clamp-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600 flex-shrink-0" />
+                          <span className="truncate">{feature}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
-                  {/* ĐÁY THẺ: GIÁ THUÊ LÂU DÀI (KÝ HIỆU VÔ CỰC ∞) & 2 NÚT THAO TÁC */}
-                  <div className="mt-auto pt-2 sm:pt-3.5 border-t border-slate-100 space-y-1.5 sm:space-y-2.5">
-                    {/* Giá Thuê với Ký hiệu Vô Cực ∞ */}
-                    <div className="flex items-baseline justify-between flex-wrap gap-x-1">
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-xs sm:text-base md:text-lg font-bold text-red-600 font-mono">
-                          {accPrice.toLocaleString("vi-VN")}đ
-                        </span>
-                        <span className="text-[10px] sm:text-xs text-slate-500 font-medium"> / </span>
-                        <span className="text-sm sm:text-lg text-slate-900 font-black leading-none" title="Sở hữu vô cực">
-                          ∞
-                        </span>
-                      </div>
-                      <span className="text-[9px] sm:text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-1 sm:px-2 py-0.5 rounded-md hidden xs:inline sm:inline">
-                        Full Sở Hữu
-                      </span>
-                    </div>
+                  {/* ĐÁY THẺ: GIÁ THUÊ LINH HOẠT & 2 NÚT THAO TÁC */}
+                  <div className="mt-auto pt-2 sm:pt-3 border-t border-slate-100 space-y-1.5 sm:space-y-2">
+                    {(() => {
+                      const displayInfo = getCloneDisplayPrice(account, globalPriceMode);
+                      return (
+                        <div className="flex items-center justify-between gap-1 h-5 sm:h-6 overflow-hidden">
+                          <div className="flex items-baseline gap-0.5 min-w-0 truncate">
+                            <span className="text-xs sm:text-base font-bold text-red-600 font-mono truncate">
+                              {displayInfo.price.toLocaleString("vi-VN")}đ
+                            </span>
+                            <span className="text-[10px] sm:text-xs text-slate-600 font-medium whitespace-nowrap">
+                              {displayInfo.unit}
+                            </span>
+                          </div>
+                          {displayInfo.badge && (
+                            <span className="text-[9px] sm:text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-1 sm:px-1.5 py-0.5 rounded-md whitespace-nowrap flex-shrink-0 hidden xs:inline sm:inline">
+                              {displayInfo.badge}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
 
-                    {/* Cụm 2 Nút Bấm: Chi Tiết & Thuê Ngay (Tương tự Kho VIP) */}
-                    <div className="grid grid-cols-2 gap-1 sm:gap-2">
+                    {/* Cụm 2 Nút Bấm: Chi Tiết & Thuê Ngay */}
+                    <div className="grid grid-cols-2 gap-1 sm:gap-2 pt-0.5">
                       <button
                         onClick={() => setPreviewClone(account)}
-                        className="h-7 sm:h-9 px-1 sm:px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg sm:rounded-xl font-semibold text-[10px] sm:text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                        className="h-7 sm:h-8.5 px-1 sm:px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg sm:rounded-xl font-semibold text-[10px] sm:text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
                       >
                         <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                         <span>Chi Tiết</span>
@@ -480,7 +564,7 @@ export const TFTCloneShop: React.FC = () => {
 
                       <button
                         onClick={() => openCloneModal(account)}
-                        className="h-7 sm:h-9 px-1 sm:px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-[10px] sm:text-xs uppercase tracking-wider rounded-lg sm:rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 hover:scale-105 cursor-pointer font-gaming"
+                        className="h-7 sm:h-8.5 px-1 sm:px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-[10px] sm:text-xs uppercase tracking-wider rounded-lg sm:rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 hover:scale-105 cursor-pointer font-gaming"
                       >
                         <KeyRound className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                         <span>Thuê Ngay</span>
@@ -521,134 +605,146 @@ export const TFTCloneShop: React.FC = () => {
       {/* 4. KHU VỰC MỞ RỘNG TOÀN BỘ KHO ACC CLONE (BỘ LỌC + GRID TÀI KHOẢN) */}
       {showFullCatalog && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-10 pt-6 sm:pt-8 border-t border-slate-200/80 space-y-6 sm:space-y-8 animate-fadeIn">
-          {/* BỘ LỌC & TÌM KIẾM ACC CLONE */}
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] space-y-3.5">
-            {/* Quick Status Pills for Fast Touch on Mobile */}
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
+          {/* BỘ LỌC & TÌM KIẾM TINH GỌN (UI/UX CHUẨN MOBILE & DESKTOP) */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-3 sm:p-5 shadow-[0_4px_20px_rgba(0,0,0,0.04)] space-y-3">
+            {/* 1. Thanh Tìm Kiếm Đa Năng */}
+            <div className="relative flex items-center">
+              {/* Nút / Hitbox icon Tìm kiếm (tối thiểu 44px) - Click để focus nhanh */}
               <button
                 type="button"
-                onClick={() => setSelectedStatus("ALL")}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                  selectedStatus === "ALL"
-                    ? "bg-slate-900 text-white shadow-xs"
-                    : "bg-slate-100 hover:bg-slate-200 text-slate-700"
-                }`}
+                onClick={() => searchInputRef.current?.focus()}
+                aria-label="Kích hoạt tìm kiếm"
+                className="w-11 sm:w-12 h-full absolute left-0 top-0 flex items-center justify-center text-slate-400 hover:text-orange-600 active:scale-95 transition-all cursor-pointer z-10"
               >
-                Tất Cả ({cloneStatusStats.total})
+                <Search className="w-4.5 h-4.5" />
               </button>
-              <button
-                type="button"
-                onClick={() => setSelectedStatus("AVAILABLE")}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                  selectedStatus === "AVAILABLE"
-                    ? "bg-emerald-600 text-white shadow-xs shadow-emerald-600/20"
-                    : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/60"
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Sẵn Sàng ({cloneStatusStats.available})</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedStatus("RENTED")}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                  selectedStatus === "RENTED"
-                    ? "bg-rose-600 text-white shadow-xs shadow-rose-600/20"
-                    : "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/60"
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-                <span>Đang Thuê ({cloneStatusStats.rented})</span>
-              </button>
-              {(selectedStatus !== "ALL" || selectedRankFilter !== "ALL" || searchTerm || selectedSort !== "DEFAULT") && (
+
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="🔍 Nhập mã số (CLONE-01), rank (Unranked, Đồng, Vàng), tính năng..."
+                className="w-full h-11 sm:h-12 pl-11 sm:pl-12 pr-11 sm:pr-12 bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 focus:border-orange-500 rounded-xl text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all shadow-2xs"
+              />
+
+              {/* Nút / Hitbox Xóa từ khóa (tối thiểu 44px) - Click 1 chạm trên Mobile */}
+              {searchTerm && (
                 <button
                   type="button"
                   onClick={() => {
-                    setSelectedStatus("ALL");
-                    setSelectedRankFilter("ALL");
                     setSearchTerm("");
-                    setSelectedSort("DEFAULT");
+                    searchInputRef.current?.focus();
                   }}
-                  className="px-2.5 py-1.5 rounded-full text-xs font-semibold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 whitespace-nowrap flex items-center gap-1 transition-colors cursor-pointer ml-auto"
+                  aria-label="Xóa từ khóa tìm kiếm"
+                  className="w-11 sm:w-12 h-full absolute right-0 top-0 flex items-center justify-center text-slate-400 hover:text-slate-700 active:scale-95 transition-all cursor-pointer z-10 group"
+                  title="Xóa tìm kiếm"
                 >
-                  <RefreshCw className="w-3 h-3" />
-                  <span>Đặt lại</span>
+                  <span className="w-6.5 h-6.5 rounded-full bg-slate-200 group-hover:bg-slate-300 text-slate-600 flex items-center justify-center text-xs transition-colors shadow-2xs">
+                    <X className="w-3.5 h-3.5" />
+                  </span>
                 </button>
               )}
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3.5 items-center">
-              {/* Lọc Rank */}
-              <div>
-                <label className="text-[11px] text-slate-500 uppercase font-bold tracking-wider mb-1 block">
-                  Phân Loại Rank
-                </label>
-                <select
-                  value={selectedRankFilter}
-                  onChange={(e) => setSelectedRankFilter(e.target.value)}
-                  className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-orange-500 transition-colors cursor-pointer"
+            {/* 2. Hàng Bộ Lọc: Trạng Thái Thuê & Lọc Theo Giá (Thiết kế Touch-Friendly) */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1">
+              {/* Lọc Trạng Thái Thuê (Segmented Controls) */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+                <button
+                  type="button"
+                  onClick={() => setSelectedStatus("ALL")}
+                  className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                    selectedStatus === "ALL"
+                      ? "bg-slate-900 text-white shadow-xs"
+                      : "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                  }`}
                 >
-                  {CLONE_RANK_FILTERS.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.label}
-                    </option>
-                  ))}
-                </select>
+                  Tất Cả ({cloneStatusStats.total})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedStatus("AVAILABLE")}
+                  className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                    selectedStatus === "AVAILABLE"
+                      ? "bg-emerald-600 text-white shadow-xs shadow-emerald-600/20"
+                      : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/60"
+                  }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Sẵn Sàng ({cloneStatusStats.available})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedStatus("RENTED")}
+                  className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                    selectedStatus === "RENTED"
+                      ? "bg-rose-600 text-white shadow-xs shadow-rose-600/20"
+                      : "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/60"
+                  }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                  <span>Đang Thuê ({cloneStatusStats.rented})</span>
+                </button>
               </div>
 
-              {/* Lọc Trạng Thái Thuê */}
-              <div>
-                <label className="text-[11px] text-slate-500 uppercase font-bold tracking-wider mb-1 block">
-                  Trạng Thái Thuê
-                </label>
-                <select
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value as any)}
-                  className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500 transition-colors cursor-pointer"
-                >
-                  <option value="ALL">Tất Cả ({cloneStatusStats.total})</option>
-                  <option value="AVAILABLE">🟢 Sẵn Sàng ({cloneStatusStats.available})</option>
-                  <option value="RENTED">🔴 Đang Cho Thuê ({cloneStatusStats.rented})</option>
-                </select>
-              </div>
-
-              {/* Sắp Xếp Giá */}
-              <div className="col-span-2 lg:col-span-1">
-                <label className="text-[11px] text-slate-500 uppercase font-bold tracking-wider mb-1 block flex items-center justify-between">
-                  <span>Sắp Xếp Giá</span>
-                  <ArrowUpDown className="w-3 h-3 text-slate-400" />
-                </label>
-                <select
-                  value={selectedSort}
-                  onChange={(e) => setSelectedSort(e.target.value as any)}
-                  className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500 transition-colors cursor-pointer"
-                >
-                  <option value="DEFAULT">Mặc Định</option>
-                  <option value="PRICE_ASC">Giá: Thấp đến Cao ↗</option>
-                  <option value="PRICE_DESC">Giá: Cao đến Thấp ↘</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Thanh Tìm Kiếm */}
-            <div className="pt-2 border-t border-slate-100">
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="🔍 Nhập mã số (CLONE-01), rank (Unranked, Đồng, Vàng), tính năng..."
-                  className="w-full h-10.5 pl-9.5 pr-9 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 transition-colors"
-                />
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
-                {searchTerm && (
+              {/* Lọc Theo Giá & Nút Đặt Lại */}
+              <div className="flex items-center gap-2 self-end sm:self-auto w-full sm:w-auto justify-between sm:justify-end">
+                {/* Sắp xếp giá */}
+                <div className="inline-flex items-center gap-1 p-0.5 bg-slate-100 rounded-xl border border-slate-200/80">
                   <button
                     type="button"
-                    onClick={() => setSearchTerm("")}
-                    className="w-6 h-6 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 absolute right-2.5 top-2.5 flex items-center justify-center text-xs transition-colors cursor-pointer"
-                    title="Xóa tìm kiếm"
+                    onClick={() => setSelectedSort("DEFAULT")}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                      selectedSort === "DEFAULT"
+                        ? "bg-white text-slate-900 shadow-2xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
                   >
-                    <X className="w-3.5 h-3.5" />
+                    Mặc định
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSort("PRICE_ASC")}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1 ${
+                      selectedSort === "PRICE_ASC"
+                        ? "bg-white text-orange-600 shadow-2xs font-extrabold"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                    title="Giá từ thấp đến cao"
+                  >
+                    <span>Giá</span>
+                    <span className="text-xs">↗</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSort("PRICE_DESC")}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1 ${
+                      selectedSort === "PRICE_DESC"
+                        ? "bg-white text-orange-600 shadow-2xs font-extrabold"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                    title="Giá từ cao đến thấp"
+                  >
+                    <span>Giá</span>
+                    <span className="text-xs">↘</span>
+                  </button>
+                </div>
+
+                {/* Nút Đặt lại bộ lọc */}
+                {(selectedStatus !== "ALL" || searchTerm || selectedSort !== "DEFAULT") && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedStatus("ALL");
+                      setSearchTerm("");
+                      setSelectedSort("DEFAULT");
+                    }}
+                    className="px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 whitespace-nowrap flex items-center gap-1 transition-colors cursor-pointer"
+                    title="Xóa tất cả bộ lọc"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span>Đặt lại</span>
                   </button>
                 )}
               </div>
@@ -692,7 +788,6 @@ export const TFTCloneShop: React.FC = () => {
                 <button
                   onClick={() => {
                     setSearchTerm("");
-                    setSelectedRankFilter("ALL");
                     setSelectedStatus("ALL");
                     setSelectedSort("DEFAULT");
                   }}
@@ -788,12 +883,18 @@ export const TFTCloneShop: React.FC = () => {
                         </div>
 
                         {/* Tên định danh */}
-                        <div className="text-slate-900 font-bold text-xs sm:text-sm md:text-base leading-snug line-clamp-1 group-hover:text-orange-700 transition-colors">
+                        <div
+                          onClick={() => openCloneModal(account)}
+                          className="text-slate-900 font-bold text-xs sm:text-sm md:text-base leading-snug line-clamp-1 group-hover:text-orange-700 transition-colors cursor-pointer"
+                        >
                           {account.title}
                         </div>
 
                         {/* Danh sách tính năng */}
-                        <ul className="mt-1.5 sm:mt-2.5 space-y-1 sm:space-y-1.5 text-[10px] sm:text-xs text-slate-600 font-medium">
+                        <ul
+                          onClick={() => openCloneModal(account)}
+                          className="mt-1.5 sm:mt-2.5 space-y-1 sm:space-y-1.5 text-[10px] sm:text-xs text-slate-600 font-medium cursor-pointer"
+                        >
                           {account.features.map((feature, idx) => (
                             <li key={idx} className="flex items-start gap-1 sm:gap-1.5 line-clamp-1">
                               <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 flex-shrink-0 mt-0.5" />
@@ -805,20 +906,26 @@ export const TFTCloneShop: React.FC = () => {
 
                       {/* Đáy Thẻ: Giá tiền và 2 Nút Bấm */}
                       <div className="mt-auto pt-2 sm:pt-3.5 border-t border-slate-100 space-y-1.5 sm:space-y-2.5">
-                        <div className="flex items-baseline justify-between flex-wrap gap-x-1">
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-xs sm:text-base md:text-lg font-bold text-red-600 font-mono">
-                              {accPrice.toLocaleString("vi-VN")}đ
-                            </span>
-                            <span className="text-[10px] sm:text-xs text-slate-500 font-medium"> / </span>
-                            <span className="text-sm sm:text-lg text-slate-900 font-black leading-none" title="Sở hữu vô cực">
-                              ∞
-                            </span>
-                          </div>
-                          <span className="text-[9px] sm:text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-1 sm:px-2 py-0.5 rounded-md hidden xs:inline sm:inline">
-                            Full Sở Hữu
-                          </span>
-                        </div>
+                        {(() => {
+                          const displayInfo = getCloneDisplayPrice(account, globalPriceMode);
+                          return (
+                            <div className="flex items-baseline justify-between flex-wrap gap-x-1">
+                              <div className="flex items-baseline gap-1">
+                                <span className="text-xs sm:text-base md:text-lg font-bold text-red-600 font-mono">
+                                  {displayInfo.price.toLocaleString("vi-VN")}đ
+                                </span>
+                                <span className="text-[10px] sm:text-xs text-slate-600 font-medium">
+                                  {displayInfo.unit}
+                                </span>
+                              </div>
+                              {displayInfo.badge && (
+                                <span className="text-[9px] sm:text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-1 sm:px-2 py-0.5 rounded-md hidden xs:inline sm:inline">
+                                  {displayInfo.badge}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()}
 
                         <div className="grid grid-cols-2 gap-1 sm:gap-2">
                           <button
@@ -887,9 +994,15 @@ export const TFTCloneShop: React.FC = () => {
       {/* ============================================================ */}
       {/* 5. MODAL XEM CHI TIẾT & BÀN GIAO FULL THÔNG TIN ACC CLONE */}
       {/* ============================================================ */}
-      {selectedClone && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs sm:backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
-          <div className="bg-white border-t sm:border border-slate-200 w-full sm:max-w-xl md:max-w-2xl rounded-t-[24px] sm:rounded-3xl overflow-hidden relative animate-fadeIn flex flex-col max-h-[92vh] sm:max-h-[88vh] shadow-2xl">
+      {selectedClone && mounted && createPortal(
+        <div
+          className="fixed inset-0 z-[100] bg-black/75 backdrop-blur-xs sm:backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto"
+          onClick={() => setSelectedClone(null)}
+        >
+          <div
+            className="bg-white border-t sm:border border-slate-200 w-full sm:max-w-xl md:max-w-2xl rounded-t-[24px] sm:rounded-3xl overflow-hidden relative animate-fadeIn flex flex-col max-h-[92vh] sm:max-h-[88vh] shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Top Drag Indicator for Mobile */}
             <div className="pt-2.5 pb-1 flex justify-center sm:hidden bg-slate-50">
               <div className="w-10 h-1 rounded-full bg-slate-300" />
@@ -924,13 +1037,34 @@ export const TFTCloneShop: React.FC = () => {
                 )}
               </div>
 
-              <button
-                onClick={() => setSelectedClone(null)}
-                aria-label="Đóng"
-                className="w-8 h-8 rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 flex items-center justify-center font-bold shadow-xs transition-colors cursor-pointer flex-shrink-0 ml-2"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => copyCloneLink(selectedClone)}
+                  title="Sao chép link riêng"
+                  className="px-2 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-orange-600 text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span className="hidden xs:inline sm:inline">Chép link</span>
+                </button>
+
+                <Link
+                  href={getAccountProductUrl(selectedClone)}
+                  target="_blank"
+                  title="Mở trang riêng acc này"
+                  className="px-2 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-orange-600 text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Trang riêng</span>
+                </Link>
+
+                <button
+                  onClick={() => setSelectedClone(null)}
+                  aria-label="Đóng"
+                  className="w-8 h-8 rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 flex items-center justify-center font-bold shadow-xs transition-colors cursor-pointer flex-shrink-0 ml-1"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             {/* Body Modal Chi Tiết */}
@@ -959,7 +1093,7 @@ export const TFTCloneShop: React.FC = () => {
                   </p>
                   <p className="text-[11px] sm:text-xs text-emerald-700 font-semibold flex items-center gap-1">
                     <CheckCircle2 className="w-3 h-3 flex-shrink-0" />
-                    <span>Bàn giao full quyền Riot ID & Pass</span>
+                    <span>Bàn giao thông tin acc về chính chủ, sở hữu lâu dài</span>
                   </p>
                 </div>
               </div>
@@ -1100,11 +1234,11 @@ export const TFTCloneShop: React.FC = () => {
 
                 {(selectedClone.status || "").toUpperCase() === "RENTED" ? (
                   <button
-                    onClick={() => {
-                      const preOrderMsg = `[ĐẶT TRƯỚC ACC CLONE]\n- Mã Acc: ${selectedClone.code}\n- Tên Acc: ${selectedClone.title}\nBáo mình khi acc này hết hạn thuê nhé!`;
-                      if (navigator.clipboard) navigator.clipboard.writeText(preOrderMsg).catch(() => {});
-                      toast.success("Đã sao chép cú pháp! Dán (Ctrl+V) vào Zalo để đặt trước acc.");
-                      window.open(PROFILE_INFO.zaloUrl, "_blank");
+                    onClick={async () => {
+                      const linkUrl = typeof window !== "undefined" ? `${window.location.origin}${getAccountProductUrl(selectedClone)}` : "";
+                      const preOrderMsg = `Chào Tuấn Thái Bình, mình muốn ĐẶT TRƯỚC Acc Clone ${selectedClone.code} (${selectedClone.title}) khi hết hạn thuê. Link: ${linkUrl}`;
+                      await copyToClipboard(preOrderMsg);
+                      setZaloRedirectMessage(preOrderMsg);
                     }}
                     className="px-4 py-2 bg-gradient-to-r from-orange-600 to-rose-600 hover:from-orange-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm flex items-center gap-1.5 active:scale-95 cursor-pointer"
                   >
@@ -1128,7 +1262,8 @@ export const TFTCloneShop: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Lightbox Phóng to ảnh chi tiết tài khoản Clone */}
@@ -1146,6 +1281,14 @@ export const TFTCloneShop: React.FC = () => {
             openCloneModal(previewClone);
           }
         }}
+      />
+
+      {/* Zalo Redirect Confirmation Modal with Oki Bae */}
+      <ZaloRedirectModal
+        isOpen={!!zaloRedirectMessage}
+        onClose={() => setZaloRedirectMessage(null)}
+        orderMessage={zaloRedirectMessage || ""}
+        zaloUrl={PROFILE_INFO.zaloUrl}
       />
     </section>
   );

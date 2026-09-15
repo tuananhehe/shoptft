@@ -27,26 +27,26 @@ export const TFTNavbar: React.FC = () => {
         <div className="h-16 sm:h-18 flex items-center justify-between">
           
           {/* 1. BÊN TRÁI: LOGO + TÊN THƯƠNG HIỆU */}
-          <a href="#hero" className="flex items-center gap-3 group flex-shrink-0">
-            <div className="relative w-10 h-10 rounded-xl p-[2px] bg-gradient-to-tr from-orange-500 to-amber-500 shadow-sm group-hover:scale-105 transition-transform flex-shrink-0">
+          <a href="#hero" className="flex items-center gap-2.5 sm:gap-3 group flex-shrink min-w-0">
+            <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl p-[2px] bg-gradient-to-tr from-orange-500 to-amber-500 shadow-sm group-hover:scale-105 transition-transform flex-shrink-0">
               <img
                 src={PROFILE_INFO.avatarUrl}
                 alt="Logo Tuấn Thái Bình - Shop Thuê Acc TFT ĐTCL Uy Tín"
-                className="w-full h-full rounded-[10px] object-cover"
+                className="w-full h-full rounded-[9px] sm:rounded-[10px] object-cover"
               />
-              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white animate-pulse" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-500 border-2 border-white animate-pulse" />
             </div>
 
-            <div className="border-l border-slate-200/80 pl-3">
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 group-hover:text-orange-600 transition-colors">
+            <div className="border-l border-slate-200/80 pl-2.5 sm:pl-3 min-w-0">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 group-hover:text-orange-600 transition-colors truncate">
                   {PROFILE_INFO.realName}
                 </span>
-                <span className="hidden sm:inline-block bg-orange-100 text-orange-700 text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider border border-orange-200">
+                <span className="bg-orange-100 text-orange-700 text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider border border-orange-200 flex-shrink-0">
                   PRO
                 </span>
               </div>
-              <p className="text-[10px] text-slate-500 font-medium tracking-wide">
+              <p className="text-[10px] text-slate-500 font-medium tracking-wide truncate">
                 ShopTFT Mobile
               </p>
             </div>
@@ -66,17 +66,8 @@ export const TFTNavbar: React.FC = () => {
             ))}
           </nav>
 
-          {/* 3. BÊN PHẢI: NÚT THUÊ ACC & NÚT MOBILE MENU */}
+          {/* 3. BÊN PHẢI: NÚT THUÊ ACC (DESKTOP) & NÚT MOBILE MENU */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            {/* Quick Action Button trên Mobile: 1 chạm sang Kho VIP */}
-            <a
-              href="#shop"
-              className="lg:hidden inline-flex items-center gap-1 px-3 py-1.5 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-xs rounded-lg shadow-sm active:scale-95 transition-all"
-            >
-              <KeyRound className="w-3 h-3" />
-              <span>Thuê Acc</span>
-            </a>
-
             {/* Desktop Action Button */}
             <a
               href="#shop"
@@ -92,7 +83,7 @@ export const TFTNavbar: React.FC = () => {
               className="lg:hidden p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 transition-colors cursor-pointer"
               aria-label="Toggle menu"
             >
-              {mobileOpen ? <X className="w-4.5 h-4.5" /> : <Menu className="w-4.5 h-4.5" />}
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
 

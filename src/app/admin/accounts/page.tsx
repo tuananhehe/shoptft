@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
+import Link from "next/link";
 import {
   getVipAndCloneAccounts,
   createAccountApi,
@@ -12,6 +13,7 @@ import {
   formatRentalExpiry,
 } from "@/utils/supabase/accounts-service";
 import { getHomepageConfig, PricingConfig } from "@/utils/homepage-service";
+import { getAccountProductUrl } from "@/utils/account-lookup";
 import toast from "react-hot-toast";
 import {
   Search,
@@ -34,6 +36,8 @@ import {
   Check,
   Zap,
   Wallet,
+  ExternalLink,
+  Share2,
 } from "lucide-react";
 
 export type AccountCategoryType = "VIP" | "CLONE";
@@ -68,6 +72,9 @@ export interface UnifiedAdminAccount {
   accountValue?: number;
   hourlyPrice?: number;
   dailyPrice?: number;
+  priceDisplayType?: "HOURLY" | "DAILY" | "LONG_TERM" | "CUSTOM" | "AUTO";
+  customPrice?: number;
+  customPriceUnit?: string;
 
   // Thuộc tính riêng cho Acc Clone / Smurf
   rankBadge?: string;
@@ -104,6 +111,7 @@ export default function AdminAccountsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "AVAILABLE" | "RENTED">("ALL");
   const [rankFilter, setRankFilter] = useState("ALL");
+  const [priceDisplayFilter, setPriceDisplayFilter] = useState<"ALL" | "HOURLY" | "DAILY" | "LONG_TERM" | "CUSTOM">("ALL");
   const [sortFilter, setSortFilter] = useState<"DEFAULT" | "PRICE_ASC" | "PRICE_DESC">("DEFAULT");
 
   // State cho Modal "Thiết lập thời gian cho thuê đơn lẻ"
@@ -125,6 +133,14 @@ export default function AdminAccountsPage() {
   const [formTitle, setFormTitle] = useState("");
   const [formThumbnail, setFormThumbnail] = useState("");
   const [formDescription, setFormDescription] = useState("");
+
+  // Cấu hình kiểu hiển thị giá thuê cho khách
+  const [formPriceDisplayType, setFormPriceDisplayType] = useState<"HOURLY" | "DAILY" | "LONG_TERM" | "CUSTOM" | "AUTO">("HOURLY");
+  const [formDailyPrice, setFormDailyPrice] = useState<number>(45000);
+  const [formPeriodPrice, setFormPeriodPrice] = useState<number>(150000);
+  const [formPeriodUnit, setFormPeriodUnit] = useState<string>(" / ∞");
+  const [formCustomPrice, setFormCustomPrice] = useState<number>(15000);
+  const [formCustomPriceUnit, setFormCustomPriceUnit] = useState<string>(" / Giờ");
 
   // Fields for VIP
   const [formRank, setFormRank] = useState<UnifiedAdminAccount["rank"]>("THÁCH ĐẤU");
@@ -152,11 +168,20 @@ export default function AdminAccountsPage() {
     return Math.round((pkg2h / 2) / 1000) * 1000;
   };
 
+  // Helper tính giá thuê theo ngày tự động: [(Giá acc * 12%) + 20k] / 2
+  const calcDailyFromValue = (val: number, rate7d = pricingRates.rate7Days, passFee = pricingRates.passChangeFee) => {
+    if (!val || isNaN(val) || val <= 0) return 45000;
+    const pkg7d = (val * (rate7d / 100)) + passFee;
+    return Math.round((pkg7d / 2) / 1000) * 1000;
+  };
+
   const handleAccountValueChange = (val: number) => {
     setFormAccountValue(val);
     if (isAutoPricing) {
       const calculated = calcHourlyFromValue(val, pricingRates.rate2Hours, pricingRates.passChangeFee);
       setFormHourlyPrice(calculated);
+      setFormDailyPrice(calcDailyFromValue(val, pricingRates.rate7Days, pricingRates.passChangeFee));
+      setFormPeriodPrice(Math.round((val * 0.3) / 1000) * 1000);
     }
   };
 
@@ -255,6 +280,11 @@ export default function AdminAccountsPage() {
           } else if (!rankStr.includes(rankFilter.toUpperCase())) {
             return false;
           }
+        }
+
+        if (priceDisplayFilter !== "ALL") {
+          const mode = acc.priceDisplayType || (acc.category === "VIP" ? "HOURLY" : "LONG_TERM");
+          if (mode !== priceDisplayFilter) return false;
         }
 
         if (searchTerm.trim() !== "") {
@@ -494,6 +524,39 @@ export default function AdminAccountsPage() {
     }
   };
 
+  // 2.6 BATCH SWITCH PRICE DISPLAY MODE
+  const handleBulkSwitchPriceDisplay = async (targetMode: "HOURLY" | "DAILY" | "LONG_TERM" | "CUSTOM") => {
+    if (selectedIds.length === 0) return;
+    const modeLabel =
+      targetMode === "HOURLY"
+        ? "⚡ Theo Giờ"
+        : targetMode === "DAILY"
+        ? "📅 Theo Ngày"
+        : targetMode === "LONG_TERM"
+        ? "👑 Lâu Dài"
+        : "✏️ Tùy Chỉnh";
+
+    const toastId = toast.loading(
+      `Đang chuyển ${selectedIds.length} tài khoản sang hiển thị giá [${modeLabel}]...`
+    );
+    setIsBulkUpdating(true);
+
+    const res = await bulkUpdateAccountsApi(selectedIds, {
+      price_display_type: targetMode,
+    });
+
+    if (res.success) {
+      toast.success(`✅ Đã cập nhật kiểu hiển thị giá [${modeLabel}] cho ${selectedIds.length} tài khoản!`, {
+        id: toastId,
+      });
+      setSelectedIds([]);
+      await fetchAccounts(false);
+    } else {
+      toast.error(`Lỗi cập nhật: ${res.error}`, { id: toastId });
+    }
+    setIsBulkUpdating(false);
+  };
+
   // ============================================================
   // 4. MỞ DRAWER THÊM MỚI & CHỈNH SỬA
   // ============================================================
@@ -505,11 +568,21 @@ export default function AdminAccountsPage() {
     setFormThumbnail("");
     setFormDescription("Tài khoản chính chủ hoạt động tốt.");
 
+    // Reset Price Display Settings
+    setFormPriceDisplayType(defaultCategory === "VIP" ? "HOURLY" : "LONG_TERM");
+    setFormPeriodUnit(" / ∞");
+    setFormCustomPriceUnit(" / Giờ");
+
     // Reset VIP fields
     const defaultAccVal = 850000;
     setFormRank("THÁCH ĐẤU");
     setFormAccountValue(defaultAccVal);
-    setFormHourlyPrice(calcHourlyFromValue(defaultAccVal, pricingRates.rate2Hours, pricingRates.passChangeFee));
+    const hourly = calcHourlyFromValue(defaultAccVal, pricingRates.rate2Hours, pricingRates.passChangeFee);
+    const daily = calcDailyFromValue(defaultAccVal, pricingRates.rate7Days, pricingRates.passChangeFee);
+    setFormHourlyPrice(hourly);
+    setFormDailyPrice(daily);
+    setFormPeriodPrice(Math.round((defaultAccVal * 0.3) / 1000) * 1000);
+    setFormCustomPrice(hourly);
     setIsAutoPricing(true);
     setFormMainChibi("");
     setFormMainArena("");
@@ -539,6 +612,16 @@ export default function AdminAccountsPage() {
     setFormTitle(account.title);
     setFormThumbnail(account.thumbnail);
     setFormDescription(account.description || "");
+
+    // Load price display settings
+    setFormPriceDisplayType(
+      account.priceDisplayType || (account.category === "VIP" ? "HOURLY" : "LONG_TERM")
+    );
+    setFormDailyPrice(account.dailyPrice || (account.hourlyPrice ? account.hourlyPrice * 3 : 45000));
+    setFormPeriodPrice(account.periodPrice || account.monthlyPrice || 150000);
+    setFormPeriodUnit(account.periodUnit || " / ∞");
+    setFormCustomPrice(account.customPrice || account.hourlyPrice || 15000);
+    setFormCustomPriceUnit(account.customPriceUnit || " / Giờ");
 
     if (account.category === "VIP") {
       const accVal = account.accountValue || 850000;
@@ -627,8 +710,13 @@ export default function AdminAccountsPage() {
       rank: formCategory === "VIP" ? formRank : formRankBadge,
       price: formCategory === "VIP" ? formAccountValue : formMonthlyPrice,
       hourly_price: formCategory === "VIP" ? finalHourlyPrice : 0,
+      daily_price: formDailyPrice > 0 ? formDailyPrice : 0,
+      period_price: formCategory === "CLONE" ? formMonthlyPrice : formPeriodPrice,
+      period_unit: formPeriodUnit.trim() || " / ∞",
+      price_display_type: formPriceDisplayType,
+      custom_price: formCustomPrice > 0 ? formCustomPrice : 0,
+      custom_price_unit: formCustomPriceUnit.trim() || " / Giờ",
       weekly_price: formCategory === "CLONE" ? formWeeklyPrice : 0,
-      period_price: formCategory === "CLONE" ? formMonthlyPrice : 0,
       champions: formCategory === "VIP" ? finalChibis : [],
       arenas: formCategory === "VIP" ? finalArenas : [],
       features: formCategory === "CLONE" ? formFeatures : [],
@@ -860,7 +948,7 @@ export default function AdminAccountsPage() {
 
         {/* Thanh Bộ Lọc & Tìm Kiếm */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 pt-2 border-t border-slate-100">
-          <div className="lg:col-span-4 relative">
+          <div className="lg:col-span-3 relative">
             <input
               type="text"
               value={searchTerm}
@@ -871,7 +959,7 @@ export default function AdminAccountsPage() {
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
           </div>
 
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-2">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
@@ -899,6 +987,20 @@ export default function AdminAccountsPage() {
               <option value="BẠC">Bạc</option>
               <option value="ĐỒNG">Đồng</option>
               <option value="KHÔNG RANK">Không Rank / Unranked</option>
+            </select>
+          </div>
+
+          <div className="lg:col-span-2">
+            <select
+              value={priceDisplayFilter}
+              onChange={(e) => setPriceDisplayFilter(e.target.value as any)}
+              className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500 cursor-pointer"
+            >
+              <option value="ALL">Tất Cả Kiểu Giá</option>
+              <option value="HOURLY">⚡ Thuê Theo Giờ</option>
+              <option value="LONG_TERM">👑 Thuê Lâu Dài</option>
+              <option value="DAILY">📅 Thuê Theo Ngày</option>
+              <option value="CUSTOM">✏️ Giá Tùy Chỉnh</option>
             </select>
           </div>
 
@@ -982,16 +1084,48 @@ export default function AdminAccountsPage() {
 
           {/* Cụm nút thao tác hàng loạt */}
           <div className="flex items-center gap-2 flex-wrap w-full md:w-auto justify-end">
+            {/* Đổi Hiển Thị Giá Hàng Loạt */}
+            <div className="flex items-center gap-1 bg-slate-800 p-1 rounded-xl border border-slate-700">
+              <span className="text-[10px] text-slate-400 font-bold px-1.5 hidden sm:inline">Kiểu Giá:</span>
+              <button
+                type="button"
+                disabled={isBulkUpdating}
+                onClick={() => handleBulkSwitchPriceDisplay("HOURLY")}
+                className="px-2 py-1 bg-orange-600/80 hover:bg-orange-600 active:bg-orange-700 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-all disabled:opacity-50"
+                title="Đổi tất cả acc đã chọn sang hiển thị giá Theo Giờ"
+              >
+                ⚡ Giờ
+              </button>
+              <button
+                type="button"
+                disabled={isBulkUpdating}
+                onClick={() => handleBulkSwitchPriceDisplay("LONG_TERM")}
+                className="px-2 py-1 bg-purple-600/80 hover:bg-purple-600 active:bg-purple-700 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-all disabled:opacity-50"
+                title="Đổi tất cả acc đã chọn sang hiển thị giá Lâu Dài"
+              >
+                👑 Lâu Dài
+              </button>
+              <button
+                type="button"
+                disabled={isBulkUpdating}
+                onClick={() => handleBulkSwitchPriceDisplay("DAILY")}
+                className="px-2 py-1 bg-emerald-600/80 hover:bg-emerald-600 active:bg-emerald-700 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-all disabled:opacity-50"
+                title="Đổi tất cả acc đã chọn sang hiển thị giá Theo Ngày"
+              >
+                📅 Ngày
+              </button>
+            </div>
+
             {/* 1. Đặt Sẵn Sàng (Trống) */}
             <button
               type="button"
               disabled={isBulkUpdating}
               onClick={handleBulkMarkAvailable}
-              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
+              className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
               title="Chuyển tất cả acc đã chọn sang trạng thái SẴN SÀNG"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Đặt Sẵn Sàng</span>
+              <span>Sẵn Sàng</span>
             </button>
 
             {/* 2. Cho Thuê Đồng Loạt */}
@@ -999,11 +1133,11 @@ export default function AdminAccountsPage() {
               type="button"
               disabled={isBulkUpdating}
               onClick={handleBulkOpenRentalModal}
-              className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
+              className="px-3 py-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
               title="Đặt thời gian cho thuê đồng loạt cho các acc đã chọn"
             >
               <Clock className="w-3.5 h-3.5" />
-              <span>Cho Thuê Đồng Loạt</span>
+              <span>Cho Thuê</span>
             </button>
 
             {/* 3. Chuyển sang VIP */}
@@ -1011,11 +1145,11 @@ export default function AdminAccountsPage() {
               type="button"
               disabled={isBulkUpdating}
               onClick={() => handleBulkSwitchCategory("VIP")}
-              className="px-3.5 py-2 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
+              className="px-3 py-2 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
               title="Chuyển sang kho Acc VIP"
             >
               <Crown className="w-3.5 h-3.5" />
-              <span>Sang VIP</span>
+              <span>VIP</span>
             </button>
 
             {/* 4. Chuyển sang Clone */}
@@ -1023,11 +1157,11 @@ export default function AdminAccountsPage() {
               type="button"
               disabled={isBulkUpdating}
               onClick={() => handleBulkSwitchCategory("CLONE")}
-              className="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
+              className="px-3 py-2 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
               title="Chuyển sang kho Acc Clone"
             >
               <Gamepad2 className="w-3.5 h-3.5" />
-              <span>Sang Clone</span>
+              <span>Clone</span>
             </button>
 
             {/* 5. Xóa Hàng Loạt */}
@@ -1035,7 +1169,7 @@ export default function AdminAccountsPage() {
               type="button"
               disabled={isBulkUpdating}
               onClick={() => setBulkDeleteModalOpen(true)}
-              className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
+              className="px-3 py-2 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
               title="Xóa tất cả tài khoản đã chọn"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -1074,7 +1208,7 @@ export default function AdminAccountsPage() {
                 <th className="py-3.5 px-4">Loại & Mã</th>
                 <th className="py-3.5 px-4">Hình Ảnh</th>
                 <th className="py-3.5 px-4 min-w-[260px]">Thông Tin Tài Khoản</th>
-                <th className="py-3.5 px-4">Giá Thuê</th>
+                <th className="py-3.5 px-4 min-w-[140px]">Giá Thuê Hiển Thị</th>
                 <th className="py-3.5 px-4 min-w-[180px]">Trạng Thái (Gạt Bật/Tắt)</th>
                 <th className="py-3.5 px-4 text-right">Thao Tác</th>
               </tr>
@@ -1192,29 +1326,57 @@ export default function AdminAccountsPage() {
                         )}
                       </td>
 
-                      {/* Cột 4: Giá Thuê */}
+                      {/* Cột 4: Giá Thuê Hiển Thị */}
                       <td className="py-4 px-4">
-                        {isVip ? (
-                          <div className="space-y-1">
-                            <div className="font-mono font-bold text-sm text-slate-900">
-                              {(account.hourlyPrice || 15000).toLocaleString("vi-VN")}đ
-                              <span className="text-[10px] text-slate-500 font-normal">/h</span>
+                        {(() => {
+                          const mode = account.priceDisplayType || (isVip ? "HOURLY" : "LONG_TERM");
+                          let priceText = "";
+                          let unitText = "";
+                          let badgeBg = "bg-orange-100 text-orange-800 border-orange-200";
+                          let badgeLabel = "⚡ Theo Giờ";
+
+                          if (mode === "HOURLY") {
+                            priceText = (account.hourlyPrice || (isVip ? 15000 : 10000)).toLocaleString("vi-VN") + "đ";
+                            unitText = "/h";
+                            badgeBg = "bg-amber-100 text-amber-800 border-amber-200";
+                            badgeLabel = "⚡ Theo Giờ";
+                          } else if (mode === "DAILY") {
+                            const daily = account.dailyPrice || (account.hourlyPrice ? account.hourlyPrice * 3 : 45000);
+                            priceText = daily.toLocaleString("vi-VN") + "đ";
+                            unitText = "/ngày";
+                            badgeBg = "bg-emerald-100 text-emerald-800 border-emerald-200";
+                            badgeLabel = "📅 Theo Ngày";
+                          } else if (mode === "LONG_TERM") {
+                            const period = account.periodPrice || account.monthlyPrice || account.accountValue || 150000;
+                            priceText = period.toLocaleString("vi-VN") + "đ";
+                            unitText = account.periodUnit || " / ∞";
+                            badgeBg = "bg-purple-100 text-purple-800 border-purple-200";
+                            badgeLabel = "👑 Lâu Dài";
+                          } else if (mode === "CUSTOM") {
+                            const custom = account.customPrice || account.hourlyPrice || 15000;
+                            priceText = custom.toLocaleString("vi-VN") + "đ";
+                            unitText = account.customPriceUnit ? ` ${account.customPriceUnit}` : "";
+                            badgeBg = "bg-blue-100 text-blue-800 border-blue-200";
+                            badgeLabel = "✏️ Tùy Chỉnh";
+                          }
+
+                          return (
+                            <div className="space-y-1">
+                              <span className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase border ${badgeBg}`}>
+                                {badgeLabel}
+                              </span>
+                              <div className="font-mono font-bold text-sm text-slate-900">
+                                {priceText}
+                                <span className="text-[10px] text-slate-500 font-normal ml-0.5">{unitText}</span>
+                              </div>
+                              {isVip && (
+                                <div className="text-[10px] font-mono text-slate-400">
+                                  Định giá: {(account.accountValue || 850000).toLocaleString("vi-VN")}đ
+                                </div>
+                              )}
                             </div>
-                            <div className="text-[11px] font-mono text-slate-500">
-                              {(account.dailyPrice || (account.hourlyPrice || 15000) * 4).toLocaleString("vi-VN")}đ/ngày
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="space-y-1">
-                            <div className="font-mono font-bold text-sm text-sky-700">
-                              {(account.monthlyPrice || account.periodPrice || 150000).toLocaleString("vi-VN")}đ
-                              <span className="text-[10px] text-slate-500 font-normal"> / ∞</span>
-                            </div>
-                            <div className="text-[11px] font-mono text-slate-500">
-                              {(account.weeklyPrice || 50000).toLocaleString("vi-VN")}đ/tuần
-                            </div>
-                          </div>
-                        )}
+                          );
+                        })()}
                       </td>
 
                       {/* Cột 5: Trạng Thái Cho Thuê (Gạt Switch) */}
@@ -1257,6 +1419,30 @@ export default function AdminAccountsPage() {
                       {/* Cột 6: Thao Tác Chỉnh Sửa & Xóa */}
                       <td className="py-4 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          <Link
+                            href={getAccountProductUrl(account)}
+                            target="_blank"
+                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors cursor-pointer"
+                            title="Xem trang web riêng của acc này"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </Link>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (typeof window !== "undefined") {
+                                const url = `${window.location.origin}${getAccountProductUrl(account)}`;
+                                navigator.clipboard.writeText(url).catch(() => {});
+                                toast.success(`Đã sao chép link acc ${account.code}!`, { icon: "🔗" });
+                              }
+                            }}
+                            className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors cursor-pointer"
+                            title="Sao chép link web gửi khách"
+                          >
+                            <Share2 className="w-4 h-4" />
+                          </button>
+
                           <button
                             type="button"
                             onClick={() => openEditDrawer(account)}
@@ -1292,6 +1478,7 @@ export default function AdminAccountsPage() {
                         setSearchTerm("");
                         setStatusFilter("ALL");
                         setRankFilter("ALL");
+                        setPriceDisplayFilter("ALL");
                       }}
                       className="mt-2 text-xs font-bold text-orange-700 hover:underline cursor-pointer"
                     >
@@ -1893,12 +2080,12 @@ export default function AdminAccountsPage() {
                         )}
                       </div>
 
-                      {/* 3. ĐỊNH GIÁ ACC & TỰ ĐỘNG TÍNH GIÁ THUÊ */}
+                      {/* 3. ĐỊNH GIÁ ACC & TỰ ĐỘNG TÍNH GIÁ */}
                       <div className="space-y-3 pt-2 border-t border-orange-200/60">
                         <div className="flex items-center justify-between">
                           <span className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
                             <Zap className="w-3.5 h-3.5 text-orange-600" />
-                            <span>Định Giá & Tính Giá Thuê Tự Động</span>
+                            <span>Định Giá Gốc Tài Khoản</span>
                           </span>
 
                           <button
@@ -1913,6 +2100,8 @@ export default function AdminAccountsPage() {
                                   pricingRates.passChangeFee
                                 );
                                 setFormHourlyPrice(calculated);
+                                setFormDailyPrice(calcDailyFromValue(formAccountValue, pricingRates.rate7Days, pricingRates.passChangeFee));
+                                setFormPeriodPrice(Math.round((formAccountValue * 0.3) / 1000) * 1000);
                                 toast.success("Đã bật tự động tính giá theo % định giá!");
                               }
                             }}
@@ -1926,81 +2115,20 @@ export default function AdminAccountsPage() {
                           </button>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2.5">
-                          <div className="space-y-1.5">
-                            <label className="font-bold text-slate-800 block">
-                              Định Giá Acc (VNĐ): <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="number"
-                              step="50000"
-                              value={formAccountValue}
-                              onChange={(e) => handleAccountValueChange(Number(e.target.value))}
-                              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold font-mono text-slate-900 focus:outline-none focus:border-orange-500"
-                            />
-                            <span className="text-[10px] text-slate-500 block">
-                              Giá trị gốc của tài khoản
-                            </span>
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <div className="flex items-center justify-between">
-                              <label className="font-bold text-slate-800 block">
-                                Giá Thuê / Giờ:
-                              </label>
-                              {isAutoPricing && (
-                                <span className="text-[9px] font-bold text-orange-600 uppercase">
-                                  Tự động
-                                </span>
-                              )}
-                            </div>
-                            <input
-                              type="number"
-                              step="1000"
-                              value={formHourlyPrice}
-                              onChange={(e) => {
-                                setFormHourlyPrice(Number(e.target.value));
-                                setIsAutoPricing(false);
-                              }}
-                              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold font-mono text-orange-700 focus:outline-none focus:border-orange-500"
-                            />
-                            <span className="text-[10px] text-slate-500 block">
-                              Hiển thị trên Shop
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Bảng Minh Họa Xem Trước Các Gói Giá Tự Động */}
-                        <div className="bg-white p-3 rounded-xl border border-orange-200/80 space-y-2 text-[11px]">
-                          <span className="font-bold text-orange-950 block">
-                            📊 Giá các gói thuê tự động (Theo định giá {(Number(formAccountValue) || 0).toLocaleString("vi-VN")}đ):
+                        <div className="space-y-1.5">
+                          <label className="font-bold text-slate-800 block">
+                            Định Giá Acc (VNĐ): <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            step="50000"
+                            value={formAccountValue}
+                            onChange={(e) => handleAccountValueChange(Number(e.target.value))}
+                            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold font-mono text-slate-900 focus:outline-none focus:border-orange-500"
+                          />
+                          <span className="text-[10px] text-slate-500 block">
+                            Dùng để tính tỷ lệ thuê các gói giờ, tuần, tháng tự động
                           </span>
-                          <div className="grid grid-cols-2 gap-2 text-slate-700 font-mono">
-                            <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
-                              <span className="text-[10px] text-slate-500 block font-sans">Gói 2 Giờ (3% + 20k):</span>
-                              <strong className="text-red-600 font-bold">
-                                {(Math.round(((formAccountValue * (pricingRates.rate2Hours / 100)) + pricingRates.passChangeFee) / 1000) * 1000).toLocaleString("vi-VN")}đ
-                              </strong>
-                            </div>
-                            <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
-                              <span className="text-[10px] text-slate-500 block font-sans">Gói 7 Ngày (12% + 20k):</span>
-                              <strong className="text-red-600 font-bold">
-                                {(Math.round(((formAccountValue * (pricingRates.rate7Days / 100)) + pricingRates.passChangeFee) / 1000) * 1000).toLocaleString("vi-VN")}đ
-                              </strong>
-                            </div>
-                            <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
-                              <span className="text-[10px] text-slate-500 block font-sans">Gói 30 Ngày (30%):</span>
-                              <strong className="text-red-600 font-bold">
-                                {(Math.round((formAccountValue * (pricingRates.rate30Days / 100)) / 1000) * 1000).toLocaleString("vi-VN")}đ
-                              </strong>
-                            </div>
-                            <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
-                              <span className="text-[10px] text-slate-500 block font-sans">Gói 999 Ngày (Vô Cực):</span>
-                              <strong className="text-purple-700 font-bold">
-                                {(Number(formAccountValue) || 0).toLocaleString("vi-VN")}đ
-                              </strong>
-                            </div>
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -2020,31 +2148,6 @@ export default function AdminAccountsPage() {
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2.5">
-                        <div className="space-y-1.5">
-                          <label className="font-bold text-slate-800 block">Giá Theo Tuần (VNĐ):</label>
-                          <input
-                            type="number"
-                            step="5000"
-                            value={formWeeklyPrice}
-                            onChange={(e) => setFormWeeklyPrice(Number(e.target.value))}
-                            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold font-mono text-slate-800 focus:outline-none focus:border-orange-500"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="font-bold text-slate-800 block">Giá Trọn Gói / Vô Cực:</label>
-                          <input
-                            type="number"
-                            step="10000"
-                            value={formMonthlyPrice}
-                            onChange={(e) => setFormMonthlyPrice(Number(e.target.value))}
-                            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold font-mono text-sky-700 focus:outline-none focus:border-orange-500"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Đặc Điểm & Tính Năng Acc Clone */}
                       <div className="space-y-1.5 pt-1 border-t border-sky-200/60">
                         <label className="font-bold text-slate-800 block">
                           Đặc Điểm & Tính Năng Tài Khoản:
@@ -2105,6 +2208,262 @@ export default function AdminAccountsPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* ============================================================ */}
+                  {/* CẤU HÌNH KIỂU HIỂN THỊ GIÁ THUÊ & CHỌN CHẾ ĐỘ (4-CARD SELECTOR) */}
+                  {/* ============================================================ */}
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3.5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="font-extrabold text-slate-900 text-xs block">
+                          💰 Chọn Kiểu Hiển Thị Giá Trên Shop
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-medium">
+                          Tùy biến cách khách hàng nhìn thấy mức giá của tài khoản này
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 border border-orange-200 font-bold">
+                        Đang chọn: {formPriceDisplayType}
+                      </span>
+                    </div>
+
+                    {/* 4 Cards Selector */}
+                    <div className="grid grid-cols-2 gap-2">
+                      {/* Card 1: Theo Giờ */}
+                      <button
+                        type="button"
+                        onClick={() => setFormPriceDisplayType("HOURLY")}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                          formPriceDisplayType === "HOURLY"
+                            ? "bg-amber-500 text-white border-amber-600 shadow-md ring-2 ring-amber-400/40"
+                            : "bg-white border-slate-200 text-slate-700 hover:bg-slate-100"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-[11px] flex items-center gap-1">
+                            <span>⚡</span> Theo Giờ
+                          </span>
+                          {formPriceDisplayType === "HOURLY" && <Check className="w-3.5 h-3.5" />}
+                        </div>
+                        <div className={`font-mono font-bold text-xs mt-1 ${formPriceDisplayType === "HOURLY" ? "text-white" : "text-amber-700"}`}>
+                          {(Number(formHourlyPrice) || 0).toLocaleString("vi-VN")}đ
+                          <span className="text-[10px] font-normal opacity-90"> / Giờ</span>
+                        </div>
+                      </button>
+
+                      {/* Card 2: Lâu Dài */}
+                      <button
+                        type="button"
+                        onClick={() => setFormPriceDisplayType("LONG_TERM")}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                          formPriceDisplayType === "LONG_TERM"
+                            ? "bg-purple-600 text-white border-purple-700 shadow-md ring-2 ring-purple-400/40"
+                            : "bg-white border-slate-200 text-slate-700 hover:bg-slate-100"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-[11px] flex items-center gap-1">
+                            <span>👑</span> Lâu Dài
+                          </span>
+                          {formPriceDisplayType === "LONG_TERM" && <Check className="w-3.5 h-3.5" />}
+                        </div>
+                        <div className={`font-mono font-bold text-xs mt-1 ${formPriceDisplayType === "LONG_TERM" ? "text-white" : "text-purple-700"}`}>
+                          {(Number(formPeriodPrice) || 0).toLocaleString("vi-VN")}đ
+                          <span className="text-[10px] font-normal opacity-90"> {formPeriodUnit || "/ ∞"}</span>
+                        </div>
+                      </button>
+
+                      {/* Card 3: Theo Ngày */}
+                      <button
+                        type="button"
+                        onClick={() => setFormPriceDisplayType("DAILY")}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                          formPriceDisplayType === "DAILY"
+                            ? "bg-emerald-600 text-white border-emerald-700 shadow-md ring-2 ring-emerald-400/40"
+                            : "bg-white border-slate-200 text-slate-700 hover:bg-slate-100"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-[11px] flex items-center gap-1">
+                            <span>📅</span> Theo Ngày
+                          </span>
+                          {formPriceDisplayType === "DAILY" && <Check className="w-3.5 h-3.5" />}
+                        </div>
+                        <div className={`font-mono font-bold text-xs mt-1 ${formPriceDisplayType === "DAILY" ? "text-white" : "text-emerald-700"}`}>
+                          {(Number(formDailyPrice) || 0).toLocaleString("vi-VN")}đ
+                          <span className="text-[10px] font-normal opacity-90"> / Ngày</span>
+                        </div>
+                      </button>
+
+                      {/* Card 4: Tùy Chỉnh */}
+                      <button
+                        type="button"
+                        onClick={() => setFormPriceDisplayType("CUSTOM")}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                          formPriceDisplayType === "CUSTOM"
+                            ? "bg-blue-600 text-white border-blue-700 shadow-md ring-2 ring-blue-400/40"
+                            : "bg-white border-slate-200 text-slate-700 hover:bg-slate-100"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-[11px] flex items-center gap-1">
+                            <span>✏️</span> Tùy Chỉnh
+                          </span>
+                          {formPriceDisplayType === "CUSTOM" && <Check className="w-3.5 h-3.5" />}
+                        </div>
+                        <div className={`font-mono font-bold text-xs mt-1 ${formPriceDisplayType === "CUSTOM" ? "text-white" : "text-blue-700"}`}>
+                          {(Number(formCustomPrice) || 0).toLocaleString("vi-VN")}đ
+                          <span className="text-[10px] font-normal opacity-90"> {formCustomPriceUnit || "/ Lượt"}</span>
+                        </div>
+                      </button>
+                    </div>
+
+                    {/* Form Nhập Giá Tương Ứng */}
+                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-3">
+                      {formPriceDisplayType === "HOURLY" && (
+                        <div className="space-y-1.5">
+                          <label className="font-bold text-slate-800 block">
+                            Giá Thuê / Giờ (VNĐ):
+                          </label>
+                          <input
+                            type="number"
+                            step="1000"
+                            value={formHourlyPrice}
+                            onChange={(e) => {
+                              setFormHourlyPrice(Number(e.target.value));
+                              setIsAutoPricing(false);
+                            }}
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold font-mono text-amber-800 focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
+                      )}
+
+                      {formPriceDisplayType === "DAILY" && (
+                        <div className="space-y-1.5">
+                          <label className="font-bold text-slate-800 block">
+                            Giá Thuê / Ngày (VNĐ):
+                          </label>
+                          <input
+                            type="number"
+                            step="5000"
+                            value={formDailyPrice}
+                            onChange={(e) => setFormDailyPrice(Number(e.target.value))}
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold font-mono text-emerald-800 focus:outline-none focus:border-emerald-500"
+                          />
+                        </div>
+                      )}
+
+                      {formPriceDisplayType === "LONG_TERM" && (
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <div className="space-y-1.5">
+                            <label className="font-bold text-slate-800 block">
+                              Giá Thuê Lâu Dài (VNĐ):
+                            </label>
+                            <input
+                              type="number"
+                              step="10000"
+                              value={formPeriodPrice}
+                              onChange={(e) => setFormPeriodPrice(Number(e.target.value))}
+                              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold font-mono text-purple-800 focus:outline-none focus:border-purple-500"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="font-bold text-slate-800 block">
+                              Đơn vị hiển thị:
+                            </label>
+                            <input
+                              type="text"
+                              value={formPeriodUnit}
+                              onChange={(e) => setFormPeriodUnit(e.target.value)}
+                              placeholder="/ ∞ hoặc / Tháng"
+                              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-purple-800 focus:outline-none focus:border-purple-500"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {formPriceDisplayType === "CUSTOM" && (
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <div className="space-y-1.5">
+                            <label className="font-bold text-slate-800 block">
+                              Mức Giá (VNĐ):
+                            </label>
+                            <input
+                              type="number"
+                              step="5000"
+                              value={formCustomPrice}
+                              onChange={(e) => setFormCustomPrice(Number(e.target.value))}
+                              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold font-mono text-blue-800 focus:outline-none focus:border-blue-500"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="font-bold text-slate-800 block">
+                              Đơn vị tùy ý:
+                            </label>
+                            <input
+                              type="text"
+                              value={formCustomPriceUnit}
+                              onChange={(e) => setFormCustomPriceUnit(e.target.value)}
+                              placeholder="vd: / Tuần, / Lượt..."
+                              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-blue-800 focus:outline-none focus:border-blue-500"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* LIVE CARD PREVIEW (MÔ PHỎNG TRỰC TIẾP THẺ SHOP) */}
+                    <div className="p-3 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-slate-700 text-white space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400 flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" />
+                          <span>Xem Trước Thẻ Shop (Live Card Preview)</span>
+                        </span>
+                        <span className="text-[9px] font-mono px-2 py-0.5 rounded-md bg-white/10 text-slate-300">
+                          {formCode || "MS: 0000"}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-3 bg-black/40 p-2.5 rounded-lg border border-white/10">
+                        <div className="w-12 h-12 rounded-lg bg-slate-700 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                          {formThumbnail ? (
+                            <img src={formThumbnail} alt="Preview" className="w-full h-full object-cover" />
+                          ) : (
+                            <Crown className="w-6 h-6 text-orange-400 opacity-60" />
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0 space-y-0.5">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-orange-600 text-white uppercase">
+                              {formCategory === "VIP" ? (formRank || "THÁCH ĐẤU") : (formRankBadge || "UNRANKED")}
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-300 truncate">
+                              {formCategory === "VIP" ? (formMainChibi || "Tí Nị VIP") : (formTitle || "Acc Clone")}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-1">
+                            <span className="text-[10px] text-slate-400 font-medium">Giá hiển thị khách:</span>
+                            <div className="font-mono font-black text-xs text-amber-400">
+                              {formPriceDisplayType === "HOURLY" && (
+                                <span>{(Number(formHourlyPrice) || 0).toLocaleString("vi-VN")}đ<span className="text-[9px] font-normal text-slate-300">/h</span></span>
+                              )}
+                              {formPriceDisplayType === "DAILY" && (
+                                <span>{(Number(formDailyPrice) || 0).toLocaleString("vi-VN")}đ<span className="text-[9px] font-normal text-slate-300">/ngày</span></span>
+                              )}
+                              {formPriceDisplayType === "LONG_TERM" && (
+                                <span>{(Number(formPeriodPrice) || 0).toLocaleString("vi-VN")}đ<span className="text-[9px] font-normal text-slate-300"> {formPeriodUnit || "/ ∞"}</span></span>
+                              )}
+                              {formPriceDisplayType === "CUSTOM" && (
+                                <span>{(Number(formCustomPrice) || 0).toLocaleString("vi-VN")}đ<span className="text-[9px] font-normal text-slate-300"> {formCustomPriceUnit || ""}</span></span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
                   {/* Link Hình Ảnh Thumbnail */}
                     <div className="space-y-1.5">

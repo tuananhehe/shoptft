@@ -8,8 +8,13 @@ export interface AccountDbRow {
   rank: string;
   price?: number;
   hourly_price?: number;
+  daily_price?: number;
   weekly_price?: number;
   period_price?: number;
+  period_unit?: string;
+  price_display_type?: "HOURLY" | "DAILY" | "LONG_TERM" | "CUSTOM";
+  custom_price?: number;
+  custom_price_unit?: string;
   champions?: string[];
   arenas?: string[];
   features?: string[];
@@ -229,9 +234,14 @@ export async function getVipAndCloneAccounts(): Promise<{
         rankColor,
         rankBadgeBg,
         hourlyPrice: hourly,
-        dailyPrice: daily,
+        dailyPrice: Number(row.daily_price) || daily,
         nightPrice: Math.round(hourly * 2.5),
         accountValue,
+        periodPrice: Number(row.period_price) || accountValue,
+        periodUnit: row.period_unit || " / ∞",
+        priceDisplayType: row.price_display_type || undefined,
+        customPrice: row.custom_price ? Number(row.custom_price) : undefined,
+        customPriceUnit: row.custom_price_unit || undefined,
         status: String(row.status || "").toUpperCase() === "RENTED" ? "RENTED" : "AVAILABLE",
         rentedUntil: row.rented_until || null,
         totalLittleLegends: champions.length || 1,
@@ -253,6 +263,8 @@ export async function getVipAndCloneAccounts(): Promise<{
             "Sẵn Sản Phẩm Như Mô Tả 100%",
           ];
       const price = Number(row.price) || Number(row.period_price) || 150000;
+      const periodPrice = Number(row.period_price) || price;
+      const periodUnit = row.period_unit || " / ∞";
 
       return {
         id: String(row.id || `clone-${idx}`),
@@ -266,11 +278,16 @@ export async function getVipAndCloneAccounts(): Promise<{
           "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop",
         features,
         price,
-        periodPrice: price,
-        periodUnit: " / ∞",
+        periodPrice,
+        periodUnit,
         durationLabel: "Thuê Lâu Dài (Bàn Giao Full Thông Tin)",
-        weeklyPrice: 0,
+        weeklyPrice: Number(row.weekly_price) || 0,
         monthlyPrice: price,
+        hourlyPrice: Number(row.hourly_price) || 10000,
+        dailyPrice: Number(row.daily_price) || (row.weekly_price ? Math.round(Number(row.weekly_price) / 7) : 25000),
+        priceDisplayType: row.price_display_type || undefined,
+        customPrice: row.custom_price ? Number(row.custom_price) : undefined,
+        customPriceUnit: row.custom_price_unit || undefined,
         description: row.description || "Tài khoản Clone sạch sẽ, bàn giao full quyền sở hữu.",
       };
     });
