@@ -322,97 +322,29 @@ export default function AdminDashboardPage() {
       const isDead = !!account.isPermanentRental;
       let amount = 0;
       let packageName = "";
-      let eventMs = Date.now() - 1000;
 
       if (isDead) {
         amount = Number(account.accountValue) || Number(account.price) || 850000;
         packageName = "Thuê Vô Cực ∞ (Bán Đứt)";
-        eventMs = Date.now() - 3600000;
       } else if (account.category === "CLONE") {
-        // Clone: Gói tháng, tuần, ngày
-        const mPrice = Number(account.monthlyPrice) || Number(account.periodPrice) || 210000;
-        const pPrice = Number(account.periodPrice) || 15000;
-
-        if (account.rentedUntil) {
-          const endMs = new Date(account.rentedUntil).getTime();
-          const remHours = !isNaN(endMs) ? Math.max(1, Math.round((endMs - Date.now()) / (3600 * 1000))) : 720;
-          if (remHours > 168) {
-            packageName = "Gói 1 Tháng (30 Ngày)";
-            amount = mPrice;
-            const estStart = endMs - 30 * 24 * 3600 * 1000;
-            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
-          } else if (remHours > 72) {
-            packageName = "Gói 7 Ngày (1 Tuần)";
-            amount = pPrice * 6;
-            const estStart = endMs - 7 * 24 * 3600 * 1000;
-            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
-          } else if (remHours > 24) {
-            packageName = "Gói 3 Ngày (Clone)";
-            amount = pPrice * 3;
-            const estStart = endMs - 3 * 24 * 3600 * 1000;
-            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
-          } else {
-            packageName = "Gói 1 Ngày (24 Giờ)";
-            amount = pPrice;
-            const estStart = endMs - 24 * 3600 * 1000;
-            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
-          }
-        } else {
-          packageName = "Gói 1 Tháng (30 Ngày)";
-          amount = mPrice;
-        }
+        // Clone: Gói tháng là mặc định (210.000đ hoặc monthlyPrice)
+        amount = Number(account.monthlyPrice) || Number(account.periodPrice) || 210000;
+        packageName = "Gói 1 Tháng (30 Ngày)";
       } else {
-        // VIP: Gói tháng, tuần, ngày, đêm, giờ
-        const hPrice = Number(account.hourlyPrice) || 15000;
-        const dPrice = Number(account.dailyPrice) || 60000;
-        const mPrice = Number(account.monthlyPrice) || (dPrice ? dPrice * 15 : 799000);
-
-        if (account.rentedUntil) {
-          const endMs = new Date(account.rentedUntil).getTime();
-          const remHours = !isNaN(endMs) ? Math.max(1, Math.round((endMs - Date.now()) / (3600 * 1000))) : 24;
-          if (remHours > 360) {
-            packageName = "Gói 1 Tháng VIP (30 Ngày)";
-            amount = mPrice;
-            const estStart = endMs - 30 * 24 * 3600 * 1000;
-            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
-          } else if (remHours > 96) {
-            packageName = "Gói 7 Ngày (1 Tuần VIP)";
-            amount = Math.round(dPrice * 7 * 0.8);
-            const estStart = endMs - 7 * 24 * 3600 * 1000;
-            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
-          } else if (remHours > 36) {
-            packageName = "Gói 3 Ngày (VIP)";
-            amount = Math.round(dPrice * 3 * 0.9);
-            const estStart = endMs - 3 * 24 * 3600 * 1000;
-            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
-          } else if (remHours > 12) {
-            packageName = "Gói 24 Giờ (1 Ngày VIP)";
-            amount = dPrice;
-            const estStart = endMs - 24 * 3600 * 1000;
-            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
-          } else if (remHours > 5) {
-            packageName = "Gói Thuê Đêm 10H (VIP)";
-            amount = Math.round(hPrice * 2.5);
-            const estStart = endMs - 10 * 3600 * 1000;
-            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
-          } else if (remHours > 2) {
-            packageName = "Gói 4 Giờ VIP";
-            amount = hPrice * 4;
-            const estStart = endMs - 4 * 3600 * 1000;
-            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
-          } else {
-            packageName = "Gói 2 Giờ VIP";
-            amount = hPrice * 2;
-            const estStart = endMs - 2 * 3600 * 1000;
-            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
-          }
-        } else {
+        // VIP: Gói ngày / giờ / tháng
+        if (account.priceDisplayType === "LONG_TERM" || (account.monthlyPrice && account.monthlyPrice > 200000)) {
+          amount = Number(account.monthlyPrice) || 799000;
+          packageName = "Gói 1 Tháng VIP (30 Ngày)";
+        } else if (account.dailyPrice) {
+          amount = Number(account.dailyPrice) || 60000;
           packageName = "Gói 24 Giờ (1 Ngày VIP)";
-          amount = dPrice;
+        } else {
+          amount = (Number(account.hourlyPrice) || 15000) * 4;
+          packageName = "Gói 4 Giờ (VIP)";
         }
       }
 
-      // Lãi = Đúng 100% số tiền của gói thuê đối với gói sống, hoặc 20% đối với vô cực (dòng chết)
+      // LÃI = ĐÚNG 100% SỐ TIỀN GÓI CHO THUÊ (đối với gói sống)
       const profit = isDead ? Math.round(amount * deadProfitRate) : amount;
 
       return [
@@ -424,8 +356,8 @@ export default function AdminDashboardPage() {
           profit,
           isDead,
           customer: isDead ? "Khách chốt vĩnh viễn" : "Khách đang thuê",
-          eventMs: isNaN(eventMs) ? Date.now() : eventMs,
-          createdAt: new Date(eventMs).toISOString(),
+          eventMs: Date.now() - 3600000,
+          createdAt: new Date().toISOString(),
         },
       ];
     }
@@ -1736,6 +1668,7 @@ export default function AdminDashboardPage() {
           <div className="divide-y divide-slate-100 overflow-x-auto">
             {filteredAccounts.map((account) => {
               const expiryInfo = formatRentalExpiry(account.rentedUntil);
+              const rentalDetail = getAccountRentalDetails(account, profitPeriod);
 
               return (
                 <div
@@ -1791,12 +1724,17 @@ export default function AdminDashboardPage() {
                         {account.title}
                       </h4>
 
-                      <div className="flex items-center gap-3 text-[11px] text-slate-500">
+                      <div className="flex items-center gap-3 text-[11px] text-slate-500 flex-wrap">
                         <span>Định giá: <strong className="text-slate-900 font-mono font-bold">{(account.accountValue || account.price || 0).toLocaleString("vi-VN")}đ</strong></span>
                         {account.category === "VIP" ? (
-                          <span>Giá thuê: <strong className="text-orange-600 font-mono font-bold">{account.hourlyPrice?.toLocaleString("vi-VN")}đ/giờ</strong></span>
+                          <span>Giá niêm yết: <strong className="text-orange-600 font-mono font-bold">{account.hourlyPrice?.toLocaleString("vi-VN")}đ/giờ • {account.dailyPrice?.toLocaleString("vi-VN")}đ/ngày</strong></span>
                         ) : (
-                          <span>Giá thuê: <strong className="text-orange-600 font-mono font-bold">{account.monthlyPrice?.toLocaleString("vi-VN")}đ/tháng</strong></span>
+                          <span>Giá niêm yết: <strong className="text-orange-600 font-mono font-bold">{account.monthlyPrice?.toLocaleString("vi-VN")}đ/tháng</strong></span>
+                        )}
+                        {account.status === "RENTED" && (
+                          <span className="text-emerald-700 font-extrabold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                            📦 Gói đang thuê: {rentalDetail.package} (+{rentalDetail.profit.toLocaleString("vi-VN")}đ LÃI)
+                          </span>
                         )}
                       </div>
                     </div>
