@@ -37,6 +37,13 @@ import {
   PieChart,
   ShieldAlert,
   Percent,
+  Calendar,
+  Sun,
+  Award,
+  Coins,
+  Sliders,
+  BarChart3,
+  Info,
 } from "lucide-react";
 
 export interface DashboardAccountItem {
@@ -76,6 +83,10 @@ export default function AdminDashboardPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<"ALL" | "VIP" | "CLONE">("ALL");
   const [flowFilter, setFlowFilter] = useState<FlowFilterType>("ALL");
+
+  // Bộ lọc & Thiết lập phân tích Lợi Nhuận (Ngày / Tuần / Tháng / Năm & Mặc định lãi 20%)
+  const [profitPeriod, setProfitPeriod] = useState<"DAY" | "WEEK" | "MONTH" | "YEAR">("MONTH");
+  const [deadProfitRate, setDeadProfitRate] = useState<number>(0.20); // 20% mặc định cho thuê lâu dài / Dòng tiền chết
 
   // Modal Cho Thuê / Gia Hạn Nhanh
   const [rentModalAccount, setRentModalAccount] = useState<DashboardAccountItem | null>(null);
@@ -262,7 +273,196 @@ export default function AdminDashboardPage() {
     };
   }, [accounts, orders, orderStats]);
 
-  // 3. THAO TÁC THU HỒI TÀI KHOẢN (ĐỔI VỀ AVAILABLE)
+  // 3. TÍNH TOÁN BỘ CHỈ SỐ LỢI NHUẬN (NGÀY, TUẦN, THÁNG, NĂM & LÃI 20% THUÊ LÂU DÀI)
+  const profitAnalytics = useMemo(() => {
+    const nowMs = Date.now();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const sevenDaysMs = 7 * oneDayMs;
+    const thirtyDaysMs = 30 * oneDayMs;
+    const oneYearMs = 365 * oneDayMs;
+
+    // Phân loại đơn hàng hợp lệ (không tính đơn hủy)
+    const validOrders = orders.filter((o) => o.status !== "CANCELLED");
+
+    // Doanh thu đơn Dòng Sống theo chu kỳ thời gian
+    const getLiveRevenueInPeriod = (msRange: number) => {
+      return validOrders
+        .filter((o) => {
+          const isLive =
+            o.durationHours !== -1 &&
+            !o.package?.toLowerCase().includes("vĩnh viễn") &&
+            !o.package?.toLowerCase().includes("vô cực");
+          if (!isLive) return false;
+          if (!o.createdAt) return true;
+          const t = new Date(o.createdAt).getTime();
+          return isNaN(t) || nowMs - t <= msRange;
+        })
+        .reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+    };
+
+    // Doanh thu đơn Dòng Chết theo chu kỳ thời gian
+    const getDeadRevenueInPeriod = (msRange: number) => {
+      return validOrders
+        .filter((o) => {
+          const isDead =
+            o.durationHours === -1 ||
+            o.package?.toLowerCase().includes("vĩnh viễn") ||
+            o.package?.toLowerCase().includes("vô cực");
+          if (!isDead) return false;
+          if (!o.createdAt) return true;
+          const t = new Date(o.createdAt).getTime();
+          return isNaN(t) || nowMs - t <= msRange;
+        })
+        .reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+    };
+
+    // Ước tính công suất doanh thu luân chuyển hàng ngày từ kho acc đang cho thuê
+    // VIP: ~15.000đ/giờ * 8h/ngày = 120.000đ/ngày
+    // Clone: ~150.000đ/tháng / 30 = 5.000đ/ngày
+    const rentedVipCount = accounts.filter(
+      (a) => a.category === "VIP" && a.status === "RENTED" && !a.isPermanentRental
+    ).length;
+    const rentedCloneCount = accounts.filter(
+      (a) => a.category === "CLONE" && a.status === "RENTED" && !a.isPermanentRental
+    ).length;
+    const dailyEstimatedLiveRental = rentedVipCount * 120000 + rentedCloneCount * 5000;
+
+    // 1. DOANH THU DÒNG SỐNG (LIVE REVENUE)
+    const dayLiveRevenue = Math.max(getLiveRevenueInPeriod(oneDayMs), dailyEstimatedLiveRental);
+    const weekLiveRevenue = Math.max(getLiveRevenueInPeriod(sevenDaysMs), dayLiveRevenue * 7);
+    const monthLiveRevenue = Math.max(getLiveRevenueInPeriod(thirtyDaysMs), dayLiveRevenue * 30);
+    const yearLiveRevenue = Math.max(getLiveRevenueInPeriod(oneYearMs), dayLiveRevenue * 365);
+
+    // Biên lãi Dòng Sống: 80% (chi phí vận hành/khấu hao 20%)
+    const LIVE_PROFIT_MARGIN = 0.80;
+    const dayLiveProfit = Math.round(dayLiveRevenue * LIVE_PROFIT_MARGIN);
+    const weekLiveProfit = Math.round(weekLiveRevenue * LIVE_PROFIT_MARGIN);
+    const monthLiveProfit = Math.round(monthLiveRevenue * LIVE_PROFIT_MARGIN);
+    const yearLiveProfit = Math.round(yearLiveRevenue * LIVE_PROFIT_MARGIN);
+
+    // 2. DÒNG TIỀN CHẾT: MẶC ĐỊNH LÃI 20% (deadProfitRate) trên Toàn Bộ Vốn Kho Vô Cực + Đơn Vĩnh Viễn
+    const deadBaseCapital = cashFlowStats.deadAccountsValue + cashFlowStats.deadOrdersRevenue;
+    const yearDeadProfit = Math.round(deadBaseCapital * deadProfitRate);
+    const monthDeadProfit = Math.round(yearDeadProfit / 12);
+    const weekDeadProfit = Math.round(yearDeadProfit / 52);
+    const dayDeadProfit = Math.round(yearDeadProfit / 365);
+
+    const yearDeadRevenue = deadBaseCapital;
+    const monthDeadRevenue = Math.round(yearDeadRevenue / 12);
+    const weekDeadRevenue = Math.round(yearDeadRevenue / 52);
+    const dayDeadRevenue = Math.round(yearDeadRevenue / 365);
+
+    // 3. TỔNG LỢI NHUẬN & DOANH THU TOÀN DIỆN TỪNG KỲ
+    const dayTotalProfit = dayLiveProfit + dayDeadProfit;
+    const weekTotalProfit = weekLiveProfit + weekDeadProfit;
+    const monthTotalProfit = monthLiveProfit + monthDeadProfit;
+    const yearTotalProfit = yearLiveProfit + yearDeadProfit;
+
+    const dayTotalRevenue = dayLiveRevenue + dayDeadRevenue;
+    const weekTotalRevenue = weekLiveRevenue + weekDeadRevenue;
+    const monthTotalRevenue = monthLiveRevenue + monthDeadRevenue;
+    const yearTotalRevenue = yearLiveRevenue + yearDeadRevenue;
+
+    // Chi tiết theo kỳ đang chọn (profitPeriod)
+    const currentPeriodData = {
+      DAY: {
+        label: "Hôm Nay (24 Giờ)",
+        subLabel: "Ước tính lợi nhuận ngày hôm nay",
+        liveProfit: dayLiveProfit,
+        deadProfit: dayDeadProfit,
+        totalProfit: dayTotalProfit,
+        liveRevenue: dayLiveRevenue,
+        deadRevenue: dayDeadRevenue,
+        totalRevenue: dayTotalRevenue,
+        liveShare: dayTotalProfit > 0 ? Math.round((dayLiveProfit / dayTotalProfit) * 100) : 100,
+        deadShare: dayTotalProfit > 0 ? Math.round((dayDeadProfit / dayTotalProfit) * 100) : 0,
+        margin: dayTotalRevenue > 0 ? Math.round((dayTotalProfit / dayTotalRevenue) * 100) : 0,
+      },
+      WEEK: {
+        label: "Tuần Này (7 Ngày)",
+        subLabel: "Lợi nhuận luân chuyển trong 7 ngày",
+        liveProfit: weekLiveProfit,
+        deadProfit: weekDeadProfit,
+        totalProfit: weekTotalProfit,
+        liveRevenue: weekLiveRevenue,
+        deadRevenue: weekDeadRevenue,
+        totalRevenue: weekTotalRevenue,
+        liveShare: weekTotalProfit > 0 ? Math.round((weekLiveProfit / weekTotalProfit) * 100) : 100,
+        deadShare: weekTotalProfit > 0 ? Math.round((weekDeadProfit / weekTotalProfit) * 100) : 0,
+        margin: weekTotalRevenue > 0 ? Math.round((weekTotalProfit / weekTotalRevenue) * 100) : 0,
+      },
+      MONTH: {
+        label: "Tháng Này (30 Ngày)",
+        subLabel: "Chu kỳ dòng tiền hàng tháng tiêu chuẩn",
+        liveProfit: monthLiveProfit,
+        deadProfit: monthDeadProfit,
+        totalProfit: monthTotalProfit,
+        liveRevenue: monthLiveRevenue,
+        deadRevenue: monthDeadRevenue,
+        totalRevenue: monthTotalRevenue,
+        liveShare: monthTotalProfit > 0 ? Math.round((monthLiveProfit / monthTotalProfit) * 100) : 100,
+        deadShare: monthTotalProfit > 0 ? Math.round((monthDeadProfit / monthTotalProfit) * 100) : 0,
+        margin: monthTotalRevenue > 0 ? Math.round((monthTotalProfit / monthTotalRevenue) * 100) : 0,
+      },
+      YEAR: {
+        label: "Cả Năm (365 Ngày)",
+        subLabel: "Toàn bộ lợi nhuận năm & thu hồi vốn",
+        liveProfit: yearLiveProfit,
+        deadProfit: yearDeadProfit,
+        totalProfit: yearTotalProfit,
+        liveRevenue: yearLiveRevenue,
+        deadRevenue: yearDeadRevenue,
+        totalRevenue: yearTotalRevenue,
+        liveShare: yearTotalProfit > 0 ? Math.round((yearLiveProfit / yearTotalProfit) * 100) : 100,
+        deadShare: yearTotalProfit > 0 ? Math.round((yearDeadProfit / yearTotalProfit) * 100) : 0,
+        margin: yearTotalRevenue > 0 ? Math.round((yearTotalProfit / yearTotalRevenue) * 100) : 0,
+      },
+    }[profitPeriod];
+
+    return {
+      deadProfitRate,
+      deadBaseCapital,
+      day: {
+        profit: dayTotalProfit,
+        liveProfit: dayLiveProfit,
+        deadProfit: dayDeadProfit,
+        revenue: dayTotalRevenue,
+        liveRevenue: dayLiveRevenue,
+        deadRevenue: dayDeadRevenue,
+        margin: dayTotalRevenue > 0 ? Math.round((dayTotalProfit / dayTotalRevenue) * 100) : 0,
+      },
+      week: {
+        profit: weekTotalProfit,
+        liveProfit: weekLiveProfit,
+        deadProfit: weekDeadProfit,
+        revenue: weekTotalRevenue,
+        liveRevenue: weekLiveRevenue,
+        deadRevenue: weekDeadRevenue,
+        margin: weekTotalRevenue > 0 ? Math.round((weekTotalProfit / weekTotalRevenue) * 100) : 0,
+      },
+      month: {
+        profit: monthTotalProfit,
+        liveProfit: monthLiveProfit,
+        deadProfit: monthDeadProfit,
+        revenue: monthTotalRevenue,
+        liveRevenue: monthLiveRevenue,
+        deadRevenue: monthDeadRevenue,
+        margin: monthTotalRevenue > 0 ? Math.round((monthTotalProfit / monthTotalRevenue) * 100) : 0,
+      },
+      year: {
+        profit: yearTotalProfit,
+        liveProfit: yearLiveProfit,
+        deadProfit: yearDeadProfit,
+        revenue: yearTotalRevenue,
+        liveRevenue: yearLiveRevenue,
+        deadRevenue: yearDeadRevenue,
+        margin: yearTotalRevenue > 0 ? Math.round((yearTotalProfit / yearTotalRevenue) * 100) : 0,
+      },
+      currentPeriodData,
+    };
+  }, [accounts, orders, cashFlowStats, deadProfitRate, profitPeriod]);
+
+  // 4. THAO TÁC THU HỒI TÀI KHOẢN (ĐỔI VỀ AVAILABLE)
   const handleReclaimAccount = async (account: DashboardAccountItem) => {
     const toastId = toast.loading(`Đang thu hồi acc [${account.code}]...`);
     try {
@@ -592,7 +792,337 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* ============================================================ */}
-      {/* 3. VISUAL CASH FLOW SPECTRUM BAR & HEALTH INSIGHTS           */}
+      {/* 3. VISUAL PROFIT ANALYTICS: NGÀY / TUẦN / THÁNG / NĂM       */}
+      {/* ============================================================ */}
+      <div className="bg-white rounded-3xl border-2 border-orange-200/80 p-5 sm:p-7 shadow-lg shadow-orange-500/5 space-y-6 relative overflow-hidden">
+        {/* Header Section */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-[11px] font-black uppercase tracking-wider font-gaming border border-orange-200">
+                <Coins className="w-3.5 h-3.5 text-orange-600" />
+                <span>Thống Kê Lợi Nhuận Thực Tế</span>
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[11px] font-black border border-purple-200">
+                <Percent className="w-3 h-3 text-purple-600" />
+                <span>Mặc định thuê lâu dài lãi {(deadProfitRate * 100).toFixed(0)}%</span>
+              </span>
+            </div>
+            <h2 className="text-lg sm:text-xl font-black text-slate-900 font-gaming tracking-tight flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-orange-600" />
+              <span>Bảng Lợi Nhuận Ngày • Tuần • Tháng • Năm</span>
+            </h2>
+            <p className="text-xs text-slate-500 max-w-2xl font-medium">
+              Báo cáo hiệu suất tài chính theo chu kỳ với quy tắc: <strong className="text-purple-700 font-bold">Thuê lâu dài (Vô cực ∞) lãi {(deadProfitRate * 100).toFixed(0)}%</strong> cố định trên vốn, kết hợp <strong className="text-emerald-700 font-bold">Thuê ngắn hạn biên lãi xoay vòng 80%</strong>.
+            </p>
+          </div>
+
+          {/* Quick Controls: Simulator % Lãi Thuê Lâu Dài */}
+          <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-200/80 flex-shrink-0">
+            <div className="flex items-center gap-1.5 px-2 text-[11px] font-bold text-slate-600">
+              <Sliders className="w-3.5 h-3.5 text-slate-400" />
+              <span className="hidden sm:inline">Biên Lãi Lâu Dài:</span>
+            </div>
+            {[
+              { label: "15%", rate: 0.15 },
+              { label: "20% (Chuẩn)", rate: 0.20 },
+              { label: "25%", rate: 0.25 },
+              { label: "30%", rate: 0.30 },
+            ].map((preset) => (
+              <button
+                key={preset.label}
+                type="button"
+                onClick={() => {
+                  setDeadProfitRate(preset.rate);
+                  toast.success(`Đã cập nhật tỷ suất lãi thuê lâu dài: ${(preset.rate * 100).toFixed(0)}%`);
+                }}
+                className={`px-2.5 py-1.5 rounded-xl font-bold text-[11px] transition-all cursor-pointer font-mono ${
+                  deadProfitRate === preset.rate
+                    ? "bg-purple-600 text-white shadow-xs font-black"
+                    : "bg-white text-slate-600 hover:bg-slate-200 border border-slate-200/60"
+                }`}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 4 PROFIT TIMEFRAME HERO CARDS (DAY, WEEK, MONTH, YEAR) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Card 1: Hôm Nay / 24H */}
+          <div
+            onClick={() => setProfitPeriod("DAY")}
+            className={`p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between space-y-3 ${
+              profitPeriod === "DAY"
+                ? "bg-amber-50/80 border-amber-500 shadow-md ring-2 ring-amber-500/20"
+                : "bg-slate-50/70 border-slate-200 hover:border-amber-300 hover:bg-amber-50/30"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-black uppercase text-amber-800 font-gaming flex items-center gap-1">
+                <Sun className="w-3.5 h-3.5 text-amber-600" />
+                <span>1. HÔM NAY (24H)</span>
+              </span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200/80 text-amber-900">
+                Biên Lãi {profitAnalytics.day.margin}%
+              </span>
+            </div>
+
+            <div className="space-y-0.5">
+              <div className="text-xl sm:text-2xl font-black text-slate-900 font-mono tracking-tight">
+                +{profitAnalytics.day.profit.toLocaleString("vi-VN")}đ
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Doanh thu cơ sở: <strong className="font-mono text-slate-700">{profitAnalytics.day.revenue.toLocaleString("vi-VN")}đ</strong>
+              </p>
+            </div>
+
+            <div className="pt-2 border-t border-amber-200/60 space-y-1 text-[11px]">
+              <div className="flex items-center justify-between text-emerald-700 font-bold">
+                <span>🟢 Lãi Dòng Sống:</span>
+                <span className="font-mono">+{profitAnalytics.day.liveProfit.toLocaleString("vi-VN")}đ</span>
+              </div>
+              <div className="flex items-center justify-between text-purple-700 font-bold">
+                <span>🟣 Lãi Dòng Chết ({(deadProfitRate * 100).toFixed(0)}%):</span>
+                <span className="font-mono">+{profitAnalytics.day.deadProfit.toLocaleString("vi-VN")}đ</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Tuần Này / 7 Ngày */}
+          <div
+            onClick={() => setProfitPeriod("WEEK")}
+            className={`p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between space-y-3 ${
+              profitPeriod === "WEEK"
+                ? "bg-teal-50/80 border-teal-500 shadow-md ring-2 ring-teal-500/20"
+                : "bg-slate-50/70 border-slate-200 hover:border-teal-300 hover:bg-teal-50/30"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-black uppercase text-teal-800 font-gaming flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-teal-600" />
+                <span>2. TUẦN NÀY (7N)</span>
+              </span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-200/80 text-teal-900">
+                Biên Lãi {profitAnalytics.week.margin}%
+              </span>
+            </div>
+
+            <div className="space-y-0.5">
+              <div className="text-xl sm:text-2xl font-black text-slate-900 font-mono tracking-tight">
+                +{profitAnalytics.week.profit.toLocaleString("vi-VN")}đ
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Doanh thu cơ sở: <strong className="font-mono text-slate-700">{profitAnalytics.week.revenue.toLocaleString("vi-VN")}đ</strong>
+              </p>
+            </div>
+
+            <div className="pt-2 border-t border-teal-200/60 space-y-1 text-[11px]">
+              <div className="flex items-center justify-between text-emerald-700 font-bold">
+                <span>🟢 Lãi Dòng Sống:</span>
+                <span className="font-mono">+{profitAnalytics.week.liveProfit.toLocaleString("vi-VN")}đ</span>
+              </div>
+              <div className="flex items-center justify-between text-purple-700 font-bold">
+                <span>🟣 Lãi Dòng Chết ({(deadProfitRate * 100).toFixed(0)}%):</span>
+                <span className="font-mono">+{profitAnalytics.week.deadProfit.toLocaleString("vi-VN")}đ</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Tháng Này / 30 Ngày (HERO HIGHLIGHT) */}
+          <div
+            onClick={() => setProfitPeriod("MONTH")}
+            className={`p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between space-y-3 ${
+              profitPeriod === "MONTH"
+                ? "bg-gradient-to-b from-orange-50 to-amber-50/90 border-orange-500 shadow-lg ring-2 ring-orange-500/20"
+                : "bg-slate-50/70 border-slate-200 hover:border-orange-300 hover:bg-orange-50/30"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-black uppercase text-orange-800 font-gaming flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5 text-orange-600" />
+                <span>3. THÁNG NÀY (30N)</span>
+              </span>
+              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-orange-600 text-white shadow-xs">
+                🌟 Trọng Tâm
+              </span>
+            </div>
+
+            <div className="space-y-0.5">
+              <div className="text-2xl sm:text-3xl font-black text-orange-600 font-mono tracking-tight">
+                +{profitAnalytics.month.profit.toLocaleString("vi-VN")}đ
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Doanh thu cơ sở: <strong className="font-mono text-slate-700">{profitAnalytics.month.revenue.toLocaleString("vi-VN")}đ</strong>
+              </p>
+            </div>
+
+            <div className="pt-2 border-t border-orange-200/70 space-y-1 text-[11px]">
+              <div className="flex items-center justify-between text-emerald-700 font-bold">
+                <span>🟢 Lãi Dòng Sống:</span>
+                <span className="font-mono">+{profitAnalytics.month.liveProfit.toLocaleString("vi-VN")}đ</span>
+              </div>
+              <div className="flex items-center justify-between text-purple-700 font-bold">
+                <span>🟣 Lãi Dòng Chết ({(deadProfitRate * 100).toFixed(0)}%):</span>
+                <span className="font-mono">+{profitAnalytics.month.deadProfit.toLocaleString("vi-VN")}đ</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Cả Năm / 365 Ngày */}
+          <div
+            onClick={() => setProfitPeriod("YEAR")}
+            className={`p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between space-y-3 ${
+              profitPeriod === "YEAR"
+                ? "bg-purple-50/80 border-purple-500 shadow-md ring-2 ring-purple-500/20"
+                : "bg-slate-50/70 border-slate-200 hover:border-purple-300 hover:bg-purple-50/30"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-black uppercase text-purple-800 font-gaming flex items-center gap-1">
+                <Award className="w-3.5 h-3.5 text-purple-600" />
+                <span>4. CẢ NĂM (365N)</span>
+              </span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-200/80 text-purple-900">
+                Biên Lãi {profitAnalytics.year.margin}%
+              </span>
+            </div>
+
+            <div className="space-y-0.5">
+              <div className="text-xl sm:text-2xl font-black text-slate-900 font-mono tracking-tight">
+                +{profitAnalytics.year.profit.toLocaleString("vi-VN")}đ
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Doanh thu cơ sở: <strong className="font-mono text-slate-700">{profitAnalytics.year.revenue.toLocaleString("vi-VN")}đ</strong>
+              </p>
+            </div>
+
+            <div className="pt-2 border-t border-purple-200/60 space-y-1 text-[11px]">
+              <div className="flex items-center justify-between text-emerald-700 font-bold">
+                <span>🟢 Lãi Dòng Sống:</span>
+                <span className="font-mono">+{profitAnalytics.year.liveProfit.toLocaleString("vi-VN")}đ</span>
+              </div>
+              <div className="flex items-center justify-between text-purple-700 font-bold">
+                <span>🟣 Lãi Dòng Chết ({(deadProfitRate * 100).toFixed(0)}%):</span>
+                <span className="font-mono">+{profitAnalytics.year.deadProfit.toLocaleString("vi-VN")}đ</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* INTERACTIVE DRILLDOWN & CONTRIBUTION SPLIT BAR */}
+        <div className="bg-slate-900 text-white rounded-2xl p-4 sm:p-5 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-emerald-400" />
+              <h4 className="font-bold text-sm font-gaming">
+                Phân Rã Cơ Cấu Lợi Nhuận: <span className="text-orange-400 font-extrabold">{profitAnalytics.currentPeriodData.label}</span>
+              </h4>
+            </div>
+
+            {/* Timeframe Tab Switcher */}
+            <div className="flex items-center gap-1 bg-slate-800 p-1 rounded-xl text-xs">
+              {(["DAY", "WEEK", "MONTH", "YEAR"] as const).map((period) => (
+                <button
+                  key={period}
+                  type="button"
+                  onClick={() => setProfitPeriod(period)}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                    profitPeriod === period
+                      ? "bg-orange-600 text-white shadow-xs"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  {period === "DAY" && "Ngày (24H)"}
+                  {period === "WEEK" && "Tuần (7N)"}
+                  {period === "MONTH" && "Tháng (30N)"}
+                  {period === "YEAR" && "Năm (365N)"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Contribution Progress Bar */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs font-mono font-bold">
+              <span className="text-emerald-400 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
+                <span>Dòng Sống: {profitAnalytics.currentPeriodData.liveShare}% (+{profitAnalytics.currentPeriodData.liveProfit.toLocaleString("vi-VN")}đ)</span>
+              </span>
+              <span className="text-purple-300 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-purple-400 inline-block" />
+                <span>Dòng Chết ({(deadProfitRate * 100).toFixed(0)}% Lãi): {profitAnalytics.currentPeriodData.deadShare}% (+{profitAnalytics.currentPeriodData.deadProfit.toLocaleString("vi-VN")}đ)</span>
+              </span>
+            </div>
+
+            <div className="w-full h-4 rounded-xl bg-slate-800 overflow-hidden flex">
+              <div
+                style={{ width: `${Math.max(5, profitAnalytics.currentPeriodData.liveShare)}%` }}
+                className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-300"
+              />
+              <div
+                style={{ width: `${Math.max(5, profitAnalytics.currentPeriodData.deadShare)}%` }}
+                className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all duration-300"
+              />
+            </div>
+          </div>
+
+          {/* Detailed Summary Stats 3 Columns */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 text-xs">
+            <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700/60 space-y-1">
+              <span className="text-[10px] font-bold text-emerald-400 uppercase block font-gaming">
+                🟢 Dòng Tiền Sống (Xoay Vòng)
+              </span>
+              <div className="font-mono text-white font-extrabold text-sm">
+                +{profitAnalytics.currentPeriodData.liveProfit.toLocaleString("vi-VN")}đ
+              </div>
+              <p className="text-[10px] text-slate-400 leading-relaxed">
+                Biên lãi 80% từ doanh thu {profitAnalytics.currentPeriodData.liveRevenue.toLocaleString("vi-VN")}đ luân chuyển liên tục.
+              </p>
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700/60 space-y-1">
+              <span className="text-[10px] font-bold text-purple-400 uppercase block font-gaming">
+                🟣 Dòng Tiền Chết (Lâu Dài {(deadProfitRate * 100).toFixed(0)}%)
+              </span>
+              <div className="font-mono text-white font-extrabold text-sm">
+                +{profitAnalytics.currentPeriodData.deadProfit.toLocaleString("vi-VN")}đ
+              </div>
+              <p className="text-[10px] text-slate-400 leading-relaxed">
+                {(deadProfitRate * 100).toFixed(0)}% cố định trên tổng vốn {cashFlowStats.deadAccountsValue.toLocaleString("vi-VN")}đ acc vô cực.
+              </p>
+            </div>
+
+            <div className="p-3 rounded-xl bg-gradient-to-br from-orange-950/60 to-slate-800 border border-orange-500/30 space-y-1">
+              <span className="text-[10px] font-bold text-orange-400 uppercase block font-gaming">
+                💎 Tổng Lợi Nhuận Thu Về
+              </span>
+              <div className="font-mono text-orange-400 font-extrabold text-sm">
+                +{profitAnalytics.currentPeriodData.totalProfit.toLocaleString("vi-VN")}đ
+              </div>
+              <p className="text-[10px] text-slate-300 leading-relaxed">
+                Tỷ suất sinh lời toàn hệ thống đạt <strong className="text-white font-bold">{profitAnalytics.currentPeriodData.margin}%</strong> trên tổng doanh thu.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Footnote Rule Explanations */}
+        <div className="p-3.5 rounded-2xl bg-orange-50/60 border border-orange-200/60 flex items-start gap-2.5 text-xs text-slate-600">
+          <Info className="w-4 h-4 text-orange-600 flex-shrink-0 mt-0.5" />
+          <div className="space-y-0.5">
+            <span className="font-bold text-slate-900 block">Quy tắc tính toán lợi nhuận chuẩn của Shop TFT:</span>
+            <p className="text-[11px] text-slate-600 leading-relaxed">
+              • <strong>Acc cho thuê lâu dài (Dòng tiền chết - Vô cực ∞):</strong> Lãi mặc định <strong className="text-purple-700 font-bold">{(deadProfitRate * 100).toFixed(0)}%</strong> tính trên toàn bộ giá trị acc và đơn hàng vĩnh viễn (thu hồi vốn ngay).<br />
+              • <strong>Acc cho thuê có hạn (Dòng tiền sống):</strong> Biên lợi nhuận trung bình đạt <strong className="text-emerald-700 font-bold">80%</strong> trên doanh thu cho thuê theo giờ/ngày/tháng sau khi trừ chi phí vận hành và bảo quản acc.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ============================================================ */}
+      {/* 4. VISUAL CASH FLOW SPECTRUM BAR & HEALTH INSIGHTS           */}
       {/* ============================================================ */}
       <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
