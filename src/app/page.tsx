@@ -51,7 +51,7 @@ export default function HomePage() {
   return (
     <main className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#F8FAFC] text-slate-900 selection:bg-orange-500 selection:text-white flex flex-col justify-between relative">
       {/* 1. Sticky Navigation Bar */}
-      <TFTNavbar />
+      <TFTNavbar sectionsConfig={sections} />
 
       {/* 2. Hero Section: Persona & Rental Intro */}
       {sections.hero !== false && (
