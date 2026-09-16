@@ -219,6 +219,41 @@ export default function AdminAccountsPage() {
     }
   }, []);
 
+  // Helper nén ảnh nhẹ và chống tràn stack (chuyển ảnh lớn về max 1280px, định dạng JPEG)
+  const compressImage = (dataUrl: string, maxDim = 1280, quality = 0.85): Promise<string> => {
+    return new Promise((resolve) => {
+      if (typeof window === "undefined") return resolve(dataUrl);
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        } else {
+          resolve(dataUrl);
+        }
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
+  };
+
   // Global paste handler when Drawer is open
   useEffect(() => {
     if (!drawerOpen) return;
@@ -235,9 +270,10 @@ export default function AdminAccountsPage() {
           if (blob) {
             hasImage = true;
             const reader = new FileReader();
-            reader.onload = (event) => {
+            reader.onload = async (event) => {
               if (event.target?.result) {
-                setAiImages((prev) => [...prev, event.target!.result as string]);
+                const compressed = await compressImage(event.target.result as string);
+                setAiImages((prev) => [...prev, compressed]);
                 toast.success("📋 Đã nhận diện ảnh từ Clipboard (Ctrl + V)!");
               }
             };
@@ -273,9 +309,10 @@ export default function AdminAccountsPage() {
     Array.from(files).forEach((file) => {
       if (!file.type.startsWith("image/")) return;
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         if (event.target?.result) {
-          setAiImages((prev) => [...prev, event.target!.result as string]);
+          const compressed = await compressImage(event.target.result as string);
+          setAiImages((prev) => [...prev, compressed]);
         }
       };
       reader.readAsDataURL(file);
@@ -296,9 +333,10 @@ export default function AdminAccountsPage() {
         if (blob) {
           hasImage = true;
           const reader = new FileReader();
-          reader.onload = (event) => {
+          reader.onload = async (event) => {
             if (event.target?.result) {
-              setAiImages((prev) => [...prev, event.target!.result as string]);
+              const compressed = await compressImage(event.target.result as string);
+              setAiImages((prev) => [...prev, compressed]);
               toast.success("📋 Đã nhận diện ảnh từ Clipboard (Ctrl + V)!");
             }
           };

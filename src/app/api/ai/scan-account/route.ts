@@ -94,12 +94,16 @@ QUY TẮC NHẬN DIỆN ĐTCL VIỆT NAM:
 
   for (const img of images) {
     if (img.startsWith("data:")) {
-      const match = img.match(/^data:([^;]+);base64,(.+)$/);
-      if (match) {
+      const commaIdx = img.indexOf(",");
+      if (commaIdx !== -1) {
+        const header = img.substring(0, commaIdx);
+        const mimeMatch = header.match(/data:([^;]+)/);
+        const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
+        const base64Data = img.substring(commaIdx + 1);
         parts.push({
           inline_data: {
-            mime_type: match[1],
-            data: match[2],
+            mime_type: mimeType,
+            data: base64Data,
           },
         });
       }
