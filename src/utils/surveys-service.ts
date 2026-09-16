@@ -9,6 +9,7 @@ export type SurveyQuestionType =
 export interface SurveyQuestion {
   id: string;
   section?: string;
+  branch?: "ALL" | "THUE_ACC" | "GDTG" | "CAY_THUE";
   title: string;
   subtitle?: string;
   placeholder?: string;

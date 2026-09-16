@@ -1000,6 +1000,17 @@ export default function AdminSurveysPage() {
                           >
                             {typeInfo.label}
                           </span>
+                          {q.branch && q.branch !== "ALL" && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-orange-100 text-orange-800 border border-orange-200">
+                              {q.branch === "THUE_ACC"
+                                ? "🎮 Thuê Acc"
+                                : q.branch === "GDTG"
+                                ? "🛡️ GDTG"
+                                : q.branch === "CAY_THUE"
+                                ? "⚔️ Cày Thuê"
+                                : q.branch}
+                            </span>
+                          )}
                           {q.required ? (
                             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-700 border border-red-200">
                               Bắt buộc *
@@ -1125,6 +1136,26 @@ export default function AdminSurveysPage() {
                   <option value="RATING_10">Thang điểm NPS (1 - 10)</option>
                   <option value="TEXT">Văn bản ngắn (Một dòng)</option>
                   <option value="TEXTAREA">Văn bản dài (Ý kiến đóng góp)</option>
+                </select>
+              </div>
+
+              {/* Branch selector */}
+              <div className="space-y-1">
+                <label className="font-bold text-slate-800">Nhánh Dịch Vụ Áp Dụng:</label>
+                <select
+                  value={editingQuestion.branch || "ALL"}
+                  onChange={(e) =>
+                    setEditingQuestion({
+                      ...editingQuestion,
+                      branch: e.target.value as any,
+                    })
+                  }
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 bg-white font-medium"
+                >
+                  <option value="ALL">🌐 Tất cả các nhánh (Câu hỏi chung / Đánh giá cuối)</option>
+                  <option value="THUE_ACC">🎮 Nhánh: Thuê Acc TFT (Tí Nị, Sân Đấu, Thời Gian)</option>
+                  <option value="GDTG">🛡️ Nhánh: GDTG TFT (An Toàn, Check Mail, Phí TG)</option>
+                  <option value="CAY_THUE">⚔️ Nhánh: Cày Thuê TFT & Coaching (Mục Tiêu, Rank)</option>
                 </select>
               </div>
 
