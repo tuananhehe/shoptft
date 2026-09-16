@@ -124,16 +124,19 @@ Quy tắc:
     }
   }
 
-  // Danh sách model Gemini ưu tiên
+  // Danh sách model Gemini ưu tiên từ mới nhất và hoạt động tốt nhất
   const candidateModels = [
+    "gemini-3.6-flash",
+    "gemini-3.1-flash-lite",
+    "gemini-flash-lite-latest",
+    "gemini-3.8-flash",
+    "gemini-3.5-flash",
+    "gemini-3.7-flash",
+    "gemini-flash-latest",
     "gemini-2.0-flash",
     "gemini-1.5-flash-latest",
     "gemini-1.5-flash",
-    "gemini-1.5-flash-002",
-    "gemini-1.5-flash-001",
-    "gemini-2.0-flash-exp",
-    "gemini-1.5-pro-latest",
-    "gemini-1.5-pro",
+    "gemini-pro-latest",
   ];
 
   let lastError = "";
@@ -185,10 +188,8 @@ Quy tắc:
         const errMsg = errJson?.error?.message || (await response.text().catch(() => "Unknown error"));
         lastError = `[${response.status}] ${errMsg}`;
 
-        // 404 nghĩa là model không có trong project/version, thử model kế tiếp
-        if (response.status === 404) {
-          continue;
-        }
+        // Khi gặp lỗi 404 (model không hỗ trợ), 503 (quá tải), 429 (hết quota) hoặc 400, tự động thử model kế tiếp
+        continue;
       }
     } catch (err: any) {
       lastError = err.message || String(err);
