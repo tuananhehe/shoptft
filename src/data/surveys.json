@@ -1,0 +1,109 @@
+[
+  {
+    "id": "survey-1789557661463-691",
+    "createdAt": "2026-09-16T11:21:01.462Z",
+    "servicesUsed": [
+      "Thuê Acc VIP theo giờ / ngày"
+    ],
+    "satisfactionRating": 5,
+    "deliverySpeed": "⚡ Siêu nhanh (< 1 phút sau khi nhắn)",
+    "supportAttitude": "🌟 Rất nhiệt tình, chu đáo và thân thiện",
+    "accountQuality": "🎯 Đúng 100% như hình & mô tả trên web",
+    "pricingPerception": "👍 Hợp lý, vừa túi tiền học sinh sinh viên",
+    "improvementSuggestion": "Ok",
+    "recommendScore": 10,
+    "customerName": "Tuấn ann",
+    "customerZalo": "0352867283",
+    "customAnswers": {
+      "q_services": [
+        "Thuê Acc VIP theo giờ / ngày"
+      ],
+      "q_satisfaction": 5,
+      "q_speed": "⚡ Siêu nhanh (< 1 phút sau khi nhắn)",
+      "q_attitude": "🌟 Rất nhiệt tình, chu đáo và thân thiện",
+      "q_quality": "🎯 Đúng 100% như hình & mô tả trên web",
+      "q_additions": "",
+      "q_pricing": "👍 Hợp lý, vừa túi tiền học sinh sinh viên",
+      "q_suggestion": "Ok",
+      "q_recommend": 10
+    },
+    "giftDelivered": true,
+    "giftDeliveredAt": "2026-09-16T11:28:55.476Z"
+  },
+  {
+    "id": "survey-1789554105500-358",
+    "createdAt": "2026-09-16T10:21:45.500Z",
+    "servicesUsed": [
+      "Thuê Acc VIP"
+    ],
+    "satisfactionRating": 5,
+    "deliverySpeed": "Siêu nhanh (< 1 phút)",
+    "supportAttitude": "Rất nhiệt tình",
+    "accountQuality": "Đúng 100% như hình",
+    "pricingPerception": "Hợp lý, vừa túi tiền",
+    "improvementSuggestion": "Dịch vụ rất tốt, hy vọng có thêm nhiều mã giảm giá!",
+    "recommendScore": 10,
+    "customerName": "Tuấn Anh",
+    "customerZalo": "0988776655",
+    "giftDelivered": true,
+    "giftDeliveredAt": "2026-09-16T11:28:57.049Z"
+  },
+  {
+    "id": "survey-1726480000001",
+    "createdAt": "2026-09-14T15:30:00.000Z",
+    "servicesUsed": [
+      "Thuê Acc VIP theo giờ / ngày",
+      "Thuê / Mua Acc Clone lâu dài"
+    ],
+    "satisfactionRating": 5,
+    "deliverySpeed": "Siêu nhanh (< 1 phút)",
+    "supportAttitude": "Rất nhiệt tình & chu đáo",
+    "accountQuality": "Đúng 100% như hình & mô tả",
+    "requestedAdditions": "Mong Shop bổ sung thêm Tí Nị Akali K/DA và Tí Nị KaiSa Long Thần.",
+    "pricingPerception": "Hợp lý, vừa túi tiền",
+    "improvementSuggestion": "Website rất mượt, nếu sau này có hệ thống nạp ví tự động nhận pass qua web luôn thì quá tuyệt vời!",
+    "recommendScore": 10,
+    "customerName": "Nguyễn Hoàng Long",
+    "customerZalo": "0987654321",
+    "giftDelivered": true,
+    "giftDeliveredAt": "2026-09-16T11:28:58.922Z"
+  },
+  {
+    "id": "survey-1726480000002",
+    "createdAt": "2026-09-12T10:15:00.000Z",
+    "servicesUsed": [
+      "Cày thuê Rank ĐTCL"
+    ],
+    "satisfactionRating": 5,
+    "deliverySpeed": "Nhanh (1 - 5 phút)",
+    "supportAttitude": "Rất nhiệt tình & chu đáo",
+    "accountQuality": "Tốt hơn cả mong đợi",
+    "requestedAdditions": "Thêm nhiều acc rank Thách Đấu và Cao Thủ có sẵn vé Battle Pass.",
+    "pricingPerception": "Hợp lý, vừa túi tiền",
+    "improvementSuggestion": "Tuấn Thái Bình cày tay rất uy tín, không có gì để chê. Tiếp tục phát huy nhé!",
+    "recommendScore": 10,
+    "customerName": "Trần Minh Đức",
+    "customerZalo": "0912345678",
+    "giftDelivered": true,
+    "giftDeliveredAt": "2026-09-16T11:29:00.700Z"
+  },
+  {
+    "id": "survey-1726480000003",
+    "createdAt": "2026-09-10T18:40:00.000Z",
+    "servicesUsed": [
+      "Thuê / Mua Acc Clone lâu dài"
+    ],
+    "satisfactionRating": 4,
+    "deliverySpeed": "Siêu nhanh (< 1 phút)",
+    "supportAttitude": "Rất nhiệt tình & chu đáo",
+    "accountQuality": "Đúng 100% như hình & mô tả",
+    "requestedAdditions": "Thêm acc clone có nhiều Tinh Hoa Lam để đổi tên nhân vật.",
+    "pricingPerception": "Hợp lý, vừa túi tiền",
+    "improvementSuggestion": "Nên có thêm mã giảm giá cho khách hàng thân thiết mua từ 2-3 acc clone trở lên.",
+    "recommendScore": 9,
+    "customerName": "Lê Quốc Bảo",
+    "customerZalo": "0905123456",
+    "giftDelivered": true,
+    "giftDeliveredAt": "2026-09-16T12:47:27.859Z"
+  }
+]

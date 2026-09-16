@@ -1,0 +1,124 @@
+{
+  "header": {
+    "title": "Khảo Sát Ý Kiến & Đóng Góp Cải Tiến",
+    "subtitle": "Shop TFT Tuấn Thái Bình • TFT MOBILE - ĐTCL",
+    "description": "Nhằm nâng cao chất lượng kho tài khoản và dịch vụ chăm sóc khách hàng ngày càng chu đáo, Tuấn rất mong nhận được những góp ý thẳng thắn từ bạn. Hoàn thành khảo sát để nhận ngay Mã giảm giá tri ân 50.000đ nhé! (1 Acc Gacha 400-2000 Kỉ Vật Với Khách Hàng Đã Từng GD)"
+  },
+  "reward": {
+    "enabled": true,
+    "voucherCode": "TRIAN-TFT20",
+    "rewardTitle": "Mã Ưu Đãi Tri Ân Dành Riêng Cho Bạn",
+    "rewardDescription": "⚡ Giảm ngay 50.000đ khi gửi mã này kèm đơn thuê acc qua Zalo Tuấn Thái Bình! Và 1 Acc Gacha 400-2000 Kỉ Vật Với Khách Hàng Đã Từng GD",
+    "discountValue": 20000
+  },
+  "questions": [
+    {
+      "id": "q_services",
+      "section": "Phần 1: Trải Nghiệm Dịch Vụ & CSKH",
+      "title": "1. Bạn đã từng sử dụng dịch vụ nào của Shop?",
+      "subtitle": "(Có thể tích chọn nhiều mục)",
+      "type": "MULTIPLE_CHOICE",
+      "required": true,
+      "enabled": true,
+      "options": [
+        "Thuê Acc VIP theo giờ / ngày",
+        "Thuê / Mua Acc Clone lâu dài",
+        "Cày thuê Rank ĐTCL",
+        "Coaching 1-1",
+        "Chưa từng sử dụng (Chỉ xem tham khảo)"
+      ]
+    },
+    {
+      "id": "q_satisfaction",
+      "section": "Phần 1: Trải Nghiệm Dịch Vụ & CSKH",
+      "title": "2. Đánh giá mức độ hài lòng chung của bạn:",
+      "subtitle": "(Chọn số sao từ 1 đến 5 sao)",
+      "type": "RATING_5",
+      "required": true,
+      "enabled": true
+    },
+    {
+      "id": "q_speed",
+      "section": "Phần 1: Trải Nghiệm Dịch Vụ & CSKH",
+      "title": "3. Tốc độ bàn giao tài khoản và phản hồi tin nhắn:",
+      "type": "SINGLE_CHOICE",
+      "required": true,
+      "enabled": true,
+      "options": [
+        "⚡ Siêu nhanh (< 1 phút sau khi nhắn)",
+        "⏱️ Nhanh (1 - 5 phút)",
+        "⏳ Hơi lâu (> 5 phút)",
+        "❌ Rất chậm / Chưa hài lòng"
+      ]
+    },
+    {
+      "id": "q_attitude",
+      "section": "Phần 1: Trải Nghiệm Dịch Vụ & CSKH",
+      "title": "4. Thái độ phục vụ và tư vấn của CSKH:",
+      "type": "SINGLE_CHOICE",
+      "required": true,
+      "enabled": true,
+      "options": [
+        "🌟 Rất nhiệt tình, chu đáo và thân thiện",
+        "👍 Bình thường / Đạt yêu cầu",
+        "⚠️ Cần cải thiện (Trả lời cụt lủn, hỗ trợ chậm)"
+      ]
+    },
+    {
+      "id": "q_quality",
+      "section": "Phần 2: Khảo Sát Kho Tài Khoản & Mức Giá",
+      "title": "5. Chất lượng tài khoản khi nhận (Bậc Rank, Tướng Tí Nị, Sân đấu):",
+      "type": "SINGLE_CHOICE",
+      "required": true,
+      "enabled": true,
+      "options": [
+        "🎯 Đúng 100% như hình & mô tả trên web",
+        "✨ Tốt hơn cả mong đợi (Acc mượt, MMR cao)",
+        "👌 Tạm ổn",
+        "❌ Chưa đúng mô tả (Sai rank / Thiếu tướng)"
+      ]
+    },
+    {
+      "id": "q_additions",
+      "section": "Phần 2: Khảo Sát Kho Tài Khoản & Mức Giá",
+      "title": "6. Bạn muốn Shop bổ sung thêm Tướng Tí Nị, Sân Đấu hoặc Bậc Rank nào?",
+      "subtitle": "(Ví dụ: Tí Nị Akali K/DA, Sân đấu Tiệm Trà, Rank Thách Đấu 1000+ LP...)",
+      "type": "TEXT",
+      "placeholder": "Gõ tên tướng tí nị hoặc sân đấu bạn thích...",
+      "required": false,
+      "enabled": true
+    },
+    {
+      "id": "q_pricing",
+      "section": "Phần 2: Khảo Sát Kho Tài Khoản & Mức Giá",
+      "title": "7. Bạn thấy mức giá thuê & mua tài khoản tại Shop thế nào?",
+      "type": "SINGLE_CHOICE",
+      "required": true,
+      "enabled": true,
+      "options": [
+        "💎 Rất rẻ / Hời so với chất lượng",
+        "👍 Hợp lý, vừa túi tiền học sinh sinh viên",
+        "📈 Hơi cao so với mặt bằng",
+        "🏷️ Cần có thêm nhiều mã giảm giá / khuyến mãi"
+      ]
+    },
+    {
+      "id": "q_suggestion",
+      "section": "Phần 3: Đóng Góp Ý Kiến Cải Tiến",
+      "title": "8. Điều bạn muốn Shop cải tiến nhất để bạn có trải nghiệm tuyệt vời hơn?",
+      "subtitle": "(Chia sẻ thật lòng về quy trình thuê, chức năng web, hỗ trợ kỹ thuật, chính sách bảo hành...)",
+      "type": "TEXTAREA",
+      "placeholder": "Ví dụ: Cần thêm tính năng xem trước chiêu kết liễu của tướng, hỗ trợ thanh toán tự động, thêm combo giảm giá khi thuê nhiều ngày...",
+      "required": true,
+      "enabled": true
+    },
+    {
+      "id": "q_recommend",
+      "section": "Phần 3: Đóng Góp Ý Kiến Cải Tiến",
+      "title": "9. Khả năng bạn giới thiệu Shop cho bạn bè cùng chơi ĐTCL (Thang điểm 1 - 10):",
+      "type": "RATING_10",
+      "required": true,
+      "enabled": true
+    }
+  ]
+}

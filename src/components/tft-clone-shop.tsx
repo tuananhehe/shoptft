@@ -578,21 +578,26 @@ export const TFTCloneShop: React.FC = () => {
         )}
       </div>
 
-      {/* 3. NÚT LỚN "XEM THÊM TOÀN BỘ KHO ACC CLONE" */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 text-center">
+      {/* 3. NÚT "XEM THÊM KHO ACC CLONE" TINH GỌN (Tối ưu chuẩn Mobile & Desktop) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-5 sm:mt-8 text-center">
         <button
           onClick={() => setShowFullCatalog(!showFullCatalog)}
-          className={`max-w-md mx-auto w-full py-3 sm:py-3.5 px-6 inline-flex items-center justify-center gap-2.5 rounded-full font-semibold text-sm transition-all duration-300 shadow-md cursor-pointer ${
+          className={`w-auto inline-flex items-center justify-center gap-2 py-2.5 sm:py-3 px-5 sm:px-7 rounded-full font-bold text-xs sm:text-sm transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer font-gaming active:scale-95 ${
             showFullCatalog
-              ? "bg-slate-800 text-white hover:bg-slate-900"
-              : "bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white shadow-orange-700/25 hover:scale-105"
+              ? "bg-slate-800 text-white hover:bg-slate-900 border border-slate-700"
+              : "bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 hover:from-orange-700 hover:to-amber-700 text-white shadow-orange-600/20 hover:scale-105"
           }`}
         >
           <Layers className="w-4 h-4" />
           <span>
-            {showFullCatalog
-              ? "Thu gọn lại (Chế độ trượt ngang)"
-              : `Xem thêm toàn bộ kho acc Clone (${cloneAccounts.length}+ acc có sẵn)`}
+            {showFullCatalog ? (
+              "Thu gọn kho Clone"
+            ) : (
+              <>
+                <span className="sm:hidden">Xem toàn bộ kho Clone ({cloneAccounts.length}+ acc)</span>
+                <span className="hidden sm:inline">Xem thêm toàn bộ kho acc Clone ({cloneAccounts.length}+ acc có sẵn)</span>
+              </>
+            )}
           </span>
           {showFullCatalog ? (
             <ChevronUp className="w-4 h-4" />

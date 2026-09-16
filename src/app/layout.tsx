@@ -1,28 +1,28 @@
 import type { Metadata, Viewport } from "next";
 import fs from "fs";
 import path from "path";
-import { Inter, Rajdhani, Montserrat } from "next/font/google";
+import { Inter, Montserrat, Roboto_Mono } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
 const inter = Inter({
-  subsets: ["latin"],
+  subsets: ["latin", "vietnamese"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
   variable: "--font-inter",
   display: "swap",
 });
 
-const rajdhani = Rajdhani({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  variable: "--font-rajdhani",
+const montserrat = Montserrat({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-montserrat",
   display: "swap",
 });
 
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["700", "800", "900"],
-  variable: "--font-montserrat",
+const robotoMono = Roboto_Mono({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -336,7 +336,7 @@ export default function RootLayout({
       </head>
       <body
         style={bodyStyle}
-        className={`${inter.variable} ${rajdhani.variable} ${montserrat.variable} min-h-screen w-full max-w-full overflow-x-hidden text-slate-900 selection:bg-orange-500 selection:text-white font-sans antialiased`}
+        className={`${inter.variable} ${montserrat.variable} ${robotoMono.variable} min-h-screen w-full max-w-full overflow-x-hidden text-slate-900 selection:bg-orange-500 selection:text-white font-sans antialiased`}
       >
         <Toaster
           position="top-right"

@@ -23,6 +23,7 @@ import {
   Lock,
   Users,
   Layout,
+  ClipboardCheck,
 } from "lucide-react";
 
 export default function AdminLayout({
@@ -140,6 +141,13 @@ export default function AdminLayout({
       badge: "3 Mới",
     },
     {
+      title: "Ý Kiến & Khảo Sát",
+      href: "/admin/surveys",
+      icon: ClipboardCheck,
+      active: pathname.startsWith("/admin/surveys"),
+      badge: "Góp Ý",
+    },
+    {
       title: "Cài Đặt",
       href: "/admin/settings",
       icon: Settings,
@@ -154,6 +162,7 @@ export default function AdminLayout({
     if (pathname.startsWith("/admin/accounts")) return "Quản Lý Kho Acc TFT";
     if (pathname.startsWith("/admin/channels")) return "Hệ Sinh Thái & Kênh Truyền Thông";
     if (pathname.startsWith("/admin/orders")) return "Quản Lý Đơn Hàng";
+    if (pathname.startsWith("/admin/surveys")) return "Khảo Sát & Đóng Góp Ý Kiến";
     if (pathname.startsWith("/admin/settings")) return "Cài Đặt Hệ Thống";
     return "Admin Dashboard";
   };

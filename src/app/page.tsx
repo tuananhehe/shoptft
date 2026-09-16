@@ -8,6 +8,7 @@ import { TFTCloneShop } from "@/components/tft-clone-shop";
 import { TFTAbout } from "@/components/tft-about";
 import { TFTServices } from "@/components/tft-services";
 import { TFTReviews } from "@/components/tft-reviews";
+import { TFTSurveyBanner } from "@/components/tft-survey-banner";
 import { TFTFaq } from "@/components/tft-faq";
 import { TFTFooter } from "@/components/tft-footer";
 import { TFTMobileBottomBar } from "@/components/tft-mobile-bottom-bar";
@@ -75,6 +76,9 @@ export default function HomePage() {
 
       {/* 6. Customer Reviews & Trust Verification */}
       {sections.reviews !== false && <TFTReviews />}
+
+      {/* 6.5. Customer Feedback & Improvement Survey Banner */}
+      <TFTSurveyBanner />
 
       {/* 7. FAQ Section */}
       {sections.faq !== false && <TFTFaq customFaqs={config?.faqs} />}

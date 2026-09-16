@@ -1,23 +1,30 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { PROFILE_INFO } from "@/data/tft-data";
 import {
   Home,
   Crown,
   Gamepad2,
   MessageCircle,
-  PhoneCall,
-  Sparkles,
+  ClipboardCheck,
 } from "lucide-react";
 
 export const TFTMobileBottomBar: React.FC = () => {
+  const pathname = usePathname();
+  const isSurveyPage = pathname === "/khao-sat";
   const [activeTab, setActiveTab] = useState("hero");
 
   useEffect(() => {
+    if (isSurveyPage) {
+      setActiveTab("survey");
+      return;
+    }
+
     const handleScroll = () => {
       const scrollY = window.scrollY;
-      const heroEl = document.getElementById("hero");
       const shopEl = document.getElementById("shop");
       const cloneEl = document.getElementById("clone-shop");
       const servicesEl = document.getElementById("services");
@@ -37,10 +44,13 @@ export const TFTMobileBottomBar: React.FC = () => {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isSurveyPage]);
 
   const handleNavClick = (id: string, e: React.MouseEvent) => {
     setActiveTab(id);
+    if (pathname !== "/") {
+      return; // Allow normal link navigation back to home anchor
+    }
     const el = document.getElementById(id);
     if (el) {
       e.preventDefault();
@@ -56,17 +66,17 @@ export const TFTMobileBottomBar: React.FC = () => {
       <div className="grid grid-cols-5 items-center max-w-lg mx-auto">
         {/* 1. Trang Chủ */}
         <a
-          href="#hero"
+          href={pathname === "/" ? "#hero" : "/#hero"}
           onClick={(e) => handleNavClick("hero", e)}
           className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all duration-200 ${
-            activeTab === "hero"
+            activeTab === "hero" && !isSurveyPage
               ? "text-orange-600 font-bold"
               : "text-slate-500 hover:text-slate-800 font-medium"
           }`}
         >
           <div className="relative">
             <Home className="w-5 h-5" />
-            {activeTab === "hero" && (
+            {activeTab === "hero" && !isSurveyPage && (
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-orange-600" />
             )}
           </div>
@@ -75,10 +85,10 @@ export const TFTMobileBottomBar: React.FC = () => {
 
         {/* 2. Kho Acc VIP */}
         <a
-          href="#shop"
+          href={pathname === "/" ? "#shop" : "/#shop"}
           onClick={(e) => handleNavClick("shop", e)}
           className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all duration-200 ${
-            activeTab === "shop"
+            activeTab === "shop" && !isSurveyPage
               ? "text-orange-600 font-bold"
               : "text-slate-500 hover:text-slate-800 font-medium"
           }`}
@@ -89,7 +99,7 @@ export const TFTMobileBottomBar: React.FC = () => {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-600" />
             </span>
-            {activeTab === "shop" && (
+            {activeTab === "shop" && !isSurveyPage && (
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-orange-600" />
             )}
           </div>
@@ -98,17 +108,17 @@ export const TFTMobileBottomBar: React.FC = () => {
 
         {/* 3. Kho Clone / Smurf */}
         <a
-          href="#clone-shop"
+          href={pathname === "/" ? "#clone-shop" : "/#clone-shop"}
           onClick={(e) => handleNavClick("clone-shop", e)}
           className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all duration-200 ${
-            activeTab === "clone-shop"
+            activeTab === "clone-shop" && !isSurveyPage
               ? "text-orange-600 font-bold"
               : "text-slate-500 hover:text-slate-800 font-medium"
           }`}
         >
           <div className="relative">
             <Gamepad2 className="w-5 h-5" />
-            {activeTab === "clone-shop" && (
+            {activeTab === "clone-shop" && !isSurveyPage && (
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-orange-600" />
             )}
           </div>
@@ -129,16 +139,28 @@ export const TFTMobileBottomBar: React.FC = () => {
           <span className="text-[10px] tracking-tight mt-0.5 text-sky-700 font-bold">Zalo Shop</span>
         </a>
 
-        {/* 5. Gọi Hotline */}
-        <a
-          href={`tel:${PROFILE_INFO.phoneZalo.replace(/[^0-9]/g, "")}`}
-          className="flex flex-col items-center justify-center py-1 px-1 rounded-xl text-slate-500 hover:text-slate-800 font-medium transition-all active:scale-95"
+        {/* 5. Khảo Sát (Nhận Quà / Voucher) */}
+        <Link
+          href="/khao-sat"
+          className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all duration-200 active:scale-95 ${
+            isSurveyPage
+              ? "text-orange-600 font-bold"
+              : "text-slate-500 hover:text-slate-800 font-medium"
+          }`}
         >
           <div className="relative">
-            <PhoneCall className="w-5 h-5 text-emerald-600" />
+            <ClipboardCheck className={`w-5 h-5 ${isSurveyPage ? "text-orange-600" : "text-amber-500"}`} />
+            <span className="absolute -top-1 -right-2 px-1 py-0.2 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[8px] font-black rounded-full uppercase shadow-xs">
+              Quà
+            </span>
+            {isSurveyPage && (
+              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-orange-600" />
+            )}
           </div>
-          <span className="text-[10px] tracking-tight mt-1 text-emerald-700 font-semibold">Hotline</span>
-        </a>
+          <span className={`text-[10px] tracking-tight mt-1 ${isSurveyPage ? "text-orange-600 font-bold" : "text-amber-700 font-semibold"}`}>
+            Khảo Sát
+          </span>
+        </Link>
       </div>
     </nav>
   );

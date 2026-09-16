@@ -61,6 +61,12 @@ export const TFTFooter: React.FC = () => {
               </a>
 
               <div className="inline-flex items-center gap-1.5 flex-wrap">
+                <a
+                  href="/khao-sat"
+                  className="px-2.5 py-1 rounded-lg bg-orange-500/20 border border-orange-400/40 text-orange-300 font-bold text-xs hover:bg-orange-500/30 transition-colors inline-flex items-center gap-1.5"
+                >
+                  <span>📋 Góp Ý & Khảo Sát Nhận Quà</span>
+                </a>
                 <span className="px-2 py-0.5 rounded bg-blue-500/20 border border-blue-400/30 text-blue-300 font-bold text-[11px]">
                   Trưng Bày
                 </span>

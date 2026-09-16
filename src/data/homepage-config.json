@@ -6,7 +6,7 @@
     "cloneShop": true,
     "about": true,
     "services": true,
-    "reviews": true,
+    "reviews": false,
     "faq": true,
     "floatingChat": false
   },

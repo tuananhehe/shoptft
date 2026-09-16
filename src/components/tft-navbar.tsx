@@ -1,20 +1,22 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { PROFILE_INFO } from "@/data/tft-data";
-import { KeyRound, MessageCircle, Menu, X } from "lucide-react";
+import { KeyRound, MessageCircle, Menu, X, ClipboardCheck } from "lucide-react";
 
 export const TFTNavbar: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navLinks = [
-    { label: "Trang Chủ", href: "#hero" },
-    { label: "Kho VIP", href: "#shop" },
-    { label: "Kho Clone", href: "#clone-shop" },
-    { label: "Cày Rank", href: "#services" },
-    { label: "Về Tuấn", href: "#about" },
-    { label: "Đánh Giá", href: "#reviews" },
-    { label: "FAQ", href: "#faq" },
+    { label: "Trang Chủ", href: "/#hero" },
+    { label: "Kho VIP", href: "/#shop" },
+    { label: "Kho Clone", href: "/#clone-shop" },
+    { label: "Cày Rank", href: "/#services" },
+    { label: "Về Tuấn", href: "/#about" },
+    { label: "Đánh Giá", href: "/#reviews" },
+    { label: "Khảo Sát", href: "/khao-sat", isExternalPage: true },
+    { label: "FAQ", href: "/#faq" },
   ];
 
   return (
@@ -70,7 +72,7 @@ export const TFTNavbar: React.FC = () => {
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             {/* Desktop Action Button */}
             <a
-              href="#shop"
+              href="/#shop"
               className="hidden lg:inline-flex items-center gap-1.5 px-5 py-2.5 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-sm rounded-xl shadow-md shadow-orange-700/20 hover:shadow-lg transition-all hover:scale-105"
             >
               <KeyRound className="w-4 h-4" />
@@ -96,7 +98,7 @@ export const TFTNavbar: React.FC = () => {
           {/* Quick Access Top Cards for Mobile */}
           <div className="grid grid-cols-2 gap-2 pb-1">
             <a
-              href="#shop"
+              href="/#shop"
               onClick={() => setMobileOpen(false)}
               className="p-3 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200 flex flex-col justify-between text-left group active:scale-98 transition-all"
             >
@@ -113,7 +115,7 @@ export const TFTNavbar: React.FC = () => {
             </a>
 
             <a
-              href="#clone-shop"
+              href="/#clone-shop"
               onClick={() => setMobileOpen(false)}
               className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between text-left group active:scale-98 transition-all"
             >
