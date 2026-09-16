@@ -2927,8 +2927,8 @@ export default function AdminAccountsPage() {
                   <span>Truy cập <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="underline font-bold text-orange-700">Google AI Studio</a> ➔ Bấm <strong>&quot;Create API key&quot;</strong> ➔ Dán mã <code className="font-mono bg-amber-100 px-1 rounded">AIzaSy...</code></span>
                 </div>
                 <div className="p-2 bg-white rounded-lg border border-amber-200">
-                  <span className="font-bold text-amber-950 block">Cách 2: Groq Cloud (Tốc độ cực nhanh 0.5s, 100% Free)</span>
-                  <span>Truy cập <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="underline font-bold text-orange-700">Groq Console</a> ➔ Bấm <strong>&quot;Create API Key&quot;</strong> ➔ Dán mã <code className="font-mono bg-amber-100 px-1 rounded">gsk_...</code></span>
+                  <span className="font-bold text-amber-950 block">Cách 2: OpenRouter (Không giới hạn vùng, 100% Free)</span>
+                  <span>Truy cập <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer" className="underline font-bold text-orange-700">OpenRouter Keys</a> ➔ Bấm <strong>&quot;Create Key&quot;</strong> ➔ Dán mã <code className="font-mono bg-amber-100 px-1 rounded">sk-or-v1-...</code></span>
                 </div>
               </div>
             </div>
@@ -2941,7 +2941,7 @@ export default function AdminAccountsPage() {
                 type="password"
                 value={tempApiKeyInput}
                 onChange={(e) => setTempApiKeyInput(e.target.value)}
-                placeholder="Dán AIzaSy... hoặc gsk_... vào đây"
+                placeholder="Dán AIzaSy... hoặc sk-or-... vào đây"
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-orange-500"
               />
               <span className="text-[10px] text-slate-400 block">

@@ -41,6 +41,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Auto-detect provider by API key prefix
+    if (key.startsWith("sk-or-")) {
+      return await handleOpenRouterVision(images, key);
+    }
+
     if (key.startsWith("gsk_")) {
       return await handleGroqVision(images, key);
     }
@@ -393,6 +397,109 @@ Hãy phân tích hình ảnh và trả về JSON thuần túy (không kèm markd
   return NextResponse.json({
     success: true,
     provider: "openai",
+    data: parsedResult,
+  });
+}
+
+// ============================================================
+// 4. OPENROUTER VISION HANDLER (100% FREE VISION MODELS)
+// ============================================================
+async function handleOpenRouterVision(images: string[], apiKey: string) {
+  const contentArray: any[] = [
+    {
+      type: "text",
+      text: `Bạn là trợ lý AI chuyên gia về game Đấu Trường Chân Lý (TFT / ĐTCL Việt Nam).
+Hãy phân tích hình ảnh và trả về DUY NHẤT chuỗi JSON hợp lệ (không kèm bất kỳ lời dẫn hay markdown thừa nào):
+{
+  "category": "VIP",
+  "code": "",
+  "mainChibi": "Tên Tướng Tí Nị chính (VD: Tí Nị Ahri Chiêu Hồn)",
+  "allChibi": ["Tên Linh Thú 1", "Tên Linh Thú 2"],
+  "mainArena": "Tên Sân Đấu chính (VD: Sân Tiệm Trà Tâm Linh EDM)",
+  "allArenas": ["Tên Sân Đấu 1"],
+  "rank": "THÁCH ĐẤU",
+  "accountValue": 850000,
+  "title": "Ahri Chiêu Hồn + Sân Tiệm Trà EDM",
+  "description": "Tài khoản VIP chất lượng cao"
+}`,
+    },
+  ];
+
+  for (const img of images) {
+    contentArray.push({
+      type: "image_url",
+      image_url: { url: img },
+    });
+  }
+
+  const candidateModels = [
+    "google/gemini-2.0-flash-exp:free",
+    "google/gemini-flash-1.5",
+    "meta-llama/llama-3.2-11b-vision-instruct:free",
+    "qwen/qwen-2-vl-72b-instruct:free",
+  ];
+
+  let lastError = "";
+  let lastStatus = 500;
+  let parsedResult = null;
+  let usedModel = "";
+
+  for (const model of candidateModels) {
+    try {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+          "HTTP-Referer": "https://shoptft.vn",
+          "X-Title": "ShopTFT AI Scanner",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "user", content: contentArray }],
+          temperature: 0.1,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const rawText = data?.choices?.[0]?.message?.content;
+        if (rawText) {
+          const cleaned = rawText
+            .replace(/```json/gi, "")
+            .replace(/```/g, "")
+            .trim();
+          const jsonStart = cleaned.indexOf("{");
+          const jsonEnd = cleaned.lastIndexOf("}");
+          if (jsonStart !== -1 && jsonEnd !== -1) {
+            parsedResult = JSON.parse(cleaned.substring(jsonStart, jsonEnd + 1));
+          } else {
+            parsedResult = JSON.parse(cleaned);
+          }
+          usedModel = model;
+          break;
+        }
+      } else {
+        lastStatus = response.status;
+        const errJson = await response.json().catch(() => null);
+        lastError = errJson?.error?.message || (await response.text().catch(() => "Unknown error"));
+      }
+    } catch (err: any) {
+      lastError = err.message || String(err);
+    }
+  }
+
+  if (!parsedResult) {
+    return NextResponse.json(
+      { error: `OpenRouter lỗi (${lastStatus}): ${lastError}` },
+      { status: lastStatus }
+    );
+  }
+
+  return NextResponse.json({
+    success: true,
+    provider: "openrouter",
+    model: usedModel,
     data: parsedResult,
   });
 }
