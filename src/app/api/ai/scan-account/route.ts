@@ -240,10 +240,10 @@ Hãy phân tích hình ảnh và trả về DUY NHẤT chuỗi JSON hợp lệ (
   }
 
   let candidateModels = [
-    "llama-3.2-90b-vision-preview",
-    "meta-llama/llama-3.2-90b-vision-instruct",
     "meta-llama/llama-3.2-11b-vision-instruct",
-    "llama-3.2-11b-vision-preview",
+    "meta-llama/llama-3.2-90b-vision-instruct",
+    "llama-3.2-11b-vision-instruct",
+    "llama-3.2-90b-vision-instruct",
   ];
 
   // Tự động tìm kiếm các model vision đang hoạt động trên Groq
@@ -255,7 +255,7 @@ Hãy phân tích hình ảnh và trả về DUY NHẤT chuỗi JSON hợp lệ (
       const listData = await listRes.json();
       if (Array.isArray(listData?.data)) {
         const visionModels = listData.data
-          .filter((m: any) => m.id && (m.id.includes("vision") || m.id.includes("3.2")))
+          .filter((m: any) => m.id && (m.id.includes("vision") || m.id.includes("3.2")) && !m.id.includes("preview"))
           .map((m: any) => m.id);
         if (visionModels.length > 0) {
           candidateModels = Array.from(new Set([...visionModels, ...candidateModels]));
