@@ -147,7 +147,7 @@ export const formatRentalExpiry = (rentedUntil?: string | null) => {
     const endMonth = pad(endDate.getMonth() + 1);
     const endYear = endDate.getFullYear();
 
-    const isInfinite = days > 365;
+    const isInfinite = endYear >= 2035;
 
     return {
       remainingSec,

@@ -113,11 +113,9 @@ export default function AdminDashboardPage() {
 
       const unifiedList: DashboardAccountItem[] = [
         ...(vipAccounts || []).map((v) => {
-          const expInfo = formatRentalExpiry(v.rentedUntil);
-          const isPermanent =
-            expInfo?.isInfinite ||
-            v.priceDisplayType === "LONG_TERM" ||
-            (v.rentedUntil ? new Date(v.rentedUntil).getFullYear() >= 2090 : false);
+          const isPermanent = Boolean(
+            v.rentedUntil && new Date(v.rentedUntil).getFullYear() >= 2035
+          );
 
           return {
             id: String(v.id),
@@ -141,11 +139,9 @@ export default function AdminDashboardPage() {
           };
         }),
         ...(cloneAccounts || []).map((c) => {
-          const expInfo = formatRentalExpiry(c.rentedUntil);
-          const isPermanent =
-            expInfo?.isInfinite ||
-            c.periodUnit?.toLowerCase().includes("vĩnh viễn") ||
-            (c.rentedUntil ? new Date(c.rentedUntil).getFullYear() >= 2090 : false);
+          const isPermanent = Boolean(
+            c.rentedUntil && new Date(c.rentedUntil).getFullYear() >= 2035
+          );
 
           return {
             id: String(c.id),
@@ -156,8 +152,8 @@ export default function AdminDashboardPage() {
             status: (c.status || "AVAILABLE").toUpperCase() as "AVAILABLE" | "RENTED",
             rentedUntil: c.rentedUntil || null,
             rankBadge: c.rankBadge || "UNRANKED",
-            monthlyPrice: Number(c.monthlyPrice) || Number(c.periodPrice) || Number(c.price) || 150000,
-            periodPrice: Number(c.periodPrice) || 150000,
+            monthlyPrice: Number(c.monthlyPrice) || Number(c.periodPrice) || Number(c.price) || 210000,
+            periodPrice: Number(c.periodPrice) || 15000,
             accountValue: Number(c.price) || 150000,
             price: Number(c.price) || 150000,
             isPermanentRental: isPermanent,
@@ -1992,19 +1988,54 @@ export default function AdminDashboardPage() {
                 />
               </div>
 
-              {/* Phân loại dòng tiền tóm tắt */}
-              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-[11px]">
-                <span className="text-slate-500 font-medium">Phân loại dòng tiền:</span>
-                {quickHours === -1 ? (
-                  <span className="font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md border border-purple-200">
-                    🟣 Dòng Tiền Chết (Thuê Vĩnh Viễn)
-                  </span>
-                ) : (
-                  <span className="font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-200">
-                    🟢 Dòng Tiền Sống (Thuê Có Hạn)
-                  </span>
-                )}
-              </div>
+              {/* Phân loại dòng tiền & Preview Lợi Nhuận Gói Thuê */}
+              {(() => {
+                let pPrice = 0;
+                let pName = "";
+                const isPerm = quickHours === -1;
+                if (rentModalAccount.category === "VIP") {
+                  const h = Number(rentModalAccount.hourlyPrice) || 15000;
+                  const d = Number(rentModalAccount.dailyPrice) || 60000;
+                  const m = Number(rentModalAccount.monthlyPrice) || (d ? d * 15 : 799000);
+                  const val = Number(rentModalAccount.accountValue) || 850000;
+                  if (isPerm) { pPrice = val; pName = "Gói Vô Cực ∞ (Bán Đứt)"; }
+                  else if (quickHours === 2) { pPrice = h * 2; pName = "Gói 2 Giờ (VIP)"; }
+                  else if (quickHours === 4) { pPrice = h * 4; pName = "Gói 4 Giờ (VIP)"; }
+                  else if (quickHours === 10) { pPrice = Math.round(h * 2.5); pName = "Gói Thuê Đêm 10H (VIP)"; }
+                  else if (quickHours === 24) { pPrice = d; pName = "Gói 24 Giờ (1 Ngày VIP)"; }
+                  else if (quickHours === 72) { pPrice = Math.round(d * 3 * 0.9); pName = "Gói 3 Ngày (VIP)"; }
+                  else if (quickHours === 168) { pPrice = Math.round(d * 7 * 0.8); pName = "Gói 7 Ngày (1 Tuần VIP)"; }
+                  else if (quickHours === 720) { pPrice = m; pName = "Gói 30 Ngày (1 Tháng VIP)"; }
+                  else { pPrice = Math.max(1, Math.round((new Date(customEndTime).getTime() - Date.now()) / 3600000)) * h; pName = "Gói Tùy Chỉnh"; }
+                } else {
+                  const m = Number(rentModalAccount.monthlyPrice) || Number(rentModalAccount.periodPrice) || 210000;
+                  const p = Number(rentModalAccount.periodPrice) || 15000;
+                  const val = Number(rentModalAccount.price) || 150000;
+                  if (isPerm) { pPrice = val; pName = "Gói Vô Cực ∞ (Bán Đứt)"; }
+                  else if (quickHours === 24) { pPrice = p; pName = "Gói 1 Ngày (Clone)"; }
+                  else if (quickHours === 72) { pPrice = p * 3; pName = "Gói 3 Ngày (Clone)"; }
+                  else if (quickHours === 168) { pPrice = p * 6; pName = "Gói 7 Ngày (Clone)"; }
+                  else if (quickHours === 720 || quickHours === 0) { pPrice = m; pName = "Gói 30 Ngày (1 Tháng Clone)"; }
+                  else { pPrice = m; pName = "Gói Thuê Clone"; }
+                }
+                const actualProfit = isPerm ? Math.round(pPrice * deadProfitRate) : pPrice;
+
+                return (
+                  <div className="p-3 rounded-2xl bg-orange-50/80 border border-orange-200/80 space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-slate-700">📦 {pName}:</span>
+                      <strong className="font-mono font-black text-orange-600">{pPrice.toLocaleString("vi-VN")}đ</strong>
+                    </div>
+                    <div className="flex items-center justify-between text-xs pt-1 border-t border-orange-200/60">
+                      <span className="font-bold text-slate-900">💎 Lãi chốt ngay hôm nay:</span>
+                      <strong className="font-mono font-black text-emerald-600 text-sm">+{actualProfit.toLocaleString("vi-VN")}đ</strong>
+                    </div>
+                    <p className="text-[10px] text-slate-500 italic">
+                      {isPerm ? `Lãi 20% bán đứt ghi nhận 1 lần` : `Lãi = 100% đúng giá gói thuê (${pName})`}
+                    </p>
+                  </div>
+                );
+              })()}
 
               {/* Nút hành động */}
               <div className="flex gap-2 pt-2">
