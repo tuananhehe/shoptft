@@ -130,6 +130,8 @@ export default function AdminDashboardPage() {
             rank: v.rank || "THÁCH ĐẤU",
             hourlyPrice: Number(v.hourlyPrice) || 15000,
             dailyPrice: Number(v.dailyPrice) || 60000,
+            monthlyPrice: Number(v.monthlyPrice) || (Number(v.dailyPrice) ? Number(v.dailyPrice) * 15 : 799000),
+            periodPrice: Number(v.periodPrice) || 799000,
             accountValue: Number(v.accountValue) || 850000,
             price: Number(v.accountValue) || 850000,
             priceDisplayType: v.priceDisplayType,
@@ -322,39 +324,106 @@ export default function AdminDashboardPage() {
     // Nếu chưa có đơn trong bảng orders nhưng tài khoản đang RENTED hoặc là vĩnh viễn trong kho
     if (account.status === "RENTED" || account.isPermanentRental) {
       const isDead = !!account.isPermanentRental;
-      const amount = isDead
-        ? (Number(account.accountValue) || Number(account.price) || 850000)
-        : (account.category === "VIP"
-            ? (Number(account.dailyPrice) || ((Number(account.hourlyPrice) || 15000) * 4))
-            : (Number(account.monthlyPrice) || Number(account.periodPrice) || 210000));
-      const profit = isDead ? Math.round(amount * deadProfitRate) : amount;
-
-      // Ước lượng ngày bắt đầu thuê từ rentedUntil
+      let amount = 0;
+      let packageName = "";
       let eventMs = Date.now() - 1000;
-      if (account.rentedUntil) {
-        const endMs = new Date(account.rentedUntil).getTime();
-        if (!isNaN(endMs)) {
-          if (isDead) {
-            eventMs = Date.now() - 3600000;
-          } else if (account.category === "CLONE") {
+
+      if (isDead) {
+        amount = Number(account.accountValue) || Number(account.price) || 850000;
+        packageName = "Thuê Vô Cực ∞ (Bán Đứt)";
+        eventMs = Date.now() - 3600000;
+      } else if (account.category === "CLONE") {
+        // Clone: Gói tháng, tuần, ngày
+        const mPrice = Number(account.monthlyPrice) || Number(account.periodPrice) || 210000;
+        const pPrice = Number(account.periodPrice) || 15000;
+
+        if (account.rentedUntil) {
+          const endMs = new Date(account.rentedUntil).getTime();
+          const remHours = !isNaN(endMs) ? Math.max(1, Math.round((endMs - Date.now()) / (3600 * 1000))) : 720;
+          if (remHours > 168) {
+            packageName = "Gói 1 Tháng (30 Ngày)";
+            amount = mPrice;
             const estStart = endMs - 30 * 24 * 3600 * 1000;
             eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
+          } else if (remHours > 72) {
+            packageName = "Gói 7 Ngày (1 Tuần)";
+            amount = pPrice * 6;
+            const estStart = endMs - 7 * 24 * 3600 * 1000;
+            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
+          } else if (remHours > 24) {
+            packageName = "Gói 3 Ngày (Clone)";
+            amount = pPrice * 3;
+            const estStart = endMs - 3 * 24 * 3600 * 1000;
+            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
           } else {
+            packageName = "Gói 1 Ngày (24 Giờ)";
+            amount = pPrice;
             const estStart = endMs - 24 * 3600 * 1000;
             eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
           }
+        } else {
+          packageName = "Gói 1 Tháng (30 Ngày)";
+          amount = mPrice;
+        }
+      } else {
+        // VIP: Gói tháng, tuần, ngày, đêm, giờ
+        const hPrice = Number(account.hourlyPrice) || 15000;
+        const dPrice = Number(account.dailyPrice) || 60000;
+        const mPrice = Number(account.monthlyPrice) || (dPrice ? dPrice * 15 : 799000);
+
+        if (account.rentedUntil) {
+          const endMs = new Date(account.rentedUntil).getTime();
+          const remHours = !isNaN(endMs) ? Math.max(1, Math.round((endMs - Date.now()) / (3600 * 1000))) : 24;
+          if (remHours > 360) {
+            packageName = "Gói 1 Tháng VIP (30 Ngày)";
+            amount = mPrice;
+            const estStart = endMs - 30 * 24 * 3600 * 1000;
+            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
+          } else if (remHours > 96) {
+            packageName = "Gói 7 Ngày (1 Tuần VIP)";
+            amount = Math.round(dPrice * 7 * 0.8);
+            const estStart = endMs - 7 * 24 * 3600 * 1000;
+            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
+          } else if (remHours > 36) {
+            packageName = "Gói 3 Ngày (VIP)";
+            amount = Math.round(dPrice * 3 * 0.9);
+            const estStart = endMs - 3 * 24 * 3600 * 1000;
+            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
+          } else if (remHours > 12) {
+            packageName = "Gói 24 Giờ (1 Ngày VIP)";
+            amount = dPrice;
+            const estStart = endMs - 24 * 3600 * 1000;
+            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
+          } else if (remHours > 5) {
+            packageName = "Gói Thuê Đêm 10H (VIP)";
+            amount = Math.round(hPrice * 2.5);
+            const estStart = endMs - 10 * 3600 * 1000;
+            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
+          } else if (remHours > 2) {
+            packageName = "Gói 4 Giờ VIP";
+            amount = hPrice * 4;
+            const estStart = endMs - 4 * 3600 * 1000;
+            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
+          } else {
+            packageName = "Gói 2 Giờ VIP";
+            amount = hPrice * 2;
+            const estStart = endMs - 2 * 3600 * 1000;
+            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
+          }
+        } else {
+          packageName = "Gói 24 Giờ (1 Ngày VIP)";
+          amount = dPrice;
         }
       }
+
+      // Lãi = Đúng 100% số tiền của gói thuê đối với gói sống, hoặc 20% đối với vô cực (dòng chết)
+      const profit = isDead ? Math.round(amount * deadProfitRate) : amount;
 
       return [
         {
           hasOrder: false,
           orderId: "",
-          package: isDead
-            ? "Thuê Vô Cực ∞ (Bán Đứt)"
-            : account.category === "VIP"
-            ? "Gói Theo Giờ (VIP)"
-            : "Gói Theo Tháng (Clone)",
+          package: packageName,
           amount,
           profit,
           isDead,
