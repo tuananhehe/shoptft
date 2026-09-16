@@ -38,6 +38,11 @@ import {
   Wallet,
   ExternalLink,
   Share2,
+  Wand2,
+  UploadCloud,
+  Image as ImageIcon,
+  Key,
+  HelpCircle,
 } from "lucide-react";
 
 export type AccountCategoryType = "VIP" | "CLONE";
@@ -195,6 +200,211 @@ export default function AdminAccountsPage() {
     "Sẵn Sản Phẩm Như Mô Tả 100%",
   ]);
   const [formFeatureInput, setFormFeatureInput] = useState("");
+
+  // ============================================================
+  // AI VISION ACCOUNT SCANNER STATE & HELPERS
+  // ============================================================
+  const [aiImages, setAiImages] = useState<string[]>([]);
+  const [isScanningWithAi, setIsScanningWithAi] = useState(false);
+  const [geminiApiKey, setGeminiApiKey] = useState("");
+  const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
+  const [tempApiKeyInput, setTempApiKeyInput] = useState("");
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedKey = localStorage.getItem("shoptft_gemini_api_key") || "";
+      setGeminiApiKey(savedKey);
+      setTempApiKeyInput(savedKey);
+    }
+  }, []);
+
+  // Global paste handler when Drawer is open
+  useEffect(() => {
+    if (!drawerOpen) return;
+
+    const handleWindowPaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      let hasImage = false;
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.indexOf("image") !== -1) {
+          const blob = item.getAsFile();
+          if (blob) {
+            hasImage = true;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              if (event.target?.result) {
+                setAiImages((prev) => [...prev, event.target!.result as string]);
+                toast.success("📋 Đã nhận diện ảnh từ Clipboard (Ctrl + V)!");
+              }
+            };
+            reader.readAsDataURL(blob);
+          }
+        }
+      }
+      if (hasImage) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener("paste", handleWindowPaste);
+    return () => {
+      window.removeEventListener("paste", handleWindowPaste);
+    };
+  }, [drawerOpen]);
+
+  const handleSaveApiKey = () => {
+    const key = tempApiKeyInput.trim();
+    setGeminiApiKey(key);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("shoptft_gemini_api_key", key);
+    }
+    setApiKeyModalOpen(false);
+    toast.success("✅ Đã lưu Google Gemini API Key thành công!");
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    Array.from(files).forEach((file) => {
+      if (!file.type.startsWith("image/")) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setAiImages((prev) => [...prev, event.target!.result as string]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    if (e.target) e.target.value = "";
+  };
+
+  const handlePasteImage = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    let hasImage = false;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.indexOf("image") !== -1) {
+        const blob = item.getAsFile();
+        if (blob) {
+          hasImage = true;
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            if (event.target?.result) {
+              setAiImages((prev) => [...prev, event.target!.result as string]);
+              toast.success("📋 Đã nhận diện ảnh từ Clipboard (Ctrl + V)!");
+            }
+          };
+          reader.readAsDataURL(blob);
+        }
+      }
+    }
+    if (hasImage) {
+      e.preventDefault();
+    }
+  };
+
+  const handleRemoveAiImage = (index: number) => {
+    setAiImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleScanWithAi = async () => {
+    if (aiImages.length === 0) {
+      toast.error("Vui lòng tải lên hoặc dán (Ctrl + V) ít nhất 1 ảnh chụp màn hình acc!");
+      return;
+    }
+
+    setIsScanningWithAi(true);
+    const toastId = toast.loading("🤖 AI Vision đang quét và phân tích kho Pet & Sân Đấu...");
+
+    try {
+      const res = await fetch("/api/ai/scan-account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          images: aiImages,
+          apiKey: geminiApiKey || undefined,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        if (result.needsApiKey) {
+          setApiKeyModalOpen(true);
+        }
+        throw new Error(result.error || "Không thể quét ảnh bằng AI");
+      }
+
+      const d = result.data;
+      if (!d) throw new Error("Dữ liệu AI trả về không hợp lệ");
+
+      // Auto populate fields
+      if (d.category && (d.category === "VIP" || d.category === "CLONE")) {
+        setFormCategory(d.category);
+      }
+
+      if (d.code && d.code.trim()) {
+        setFormCode(d.code.trim());
+      }
+
+      if (d.rank) {
+        setFormRank(d.rank);
+        setFormRankBadge(d.rank);
+      }
+
+      // Populate Chibi / Pets
+      if (d.mainChibi && d.mainChibi.trim()) {
+        setFormMainChibi(d.mainChibi.trim());
+      }
+      if (Array.isArray(d.allChibi) && d.allChibi.length > 0) {
+        setFormAllChibi(Array.from(new Set(d.allChibi.map((c: string) => c.trim()).filter(Boolean))));
+      }
+
+      // Populate Arenas
+      if (d.mainArena && d.mainArena.trim()) {
+        setFormMainArena(d.mainArena.trim());
+      }
+      if (Array.isArray(d.allArenas) && d.allArenas.length > 0) {
+        setFormAllArenas(Array.from(new Set(d.allArenas.map((a: string) => a.trim()).filter(Boolean))));
+      }
+
+      // Populate Title & Description
+      if (d.title && d.title.trim()) {
+        setFormTitle(d.title.trim());
+      }
+      if (d.description && d.description.trim()) {
+        setFormDescription(d.description.trim());
+      }
+
+      // Populate Value & auto price
+      if (d.accountValue && Number(d.accountValue) > 0) {
+        handleAccountValueChange(Number(d.accountValue));
+      }
+
+      // Auto assign thumbnail if empty
+      if (!formThumbnail && aiImages.length > 0) {
+        setFormThumbnail(aiImages[0]);
+      }
+
+      toast.success("✨ AI đã quét thành công và tự động điền thông tin tài khoản!", {
+        id: toastId,
+        duration: 4000,
+      });
+    } catch (err: any) {
+      console.error("Lỗi quét AI:", err);
+      toast.error(`Lỗi AI: ${err.message}`, { id: toastId, duration: 5000 });
+    } finally {
+      setIsScanningWithAi(false);
+    }
+  };
 
   // ============================================================
   // 1. FETCH DANH SÁCH TÀI KHOẢN TỪ BACKEND / SUPABASE
@@ -601,6 +811,7 @@ export default function AdminAccountsPage() {
       "Sẵn Sản Phẩm Như Mô Tả 100%",
     ]);
     setFormFeatureInput("");
+    setAiImages([]);
 
     setDrawerOpen(true);
   };
@@ -612,6 +823,7 @@ export default function AdminAccountsPage() {
     setFormTitle(account.title);
     setFormThumbnail(account.thumbnail);
     setFormDescription(account.description || "");
+    setAiImages(account.thumbnail ? [account.thumbnail] : []);
 
     // Load price display settings
     setFormPriceDisplayType(
@@ -1817,6 +2029,127 @@ export default function AdminAccountsPage() {
 
                 {/* Body Drawer */}
                 <div className="p-6 space-y-4 flex-1 overflow-y-auto text-xs">
+                  {/* ============================================================ */}
+                  {/* 0. TRỢ LÝ AI VISION - QUÉT ẢNH TỰ ĐỘNG ĐIỀN ACC */}
+                  {/* ============================================================ */}
+                  <div className="p-4 bg-gradient-to-br from-orange-500/10 via-amber-500/5 to-purple-500/10 rounded-2xl border-2 border-orange-500/30 space-y-3 relative overflow-hidden">
+                    {/* Header AI Scanner */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-orange-600 to-amber-500 text-white flex items-center justify-center shadow-xs">
+                          <Wand2 className="w-4 h-4 animate-pulse" />
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-xs text-slate-900 flex items-center gap-1.5">
+                            <span>Trợ Lý AI Quét Ảnh Game</span>
+                            <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-orange-600 text-white uppercase tracking-wider">
+                              VISION AI
+                            </span>
+                          </h4>
+                          <span className="text-[10px] text-slate-500 font-medium">
+                            Dán hoặc tải ảnh kho Tí Nị / Sân Đấu để tự điền form
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Nút cài đặt API Key */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTempApiKeyInput(geminiApiKey);
+                          setApiKeyModalOpen(true);
+                        }}
+                        className="p-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                        title="Cài đặt Google Gemini API Key"
+                      >
+                        <Key className="w-3.5 h-3.5 text-amber-600" />
+                        <span className="hidden sm:inline">Cài Key</span>
+                      </button>
+                    </div>
+
+                    {/* Dropzone & Paste Area */}
+                    <div
+                      onPaste={handlePasteImage}
+                      tabIndex={0}
+                      className="border-2 border-dashed border-orange-300/80 hover:border-orange-500 bg-white/80 hover:bg-white rounded-xl p-3.5 text-center transition-all focus:outline-none focus:ring-2 focus:ring-orange-400/40 cursor-pointer group"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileUpload}
+                        multiple
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      <UploadCloud className="w-6 h-6 text-orange-500 mx-auto group-hover:scale-110 transition-transform mb-1" />
+                      <p className="text-xs font-bold text-slate-800">
+                        Kéo thả, Chọn ảnh hoặc bấm <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono text-[10px] text-orange-700 font-black">Ctrl + V</kbd> để dán ảnh
+                      </p>
+                      <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+                        Hỗ trợ ảnh chụp màn hình điện thoại / PC kho Tí Nị, Sân Đấu, Bậc Rank
+                      </p>
+                    </div>
+
+                    {/* Danh sách ảnh đã dán / tải lên */}
+                    {aiImages.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-[11px] font-bold text-slate-700">
+                          <span>Đã chọn {aiImages.length} ảnh quét:</span>
+                          <button
+                            type="button"
+                            onClick={() => setAiImages([])}
+                            className="text-rose-600 hover:text-rose-800 font-medium text-[10px] cursor-pointer"
+                          >
+                            Xóa tất cả ảnh
+                          </button>
+                        </div>
+
+                        <div className="flex gap-2 overflow-x-auto pb-1">
+                          {aiImages.map((img, idx) => (
+                            <div key={idx} className="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-300 flex-shrink-0 group">
+                              <img src={img} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRemoveAiImage(idx);
+                                }}
+                                className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-black/70 text-white flex items-center justify-center text-[10px] font-black hover:bg-rose-600 transition-colors cursor-pointer"
+                                title="Xóa ảnh này"
+                              >
+                                ×
+                              </button>
+                              <span className="absolute bottom-0.5 left-0.5 bg-black/60 text-[8px] text-white px-1 rounded font-mono">
+                                #{idx + 1}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Nút Kích Hoạt Quét AI */}
+                        <button
+                          type="button"
+                          disabled={isScanningWithAi}
+                          onClick={handleScanWithAi}
+                          className="w-full py-2.5 px-4 bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 hover:from-orange-700 hover:to-amber-700 active:from-orange-800 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-orange-600/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                        >
+                          {isScanningWithAi ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span>AI Đang Phân Tích & Bóc Tách...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-4 h-4" />
+                              <span>⚡ AI Quét & Tự Điền Dữ Liệu</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Chọn Loại Kho: VIP vs CLONE */}
                   <div className="space-y-1.5">
                     <label className="font-bold text-slate-800 block">
@@ -2511,6 +2844,83 @@ export default function AdminAccountsPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* 7. MODAL CÀI ĐẶT GOOGLE GEMINI API KEY */}
+      {/* ============================================================ */}
+      {apiKeyModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                  <Key className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base text-slate-900">
+                    Cài Đặt Gemini API Key
+                  </h3>
+                  <span className="text-xs text-slate-500 font-medium">
+                    Dùng cho tính năng AI Quét Ảnh Tự Động
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setApiKeyModalOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 space-y-1">
+              <p className="font-bold flex items-center gap-1">
+                <span>💡 Cách lấy API Key miễn phí (100% Free):</span>
+              </p>
+              <ol className="list-decimal list-inside space-y-0.5 text-[11px] text-amber-800">
+                <li>Truy cập <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="underline font-bold text-amber-900">Google AI Studio (Bấm vào đây)</a></li>
+                <li>Đăng nhập tài khoản Google và bấm <strong>&quot;Create API key&quot;</strong></li>
+                <li>Sao chép mã API Key (dạng <code className="font-mono bg-white px-1 rounded">AIzaSy...</code>) và dán vào ô bên dưới.</li>
+              </ol>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 block">
+                Google Gemini API Key:
+              </label>
+              <input
+                type="password"
+                value={tempApiKeyInput}
+                onChange={(e) => setTempApiKeyInput(e.target.value)}
+                placeholder="AIzaSy..."
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-orange-500"
+              />
+              <span className="text-[10px] text-slate-400 block">
+                API Key được lưu an toàn trực tiếp trên trình duyệt của bạn.
+              </span>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setApiKeyModalOpen(false)}
+                className="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
+              >
+                Đóng
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveApiKey}
+                className="flex-1 py-2.5 rounded-xl bg-orange-700 hover:bg-orange-800 text-white text-xs font-bold uppercase tracking-wider cursor-pointer shadow-md shadow-orange-700/20"
+              >
+                Lưu API Key
+              </button>
             </div>
           </div>
         </div>
