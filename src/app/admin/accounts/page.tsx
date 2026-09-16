@@ -2888,7 +2888,7 @@ export default function AdminAccountsPage() {
       )}
 
       {/* ============================================================ */}
-      {/* 7. MODAL CÀI ĐẶT GOOGLE GEMINI API KEY */}
+      {/* 7. MODAL CÀI ĐẶT API KEY CHO AI VISION SCANNER */}
       {/* ============================================================ */}
       {apiKeyModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
@@ -2900,10 +2900,10 @@ export default function AdminAccountsPage() {
                 </div>
                 <div>
                   <h3 className="font-extrabold text-base text-slate-900">
-                    Cài Đặt Gemini API Key
+                    Cài Đặt AI API Key
                   </h3>
                   <span className="text-xs text-slate-500 font-medium">
-                    Dùng cho tính năng AI Quét Ảnh Tự Động
+                    Hỗ trợ Google Gemini, Groq hoặc OpenAI
                   </span>
                 </div>
               </div>
@@ -2917,30 +2917,35 @@ export default function AdminAccountsPage() {
               </button>
             </div>
 
-            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 space-y-1">
+            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 space-y-2">
               <p className="font-bold flex items-center gap-1">
-                <span>💡 Cách lấy API Key miễn phí (100% Free):</span>
+                <span>💡 Cách lấy API Key miễn phí (Chọn 1 trong 2):</span>
               </p>
-              <ol className="list-decimal list-inside space-y-0.5 text-[11px] text-amber-800">
-                <li>Truy cập <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="underline font-bold text-amber-900">Google AI Studio (Bấm vào đây)</a></li>
-                <li>Đăng nhập tài khoản Google và bấm <strong>&quot;Create API key&quot;</strong></li>
-                <li>Sao chép mã API Key (dạng <code className="font-mono bg-white px-1 rounded">AIzaSy...</code>) và dán vào ô bên dưới.</li>
-              </ol>
+              <div className="space-y-1.5 text-[11px] text-amber-800">
+                <div className="p-2 bg-white rounded-lg border border-amber-200">
+                  <span className="font-bold text-amber-950 block">Cách 1: Google Gemini (Khuyên dùng)</span>
+                  <span>Truy cập <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="underline font-bold text-orange-700">Google AI Studio</a> ➔ Bấm <strong>&quot;Create API key&quot;</strong> ➔ Dán mã <code className="font-mono bg-amber-100 px-1 rounded">AIzaSy...</code></span>
+                </div>
+                <div className="p-2 bg-white rounded-lg border border-amber-200">
+                  <span className="font-bold text-amber-950 block">Cách 2: Groq Cloud (Tốc độ cực nhanh 0.5s, 100% Free)</span>
+                  <span>Truy cập <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="underline font-bold text-orange-700">Groq Console</a> ➔ Bấm <strong>&quot;Create API Key&quot;</strong> ➔ Dán mã <code className="font-mono bg-amber-100 px-1 rounded">gsk_...</code></span>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 block">
-                Google Gemini API Key:
+                Nhập API Key:
               </label>
               <input
                 type="password"
                 value={tempApiKeyInput}
                 onChange={(e) => setTempApiKeyInput(e.target.value)}
-                placeholder="AIzaSy..."
+                placeholder="Dán AIzaSy... hoặc gsk_... vào đây"
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-orange-500"
               />
               <span className="text-[10px] text-slate-400 block">
-                API Key được lưu an toàn trực tiếp trên trình duyệt của bạn.
+                API Key được lưu trực tiếp và an toàn trên trình duyệt của bạn.
               </span>
             </div>
 

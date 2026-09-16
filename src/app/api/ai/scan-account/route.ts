@@ -5,13 +5,13 @@ export const runtime = "nodejs";
 interface ScanAccountRequest {
   images: string[]; // Base64 data URLs or image URLs
   apiKey?: string;
-  provider?: "gemini" | "openai";
+  provider?: "gemini" | "openai" | "groq";
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body: ScanAccountRequest = await req.json();
-    const { images, apiKey: clientApiKey, provider = "gemini" } = body;
+    const { images, apiKey: clientApiKey } = body;
 
     if (!images || !Array.isArray(images) || images.length === 0) {
       return NextResponse.json(
@@ -20,33 +20,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Resolve API Key: client provided > environment variable
-    const geminiKey = clientApiKey || process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-    const openAiKey = clientApiKey || process.env.OPENAI_API_KEY;
+    const key = (
+      clientApiKey ||
+      process.env.GEMINI_API_KEY ||
+      process.env.GROQ_API_KEY ||
+      process.env.OPENAI_API_KEY ||
+      process.env.NEXT_PUBLIC_GEMINI_API_KEY ||
+      ""
+    ).trim();
 
-    if (provider === "openai") {
-      if (!openAiKey) {
-        return NextResponse.json(
-          { error: "Chưa cấu hình OpenAI API Key! Vui lòng nhập API Key hoặc chọn Gemini." },
-          { status: 400 }
-        );
-      }
-      return await handleOpenAiVision(images, openAiKey);
-    }
-
-    // Default to Gemini
-    if (!geminiKey) {
+    if (!key) {
       return NextResponse.json(
         {
           error:
-            "Chưa có Google Gemini API Key! Bạn hãy nhập API Key (miễn phí từ aistudio.google.com) vào ô cài đặt hoặc thêm GEMINI_API_KEY vào .env.local.",
+            "Chưa có API Key! Bạn hãy nhập Google Gemini API Key (từ aistudio.google.com) hoặc Groq API Key (từ console.groq.com) vào ô cài đặt.",
           needsApiKey: true,
         },
         { status: 400 }
       );
     }
 
-    return await handleGeminiVision(images, geminiKey);
+    // Auto-detect provider by API key prefix
+    if (key.startsWith("gsk_")) {
+      return await handleGroqVision(images, key);
+    }
+
+    if (key.startsWith("sk-proj-") || (key.startsWith("sk-") && !key.startsWith("sk-ant-"))) {
+      return await handleOpenAiVision(images, key);
+    }
+
+    // Default to Google Gemini
+    return await handleGeminiVision(images, key);
   } catch (error: any) {
     console.error("Lỗi khi xử lý quét AI:", error);
     return NextResponse.json(
@@ -57,39 +61,28 @@ export async function POST(req: NextRequest) {
 }
 
 // ============================================================
-// GEMINI 1.5 FLASH VISION HANDLER
+// 1. GEMINI VISION HANDLER (RESILIENT & MULTI-MODEL)
 // ============================================================
 async function handleGeminiVision(images: string[], apiKey: string) {
   const systemPrompt = `Bạn là chuyên gia thẩm định và nhận diện tài khoản game Đấu Trường Chân Lý (TFT / ĐTCL Việt Nam).
-Nhiệm vụ của bạn: Phân tích kỹ lưỡng các hình ảnh chụp màn hình game ĐTCL (kho tướng tí nị / chibi, kho sân đấu, bậc rank, hoặc bảng tổng hợp thông tin acc) được cung cấp, sau đó bóc tách thông tin tài khoản và trả về DUY NHẤT một chuỗi JSON hợp lệ.
-
-QUY TẮC NHẬN DIỆN ĐTCL VIỆT NAM:
-1. "category": "VIP" (nếu có tướng tí nị / sân đấu thần thoại / thuê theo giờ) hoặc "CLONE" (acc trắng thông tin, cày rank dài hạn). Mặc định là "VIP".
-2. "code": Nếu trên ảnh có ghi mã số acc (ví dụ: "MS: 8899", "MÃ: 1234", "CLONE-01") thì lấy, nếu không hãy để chuỗi rỗng "".
-3. "mainChibi": Tên Tướng Tí Nị / Linh Thú NỔI BẬT & ĐẮT GIÁ NHẤT tìm thấy trên ảnh theo tên chuẩn tiếng Việt ĐTCL (ví dụ: "Tí Nị Ahri Chiêu Hồn", "Tí Nị Yasuo Chân Long Kiếm", "Tí Nị Aatrox Đoạt Mệnh", "Tí Nị Lee Sin Quyền Thái", "Tí Nị Yone Ẩn Ma", "Tí Nị Zed Tử Thần", "Tí Nị Kaisa Vệ Binh Tinh Tú", "Tí Nị Akali K/DA", "Tí Nị Gwen Soi Sáng", "Tí Nị Morgana", "Linh Thú Poro Siêu Sao"...). Nếu không có, để chuỗi rỗng.
-4. "allChibi": Mảng danh sách TẤT CẢ các Tướng Tí Nị và Linh Thú nhìn thấy trong ảnh (bao gồm cả mainChibi và các pet khác).
-5. "mainArena": Tên Sân Đấu Thần Thoại / Tối Thượng ĐẸP & ĐẮT NHẤT tìm thấy trên ảnh theo tên chuẩn tiếng Việt (ví dụ: "Sân Đấu Tiệm Trà Tâm Linh (Đổi Nhạc EDM)", "Sân Đấu Võ Đài Tinh Võ", "Sân Đấu Tàu Trục Vớt của Jinx", "Sân Đấu Đền Thờ Quán Quân", "Sân Đấu Đấu Trường Quái Vật", "Sân Đấu Chợ Tết Nguyên Đán"...). Nếu không có, để chuỗi rỗng.
-6. "allArenas": Mảng danh sách TẤT CẢ các Sân Đấu nhìn thấy trong các ảnh.
-7. "rank": Bậc Rank nhận diện được trên ảnh. CHỈ CHỌN 1 TRONG CÁC GIÁ TRỊ SAU: "THÁCH ĐẤU", "ĐẠI CAO THỦ", "CAO THỦ", "KIM CƯƠNG", "LỤC BẢO", "VÀNG/BẠCH KIM", "BẠC", "ĐỒNG", "KHÔNG RANK". Nếu không thấy rank, mặc định chọn "CAO THỦ" hoặc "THÁCH ĐẤU".
-8. "accountValue": Ước tính định giá acc bằng số nguyên VNĐ dựa vào độ hiếm của Pet và Sân (VD: Acc có 1 Tí Nị Thần Thoại + 1 Sân Thần Thoại ~ 850000 đến 1500000, acc nhiều đồ ~ 2000000 đến 4000000).
-9. "title": Tạo một tiêu đề ngắn gọn, bắt mắt, cuốn hút người thuê (VD: "Ahri Chiêu Hồn + Sân Tiệm Trà EDM", "Yasuo Chân Long Kiếm + Võ Đài Tinh Võ").
-10. "description": Viết mô tả ngắn 1-2 câu tóm tắt điểm mạnh của tài khoản này.
-
-ĐỊNH DẠNG JSON BẮT BUỘC TRẢ VỀ:
+Nhiệm vụ: Phân tích kỹ các ảnh chụp màn hình game ĐTCL (kho tướng tí nị / chibi, kho sân đấu, bậc rank...) và trả về DUY NHẤT một chuỗi JSON hợp lệ theo định dạng sau:
 {
   "category": "VIP",
   "code": "",
-  "mainChibi": "",
-  "allChibi": [],
-  "mainArena": "",
-  "allArenas": [],
-  "rank": "CAO THỦ",
+  "mainChibi": "Tên Tướng Tí Nị / Linh Thú Chính chuẩn ĐTCL Việt Nam (VD: Tí Nị Ahri Chiêu Hồn)",
+  "allChibi": ["Tên Linh Thú 1", "Tên Linh Thú 2"],
+  "mainArena": "Tên Sân Đấu Thần Thoại Chính chuẩn ĐTCL Việt Nam (VD: Sân Đấu Tiệm Trà Tâm Linh EDM)",
+  "allArenas": ["Tên Sân Đấu 1"],
+  "rank": "THÁCH ĐẤU",
   "accountValue": 850000,
-  "title": "",
-  "description": ""
-}`;
+  "title": "Ahri Chiêu Hồn + Sân Tiệm Trà EDM",
+  "description": "Tài khoản VIP chất lượng cao"
+}
 
-  // Build image parts for Gemini
+Quy tắc:
+- rank: chọn 1 trong ["THÁCH ĐẤU", "ĐẠI CAO THỦ", "CAO THỦ", "KIM CƯƠNG", "LỤC BẢO", "VÀNG/BẠCH KIM", "BẠC", "ĐỒNG", "KHÔNG RANK"].
+- Chỉ trả về chuỗi JSON, không viết lời dẫn hay markdown thừa.`;
+
   const parts: any[] = [{ text: systemPrompt }];
 
   for (const img of images) {
@@ -108,7 +101,6 @@ QUY TẮC NHẬN DIỆN ĐTCL VIỆT NAM:
         });
       }
     } else if (img.startsWith("http")) {
-      // For remote images, try fetching and converting to base64
       try {
         const fetchRes = await fetch(img);
         if (fetchRes.ok) {
@@ -128,8 +120,8 @@ QUY TẮC NHẬN DIỆN ĐTCL VIỆT NAM:
     }
   }
 
-  // 1. Danh sách model Gemini Vision ưu tiên
-  let candidateModels: string[] = [
+  // Danh sách model Gemini ưu tiên
+  const candidateModels = [
     "gemini-2.0-flash",
     "gemini-1.5-flash-latest",
     "gemini-1.5-flash",
@@ -140,30 +132,7 @@ QUY TẮC NHẬN DIỆN ĐTCL VIỆT NAM:
     "gemini-1.5-pro",
   ];
 
-  // 2. Tự động lấy danh sách models được hỗ trợ bởi API Key từ Google AI Studio
-  try {
-    const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-    if (listRes.ok) {
-      const listData = await listRes.json();
-      if (Array.isArray(listData?.models)) {
-        const available = listData.models
-          .filter((m: any) => m.supportedGenerationMethods?.includes("generateContent"))
-          .map((m: any) => m.name.replace(/^models\//, ""));
-
-        if (available.length > 0) {
-          const flashModels = available.filter((m: string) => m.includes("flash"));
-          const proModels = available.filter((m: string) => m.includes("pro") && !m.includes("flash"));
-          const otherModels = available.filter((m: string) => !m.includes("flash") && !m.includes("pro"));
-          candidateModels = Array.from(new Set([...flashModels, ...proModels, ...otherModels, ...candidateModels]));
-        }
-      }
-    }
-  } catch (err) {
-    console.warn("Không thể query ListModels, dùng danh sách fallback:", err);
-  }
-
-  // 3. Lần lượt thử các model cho đến khi thành công
-  let lastErrorText = "";
+  let lastError = "";
   let lastStatus = 500;
   let parsedResult = null;
   let usedModel = "";
@@ -175,11 +144,13 @@ QUY TẮC NHẬN DIỆN ĐTCL VIỆT NAM:
     try {
       const response = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
+        },
         body: JSON.stringify({
           contents: [{ parts }],
           generationConfig: {
-            response_mime_type: "application/json",
             temperature: 0.1,
           },
         }),
@@ -189,37 +160,42 @@ QUY TẮC NHẬN DIỆN ĐTCL VIỆT NAM:
         const data = await response.json();
         const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (rawText) {
-          try {
-            parsedResult = JSON.parse(rawText);
-          } catch (err) {
-            const cleaned = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
+          const cleaned = rawText
+            .replace(/```json/gi, "")
+            .replace(/```/g, "")
+            .trim();
+
+          const jsonStart = cleaned.indexOf("{");
+          const jsonEnd = cleaned.lastIndexOf("}");
+          if (jsonStart !== -1 && jsonEnd !== -1) {
+            parsedResult = JSON.parse(cleaned.substring(jsonStart, jsonEnd + 1));
+          } else {
             parsedResult = JSON.parse(cleaned);
           }
           usedModel = model;
-          break; // Thành công!
+          break;
         }
       } else {
         lastStatus = response.status;
-        lastErrorText = await response.text();
+        const errJson = await response.json().catch(() => null);
+        const errMsg = errJson?.error?.message || (await response.text().catch(() => "Unknown error"));
+        lastError = `[${response.status}] ${errMsg}`;
+
+        // 404 nghĩa là model không có trong project/version, thử model kế tiếp
         if (response.status === 404) {
-          // Model không tồn tại trên account này, thử model tiếp theo
           continue;
-        }
-        if (response.status === 400 || response.status === 403) {
-          return NextResponse.json(
-            { error: "Gemini API Key không hợp lệ hoặc đã bị khóa. Vui lòng kiểm tra lại khóa API." },
-            { status: 400 }
-          );
         }
       }
     } catch (err: any) {
-      lastErrorText = err.message || String(err);
+      lastError = err.message || String(err);
     }
   }
 
   if (!parsedResult) {
     return NextResponse.json(
-      { error: `Gemini API lỗi (${lastStatus}): ${lastErrorText || "Không tìm thấy model AI phù hợp với API Key này."}` },
+      {
+        error: `Lỗi Google Gemini API (${lastStatus}): ${lastError}. Hãy kiểm tra lại API Key hoặc tạo key mới tại aistudio.google.com.`,
+      },
       { status: lastStatus }
     );
   }
@@ -233,7 +209,72 @@ QUY TẮC NHẬN DIỆN ĐTCL VIỆT NAM:
 }
 
 // ============================================================
-// OPENAI GPT-4O-MINI VISION HANDLER (FALLBACK PROVIDER)
+// 2. GROQ VISION HANDLER (100% FREE & ULTRA FAST)
+// ============================================================
+async function handleGroqVision(images: string[], apiKey: string) {
+  const contentArray: any[] = [
+    {
+      type: "text",
+      text: `Bạn là trợ lý AI chuyên gia về game Đấu Trường Chân Lý (TFT / ĐTCL Việt Nam).
+Hãy phân tích hình ảnh và trả về DUY NHẤT chuỗi JSON (không kèm markdown):
+{
+  "category": "VIP",
+  "code": "",
+  "mainChibi": "Tên Tướng Tí Nị chính (VD: Tí Nị Ahri Chiêu Hồn)",
+  "allChibi": ["Tên Linh Thú 1", "Tên Linh Thú 2"],
+  "mainArena": "Tên Sân Đấu chính (VD: Sân Tiệm Trà Tâm Linh)",
+  "allArenas": ["Tên Sân Đấu 1"],
+  "rank": "THÁCH ĐẤU",
+  "accountValue": 850000,
+  "title": "Ahri Chiêu Hồn + Sân Tiệm Trà EDM",
+  "description": "Tài khoản VIP chất lượng cao"
+}`,
+    },
+  ];
+
+  for (const img of images) {
+    contentArray.push({
+      type: "image_url",
+      image_url: { url: img },
+    });
+  }
+
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "llama-3.2-11b-vision-preview",
+      response_format: { type: "json_object" },
+      messages: [{ role: "user", content: contentArray }],
+      temperature: 0.1,
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    return NextResponse.json(
+      { error: `Groq API lỗi: ${errText}` },
+      { status: response.status }
+    );
+  }
+
+  const data = await response.json();
+  const rawText = data?.choices?.[0]?.message?.content;
+  const parsedResult = JSON.parse(rawText);
+
+  return NextResponse.json({
+    success: true,
+    provider: "groq",
+    model: "llama-3.2-11b-vision-preview",
+    data: parsedResult,
+  });
+}
+
+// ============================================================
+// 3. OPENAI GPT-4O-MINI VISION HANDLER
 // ============================================================
 async function handleOpenAiVision(images: string[], apiKey: string) {
   const contentArray: any[] = [
@@ -248,7 +289,7 @@ Hãy phân tích hình ảnh và trả về JSON thuần túy (không kèm markd
   "allChibi": ["Tên Linh Thú 1", "Tên Linh Thú 2"],
   "mainArena": "Tên Sân Đấu chính (VD: Sân Tiệm Trà Tâm Linh)",
   "allArenas": ["Tên Sân Đấu 1"],
-  "rank": "THÁCH ĐẤU" | "ĐẠI CAO THỦ" | "CAO THỦ" | "KIM CƯƠNG" | "LỤC BẢO" | "VÀNG/BẠCH KIM" | "BẠC" | "ĐỒNG" | "KHÔNG RANK",
+  "rank": "THÁCH ĐẤU",
   "accountValue": 850000,
   "title": "Tiêu đề hấp dẫn",
   "description": "Mô tả ngắn"
