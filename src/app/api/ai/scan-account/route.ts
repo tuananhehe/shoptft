@@ -128,58 +128,106 @@ QUY TẮC NHẬN DIỆN ĐTCL VIỆT NAM:
     }
   }
 
-  // Use Gemini 1.5 Flash (fastest vision model)
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  // 1. Danh sách model Gemini Vision ưu tiên
+  let candidateModels: string[] = [
+    "gemini-2.0-flash",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-flash",
+    "gemini-1.5-flash-002",
+    "gemini-1.5-flash-001",
+    "gemini-2.0-flash-exp",
+    "gemini-1.5-pro-latest",
+    "gemini-1.5-pro",
+  ];
 
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts }],
-      generationConfig: {
-        response_mime_type: "application/json",
-        temperature: 0.1,
-      },
-    }),
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error("Gemini API Error:", response.status, errText);
-    if (response.status === 400 || response.status === 403) {
-      return NextResponse.json(
-        { error: "Gemini API Key không hợp lệ hoặc đã hết hạn. Vui lòng kiểm tra lại khóa API." },
-        { status: 400 }
-      );
-    }
-    return NextResponse.json(
-      { error: `Gemini API lỗi (${response.status}): ${errText}` },
-      { status: response.status }
-    );
-  }
-
-  const data = await response.json();
-  const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-  if (!rawText) {
-    return NextResponse.json(
-      { error: "AI không trả về kết quả phân tích. Vui lòng thử lại với ảnh rõ hơn." },
-      { status: 500 }
-    );
-  }
-
-  let parsedResult;
+  // 2. Tự động lấy danh sách models được hỗ trợ bởi API Key từ Google AI Studio
   try {
-    parsedResult = JSON.parse(rawText);
+    const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+    if (listRes.ok) {
+      const listData = await listRes.json();
+      if (Array.isArray(listData?.models)) {
+        const available = listData.models
+          .filter((m: any) => m.supportedGenerationMethods?.includes("generateContent"))
+          .map((m: any) => m.name.replace(/^models\//, ""));
+
+        if (available.length > 0) {
+          const flashModels = available.filter((m: string) => m.includes("flash"));
+          const proModels = available.filter((m: string) => m.includes("pro") && !m.includes("flash"));
+          const otherModels = available.filter((m: string) => !m.includes("flash") && !m.includes("pro"));
+          candidateModels = Array.from(new Set([...flashModels, ...proModels, ...otherModels, ...candidateModels]));
+        }
+      }
+    }
   } catch (err) {
-    // Attempt cleaning markdown JSON formatting if present
-    const cleaned = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
-    parsedResult = JSON.parse(cleaned);
+    console.warn("Không thể query ListModels, dùng danh sách fallback:", err);
+  }
+
+  // 3. Lần lượt thử các model cho đến khi thành công
+  let lastErrorText = "";
+  let lastStatus = 500;
+  let parsedResult = null;
+  let usedModel = "";
+
+  for (const model of candidateModels) {
+    const modelName = model.startsWith("models/") ? model : `models/${model}`;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${apiKey}`;
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts }],
+          generationConfig: {
+            response_mime_type: "application/json",
+            temperature: 0.1,
+          },
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (rawText) {
+          try {
+            parsedResult = JSON.parse(rawText);
+          } catch (err) {
+            const cleaned = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
+            parsedResult = JSON.parse(cleaned);
+          }
+          usedModel = model;
+          break; // Thành công!
+        }
+      } else {
+        lastStatus = response.status;
+        lastErrorText = await response.text();
+        if (response.status === 404) {
+          // Model không tồn tại trên account này, thử model tiếp theo
+          continue;
+        }
+        if (response.status === 400 || response.status === 403) {
+          return NextResponse.json(
+            { error: "Gemini API Key không hợp lệ hoặc đã bị khóa. Vui lòng kiểm tra lại khóa API." },
+            { status: 400 }
+          );
+        }
+      }
+    } catch (err: any) {
+      lastErrorText = err.message || String(err);
+    }
+  }
+
+  if (!parsedResult) {
+    return NextResponse.json(
+      { error: `Gemini API lỗi (${lastStatus}): ${lastErrorText || "Không tìm thấy model AI phù hợp với API Key này."}` },
+      { status: lastStatus }
+    );
   }
 
   return NextResponse.json({
     success: true,
     provider: "gemini",
+    model: usedModel,
     data: parsedResult,
   });
 }
