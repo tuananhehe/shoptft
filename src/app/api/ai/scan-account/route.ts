@@ -216,7 +216,7 @@ async function handleGroqVision(images: string[], apiKey: string) {
     {
       type: "text",
       text: `Bạn là trợ lý AI chuyên gia về game Đấu Trường Chân Lý (TFT / ĐTCL Việt Nam).
-Hãy phân tích hình ảnh và trả về DUY NHẤT chuỗi JSON (không kèm markdown):
+Hãy phân tích hình ảnh và trả về DUY NHẤT chuỗi JSON hợp lệ (không kèm markdown):
 {
   "category": "VIP",
   "code": "",
@@ -239,36 +239,96 @@ Hãy phân tích hình ảnh và trả về DUY NHẤT chuỗi JSON (không kèm
     });
   }
 
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.2-11b-vision-preview",
-      response_format: { type: "json_object" },
-      messages: [{ role: "user", content: contentArray }],
-      temperature: 0.1,
-    }),
-  });
+  let candidateModels = [
+    "llama-3.2-90b-vision-preview",
+    "meta-llama/llama-3.2-90b-vision-instruct",
+    "meta-llama/llama-3.2-11b-vision-instruct",
+    "llama-3.2-11b-vision-preview",
+  ];
 
-  if (!response.ok) {
-    const errText = await response.text();
-    return NextResponse.json(
-      { error: `Groq API lỗi: ${errText}` },
-      { status: response.status }
-    );
+  // Tự động tìm kiếm các model vision đang hoạt động trên Groq
+  try {
+    const listRes = await fetch("https://api.groq.com/openai/v1/models", {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    if (listRes.ok) {
+      const listData = await listRes.json();
+      if (Array.isArray(listData?.data)) {
+        const visionModels = listData.data
+          .filter((m: any) => m.id && (m.id.includes("vision") || m.id.includes("3.2")))
+          .map((m: any) => m.id);
+        if (visionModels.length > 0) {
+          candidateModels = Array.from(new Set([...visionModels, ...candidateModels]));
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Không thể query Groq models:", err);
   }
 
-  const data = await response.json();
-  const rawText = data?.choices?.[0]?.message?.content;
-  const parsedResult = JSON.parse(rawText);
+  let lastError = "";
+  let lastStatus = 500;
+  let parsedResult = null;
+  let usedModel = "";
+
+  for (const model of candidateModels) {
+    try {
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          response_format: { type: "json_object" },
+          messages: [{ role: "user", content: contentArray }],
+          temperature: 0.1,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const rawText = data?.choices?.[0]?.message?.content;
+        if (rawText) {
+          const cleaned = rawText
+            .replace(/```json/gi, "")
+            .replace(/```/g, "")
+            .trim();
+          const jsonStart = cleaned.indexOf("{");
+          const jsonEnd = cleaned.lastIndexOf("}");
+          if (jsonStart !== -1 && jsonEnd !== -1) {
+            parsedResult = JSON.parse(cleaned.substring(jsonStart, jsonEnd + 1));
+          } else {
+            parsedResult = JSON.parse(cleaned);
+          }
+          usedModel = model;
+          break;
+        }
+      } else {
+        lastStatus = response.status;
+        const errJson = await response.json().catch(() => null);
+        lastError = errJson?.error?.message || (await response.text().catch(() => "Unknown error"));
+        if (response.status === 400 || response.status === 404) {
+          continue;
+        }
+      }
+    } catch (err: any) {
+      lastError = err.message || String(err);
+    }
+  }
+
+  if (!parsedResult) {
+    return NextResponse.json(
+      { error: `Groq API lỗi (${lastStatus}): ${lastError}` },
+      { status: lastStatus }
+    );
+  }
 
   return NextResponse.json({
     success: true,
     provider: "groq",
-    model: "llama-3.2-11b-vision-preview",
+    model: usedModel,
     data: parsedResult,
   });
 }
