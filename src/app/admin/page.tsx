@@ -273,7 +273,10 @@ export default function AdminDashboardPage() {
     };
   }, [accounts, orders, orderStats]);
 
-  // 3. TÍNH TOÁN BỘ CHỈ SỐ LỢI NHUẬN (NGÀY, TUẦN, THÁNG, NĂM & LÃI 20% THUÊ LÂU DÀI)
+  // 3. TÍNH TOÁN BỘ CHỈ SỐ LỢI NHUẬN (CHUẨN XÁC THEO QUY TẮC CỦA SHOP TFT)
+  // - Dòng tiền chết: Chỉ ăn đúng 1 lần duy nhất 20% vào hôm bán (ngày tạo đơn). Không sinh lời về sau.
+  // - Acc sẵn trong kho (AVAILABLE): Dòng tiền đóng băng, CHƯA sinh lãi (Lãi = 0).
+  // - Acc đã cho thuê (RENTED): Tiền từ các gói thuê đó chính là LÃI.
   const profitAnalytics = useMemo(() => {
     const nowMs = Date.now();
     const oneDayMs = 24 * 60 * 60 * 1000;
@@ -284,75 +287,113 @@ export default function AdminDashboardPage() {
     // Phân loại đơn hàng hợp lệ (không tính đơn hủy)
     const validOrders = orders.filter((o) => o.status !== "CANCELLED");
 
-    // Doanh thu đơn Dòng Sống theo chu kỳ thời gian
-    const getLiveRevenueInPeriod = (msRange: number) => {
+    // Helper: Nhận diện đơn hàng vĩnh viễn / bán đứt / vô cực
+    const isDeadOrder = (o: OrderItem) =>
+      o.durationHours === -1 ||
+      o.package?.toLowerCase().includes("vĩnh viễn") ||
+      o.package?.toLowerCase().includes("vô cực");
+
+    // 1. DÒNG TIỀN CHẾT: ĂN 1 LẦN DUY NHẤT 20% VÀO NGÀY BÁN (KHÔNG SINH LỜI VỀ SAU)
+    const getDeadProfitInPeriod = (msRange: number) => {
       return validOrders
         .filter((o) => {
-          const isLive =
-            o.durationHours !== -1 &&
-            !o.package?.toLowerCase().includes("vĩnh viễn") &&
-            !o.package?.toLowerCase().includes("vô cực");
-          if (!isLive) return false;
-          if (!o.createdAt) return true;
+          if (!isDeadOrder(o)) return false;
+          if (!o.createdAt) return false;
           const t = new Date(o.createdAt).getTime();
-          return isNaN(t) || nowMs - t <= msRange;
+          return !isNaN(t) && nowMs - t <= msRange;
         })
-        .reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+        .reduce((sum, o) => sum + Math.round((Number(o.amount) || 0) * deadProfitRate), 0);
     };
 
-    // Doanh thu đơn Dòng Chết theo chu kỳ thời gian
     const getDeadRevenueInPeriod = (msRange: number) => {
       return validOrders
         .filter((o) => {
-          const isDead =
-            o.durationHours === -1 ||
-            o.package?.toLowerCase().includes("vĩnh viễn") ||
-            o.package?.toLowerCase().includes("vô cực");
-          if (!isDead) return false;
-          if (!o.createdAt) return true;
+          if (!isDeadOrder(o)) return false;
+          if (!o.createdAt) return false;
           const t = new Date(o.createdAt).getTime();
-          return isNaN(t) || nowMs - t <= msRange;
+          return !isNaN(t) && nowMs - t <= msRange;
         })
         .reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
     };
 
-    // Ước tính công suất doanh thu luân chuyển hàng ngày từ kho acc đang cho thuê
-    // VIP: ~15.000đ/giờ * 8h/ngày = 120.000đ/ngày
-    // Clone: ~150.000đ/tháng / 30 = 5.000đ/ngày
-    const rentedVipCount = accounts.filter(
-      (a) => a.category === "VIP" && a.status === "RENTED" && !a.isPermanentRental
-    ).length;
-    const rentedCloneCount = accounts.filter(
-      (a) => a.category === "CLONE" && a.status === "RENTED" && !a.isPermanentRental
-    ).length;
-    const dailyEstimatedLiveRental = rentedVipCount * 120000 + rentedCloneCount * 5000;
+    // 2. DÒNG TIỀN SỐNG: CÁC GÓI THUÊ ĐÃ CHO THUÊ CHÍNH LÀ LÃI
+    const isLiveOrder = (o: OrderItem) => !isDeadOrder(o);
 
-    // 1. DOANH THU DÒNG SỐNG (LIVE REVENUE)
-    const dayLiveRevenue = Math.max(getLiveRevenueInPeriod(oneDayMs), dailyEstimatedLiveRental);
-    const weekLiveRevenue = Math.max(getLiveRevenueInPeriod(sevenDaysMs), dayLiveRevenue * 7);
-    const monthLiveRevenue = Math.max(getLiveRevenueInPeriod(thirtyDaysMs), dayLiveRevenue * 30);
-    const yearLiveRevenue = Math.max(getLiveRevenueInPeriod(oneYearMs), dayLiveRevenue * 365);
+    const getLiveOrdersProfitInPeriod = (msRange: number) => {
+      return validOrders
+        .filter((o) => {
+          if (!isLiveOrder(o)) return false;
+          if (!o.createdAt) return false;
+          const t = new Date(o.createdAt).getTime();
+          return !isNaN(t) && nowMs - t <= msRange;
+        })
+        .reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+    };
 
-    // Biên lãi Dòng Sống: 80% (chi phí vận hành/khấu hao 20%)
-    const LIVE_PROFIT_MARGIN = 0.80;
-    const dayLiveProfit = Math.round(dayLiveRevenue * LIVE_PROFIT_MARGIN);
-    const weekLiveProfit = Math.round(weekLiveRevenue * LIVE_PROFIT_MARGIN);
-    const monthLiveProfit = Math.round(monthLiveRevenue * LIVE_PROFIT_MARGIN);
-    const yearLiveProfit = Math.round(yearLiveRevenue * LIVE_PROFIT_MARGIN);
+    // Lãi từ các acc đang có trạng thái RENTED thực tế hiện tại trong kho (gói thuê đang chạy)
+    const currentlyRentedAccounts = accounts.filter(
+      (a) => a.status === "RENTED" && !a.isPermanentRental
+    );
 
-    // 2. DÒNG TIỀN CHẾT: MẶC ĐỊNH LÃI 20% (deadProfitRate) trên Toàn Bộ Vốn Kho Vô Cực + Đơn Vĩnh Viễn
-    const deadBaseCapital = cashFlowStats.deadAccountsValue + cashFlowStats.deadOrdersRevenue;
-    const yearDeadProfit = Math.round(deadBaseCapital * deadProfitRate);
-    const monthDeadProfit = Math.round(yearDeadProfit / 12);
-    const weekDeadProfit = Math.round(yearDeadProfit / 52);
-    const dayDeadProfit = Math.round(yearDeadProfit / 365);
+    const currentLiveRentalsValue = currentlyRentedAccounts.reduce((sum, a) => {
+      if (a.category === "VIP") {
+        // Gói thuê VIP theo giờ đang chạy (tối thiểu 1 gói 4h = 60.000đ)
+        return sum + Math.max((Number(a.hourlyPrice) || 15000) * 4, 30000);
+      } else {
+        // Acc Clone: Gói thuê tháng / chu kỳ
+        return sum + (Number(a.monthlyPrice) || Number(a.periodPrice) || 150000);
+      }
+    }, 0);
 
-    const yearDeadRevenue = deadBaseCapital;
-    const monthDeadRevenue = Math.round(yearDeadRevenue / 12);
-    const weekDeadRevenue = Math.round(yearDeadRevenue / 52);
-    const dayDeadRevenue = Math.round(yearDeadRevenue / 365);
+    // Tính lãi dòng sống cho từng mốc thời gian:
+    // - Ngày (24h): Tiền các đơn thuê trong 24h qua hoặc tổng giá trị các gói acc đang thuê
+    const dayLiveOrdersProfit = getLiveOrdersProfitInPeriod(oneDayMs);
+    const dayLiveProfit = Math.max(dayLiveOrdersProfit, currentLiveRentalsValue);
+    const dayLiveRevenue = dayLiveProfit;
 
-    // 3. TỔNG LỢI NHUẬN & DOANH THU TOÀN DIỆN TỪNG KỲ
+    // - Tuần (7N): Tiền các đơn thuê trong 7 ngày
+    const weekLiveOrdersProfit = getLiveOrdersProfitInPeriod(sevenDaysMs);
+    const weekLiveProfit = Math.max(weekLiveOrdersProfit, dayLiveProfit * 7);
+    const weekLiveRevenue = weekLiveProfit;
+
+    // - Tháng (30N): Tiền các đơn thuê trong 30 ngày
+    const monthLiveOrdersProfit = getLiveOrdersProfitInPeriod(thirtyDaysMs);
+    const monthLiveProfit = Math.max(monthLiveOrdersProfit, dayLiveProfit * 30);
+    const monthLiveRevenue = monthLiveProfit;
+
+    // - Năm (365N): Tiền các đơn thuê trong năm
+    const yearLiveOrdersProfit = getLiveOrdersProfitInPeriod(oneYearMs);
+    const yearLiveProfit = Math.max(yearLiveOrdersProfit, dayLiveProfit * 365);
+    const yearLiveRevenue = yearLiveProfit;
+
+    // 3. TÍNH LÃI DÒNG CHẾT (CHỈ ĂN 1 LẦN 20% VÀO HÔM BÁN)
+    let dayDeadProfit = getDeadProfitInPeriod(oneDayMs);
+    let dayDeadRevenue = getDeadRevenueInPeriod(oneDayMs);
+
+    let weekDeadProfit = getDeadProfitInPeriod(sevenDaysMs);
+    let weekDeadRevenue = getDeadRevenueInPeriod(sevenDaysMs);
+
+    let monthDeadProfit = getDeadProfitInPeriod(thirtyDaysMs);
+    let monthDeadRevenue = getDeadRevenueInPeriod(thirtyDaysMs);
+
+    let yearDeadProfit = getDeadProfitInPeriod(oneYearMs);
+    let yearDeadRevenue = getDeadRevenueInPeriod(oneYearMs);
+
+    // Nếu chưa có đơn hàng riêng lẻ lưu trong DB, nhưng có acc gắn cờ vĩnh viễn trong kho (chốt bán):
+    const permanentAccounts = accounts.filter((a) => a.isPermanentRental);
+    const permanentAccountsValue = permanentAccounts.reduce(
+      (sum, a) => sum + (Number(a.accountValue) || Number(a.price) || 850000),
+      0
+    );
+    if (yearDeadRevenue === 0 && permanentAccountsValue > 0) {
+      // Ghi nhận 20% 1 lần duy nhất từ các acc đã chốt bán vĩnh viễn
+      yearDeadRevenue = permanentAccountsValue;
+      yearDeadProfit = Math.round(permanentAccountsValue * deadProfitRate);
+      monthDeadRevenue = yearDeadRevenue;
+      monthDeadProfit = yearDeadProfit;
+    }
+
+    // 4. TỔNG LỢI NHUẬN TỪNG KỲ
     const dayTotalProfit = dayLiveProfit + dayDeadProfit;
     const weekTotalProfit = weekLiveProfit + weekDeadProfit;
     const monthTotalProfit = monthLiveProfit + monthDeadProfit;
@@ -363,11 +404,18 @@ export default function AdminDashboardPage() {
     const monthTotalRevenue = monthLiveRevenue + monthDeadRevenue;
     const yearTotalRevenue = yearLiveRevenue + yearDeadRevenue;
 
+    // 5. VỐN ĐÓNG BĂNG TRONG KHO (Acc AVAILABLE - Chưa sinh lãi)
+    const frozenAccounts = accounts.filter((a) => a.status === "AVAILABLE");
+    const frozenCapital = frozenAccounts.reduce(
+      (sum, a) => sum + (Number(a.accountValue) || Number(a.price) || (a.category === "VIP" ? 850000 : 150000)),
+      0
+    );
+
     // Chi tiết theo kỳ đang chọn (profitPeriod)
     const currentPeriodData = {
       DAY: {
         label: "Hôm Nay (24 Giờ)",
-        subLabel: "Ước tính lợi nhuận ngày hôm nay",
+        subLabel: "Lợi nhuận các gói thuê phát sinh trong hôm nay",
         liveProfit: dayLiveProfit,
         deadProfit: dayDeadProfit,
         totalProfit: dayTotalProfit,
@@ -376,11 +424,11 @@ export default function AdminDashboardPage() {
         totalRevenue: dayTotalRevenue,
         liveShare: dayTotalProfit > 0 ? Math.round((dayLiveProfit / dayTotalProfit) * 100) : 100,
         deadShare: dayTotalProfit > 0 ? Math.round((dayDeadProfit / dayTotalProfit) * 100) : 0,
-        margin: dayTotalRevenue > 0 ? Math.round((dayTotalProfit / dayTotalRevenue) * 100) : 0,
+        margin: dayTotalRevenue > 0 ? Math.round((dayTotalProfit / dayTotalRevenue) * 100) : 100,
       },
       WEEK: {
         label: "Tuần Này (7 Ngày)",
-        subLabel: "Lợi nhuận luân chuyển trong 7 ngày",
+        subLabel: "Lợi nhuận các gói thuê phát sinh trong 7 ngày",
         liveProfit: weekLiveProfit,
         deadProfit: weekDeadProfit,
         totalProfit: weekTotalProfit,
@@ -389,11 +437,11 @@ export default function AdminDashboardPage() {
         totalRevenue: weekTotalRevenue,
         liveShare: weekTotalProfit > 0 ? Math.round((weekLiveProfit / weekTotalProfit) * 100) : 100,
         deadShare: weekTotalProfit > 0 ? Math.round((weekDeadProfit / weekTotalProfit) * 100) : 0,
-        margin: weekTotalRevenue > 0 ? Math.round((weekTotalProfit / weekTotalRevenue) * 100) : 0,
+        margin: weekTotalRevenue > 0 ? Math.round((weekTotalProfit / weekTotalRevenue) * 100) : 100,
       },
       MONTH: {
         label: "Tháng Này (30 Ngày)",
-        subLabel: "Chu kỳ dòng tiền hàng tháng tiêu chuẩn",
+        subLabel: "Lợi nhuận chu kỳ tháng tiêu chuẩn",
         liveProfit: monthLiveProfit,
         deadProfit: monthDeadProfit,
         totalProfit: monthTotalProfit,
@@ -402,11 +450,11 @@ export default function AdminDashboardPage() {
         totalRevenue: monthTotalRevenue,
         liveShare: monthTotalProfit > 0 ? Math.round((monthLiveProfit / monthTotalProfit) * 100) : 100,
         deadShare: monthTotalProfit > 0 ? Math.round((monthDeadProfit / monthTotalProfit) * 100) : 0,
-        margin: monthTotalRevenue > 0 ? Math.round((monthTotalProfit / monthTotalRevenue) * 100) : 0,
+        margin: monthTotalRevenue > 0 ? Math.round((monthTotalProfit / monthTotalRevenue) * 100) : 100,
       },
       YEAR: {
         label: "Cả Năm (365 Ngày)",
-        subLabel: "Toàn bộ lợi nhuận năm & thu hồi vốn",
+        subLabel: "Toàn bộ lợi nhuận năm từ gói thuê & chốt bán 20%",
         liveProfit: yearLiveProfit,
         deadProfit: yearDeadProfit,
         totalProfit: yearTotalProfit,
@@ -415,13 +463,14 @@ export default function AdminDashboardPage() {
         totalRevenue: yearTotalRevenue,
         liveShare: yearTotalProfit > 0 ? Math.round((yearLiveProfit / yearTotalProfit) * 100) : 100,
         deadShare: yearTotalProfit > 0 ? Math.round((yearDeadProfit / yearTotalProfit) * 100) : 0,
-        margin: yearTotalRevenue > 0 ? Math.round((yearTotalProfit / yearTotalRevenue) * 100) : 0,
+        margin: yearTotalRevenue > 0 ? Math.round((yearTotalProfit / yearTotalRevenue) * 100) : 100,
       },
     }[profitPeriod];
 
     return {
       deadProfitRate,
-      deadBaseCapital,
+      frozenCapital,
+      frozenAccountsCount: frozenAccounts.length,
       day: {
         profit: dayTotalProfit,
         liveProfit: dayLiveProfit,
@@ -429,7 +478,7 @@ export default function AdminDashboardPage() {
         revenue: dayTotalRevenue,
         liveRevenue: dayLiveRevenue,
         deadRevenue: dayDeadRevenue,
-        margin: dayTotalRevenue > 0 ? Math.round((dayTotalProfit / dayTotalRevenue) * 100) : 0,
+        margin: dayTotalRevenue > 0 ? Math.round((dayTotalProfit / dayTotalRevenue) * 100) : 100,
       },
       week: {
         profit: weekTotalProfit,
@@ -438,7 +487,7 @@ export default function AdminDashboardPage() {
         revenue: weekTotalRevenue,
         liveRevenue: weekLiveRevenue,
         deadRevenue: weekDeadRevenue,
-        margin: weekTotalRevenue > 0 ? Math.round((weekTotalProfit / weekTotalRevenue) * 100) : 0,
+        margin: weekTotalRevenue > 0 ? Math.round((weekTotalProfit / weekTotalRevenue) * 100) : 100,
       },
       month: {
         profit: monthTotalProfit,
@@ -447,7 +496,7 @@ export default function AdminDashboardPage() {
         revenue: monthTotalRevenue,
         liveRevenue: monthLiveRevenue,
         deadRevenue: monthDeadRevenue,
-        margin: monthTotalRevenue > 0 ? Math.round((monthTotalProfit / monthTotalRevenue) * 100) : 0,
+        margin: monthTotalRevenue > 0 ? Math.round((monthTotalProfit / monthTotalRevenue) * 100) : 100,
       },
       year: {
         profit: yearTotalProfit,
@@ -456,11 +505,11 @@ export default function AdminDashboardPage() {
         revenue: yearTotalRevenue,
         liveRevenue: yearLiveRevenue,
         deadRevenue: yearDeadRevenue,
-        margin: yearTotalRevenue > 0 ? Math.round((yearTotalProfit / yearTotalRevenue) * 100) : 0,
+        margin: yearTotalRevenue > 0 ? Math.round((yearTotalProfit / yearTotalRevenue) * 100) : 100,
       },
       currentPeriodData,
     };
-  }, [accounts, orders, cashFlowStats, deadProfitRate, profitPeriod]);
+  }, [accounts, orders, deadProfitRate, profitPeriod]);
 
   // 4. THAO TÁC THU HỒI TÀI KHOẢN (ĐỔI VỀ AVAILABLE)
   const handleReclaimAccount = async (account: DashboardAccountItem) => {
@@ -708,7 +757,7 @@ export default function AdminDashboardPage() {
               <h3 className="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-1">
                 <span>Acc Thuê Có Hạn</span>
                 <span className="text-[10px] px-2 py-0.2 rounded-md bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">
-                  Xoay Vòng
+                  Gói Thuê = Lãi
                 </span>
               </h3>
             </div>
@@ -730,13 +779,13 @@ export default function AdminDashboardPage() {
             <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100">
               <span className="text-[10px] font-bold text-emerald-700 block uppercase">Đang Cho Thuê</span>
               <strong className="font-mono font-black text-emerald-900 text-sm">
-                {cashFlowStats.liveRented} Acc (Lấp đầy {cashFlowStats.liveFillRate}%)
+                {cashFlowStats.liveRented} Acc (Sinh Lãi Gói)
               </strong>
             </div>
             <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100">
-              <span className="text-[10px] font-bold text-emerald-700 block uppercase">Sẵn Sàng Trong Kho</span>
-              <strong className="font-mono font-black text-emerald-900 text-sm">
-                {cashFlowStats.liveAvailable} Acc Chờ Khách
+              <span className="text-[10px] font-bold text-slate-500 block uppercase">❄️ Vốn Đóng Băng</span>
+              <strong className="font-mono font-black text-slate-700 text-sm">
+                {cashFlowStats.liveAvailable} Acc Chưa Sinh Lãi
               </strong>
             </div>
           </div>
@@ -753,9 +802,9 @@ export default function AdminDashboardPage() {
                 </span>
               </div>
               <h3 className="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-1">
-                <span>Thuê Vĩnh Viễn / Vô Cực</span>
+                <span>Thuê Lâu Dài / Vô Cực</span>
                 <span className="text-[10px] px-2 py-0.2 rounded-md bg-purple-100 text-purple-800 font-bold border border-purple-200">
-                  Thu 1 Lần
+                  Lãi 20% 1 Lần
                 </span>
               </h3>
             </div>
@@ -781,9 +830,9 @@ export default function AdminDashboardPage() {
               </strong>
             </div>
             <div className="p-2.5 rounded-xl bg-purple-50/70 border border-purple-100">
-              <span className="text-[10px] font-bold text-purple-700 block uppercase">Tỷ Trọng Cố Định</span>
+              <span className="text-[10px] font-bold text-purple-700 block uppercase">Quy Tắc Lợi Nhuận</span>
               <strong className="font-mono font-black text-purple-900 text-sm">
-                {cashFlowStats.deadPercent}% Tổng Vốn
+                {(deadProfitRate * 100).toFixed(0)}% Lãi Lúc Bán
               </strong>
             </div>
           </div>
@@ -805,7 +854,10 @@ export default function AdminDashboardPage() {
               </span>
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[11px] font-black border border-purple-200">
                 <Percent className="w-3 h-3 text-purple-600" />
-                <span>Mặc định thuê lâu dài lãi {(deadProfitRate * 100).toFixed(0)}%</span>
+                <span>Thuê lâu dài lãi {(deadProfitRate * 100).toFixed(0)}% (1 lần khi bán)</span>
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[11px] font-bold border border-slate-200">
+                <span>❄️ Acc sẵn trong kho = Vốn đóng băng</span>
               </span>
             </div>
             <h2 className="text-lg sm:text-xl font-black text-slate-900 font-gaming tracking-tight flex items-center gap-2">
@@ -813,7 +865,7 @@ export default function AdminDashboardPage() {
               <span>Bảng Lợi Nhuận Ngày • Tuần • Tháng • Năm</span>
             </h2>
             <p className="text-xs text-slate-500 max-w-2xl font-medium">
-              Báo cáo hiệu suất tài chính theo chu kỳ với quy tắc: <strong className="text-purple-700 font-bold">Thuê lâu dài (Vô cực ∞) lãi {(deadProfitRate * 100).toFixed(0)}%</strong> cố định trên vốn, kết hợp <strong className="text-emerald-700 font-bold">Thuê ngắn hạn biên lãi xoay vòng 80%</strong>.
+              Báo cáo dòng tiền sinh lời chuẩn xác: <strong className="text-purple-700 font-bold">Dòng chết chỉ ăn 1 lần {(deadProfitRate * 100).toFixed(0)}% vào hôm bán</strong> (không sinh lời về sau), <strong className="text-slate-700 font-bold">Acc sẵn trong kho là vốn đóng băng (chưa sinh lãi)</strong>, và <strong className="text-emerald-700 font-bold">Acc đã cho thuê thì gói thuê chính là lãi thực thu</strong>.
             </p>
           </div>
 
@@ -821,7 +873,7 @@ export default function AdminDashboardPage() {
           <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-200/80 flex-shrink-0">
             <div className="flex items-center gap-1.5 px-2 text-[11px] font-bold text-slate-600">
               <Sliders className="w-3.5 h-3.5 text-slate-400" />
-              <span className="hidden sm:inline">Biên Lãi Lâu Dài:</span>
+              <span className="hidden sm:inline">Lãi Thuê Lâu Dài:</span>
             </div>
             {[
               { label: "15%", rate: 0.15 },
@@ -834,7 +886,7 @@ export default function AdminDashboardPage() {
                 type="button"
                 onClick={() => {
                   setDeadProfitRate(preset.rate);
-                  toast.success(`Đã cập nhật tỷ suất lãi thuê lâu dài: ${(preset.rate * 100).toFixed(0)}%`);
+                  toast.success(`Đã cập nhật tỷ suất lãi thuê lâu dài: ${(preset.rate * 100).toFixed(0)}% (1 lần khi bán)`);
                 }}
                 className={`px-2.5 py-1.5 rounded-xl font-bold text-[11px] transition-all cursor-pointer font-mono ${
                   deadProfitRate === preset.rate
@@ -845,6 +897,28 @@ export default function AdminDashboardPage() {
                 {preset.label}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* FROZEN CAPITAL NOTICE BANNER (VỐN ĐÓNG BĂNG CHƯA SINH LÃI) */}
+        <div className="p-3 sm:p-4 rounded-2xl bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="text-xl">❄️</span>
+            <div>
+              <span className="font-bold text-slate-900 block">
+                Dòng Vốn Đang Đóng Băng Trong Kho (Chưa Sinh Lãi):
+              </span>
+              <span className="text-[11px] text-slate-500 font-medium">
+                Hiện có <strong className="text-slate-800 font-bold">{profitAnalytics.frozenAccountsCount} tài khoản</strong> đang ở trạng thái sẵn sàng, vốn chờ khách thuê để bắt đầu luân chuyển tạo lợi nhuận.
+              </span>
+            </div>
+          </div>
+
+          <div className="text-left sm:text-right flex-shrink-0">
+            <span className="text-[10px] font-bold text-slate-400 block uppercase">Vốn Kho Đóng Băng</span>
+            <strong className="text-sm sm:text-base font-black text-slate-900 font-mono">
+              {profitAnalytics.frozenCapital.toLocaleString("vi-VN")}đ
+            </strong>
           </div>
         </div>
 
@@ -865,7 +939,7 @@ export default function AdminDashboardPage() {
                 <span>1. HÔM NAY (24H)</span>
               </span>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200/80 text-amber-900">
-                Biên Lãi {profitAnalytics.day.margin}%
+                Thu Nhập Ngày
               </span>
             </div>
 
@@ -880,11 +954,11 @@ export default function AdminDashboardPage() {
 
             <div className="pt-2 border-t border-amber-200/60 space-y-1 text-[11px]">
               <div className="flex items-center justify-between text-emerald-700 font-bold">
-                <span>🟢 Lãi Dòng Sống:</span>
+                <span>🟢 Lãi Gói Thuê:</span>
                 <span className="font-mono">+{profitAnalytics.day.liveProfit.toLocaleString("vi-VN")}đ</span>
               </div>
               <div className="flex items-center justify-between text-purple-700 font-bold">
-                <span>🟣 Lãi Dòng Chết ({(deadProfitRate * 100).toFixed(0)}%):</span>
+                <span>🟣 Lãi Bán 20% (1 Lần):</span>
                 <span className="font-mono">+{profitAnalytics.day.deadProfit.toLocaleString("vi-VN")}đ</span>
               </div>
             </div>
@@ -905,7 +979,7 @@ export default function AdminDashboardPage() {
                 <span>2. TUẦN NÀY (7N)</span>
               </span>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-200/80 text-teal-900">
-                Biên Lãi {profitAnalytics.week.margin}%
+                Thu Nhập Tuần
               </span>
             </div>
 
@@ -920,11 +994,11 @@ export default function AdminDashboardPage() {
 
             <div className="pt-2 border-t border-teal-200/60 space-y-1 text-[11px]">
               <div className="flex items-center justify-between text-emerald-700 font-bold">
-                <span>🟢 Lãi Dòng Sống:</span>
+                <span>🟢 Lãi Gói Thuê:</span>
                 <span className="font-mono">+{profitAnalytics.week.liveProfit.toLocaleString("vi-VN")}đ</span>
               </div>
               <div className="flex items-center justify-between text-purple-700 font-bold">
-                <span>🟣 Lãi Dòng Chết ({(deadProfitRate * 100).toFixed(0)}%):</span>
+                <span>🟣 Lãi Bán 20% (1 Lần):</span>
                 <span className="font-mono">+{profitAnalytics.week.deadProfit.toLocaleString("vi-VN")}đ</span>
               </div>
             </div>
@@ -960,11 +1034,11 @@ export default function AdminDashboardPage() {
 
             <div className="pt-2 border-t border-orange-200/70 space-y-1 text-[11px]">
               <div className="flex items-center justify-between text-emerald-700 font-bold">
-                <span>🟢 Lãi Dòng Sống:</span>
+                <span>🟢 Lãi Gói Thuê:</span>
                 <span className="font-mono">+{profitAnalytics.month.liveProfit.toLocaleString("vi-VN")}đ</span>
               </div>
               <div className="flex items-center justify-between text-purple-700 font-bold">
-                <span>🟣 Lãi Dòng Chết ({(deadProfitRate * 100).toFixed(0)}%):</span>
+                <span>🟣 Lãi Bán 20% (1 Lần):</span>
                 <span className="font-mono">+{profitAnalytics.month.deadProfit.toLocaleString("vi-VN")}đ</span>
               </div>
             </div>
@@ -985,7 +1059,7 @@ export default function AdminDashboardPage() {
                 <span>4. CẢ NĂM (365N)</span>
               </span>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-200/80 text-purple-900">
-                Biên Lãi {profitAnalytics.year.margin}%
+                Lợi Nhuận Năm
               </span>
             </div>
 
@@ -1000,11 +1074,11 @@ export default function AdminDashboardPage() {
 
             <div className="pt-2 border-t border-purple-200/60 space-y-1 text-[11px]">
               <div className="flex items-center justify-between text-emerald-700 font-bold">
-                <span>🟢 Lãi Dòng Sống:</span>
+                <span>🟢 Lãi Gói Thuê:</span>
                 <span className="font-mono">+{profitAnalytics.year.liveProfit.toLocaleString("vi-VN")}đ</span>
               </div>
               <div className="flex items-center justify-between text-purple-700 font-bold">
-                <span>🟣 Lãi Dòng Chết ({(deadProfitRate * 100).toFixed(0)}%):</span>
+                <span>🟣 Lãi Bán 20% (1 Lần):</span>
                 <span className="font-mono">+{profitAnalytics.year.deadProfit.toLocaleString("vi-VN")}đ</span>
               </div>
             </div>
@@ -1048,11 +1122,11 @@ export default function AdminDashboardPage() {
             <div className="flex items-center justify-between text-xs font-mono font-bold">
               <span className="text-emerald-400 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
-                <span>Dòng Sống: {profitAnalytics.currentPeriodData.liveShare}% (+{profitAnalytics.currentPeriodData.liveProfit.toLocaleString("vi-VN")}đ)</span>
+                <span>Lãi Gói Thuê (Sống): {profitAnalytics.currentPeriodData.liveShare}% (+{profitAnalytics.currentPeriodData.liveProfit.toLocaleString("vi-VN")}đ)</span>
               </span>
               <span className="text-purple-300 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-purple-400 inline-block" />
-                <span>Dòng Chết ({(deadProfitRate * 100).toFixed(0)}% Lãi): {profitAnalytics.currentPeriodData.deadShare}% (+{profitAnalytics.currentPeriodData.deadProfit.toLocaleString("vi-VN")}đ)</span>
+                <span>Lãi Chốt Bán (Chết {(deadProfitRate * 100).toFixed(0)}% 1 lần): {profitAnalytics.currentPeriodData.deadShare}% (+{profitAnalytics.currentPeriodData.deadProfit.toLocaleString("vi-VN")}đ)</span>
               </span>
             </div>
 
@@ -1072,37 +1146,37 @@ export default function AdminDashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 text-xs">
             <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700/60 space-y-1">
               <span className="text-[10px] font-bold text-emerald-400 uppercase block font-gaming">
-                🟢 Dòng Tiền Sống (Xoay Vòng)
+                🟢 Lãi Gói Thuê (Acc Đang Cho Thuê)
               </span>
               <div className="font-mono text-white font-extrabold text-sm">
                 +{profitAnalytics.currentPeriodData.liveProfit.toLocaleString("vi-VN")}đ
               </div>
               <p className="text-[10px] text-slate-400 leading-relaxed">
-                Biên lãi 80% từ doanh thu {profitAnalytics.currentPeriodData.liveRevenue.toLocaleString("vi-VN")}đ luân chuyển liên tục.
+                Toàn bộ tiền từ các gói thuê giờ/ngày/tháng chính là khoản lãi thực thu từ acc đang chạy.
               </p>
             </div>
 
             <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700/60 space-y-1">
               <span className="text-[10px] font-bold text-purple-400 uppercase block font-gaming">
-                🟣 Dòng Tiền Chết (Lâu Dài {(deadProfitRate * 100).toFixed(0)}%)
+                🟣 Lãi Chốt Bán (Dòng Chết {(deadProfitRate * 100).toFixed(0)}%)
               </span>
               <div className="font-mono text-white font-extrabold text-sm">
                 +{profitAnalytics.currentPeriodData.deadProfit.toLocaleString("vi-VN")}đ
               </div>
               <p className="text-[10px] text-slate-400 leading-relaxed">
-                {(deadProfitRate * 100).toFixed(0)}% cố định trên tổng vốn {cashFlowStats.deadAccountsValue.toLocaleString("vi-VN")}đ acc vô cực.
+                Chỉ ăn đúng 1 lần duy nhất {(deadProfitRate * 100).toFixed(0)}% vào ngày bán chốt acc, không sinh lời về sau.
               </p>
             </div>
 
             <div className="p-3 rounded-xl bg-gradient-to-br from-orange-950/60 to-slate-800 border border-orange-500/30 space-y-1">
               <span className="text-[10px] font-bold text-orange-400 uppercase block font-gaming">
-                💎 Tổng Lợi Nhuận Thu Về
+                💎 Tổng Lợi Nhuận Thực Thu
               </span>
               <div className="font-mono text-orange-400 font-extrabold text-sm">
                 +{profitAnalytics.currentPeriodData.totalProfit.toLocaleString("vi-VN")}đ
               </div>
               <p className="text-[10px] text-slate-300 leading-relaxed">
-                Tỷ suất sinh lời toàn hệ thống đạt <strong className="text-white font-bold">{profitAnalytics.currentPeriodData.margin}%</strong> trên tổng doanh thu.
+                Tổng lợi nhuận thu về trong chu kỳ đã chọn từ các gói thuê và các đơn chốt bán.
               </p>
             </div>
           </div>
@@ -1112,10 +1186,11 @@ export default function AdminDashboardPage() {
         <div className="p-3.5 rounded-2xl bg-orange-50/60 border border-orange-200/60 flex items-start gap-2.5 text-xs text-slate-600">
           <Info className="w-4 h-4 text-orange-600 flex-shrink-0 mt-0.5" />
           <div className="space-y-0.5">
-            <span className="font-bold text-slate-900 block">Quy tắc tính toán lợi nhuận chuẩn của Shop TFT:</span>
+            <span className="font-bold text-slate-900 block">Quy tắc tính toán biên lợi nhuận chuẩn của Shop TFT:</span>
             <p className="text-[11px] text-slate-600 leading-relaxed">
-              • <strong>Acc cho thuê lâu dài (Dòng tiền chết - Vô cực ∞):</strong> Lãi mặc định <strong className="text-purple-700 font-bold">{(deadProfitRate * 100).toFixed(0)}%</strong> tính trên toàn bộ giá trị acc và đơn hàng vĩnh viễn (thu hồi vốn ngay).<br />
-              • <strong>Acc cho thuê có hạn (Dòng tiền sống):</strong> Biên lợi nhuận trung bình đạt <strong className="text-emerald-700 font-bold">80%</strong> trên doanh thu cho thuê theo giờ/ngày/tháng sau khi trừ chi phí vận hành và bảo quản acc.
+              • <strong>Dòng tiền chết (Acc cho thuê lâu dài / Vô cực ∞ / Bán đứt):</strong> Chỉ ăn đúng 1 lần duy nhất <strong className="text-purple-700 font-bold">{(deadProfitRate * 100).toFixed(0)}%</strong> vào hôm bán/chốt đơn. Tài sản đã bán đứt không còn sinh lời về sau.<br />
+              • <strong>Acc sẵn trong kho (Trạng thái Sẵn Sàng):</strong> Là dòng vốn đang đóng băng, <strong className="text-slate-800 font-bold">chưa sinh lãi</strong> cho đến khi phát sinh người thuê.<br />
+              • <strong>Acc đã cho thuê (Trạng thái Đang Thuê):</strong> Toàn bộ số tiền từ các gói thuê theo giờ, ngày, đêm, tuần, tháng chính là <strong className="text-emerald-700 font-bold">LÃI THỰC TẾ</strong> thu về.
             </p>
           </div>
         </div>
