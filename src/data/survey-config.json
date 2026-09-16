@@ -46,7 +46,7 @@
       "id": "q_thue_criteria",
       "section": "Khảo Sát: Thuê Acc TFT",
       "branch": "THUE_ACC",
-      "title": "2. Tiêu chí quan nghiệp nhất khi bạn chọn thuê tài khoản tại Shop?",
+      "title": "2. Tiêu chí quan trọng nhất khi bạn chọn thuê tài khoản tại Shop?",
       "subtitle": "(Có thể chọn nhiều mục)",
       "type": "MULTIPLE_CHOICE",
       "required": true,

@@ -13,7 +13,6 @@ import {
 } from "@/utils/surveys-service";
 import toast from "react-hot-toast";
 import {
-  ClipboardCheck,
   Star,
   CheckCircle2,
   Sparkles,
@@ -26,23 +25,35 @@ import {
   ArrowLeft,
   ArrowRight,
   MessageCircle,
-  HelpCircle,
   Zap,
   Gamepad2,
   RotateCcw,
   User,
   Phone,
+  Clock,
+  ThumbsUp,
 } from "lucide-react";
 
 type BranchType = "THUE_ACC" | "GDTG" | "CAY_THUE";
 
 const BRANCH_CONFIG: Record<
   BranchType,
-  { title: string; subtitle: string; icon: any; color: string; badgeBg: string; borderHover: string }
+  {
+    title: string;
+    shortTitle: string;
+    subtitle: string;
+    icon: any;
+    color: string;
+    badgeBg: string;
+    borderHover: string;
+    tag: string;
+  }
 > = {
   THUE_ACC: {
     title: "Thuê Acc TFT",
-    subtitle: "Tướng Tí Nị, Sân Đấu, Bậc Rank, Tốc độ giao acc...",
+    shortTitle: "Thuê Acc",
+    subtitle: "Tướng Tí Nị, Sân đấu Thần Thoại, gói cày đêm...",
+    tag: "⚡ Thuê nhanh",
     icon: Gamepad2,
     color: "from-orange-500 to-amber-500",
     badgeBg: "bg-orange-100 text-orange-700 border-orange-200",
@@ -50,7 +61,9 @@ const BRANCH_CONFIG: Record<
   },
   GDTG: {
     title: "GDTG TFT (Giao Dịch Trung Gian)",
-    subtitle: "Độ an toàn, check mail ẩn, phí trung gian, giải ngân tiền...",
+    shortTitle: "GDTG",
+    subtitle: "Check mail ẩn, Riot ID, giải ngân an toàn...",
+    tag: "🛡️ An toàn 100%",
     icon: ShieldCheck,
     color: "from-blue-600 to-cyan-500",
     badgeBg: "bg-blue-100 text-blue-700 border-blue-200",
@@ -58,12 +71,22 @@ const BRANCH_CONFIG: Record<
   },
   CAY_THUE: {
     title: "Cày Thuê TFT & Coaching",
-    subtitle: "Mốc rank mục tiêu, bảo mật, coaching 1-1, tiến độ cày...",
+    shortTitle: "Cày Thuê",
+    subtitle: "Rank Cao Thủ / Thách Đấu, Coaching 1-1...",
+    tag: "⚔️ Thách Đấu",
     icon: Zap,
     color: "from-purple-600 to-pink-500",
     badgeBg: "bg-purple-100 text-purple-700 border-purple-200",
     borderHover: "hover:border-purple-500 hover:ring-2 hover:ring-purple-400/20",
   },
+};
+
+const STAR_LABELS: Record<number, string> = {
+  1: "1 Sao: Rất không hài lòng 🙁",
+  2: "2 Sao: Chưa hài lòng 😐",
+  3: "3 Sao: Bình thường / Tạm ổn 🙂",
+  4: "4 Sao: Rất hài lòng & Chu đáo 😊",
+  5: "5 Sao: Cực kỳ tuyệt vời! 🌟",
 };
 
 export default function KhaoSatPage() {
@@ -127,9 +150,9 @@ export default function KhaoSatPage() {
 
   // Percentage calculation
   const progressPercent = useMemo(() => {
-    if (!selectedBranch || currentStep === 0) return 10;
+    if (!selectedBranch || currentStep === 0) return 0;
     if (isFinalStep) return 100;
-    return Math.round(((currentStep) / (totalQuestions + 1)) * 100);
+    return Math.round((currentStep / (totalQuestions + 1)) * 100);
   }, [selectedBranch, currentStep, totalQuestions, isFinalStep]);
 
   // Handle Branch Selection
@@ -163,10 +186,9 @@ export default function KhaoSatPage() {
   // Handle Single Choice selection with auto-advance
   const handleSingleChoiceSelect = (questionId: string, option: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: option }));
-    // Auto advance after 250ms for seamless user flow
     setTimeout(() => {
       handleNextStep();
-    }, 260);
+    }, 240);
   };
 
   // Handle Star Rating selection with auto-advance
@@ -174,7 +196,7 @@ export default function KhaoSatPage() {
     setAnswers((prev) => ({ ...prev, [questionId]: star }));
     setTimeout(() => {
       handleNextStep();
-    }, 300);
+    }, 280);
   };
 
   // Handle NPS 1-10 rating with auto-advance
@@ -182,7 +204,7 @@ export default function KhaoSatPage() {
     setAnswers((prev) => ({ ...prev, [questionId]: score }));
     setTimeout(() => {
       handleNextStep();
-    }, 300);
+    }, 280);
   };
 
   // Navigate to Next Step
@@ -241,6 +263,11 @@ export default function KhaoSatPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!customerZalo.trim()) {
+      toast.error("Vui lòng nhập Số Zalo để Shop gửi quà tri ân nhé!");
+      return;
+    }
+
     setSubmitting(true);
     const toastId = toast.loading("Đang gửi ý kiến khảo sát...");
 
@@ -293,77 +320,99 @@ export default function KhaoSatPage() {
     }
   };
 
-  const headerInfo = config?.header || {
-    title: "Khảo Sát Ý Kiến & Đóng Góp Cải Tiến",
-    subtitle: "Shop TFT Tuấn Thái Bình • TFT MOBILE - ĐTCL",
-    description:
-      "Nhằm nâng cao chất lượng dịch vụ Thuê Acc, GDTG và Cày Thuê ngày càng chuyên nghiệp, Tuấn rất mong nhận được những góp ý thẳng thắn từ bạn. Hoàn thành khảo sát để nhận ngay Mã giảm giá tri ân 50.000đ và 1 Acc Gacha 400-2000 Kỉ Vật nhé!",
-  };
-
   return (
-    <div className="min-h-screen bg-[#F0F4F8] text-slate-900 flex flex-col justify-between selection:bg-orange-500 selection:text-white font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between selection:bg-orange-500 selection:text-white font-sans">
       <TFTNavbar />
 
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-10 w-full flex-1">
-        {/* Top Header Links */}
-        <div className="flex items-center justify-between mb-4">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-orange-600 transition-colors"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Quay lại Trang Chủ</span>
-          </Link>
-
-          {selectedBranch && !isSubmitted && (
-            <button
-              type="button"
-              onClick={handleChangeBranch}
-              className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 hover:text-orange-600 bg-white border border-slate-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors"
+      <main className="max-w-xl mx-auto px-3.5 sm:px-6 py-4 sm:py-8 w-full flex-1">
+        {/* ============================================================ */}
+        {/* TOP COMPACT HEADER / PROGRESS BAR                            */}
+        {/* ============================================================ */}
+        <div className="mb-3.5 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1 font-bold text-slate-500 hover:text-orange-600 transition-colors py-1"
             >
-              <RotateCcw className="w-3 h-3" />
-              <span>Đổi nhánh dịch vụ</span>
-            </button>
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Trang Chủ</span>
+            </Link>
+
+            {selectedBranch && !isSubmitted && (
+              <button
+                type="button"
+                onClick={handleChangeBranch}
+                className="inline-flex items-center gap-1 font-bold text-slate-600 hover:text-orange-600 bg-white border border-slate-200/80 px-2.5 py-1 rounded-full text-[11px] shadow-xs cursor-pointer transition-colors active:scale-95"
+              >
+                <RotateCcw className="w-3 h-3 text-slate-400" />
+                <span>Đổi dịch vụ</span>
+              </button>
+            )}
+          </div>
+
+          {/* Progress Bar Header Card */}
+          {selectedBranch && !isSubmitted && (
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-3 space-y-2">
+              <div className="flex items-center justify-between text-xs font-bold">
+                <div className="flex items-center gap-1.5">
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase border ${BRANCH_CONFIG[selectedBranch].badgeBg}`}>
+                    {BRANCH_CONFIG[selectedBranch].shortTitle}
+                  </span>
+                  <span className="text-slate-800 text-[11px] font-bold">
+                    {isFinalStep ? "🎁 Bước cuối: Nhận Quà" : `Câu ${currentStep} / ${totalQuestions}`}
+                  </span>
+                </div>
+                <span className="font-mono text-orange-600 text-[11px]">{progressPercent}%</span>
+              </div>
+
+              {/* Progress track */}
+              <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-orange-500 via-amber-500 to-emerald-500 transition-all duration-300 rounded-full"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
           )}
         </div>
 
         {/* ============================================================ */}
-        {/* 1. SUCCESS SCREEN (THANK YOU & VOUCHER GIFT) */}
+        {/* 1. SUCCESS SCREEN (THANK YOU & VOUCHER GIFT)                 */}
         {/* ============================================================ */}
         {isSubmitted ? (
-          <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden p-6 sm:p-10 text-center space-y-6 animate-scaleUp">
-            <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/30">
-              <CheckCircle2 className="w-10 h-10" />
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden p-6 sm:p-8 text-center space-y-5 animate-scaleUp">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20 animate-bounce">
+              <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10" />
             </div>
 
-            <div className="space-y-2">
-              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 font-gaming">
+            <div className="space-y-1.5">
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 font-gaming">
                 CẢM ƠN BẠN ĐÃ GÓP Ý!
               </h1>
-              <p className="text-sm sm:text-base text-slate-600 max-w-lg mx-auto">
-                Mọi ý kiến đóng góp của bạn đều được <strong>Tuấn Thái Bình</strong> đọc và ghi nhận trực tiếp để nâng cấp dịch vụ ngày một tốt hơn.
+              <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
+                Mọi đóng góp chân thành của bạn đều được <strong>Tuấn Thái Bình</strong> đọc và ghi nhận để nâng cấp dịch vụ tốt hơn.
               </p>
             </div>
 
             {/* Reward Voucher Box */}
             {config?.reward?.enabled !== false && (
-              <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-orange-50 via-amber-50 to-orange-50 border-2 border-dashed border-orange-300 max-w-md mx-auto space-y-3">
-                <div className="flex items-center justify-center gap-2 text-orange-700 font-bold text-xs uppercase tracking-wider">
+              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-orange-50 via-amber-50 to-orange-50 border-2 border-dashed border-orange-300 max-w-md mx-auto space-y-2.5">
+                <div className="flex items-center justify-center gap-1.5 text-orange-700 font-bold text-[11px] uppercase tracking-wider">
                   <Gift className="w-4 h-4 text-orange-600" />
                   <span>{rewardTitle}</span>
                 </div>
 
                 <div className="flex items-center justify-center gap-2">
-                  <span className="font-mono text-xl sm:text-2xl font-black text-orange-600 tracking-wider bg-white px-4 py-2 rounded-xl border border-orange-200 shadow-xs">
+                  <span className="font-mono text-xl sm:text-2xl font-black text-orange-600 tracking-wider bg-white px-4 py-1.5 rounded-xl border border-orange-200 shadow-xs select-all">
                     {rewardCode}
                   </span>
                   <button
                     type="button"
                     onClick={handleCopyDiscount}
-                    className="p-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white transition-colors cursor-pointer active:scale-95 shadow-xs"
+                    className="p-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white transition-all cursor-pointer active:scale-95 shadow-xs"
                     title="Sao chép mã"
                   >
-                    {copiedCode ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                    {copiedCode ? <Check className="w-4 h-4 stroke-[3]" /> : <Copy className="w-4 h-4" />}
                   </button>
                 </div>
 
@@ -374,89 +423,51 @@ export default function KhaoSatPage() {
             )}
 
             {/* Quick CTAs */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-              <Link
-                href="/"
-                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs sm:text-sm transition-all"
-              >
-                Về Trang Chủ Shop
-              </Link>
+            <div className="flex flex-col gap-2.5 pt-2">
               <a
                 href={PROFILE_INFO.zaloUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-orange-600/20"
+                className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-orange-600/20 active:scale-98"
               >
                 <MessageCircle className="w-4 h-4" />
                 <span>Nhắn Zalo Nhận Acc Gacha</span>
               </a>
+
+              <Link
+                href="/"
+                className="w-full py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm transition-all"
+              >
+                Về Trang Chủ Shop
+              </Link>
             </div>
           </div>
         ) : (
           /* ============================================================ */
-          /* 2. STEP-BY-STEP PROGRESSIVE SURVEY CONTAINER */
+          /* 2. STEP-BY-STEP PROGRESSIVE SURVEY CONTAINER                 */
           /* ============================================================ */
-          <div className="space-y-4">
-            {/* Header Branding Card */}
-            <div className="bg-white rounded-3xl border-t-8 border-t-orange-600 border-x border-b border-slate-200/90 shadow-sm p-5 sm:p-7 space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl p-[2px] bg-gradient-to-tr from-orange-500 to-amber-500 shadow-sm flex-shrink-0">
-                  <img
-                    src={PROFILE_INFO.avatarUrl}
-                    alt="Tuấn Thái Bình"
-                    className="w-full h-full rounded-[14px] object-cover"
-                  />
-                </div>
-                <div>
-                  <h1 className="text-lg sm:text-xl font-black text-slate-900 font-gaming leading-tight">
-                    {headerInfo.title}
-                  </h1>
-                  <span className="text-xs font-semibold text-orange-600">
-                    {headerInfo.subtitle}
-                  </span>
-                </div>
-              </div>
-
-              {/* Real-time Progress Bar */}
-              {selectedBranch && (
-                <div className="pt-2 space-y-1.5 border-t border-slate-100">
-                  <div className="flex items-center justify-between text-[11px] font-bold">
-                    <span className="text-orange-700 flex items-center gap-1">
-                      <span>{isFinalStep ? "🎁 Bước cuối: Nhận Quà" : `Câu hỏi ${currentStep} / ${totalQuestions}`}</span>
-                      <span className={`px-1.5 py-0.2 rounded text-[9px] font-black uppercase border ${BRANCH_CONFIG[selectedBranch].badgeBg}`}>
-                        {BRANCH_CONFIG[selectedBranch].title}
-                      </span>
-                    </span>
-                    <span className="font-mono text-slate-500">{progressPercent}% Hoàn thành</span>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-orange-500 via-amber-500 to-emerald-500 transition-all duration-300 rounded-full"
-                      style={{ width: `${progressPercent}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
+          <div className="space-y-3.5">
             {/* ============================================================ */}
-            {/* STEP 0: SELECT BRANCH (3 DỊCH VỤ CHÍNH) */}
+            {/* STEP 0: SELECT BRANCH (3 DỊCH VỤ CHÍNH)                      */}
             {/* ============================================================ */}
             {currentStep === 0 && (
-              <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-5 animate-fadeIn">
-                <div className="text-center space-y-1.5">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-orange-600 bg-orange-50 border border-orange-200 px-3 py-1 rounded-full inline-block">
-                    Bước 1: Chọn nhánh dịch vụ
-                  </span>
-                  <h2 className="text-base sm:text-lg font-black text-slate-900 font-gaming">
-                    Bạn muốn đánh giá & góp ý về dịch vụ nào của Shop?
-                  </h2>
-                  <p className="text-xs text-slate-500 max-w-md mx-auto">
-                    Chọn đúng dịch vụ bạn quan tâm để trả lời các câu hỏi sát nhất và nhận quà nhé!
+              <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-5 sm:p-7 space-y-4 animate-fadeIn">
+                {/* Hero Header */}
+                <div className="text-center space-y-1.5 pb-1">
+                  <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-orange-700 bg-orange-100 border border-orange-200 px-3 py-1 rounded-full">
+                    <Sparkles className="w-3.5 h-3.5 text-orange-600" />
+                    <span>Khảo sát 30s • Nhận Voucher 50K & Acc Gacha</span>
+                  </div>
+                  <h1 className="text-base sm:text-lg font-black text-slate-900 font-gaming leading-tight pt-1">
+                    Bạn muốn đánh giá dịch vụ nào của Tuấn?
+                  </h1>
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                    Chọn đúng dịch vụ bạn quan tâm để trả lời nhanh và nhận quà tri ân nhé!
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 pt-2">
+                {/* 3 Interactive Branch Cards */}
+                <div className="grid grid-cols-1 gap-2.5">
                   {(Object.keys(BRANCH_CONFIG) as BranchType[]).map((key) => {
                     const item = BRANCH_CONFIG[key];
                     const IconComponent = item.icon;
@@ -465,65 +476,73 @@ export default function KhaoSatPage() {
                         key={key}
                         type="button"
                         onClick={() => handleSelectBranch(key)}
-                        className={`p-4 sm:p-5 rounded-2xl border-2 border-slate-200 bg-white text-left transition-all cursor-pointer flex items-start gap-4 group ${item.borderHover} hover:shadow-md active:scale-[0.99]`}
+                        className={`p-3.5 sm:p-4 rounded-2xl border-2 border-slate-200 bg-white text-left transition-all cursor-pointer flex items-center gap-3.5 group ${item.borderHover} hover:shadow-md active:scale-[0.98]`}
                       >
                         <div
-                          className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${item.color} text-white flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-110 transition-transform`}
+                          className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr ${item.color} text-white flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform`}
                         >
-                          <IconComponent className="w-6 h-6" />
+                          <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
-                            <h3 className="font-black text-sm sm:text-base text-slate-900 group-hover:text-orange-600 transition-colors">
+                            <h3 className="font-black text-xs sm:text-sm text-slate-900 group-hover:text-orange-600 transition-colors">
                               {item.title}
                             </h3>
-                            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-orange-600 group-hover:translate-x-1 transition-all" />
+                            <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md group-hover:bg-orange-100 group-hover:text-orange-700 transition-colors">
+                              {item.tag}
+                            </span>
                           </div>
-                          <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
+                          <p className="text-[11px] text-slate-500 font-medium mt-0.5 truncate">
                             {item.subtitle}
                           </p>
                         </div>
+                        <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-orange-600 group-hover:translate-x-1 transition-all flex-shrink-0" />
                       </button>
                     );
                   })}
+                </div>
+
+                {/* Trust badge */}
+                <div className="pt-2 text-center text-[11px] text-slate-400 font-medium flex items-center justify-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>Hoàn thành trong ~30 giây • 100% nhận quà</span>
                 </div>
               </div>
             )}
 
             {/* ============================================================ */}
-            {/* STEP 1..N: INDIVIDUAL QUESTION STEP */}
+            {/* STEP 1..N: INDIVIDUAL QUESTION STEP                          */}
             {/* ============================================================ */}
             {isQuestionStep && currentQuestion && (
-              <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-6 animate-fadeIn">
-                <div className="space-y-2">
+              <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-5 sm:p-7 space-y-4 animate-fadeIn">
+                {/* Question Header */}
+                <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-orange-600 bg-orange-50 border border-orange-200 px-3 py-0.5 rounded-full">
-                      Câu hỏi {currentStep} / {totalQuestions}
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-orange-700 bg-orange-50 border border-orange-200 px-2.5 py-0.5 rounded-md">
+                      Câu {currentStep} / {totalQuestions}
                     </span>
                     {currentQuestion.required ? (
-                      <span className="text-[11px] font-bold text-rose-500 flex items-center gap-0.5">
-                        * Bắt buộc
-                      </span>
+                      <span className="text-[10px] font-bold text-rose-500">* Bắt buộc</span>
                     ) : (
-                      <span className="text-[11px] font-medium text-slate-400">Không bắt buộc</span>
+                      <span className="text-[10px] font-medium text-slate-400">Tùy chọn</span>
                     )}
                   </div>
 
-                  <h2 className="text-base sm:text-lg font-black text-slate-900 leading-snug">
+                  <h2 className="text-sm sm:text-base font-black text-slate-900 leading-snug pt-1">
                     {currentQuestion.title}
                   </h2>
 
                   {currentQuestion.subtitle && (
-                    <p className="text-xs text-slate-500 leading-relaxed">
+                    <p className="text-[11px] text-slate-500 leading-normal">
                       {currentQuestion.subtitle}
                     </p>
                   )}
                 </div>
 
-                {/* --- RATING_5 --- */}
+                {/* --- RATING_5 (5 STARS) --- */}
                 {currentQuestion.type === "RATING_5" && (
-                  <div className="py-4 text-center space-y-3">
-                    <div className="flex items-center justify-center gap-2 sm:gap-3">
+                  <div className="py-3 text-center space-y-2.5">
+                    <div className="flex items-center justify-center gap-1.5 sm:gap-2.5">
                       {[1, 2, 3, 4, 5].map((star) => {
                         const currentVal = Number(answers[currentQuestion.id]) || 0;
                         const hoverVal = hoverRating[currentQuestion.id] || 0;
@@ -540,33 +559,30 @@ export default function KhaoSatPage() {
                             onMouseLeave={() =>
                               setHoverRating((prev) => ({ ...prev, [currentQuestion.id]: 0 }))
                             }
-                            className="p-2 sm:p-3 rounded-2xl transition-all hover:scale-125 active:scale-95 cursor-pointer bg-slate-50 hover:bg-orange-50"
+                            className="p-2 sm:p-2.5 rounded-2xl transition-all hover:scale-115 active:scale-95 cursor-pointer bg-slate-50 hover:bg-orange-50"
                           >
                             <Star
-                              className={`w-9 h-9 sm:w-12 sm:h-12 transition-colors ${
+                              className={`w-9 h-9 sm:w-11 sm:h-11 transition-colors ${
                                 isActive
-                                  ? "fill-amber-400 text-amber-500 drop-shadow-md"
-                                  : "text-slate-300"
+                                  ? "fill-amber-400 text-amber-500 drop-shadow-sm"
+                                  : "text-slate-200"
                               }`}
                             />
                           </button>
                         );
                       })}
                     </div>
-                    <div className="flex justify-between items-center text-xs font-bold text-slate-500 px-4">
-                      <span>1 Sao (Rất tệ)</span>
-                      <span className="text-orange-600">
-                        {answers[currentQuestion.id] ? `${answers[currentQuestion.id]} / 5 Sao ⭐` : "Chạm để đánh giá"}
-                      </span>
-                      <span>5 Sao (Tuyệt vời)</span>
-                    </div>
+                    <p className="text-xs font-bold text-orange-600 min-h-[1.25rem]">
+                      {STAR_LABELS[Number(answers[currentQuestion.id])] || "Chạm vào sao để đánh giá"}
+                    </p>
                   </div>
                 )}
 
                 {/* --- RATING_10 (NPS) --- */}
                 {currentQuestion.type === "RATING_10" && (
-                  <div className="space-y-4 py-2">
-                    <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+                  <div className="space-y-3 py-1">
+                    {/* 2 Clean rows of 5 on mobile, 10 on desktop */}
+                    <div className="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
                       {Array.from({ length: 10 }, (_, i) => i + 1).map((score) => {
                         const isSelected = answers[currentQuestion.id] === score;
                         return (
@@ -574,7 +590,7 @@ export default function KhaoSatPage() {
                             key={score}
                             type="button"
                             onClick={() => handleNpsSelect(currentQuestion.id, score)}
-                            className={`py-3 sm:py-3.5 rounded-xl text-sm font-black transition-all cursor-pointer border ${
+                            className={`h-11 sm:h-12 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer border active:scale-95 ${
                               isSelected
                                 ? "bg-orange-600 text-white border-orange-600 shadow-md shadow-orange-500/30 scale-105"
                                 : "bg-white text-slate-700 border-slate-200 hover:border-orange-400 hover:bg-orange-50"
@@ -585,16 +601,19 @@ export default function KhaoSatPage() {
                         );
                       })}
                     </div>
-                    <div className="flex justify-between text-xs font-bold text-slate-500">
-                      <span>1: Chắc chắn không</span>
-                      <span>10: Chắc chắn sẽ giới thiệu 🎉</span>
+                    <div className="flex justify-between text-[10px] font-bold text-slate-500 px-1">
+                      <span>1: Không giới thiệu</span>
+                      <span className="text-orange-600">
+                        {answers[currentQuestion.id] ? `Đã chọn: ${answers[currentQuestion.id]} Điểm` : ""}
+                      </span>
+                      <span>10: Chắc chắn 🎉</span>
                     </div>
                   </div>
                 )}
 
                 {/* --- SINGLE CHOICE --- */}
                 {currentQuestion.type === "SINGLE_CHOICE" && (
-                  <div className="grid grid-cols-1 gap-2.5">
+                  <div className="grid grid-cols-1 gap-2">
                     {currentQuestion.options?.map((opt) => {
                       const isSelected = answers[currentQuestion.id] === opt;
                       return (
@@ -602,21 +621,21 @@ export default function KhaoSatPage() {
                           key={opt}
                           type="button"
                           onClick={() => handleSingleChoiceSelect(currentQuestion.id, opt)}
-                          className={`p-3.5 sm:p-4 rounded-2xl border-2 text-left font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-between group ${
+                          className={`p-3 sm:p-3.5 rounded-2xl border-2 text-left font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-between group active:scale-[0.99] ${
                             isSelected
-                              ? "border-orange-600 bg-orange-50/70 text-orange-950 shadow-sm"
+                              ? "border-orange-600 bg-orange-50/80 text-orange-950 shadow-xs"
                               : "border-slate-200 bg-white hover:border-orange-300 hover:bg-slate-50 text-slate-800"
                           }`}
                         >
-                          <span className="flex-1 pr-3">{opt}</span>
+                          <span className="flex-1 pr-2 leading-relaxed">{opt}</span>
                           <div
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                            className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
                               isSelected
                                 ? "border-orange-600 bg-orange-600 text-white"
                                 : "border-slate-300 group-hover:border-orange-400"
                             }`}
                           >
-                            {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                            {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                           </div>
                         </button>
                       );
@@ -626,36 +645,43 @@ export default function KhaoSatPage() {
 
                 {/* --- MULTIPLE CHOICE --- */}
                 {currentQuestion.type === "MULTIPLE_CHOICE" && (
-                  <div className="grid grid-cols-1 gap-2.5">
-                    {currentQuestion.options?.map((opt) => {
-                      const currentSelected: string[] = Array.isArray(answers[currentQuestion.id])
-                        ? answers[currentQuestion.id]
-                        : [];
-                      const isSelected = currentSelected.includes(opt);
-                      return (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => handleMultipleChoiceToggle(currentQuestion.id, opt)}
-                          className={`p-3.5 sm:p-4 rounded-2xl border-2 text-left font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-between group ${
-                            isSelected
-                              ? "border-orange-600 bg-orange-50/70 text-orange-950 shadow-sm"
-                              : "border-slate-200 bg-white hover:border-orange-300 hover:bg-slate-50 text-slate-800"
-                          }`}
-                        >
-                          <span className="flex-1 pr-3">{opt}</span>
-                          <div
-                            className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-1 gap-2">
+                      {currentQuestion.options?.map((opt) => {
+                        const currentSelected: string[] = Array.isArray(answers[currentQuestion.id])
+                          ? answers[currentQuestion.id]
+                          : [];
+                        const isSelected = currentSelected.includes(opt);
+                        return (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => handleMultipleChoiceToggle(currentQuestion.id, opt)}
+                            className={`p-3 sm:p-3.5 rounded-2xl border-2 text-left font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-between group active:scale-[0.99] ${
                               isSelected
-                                ? "border-orange-600 bg-orange-600 text-white"
-                                : "border-slate-300 group-hover:border-orange-400"
+                                ? "border-orange-600 bg-orange-50/80 text-orange-950 shadow-xs"
+                                : "border-slate-200 bg-white hover:border-orange-300 hover:bg-slate-50 text-slate-800"
                             }`}
                           >
-                            {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                          </div>
-                        </button>
-                      );
-                    })}
+                            <span className="flex-1 pr-2 leading-relaxed">{opt}</span>
+                            <div
+                              className={`w-4 h-4 sm:w-5 sm:h-5 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                                isSelected
+                                  ? "border-orange-600 bg-orange-600 text-white"
+                                  : "border-slate-300 group-hover:border-orange-400"
+                              }`}
+                            >
+                              {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {Array.isArray(answers[currentQuestion.id]) && answers[currentQuestion.id].length > 0 && (
+                      <p className="text-[11px] text-orange-600 font-bold px-1">
+                        ✓ Đã chọn {answers[currentQuestion.id].length} mục
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -663,25 +689,25 @@ export default function KhaoSatPage() {
                 {(currentQuestion.type === "TEXTAREA" || currentQuestion.type === "TEXT") && (
                   <div>
                     <textarea
-                      rows={4}
+                      rows={3}
                       value={answers[currentQuestion.id] || ""}
                       onChange={(e) =>
                         setAnswers((prev) => ({ ...prev, [currentQuestion.id]: e.target.value }))
                       }
                       placeholder={
-                        currentQuestion.placeholder || "Nhập ý kiến đóng góp chân thành của bạn..."
+                        currentQuestion.placeholder || "Gõ ý kiến đóng góp của bạn tại đây..."
                       }
-                      className="w-full p-4 rounded-2xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all resize-none font-medium placeholder:text-slate-400"
+                      className="w-full p-3.5 rounded-2xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all resize-none font-medium placeholder:text-slate-400"
                     />
                   </div>
                 )}
 
                 {/* Action Navigation Buttons */}
-                <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={handlePrevStep}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer active:scale-95"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
                     <span>Quay lại</span>
@@ -690,7 +716,7 @@ export default function KhaoSatPage() {
                   <button
                     type="button"
                     onClick={handleNextStep}
-                    className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold transition-all shadow-md shadow-orange-600/20 cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold transition-all shadow-md shadow-orange-600/20 cursor-pointer active:scale-95"
                   >
                     <span>Tiếp tục</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -700,28 +726,44 @@ export default function KhaoSatPage() {
             )}
 
             {/* ============================================================ */}
-            {/* STEP N+1: FINAL STEP (CONTACT INFO & SUBMIT FORM) */}
+            {/* STEP N+1: FINAL STEP (CONTACT INFO & SUBMIT FORM)            */}
             {/* ============================================================ */}
             {isFinalStep && (
               <form
                 onSubmit={handleSubmit}
-                className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-6 animate-fadeIn"
+                className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-5 sm:p-7 space-y-4 animate-fadeIn"
               >
-                <div className="text-center space-y-2">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 text-white flex items-center justify-center mx-auto shadow-md shadow-orange-500/20">
-                    <Gift className="w-7 h-7" />
+                <div className="text-center space-y-1">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 text-white flex items-center justify-center mx-auto shadow-sm">
+                    <Gift className="w-6 h-6" />
                   </div>
-                  <h2 className="text-lg sm:text-xl font-black text-slate-900 font-gaming">
-                    Bước Cuối: Thông Tin Nhận Quà Tri Ân
+                  <h2 className="text-base sm:text-lg font-black text-slate-900 font-gaming">
+                    Bước Cuối: Thông Tin Nhận Quà
                   </h2>
-                  <p className="text-xs text-slate-500 max-w-md mx-auto">
-                    Nhập thông tin liên hệ để nhận mã voucher <strong>50.000đ</strong> và phần quà <strong>Acc Gacha</strong> từ Tuấn Thái Bình.
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                    Nhập số Zalo để Shop gửi tặng Voucher <strong>50.000đ</strong> và phần quà <strong>Acc Gacha</strong> nhé!
                   </p>
                 </div>
 
-                <div className="space-y-4 pt-2">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <div className="space-y-3 pt-1">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <Phone className="w-3.5 h-3.5 text-orange-600" />
+                      <span>Số Zalo nhận quà tri ân:</span>
+                      <span className="text-rose-500 text-[10px]">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={customerZalo}
+                      onChange={(e) => setCustomerZalo(e.target.value)}
+                      placeholder="VD: 0987.xxx.xxx"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                       <User className="w-3.5 h-3.5 text-orange-600" />
                       <span>Họ và Tên / Biệt danh (Không bắt buộc):</span>
                     </label>
@@ -729,31 +771,17 @@ export default function KhaoSatPage() {
                       type="text"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      placeholder="VD: Anh Tuấn, Thành Đạt..."
-                      className="w-full px-4 py-3 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                      <Phone className="w-3.5 h-3.5 text-orange-600" />
-                      <span>Số Zalo nhận quà tri ân:</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={customerZalo}
-                      onChange={(e) => setCustomerZalo(e.target.value)}
-                      placeholder="VD: 0987.xxx.xxx"
-                      className="w-full px-4 py-3 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium"
+                      placeholder="VD: Anh Tuấn, Đạt..."
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={handlePrevStep}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer active:scale-95"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
                     <span>Quay lại</span>
@@ -762,10 +790,10 @@ export default function KhaoSatPage() {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className={`py-3 px-6 rounded-xl text-white font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all font-gaming cursor-pointer ${
+                    className={`py-3 px-5 rounded-xl text-white font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all font-gaming cursor-pointer active:scale-98 ${
                       submitting
                         ? "bg-slate-400 cursor-not-allowed shadow-none"
-                        : "bg-gradient-to-r from-orange-600 via-amber-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 shadow-orange-600/30 hover:scale-[1.01] active:scale-[0.99]"
+                        : "bg-gradient-to-r from-orange-600 via-amber-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 shadow-orange-600/30"
                     }`}
                   >
                     {submitting ? (
@@ -776,7 +804,7 @@ export default function KhaoSatPage() {
                     ) : (
                       <>
                         <Send className="w-4 h-4" />
-                        <span>Gửi Khảo Sát & Nhận Quà</span>
+                        <span>Gửi & Nhận Quà Ngay</span>
                       </>
                     )}
                   </button>
@@ -791,3 +819,4 @@ export default function KhaoSatPage() {
     </div>
   );
 }
+
