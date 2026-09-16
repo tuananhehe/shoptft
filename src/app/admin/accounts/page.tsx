@@ -167,14 +167,17 @@ export default function AdminAccountsPage() {
   const [extraArenaInput, setExtraArenaInput] = useState("");
 
   // Helper tính giá thuê 1 giờ tự động theo % định giá acc: [(Giá acc * 3%) + 20k] / 2
-  const calcHourlyFromValue = (val: number, rate2h = pricingRates.rate2Hours, passFee = pricingRates.passChangeFee) => {
+  // Helper tính giá thuê 1 giờ tự động theo % định giá acc: [(Giá acc * 3%) + 20k] / 2
+  const calcHourlyFromValue = (rawVal: number, rate2h = pricingRates.rate2Hours, passFee = pricingRates.passChangeFee) => {
+    const val = (rawVal > 0 && rawVal < 1000) ? rawVal * 1000 : rawVal;
     if (!val || isNaN(val) || val <= 0) return 15000;
     const pkg2h = (val * (rate2h / 100)) + passFee;
     return Math.round((pkg2h / 2) / 1000) * 1000;
   };
 
   // Helper tính giá thuê theo ngày tự động: [(Giá acc * 12%) + 20k] / 2
-  const calcDailyFromValue = (val: number, rate7d = pricingRates.rate7Days, passFee = pricingRates.passChangeFee) => {
+  const calcDailyFromValue = (rawVal: number, rate7d = pricingRates.rate7Days, passFee = pricingRates.passChangeFee) => {
+    const val = (rawVal > 0 && rawVal < 1000) ? rawVal * 1000 : rawVal;
     if (!val || isNaN(val) || val <= 0) return 45000;
     const pkg7d = (val * (rate7d / 100)) + passFee;
     return Math.round((pkg7d / 2) / 1000) * 1000;
@@ -186,7 +189,8 @@ export default function AdminAccountsPage() {
       const calculated = calcHourlyFromValue(val, pricingRates.rate2Hours, pricingRates.passChangeFee);
       setFormHourlyPrice(calculated);
       setFormDailyPrice(calcDailyFromValue(val, pricingRates.rate7Days, pricingRates.passChangeFee));
-      setFormPeriodPrice(Math.round((val * 0.3) / 1000) * 1000);
+      setFormPeriodPrice(val); // Giữ nguyên đúng giá trị định giá đã nhập, không nhân 0.3
+      setFormCustomPrice(val);
     }
   };
 
@@ -877,8 +881,8 @@ export default function AdminAccountsPage() {
     const daily = calcDailyFromValue(defaultAccVal, pricingRates.rate7Days, pricingRates.passChangeFee);
     setFormHourlyPrice(hourly);
     setFormDailyPrice(daily);
-    setFormPeriodPrice(Math.round((defaultAccVal * 0.3) / 1000) * 1000);
-    setFormCustomPrice(hourly);
+    setFormPeriodPrice(defaultAccVal);
+    setFormCustomPrice(defaultAccVal);
     setIsAutoPricing(true);
     setFormMainChibi("");
     setFormMainArena("");
@@ -916,9 +920,9 @@ export default function AdminAccountsPage() {
       account.priceDisplayType || (account.category === "VIP" ? "HOURLY" : "LONG_TERM")
     );
     setFormDailyPrice(account.dailyPrice || (account.hourlyPrice ? account.hourlyPrice * 3 : 45000));
-    setFormPeriodPrice(account.periodPrice || account.monthlyPrice || 150000);
+    setFormPeriodPrice(account.periodPrice || account.monthlyPrice || account.accountValue || account.price || 150000);
     setFormPeriodUnit(account.periodUnit || " / ∞");
-    setFormCustomPrice(account.customPrice || account.hourlyPrice || 15000);
+    setFormCustomPrice(account.customPrice || account.accountValue || account.hourlyPrice || 15000);
     setFormCustomPriceUnit(account.customPriceUnit || " / Giờ");
 
     if (account.category === "VIP") {
@@ -2546,7 +2550,8 @@ export default function AdminAccountsPage() {
                                 );
                                 setFormHourlyPrice(calculated);
                                 setFormDailyPrice(calcDailyFromValue(formAccountValue, pricingRates.rate7Days, pricingRates.passChangeFee));
-                                setFormPeriodPrice(Math.round((formAccountValue * 0.3) / 1000) * 1000);
+                                setFormPeriodPrice(formAccountValue);
+                                setFormCustomPrice(formAccountValue);
                                 toast.success("Đã bật tự động tính giá theo % định giá!");
                               }
                             }}
@@ -2561,18 +2566,33 @@ export default function AdminAccountsPage() {
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="font-bold text-slate-800 block">
-                            Định Giá Acc (VNĐ): <span className="text-red-500">*</span>
-                          </label>
+                          <div className="flex items-center justify-between">
+                            <label className="font-bold text-slate-800 block">
+                              Định Giá Acc (VNĐ): <span className="text-red-500">*</span>
+                            </label>
+                            <span className="text-xs font-mono font-bold text-orange-700">
+                              {(Number(formAccountValue) || 0).toLocaleString("vi-VN")} đ
+                            </span>
+                          </div>
                           <input
                             type="number"
-                            step="50000"
+                            step="10000"
                             value={formAccountValue}
                             onChange={(e) => handleAccountValueChange(Number(e.target.value))}
+                            placeholder="vd: 799000"
                             className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold font-mono text-slate-900 focus:outline-none focus:border-orange-500"
                           />
+                          {formAccountValue > 0 && formAccountValue < 1000 && (
+                            <button
+                              type="button"
+                              onClick={() => handleAccountValueChange(formAccountValue * 1000)}
+                              className="text-[10px] text-orange-600 hover:text-orange-800 font-bold bg-orange-50 border border-orange-200 px-2 py-1 rounded-lg cursor-pointer flex items-center gap-1 mt-1"
+                            >
+                              <span>💡 Bạn đang nhập {formAccountValue}đ. Bấm vào đây để đổi thành <strong>{(formAccountValue * 1000).toLocaleString("vi-VN")}đ</strong> ({formAccountValue}k)</span>
+                            </button>
+                          )}
                           <span className="text-[10px] text-slate-500 block">
-                            Dùng để tính tỷ lệ thuê các gói giờ, tuần, tháng tự động
+                            Giá trị tài khoản thực tế (dùng để tính các gói thuê giờ / ngày / tháng tự động)
                           </span>
                         </div>
                       </div>
