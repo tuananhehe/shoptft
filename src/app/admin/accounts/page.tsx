@@ -211,6 +211,54 @@ export default function AdminAccountsPage() {
   const [tempApiKeyInput, setTempApiKeyInput] = useState("");
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
+  // Thumbnail Cloud Upload State
+  const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
+  const thumbnailFileInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const handleUploadThumbnailFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File quá lớn! Dung lượng tối đa là 10MB.");
+      return;
+    }
+
+    setIsUploadingThumbnail(true);
+    const toastId = toast.loading("☁️ Đang tải ảnh lên Cloud Storage...");
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("type", "accounts");
+
+      const token = localStorage.getItem("admin_session_token") || "";
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: {
+          "x-admin-token": token,
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Không thể tải file lên!");
+      }
+
+      setFormThumbnail(data.url);
+      toast.success("✨ Tải ảnh lên Cloud Storage thành công!", { id: toastId });
+    } catch (err: any) {
+      console.error("Lỗi upload thumbnail:", err);
+      toast.error(`Lỗi: ${err.message}`, { id: toastId });
+    } finally {
+      setIsUploadingThumbnail(false);
+      if (thumbnailFileInputRef.current) {
+        thumbnailFileInputRef.current.value = "";
+      }
+    }
+  };
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedKey = localStorage.getItem("shoptft_gemini_api_key") || "";
@@ -953,6 +1001,32 @@ export default function AdminAccountsPage() {
         ? formTitle.trim() || `${formRank} - ${cleanedMainChibi || "Tí Nị VIP"}`
         : formTitle.trim() || `Acc Clone ${formRankBadge}`;
 
+    let finalImageUrl = formThumbnail.trim();
+
+    // Nếu ảnh là Base64 (do quét AI hoặc dán trực tiếp), tự động tải lên Supabase Storage trước khi lưu DB
+    if (finalImageUrl.startsWith("data:image/")) {
+      try {
+        const fetchRes = await fetch(finalImageUrl);
+        const blob = await fetchRes.blob();
+        const file = new File([blob], `account-${Date.now()}.jpg`, { type: blob.type || "image/jpeg" });
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("type", "accounts");
+        const token = typeof window !== "undefined" ? (localStorage.getItem("admin_session_token") || "") : "";
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          headers: { "x-admin-token": token },
+          body: formData,
+        });
+        const uploadData = await uploadRes.json();
+        if (uploadData.success && uploadData.url) {
+          finalImageUrl = uploadData.url;
+        }
+      } catch (uploadErr) {
+        console.warn("Could not auto-upload base64 to cloud:", uploadErr);
+      }
+    }
+
     const payload: any = {
       code: formCode.trim(),
       type: formCategory,
@@ -971,7 +1045,7 @@ export default function AdminAccountsPage() {
       arenas: formCategory === "VIP" ? finalArenas : [],
       features: formCategory === "CLONE" ? formFeatures : [],
       image_url:
-        formThumbnail.trim() ||
+        finalImageUrl ||
         "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop",
       status: "AVAILABLE",
       description: formDescription.trim() || "Tài khoản chính chủ chất lượng cao.",
@@ -2836,17 +2910,66 @@ export default function AdminAccountsPage() {
                     </div>
                   </div>
 
-                  {/* Link Hình Ảnh Thumbnail */}
-                    <div className="space-y-1.5">
-                      <label className="font-bold text-slate-800 block">Link Ảnh Bìa (Image URL):</label>
+                  {/* Link Hình Ảnh Thumbnail & Cloud Upload */}
+                  <div className="space-y-2 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
+                    <div className="flex items-center justify-between">
+                      <label className="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                        <ImageIcon className="w-3.5 h-3.5 text-orange-600" />
+                        <span>Ảnh Đại Diện / Thumbnail:</span>
+                      </label>
+                      <span className="text-[10px] text-slate-400 font-medium">
+                        Lưu trên Supabase Cloud
+                      </span>
+                    </div>
+
+                    <div className="flex gap-2">
                       <input
                         type="text"
                         value={formThumbnail}
                         onChange={(e) => setFormThumbnail(e.target.value)}
-                        placeholder="Dán link ảnh bìa tại đây (để trống nếu chưa có)..."
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-mono focus:outline-none focus:border-orange-500 text-[11px]"
+                        placeholder="Dán link ảnh (https://...) hoặc tải ảnh lên..."
+                        className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-800 font-mono focus:outline-none focus:border-orange-500 text-[11px]"
                       />
+
+                      <input
+                        type="file"
+                        ref={thumbnailFileInputRef}
+                        onChange={handleUploadThumbnailFile}
+                        accept="image/*"
+                        className="hidden"
+                      />
+
+                      <button
+                        type="button"
+                        disabled={isUploadingThumbnail}
+                        onClick={() => thumbnailFileInputRef.current?.click()}
+                        className="px-3 py-2 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50 transition-all"
+                        title="Tải ảnh trực tiếp lên Supabase Cloud Storage"
+                      >
+                        {isUploadingThumbnail ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <UploadCloud className="w-3.5 h-3.5" />
+                        )}
+                        <span className="hidden sm:inline">Tải Lên</span>
+                      </button>
                     </div>
+
+                    {formThumbnail && (
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 text-[10px]">
+                        <span className="text-slate-500 truncate max-w-[260px] font-mono">
+                          {formThumbnail.startsWith("data:") ? "Ảnh chụp màn hình (sẽ tự tải lên Cloud khi lưu)" : formThumbnail}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setFormThumbnail("")}
+                          className="text-rose-600 hover:text-rose-800 font-bold cursor-pointer"
+                        >
+                          Xóa ảnh
+                        </button>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Mô Tả Chi Tiết */}
                   <div className="space-y-1.5">
