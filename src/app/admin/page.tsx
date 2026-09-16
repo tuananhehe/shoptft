@@ -10,7 +10,7 @@ import {
   toLocalDatetimeInputString,
   AccountDbRow,
 } from "@/utils/supabase/accounts-service";
-import { getOrders, OrderItem, OrdersStats } from "@/utils/orders-service";
+import { getOrders, createOrder, OrderItem, OrdersStats } from "@/utils/orders-service";
 import toast from "react-hot-toast";
 import {
   Gamepad2,
@@ -57,6 +57,7 @@ export interface DashboardAccountItem {
   rank?: string;
   rankBadge?: string;
   hourlyPrice?: number;
+  dailyPrice?: number;
   monthlyPrice?: number;
   periodPrice?: number;
   accountValue?: number;
@@ -128,6 +129,7 @@ export default function AdminDashboardPage() {
             rentedUntil: v.rentedUntil || null,
             rank: v.rank || "THÁCH ĐẤU",
             hourlyPrice: Number(v.hourlyPrice) || 15000,
+            dailyPrice: Number(v.dailyPrice) || 60000,
             accountValue: Number(v.accountValue) || 850000,
             price: Number(v.accountValue) || 850000,
             priceDisplayType: v.priceDisplayType,
@@ -273,10 +275,103 @@ export default function AdminDashboardPage() {
     };
   }, [accounts, orders, orderStats]);
 
+  // Helper chuẩn hóa mã account để so khớp chính xác với Order (VD: "MS: 724" vs "724")
+  const normalizeCode = (s?: string | null) =>
+    (s || "").toLowerCase().replace(/^(ms\s*:\s*|acc\s*|\s+)/gi, "").trim();
+
+  const isAccountMatchingOrder = (account: DashboardAccountItem, order: OrderItem) => {
+    if (!order.accountCode || !account.code) return false;
+    const a = normalizeCode(account.code);
+    const b = normalizeCode(order.accountCode);
+    return a === b || a.includes(b) || b.includes(a);
+  };
+
+  // Helper nhận diện đơn hàng vĩnh viễn / bán đứt / vô cực
+  const isDeadOrder = (o: OrderItem) =>
+    o.durationHours === -1 ||
+    o.package?.toLowerCase().includes("vĩnh viễn") ||
+    o.package?.toLowerCase().includes("vô cực");
+
+  // Lấy toàn bộ các sự kiện thuê / chốt bán của một tài khoản
+  const getAccountRentalEvents = (account: DashboardAccountItem, allOrders: OrderItem[]) => {
+    const matchedOrders = allOrders
+      .filter((o) => o.status !== "CANCELLED" && isAccountMatchingOrder(account, o))
+      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+
+    if (matchedOrders.length > 0) {
+      return matchedOrders.map((o) => {
+        const isDead = isDeadOrder(o);
+        const amount = Number(o.amount) || 0;
+        const profit = isDead ? Math.round(amount * deadProfitRate) : amount;
+        const eventMs = new Date(o.createdAt || o.startedAt || Date.now()).getTime();
+
+        return {
+          hasOrder: true,
+          orderId: o.id,
+          package: o.package || (isDead ? "Vô Cực ∞" : "Gói Thuê"),
+          amount,
+          profit,
+          isDead,
+          customer: o.customer || o.phoneZalo || "Khách hàng",
+          eventMs: isNaN(eventMs) ? Date.now() : eventMs,
+          createdAt: o.createdAt || new Date().toISOString(),
+        };
+      });
+    }
+
+    // Nếu chưa có đơn trong bảng orders nhưng tài khoản đang RENTED hoặc là vĩnh viễn trong kho
+    if (account.status === "RENTED" || account.isPermanentRental) {
+      const isDead = !!account.isPermanentRental;
+      const amount = isDead
+        ? (Number(account.accountValue) || Number(account.price) || 850000)
+        : (account.category === "VIP"
+            ? (Number(account.dailyPrice) || ((Number(account.hourlyPrice) || 15000) * 4))
+            : (Number(account.monthlyPrice) || Number(account.periodPrice) || 210000));
+      const profit = isDead ? Math.round(amount * deadProfitRate) : amount;
+
+      // Ước lượng ngày bắt đầu thuê từ rentedUntil
+      let eventMs = Date.now() - 1000;
+      if (account.rentedUntil) {
+        const endMs = new Date(account.rentedUntil).getTime();
+        if (!isNaN(endMs)) {
+          if (isDead) {
+            eventMs = Date.now() - 3600000;
+          } else if (account.category === "CLONE") {
+            const estStart = endMs - 30 * 24 * 3600 * 1000;
+            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
+          } else {
+            const estStart = endMs - 24 * 3600 * 1000;
+            eventMs = estStart > Date.now() ? Date.now() - 3600000 : estStart;
+          }
+        }
+      }
+
+      return [
+        {
+          hasOrder: false,
+          orderId: "",
+          package: isDead
+            ? "Thuê Vô Cực ∞ (Bán Đứt)"
+            : account.category === "VIP"
+            ? "Gói Theo Giờ (VIP)"
+            : "Gói Theo Tháng (Clone)",
+          amount,
+          profit,
+          isDead,
+          customer: isDead ? "Khách chốt vĩnh viễn" : "Khách đang thuê",
+          eventMs: isNaN(eventMs) ? Date.now() : eventMs,
+          createdAt: new Date(eventMs).toISOString(),
+        },
+      ];
+    }
+
+    return [];
+  };
+
   // 3. TÍNH TOÁN BỘ CHỈ SỐ LỢI NHUẬN (CHUẨN XÁC THEO QUY TẮC CỦA SHOP TFT)
-  // - Dòng tiền chết: Chỉ ăn đúng 1 lần duy nhất 20% vào hôm bán (ngày tạo đơn). Không sinh lời về sau.
+  // - Thuê gói nào ăn lãi trọn gói đó và CHỐT NGAY 1 LẦN DUY NHẤT vào ngày bắt đầu cho thuê.
+  // - Dòng tiền chết (bán đứt / vô cực): Chỉ ăn đúng 1 lần duy nhất 20% vào hôm bán.
   // - Acc sẵn trong kho (AVAILABLE): Dòng tiền đóng băng, CHƯA sinh lãi (Lãi = 0).
-  // - Acc đã cho thuê (RENTED): Tiền từ các gói thuê đó chính là LÃI.
   const profitAnalytics = useMemo(() => {
     const nowMs = Date.now();
     const oneDayMs = 24 * 60 * 60 * 1000;
@@ -284,127 +379,84 @@ export default function AdminDashboardPage() {
     const thirtyDaysMs = 30 * oneDayMs;
     const oneYearMs = 365 * oneDayMs;
 
-    // Phân loại đơn hàng hợp lệ (không tính đơn hủy)
     const validOrders = orders.filter((o) => o.status !== "CANCELLED");
 
-    // Helper: Nhận diện đơn hàng vĩnh viễn / bán đứt / vô cực
-    const isDeadOrder = (o: OrderItem) =>
-      o.durationHours === -1 ||
-      o.package?.toLowerCase().includes("vĩnh viễn") ||
-      o.package?.toLowerCase().includes("vô cực");
+    // Tập hợp tất cả các sự kiện giao dịch thuê / chốt bán
+    const allRentalEvents: Array<{
+      eventMs: number;
+      amount: number;
+      profit: number;
+      isDead: boolean;
+      accountCode?: string;
+    }> = [];
 
-    // 1. DÒNG TIỀN CHẾT: ĂN 1 LẦN DUY NHẤT 20% VÀO NGÀY BÁN (KHÔNG SINH LỜI VỀ SAU)
-    const getDeadProfitInPeriod = (msRange: number) => {
-      return validOrders
-        .filter((o) => {
-          if (!isDeadOrder(o)) return false;
-          if (!o.createdAt) return false;
-          const t = new Date(o.createdAt).getTime();
-          return !isNaN(t) && nowMs - t <= msRange;
-        })
-        .reduce((sum, o) => sum + Math.round((Number(o.amount) || 0) * deadProfitRate), 0);
-    };
-
-    const getDeadRevenueInPeriod = (msRange: number) => {
-      return validOrders
-        .filter((o) => {
-          if (!isDeadOrder(o)) return false;
-          if (!o.createdAt) return false;
-          const t = new Date(o.createdAt).getTime();
-          return !isNaN(t) && nowMs - t <= msRange;
-        })
-        .reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
-    };
-
-    // 2. DÒNG TIỀN SỐNG: CÁC GÓI THUÊ ĐÃ CHO THUÊ CHÍNH LÀ LÃI
-    const isLiveOrder = (o: OrderItem) => !isDeadOrder(o);
-
-    const getLiveOrdersProfitInPeriod = (msRange: number) => {
-      return validOrders
-        .filter((o) => {
-          if (!isLiveOrder(o)) return false;
-          if (!o.createdAt) return false;
-          const t = new Date(o.createdAt).getTime();
-          return !isNaN(t) && nowMs - t <= msRange;
-        })
-        .reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
-    };
-
-    // Lãi từ các acc đang có trạng thái RENTED thực tế hiện tại trong kho (gói thuê đang chạy)
-    const currentlyRentedAccounts = accounts.filter(
-      (a) => a.status === "RENTED" && !a.isPermanentRental
-    );
-
-    const currentLiveRentalsValue = currentlyRentedAccounts.reduce((sum, a) => {
-      if (a.category === "VIP") {
-        // Gói thuê VIP theo giờ đang chạy (tối thiểu 1 gói 4h = 60.000đ)
-        return sum + Math.max((Number(a.hourlyPrice) || 15000) * 4, 30000);
-      } else {
-        // Acc Clone: Gói thuê tháng / chu kỳ
-        return sum + (Number(a.monthlyPrice) || Number(a.periodPrice) || 150000);
+    // 1. Thêm từ danh sách đơn hàng thực tế
+    validOrders.forEach((o) => {
+      const isDead = isDeadOrder(o);
+      const amount = Number(o.amount) || 0;
+      const profit = isDead ? Math.round(amount * deadProfitRate) : amount;
+      const eventMs = new Date(o.createdAt || o.startedAt || nowMs).getTime();
+      if (!isNaN(eventMs)) {
+        allRentalEvents.push({
+          eventMs,
+          amount,
+          profit,
+          isDead,
+          accountCode: o.accountCode,
+        });
       }
-    }, 0);
+    });
 
-    // Tính lãi dòng sống cho từng mốc thời gian:
-    // - Ngày (24h): Tiền các đơn thuê trong 24h qua hoặc tổng giá trị các gói acc đang thuê
-    const dayLiveOrdersProfit = getLiveOrdersProfitInPeriod(oneDayMs);
-    const dayLiveProfit = Math.max(dayLiveOrdersProfit, currentLiveRentalsValue);
-    const dayLiveRevenue = dayLiveProfit;
+    // 2. Với những tài khoản RENTED / vĩnh viễn trong kho mà chưa có đơn tương ứng trong orders:
+    accounts.forEach((a) => {
+      if (a.status === "RENTED" || a.isPermanentRental) {
+        const hasMatchingOrder = validOrders.some((o) => isAccountMatchingOrder(a, o));
+        if (!hasMatchingOrder) {
+          const events = getAccountRentalEvents(a, orders);
+          events.forEach((e) => {
+            allRentalEvents.push({
+              eventMs: e.eventMs,
+              amount: e.amount,
+              profit: e.profit,
+              isDead: e.isDead,
+              accountCode: a.code,
+            });
+          });
+        }
+      }
+    });
 
-    // - Tuần (7N): Tiền các đơn thuê trong 7 ngày
-    const weekLiveOrdersProfit = getLiveOrdersProfitInPeriod(sevenDaysMs);
-    const weekLiveProfit = Math.max(weekLiveOrdersProfit, dayLiveProfit * 7);
-    const weekLiveRevenue = weekLiveProfit;
+    // Tính toán theo từng chu kỳ (chốt 1 lần vào ngày bắt đầu thuê / bán)
+    const calculateStatsForRange = (msRange: number) => {
+      const eventsInRange = allRentalEvents.filter(
+        (e) => nowMs - e.eventMs <= msRange && nowMs - e.eventMs >= -60000
+      );
 
-    // - Tháng (30N): Tiền các đơn thuê trong 30 ngày
-    const monthLiveOrdersProfit = getLiveOrdersProfitInPeriod(thirtyDaysMs);
-    const monthLiveProfit = Math.max(monthLiveOrdersProfit, dayLiveProfit * 30);
-    const monthLiveRevenue = monthLiveProfit;
+      const liveProfit = eventsInRange.filter((e) => !e.isDead).reduce((sum, e) => sum + e.profit, 0);
+      const liveRevenue = eventsInRange.filter((e) => !e.isDead).reduce((sum, e) => sum + e.amount, 0);
 
-    // - Năm (365N): Tiền các đơn thuê trong năm
-    const yearLiveOrdersProfit = getLiveOrdersProfitInPeriod(oneYearMs);
-    const yearLiveProfit = Math.max(yearLiveOrdersProfit, dayLiveProfit * 365);
-    const yearLiveRevenue = yearLiveProfit;
+      const deadProfit = eventsInRange.filter((e) => e.isDead).reduce((sum, e) => sum + e.profit, 0);
+      const deadRevenue = eventsInRange.filter((e) => e.isDead).reduce((sum, e) => sum + e.amount, 0);
 
-    // 3. TÍNH LÃI DÒNG CHẾT (CHỈ ĂN 1 LẦN 20% VÀO HÔM BÁN)
-    let dayDeadProfit = getDeadProfitInPeriod(oneDayMs);
-    let dayDeadRevenue = getDeadRevenueInPeriod(oneDayMs);
+      const totalProfit = liveProfit + deadProfit;
+      const totalRevenue = liveRevenue + deadRevenue;
 
-    let weekDeadProfit = getDeadProfitInPeriod(sevenDaysMs);
-    let weekDeadRevenue = getDeadRevenueInPeriod(sevenDaysMs);
+      return {
+        liveProfit,
+        liveRevenue,
+        deadProfit,
+        deadRevenue,
+        totalProfit,
+        totalRevenue,
+      };
+    };
 
-    let monthDeadProfit = getDeadProfitInPeriod(thirtyDaysMs);
-    let monthDeadRevenue = getDeadRevenueInPeriod(thirtyDaysMs);
+    const dayStats = calculateStatsForRange(oneDayMs);
+    const weekStats = calculateStatsForRange(sevenDaysMs);
+    const monthStats = calculateStatsForRange(thirtyDaysMs);
+    const yearStats = calculateStatsForRange(oneYearMs);
 
-    let yearDeadProfit = getDeadProfitInPeriod(oneYearMs);
-    let yearDeadRevenue = getDeadRevenueInPeriod(oneYearMs);
-
-    // Nếu chưa có đơn hàng riêng lẻ lưu trong DB, nhưng có acc gắn cờ vĩnh viễn trong kho (chốt bán):
-    const permanentAccounts = accounts.filter((a) => a.isPermanentRental);
-    const permanentAccountsValue = permanentAccounts.reduce(
-      (sum, a) => sum + (Number(a.accountValue) || Number(a.price) || 850000),
-      0
-    );
-    if (yearDeadRevenue === 0 && permanentAccountsValue > 0) {
-      // Ghi nhận 20% 1 lần duy nhất từ các acc đã chốt bán vĩnh viễn
-      yearDeadRevenue = permanentAccountsValue;
-      yearDeadProfit = Math.round(permanentAccountsValue * deadProfitRate);
-      monthDeadRevenue = yearDeadRevenue;
-      monthDeadProfit = yearDeadProfit;
-    }
-
-    // 4. TỔNG LỢI NHUẬN TỪNG KỲ
-    const dayTotalProfit = dayLiveProfit + dayDeadProfit;
-    const weekTotalProfit = weekLiveProfit + weekDeadProfit;
-    const monthTotalProfit = monthLiveProfit + monthDeadProfit;
-    const yearTotalProfit = yearLiveProfit + yearDeadProfit;
-
-    const dayTotalRevenue = dayLiveRevenue + dayDeadRevenue;
-    const weekTotalRevenue = weekLiveRevenue + weekDeadRevenue;
-    const monthTotalRevenue = monthLiveRevenue + monthDeadRevenue;
-    const yearTotalRevenue = yearLiveRevenue + yearDeadRevenue;
-
-    // 5. VỐN ĐÓNG BĂNG TRONG KHO (Acc AVAILABLE - Chưa sinh lãi)
+    // Vốn đóng băng trong kho (Acc AVAILABLE - Chưa sinh lãi)
     const frozenAccounts = accounts.filter((a) => a.status === "AVAILABLE");
     const frozenCapital = frozenAccounts.reduce(
       (sum, a) => sum + (Number(a.accountValue) || Number(a.price) || (a.category === "VIP" ? 850000 : 150000)),
@@ -416,54 +468,54 @@ export default function AdminDashboardPage() {
       DAY: {
         label: "Hôm Nay (24 Giờ)",
         subLabel: "Lợi nhuận các gói thuê phát sinh trong hôm nay",
-        liveProfit: dayLiveProfit,
-        deadProfit: dayDeadProfit,
-        totalProfit: dayTotalProfit,
-        liveRevenue: dayLiveRevenue,
-        deadRevenue: dayDeadRevenue,
-        totalRevenue: dayTotalRevenue,
-        liveShare: dayTotalProfit > 0 ? Math.round((dayLiveProfit / dayTotalProfit) * 100) : 100,
-        deadShare: dayTotalProfit > 0 ? Math.round((dayDeadProfit / dayTotalProfit) * 100) : 0,
-        margin: dayTotalRevenue > 0 ? Math.round((dayTotalProfit / dayTotalRevenue) * 100) : 100,
+        liveProfit: dayStats.liveProfit,
+        deadProfit: dayStats.deadProfit,
+        totalProfit: dayStats.totalProfit,
+        liveRevenue: dayStats.liveRevenue,
+        deadRevenue: dayStats.deadRevenue,
+        totalRevenue: dayStats.totalRevenue,
+        liveShare: dayStats.totalProfit > 0 ? Math.round((dayStats.liveProfit / dayStats.totalProfit) * 100) : 100,
+        deadShare: dayStats.totalProfit > 0 ? Math.round((dayStats.deadProfit / dayStats.totalProfit) * 100) : 0,
+        margin: dayStats.totalRevenue > 0 ? Math.round((dayStats.totalProfit / dayStats.totalRevenue) * 100) : 100,
       },
       WEEK: {
         label: "Tuần Này (7 Ngày)",
         subLabel: "Lợi nhuận các gói thuê phát sinh trong 7 ngày",
-        liveProfit: weekLiveProfit,
-        deadProfit: weekDeadProfit,
-        totalProfit: weekTotalProfit,
-        liveRevenue: weekLiveRevenue,
-        deadRevenue: weekDeadRevenue,
-        totalRevenue: weekTotalRevenue,
-        liveShare: weekTotalProfit > 0 ? Math.round((weekLiveProfit / weekTotalProfit) * 100) : 100,
-        deadShare: weekTotalProfit > 0 ? Math.round((weekDeadProfit / weekTotalProfit) * 100) : 0,
-        margin: weekTotalRevenue > 0 ? Math.round((weekTotalProfit / weekTotalRevenue) * 100) : 100,
+        liveProfit: weekStats.liveProfit,
+        deadProfit: weekStats.deadProfit,
+        totalProfit: weekStats.totalProfit,
+        liveRevenue: weekStats.liveRevenue,
+        deadRevenue: weekStats.deadRevenue,
+        totalRevenue: weekStats.totalRevenue,
+        liveShare: weekStats.totalProfit > 0 ? Math.round((weekStats.liveProfit / weekStats.totalProfit) * 100) : 100,
+        deadShare: weekStats.totalProfit > 0 ? Math.round((weekStats.deadProfit / weekStats.totalProfit) * 100) : 0,
+        margin: weekStats.totalRevenue > 0 ? Math.round((weekStats.totalProfit / weekStats.totalRevenue) * 100) : 100,
       },
       MONTH: {
         label: "Tháng Này (30 Ngày)",
-        subLabel: "Lợi nhuận chu kỳ tháng tiêu chuẩn",
-        liveProfit: monthLiveProfit,
-        deadProfit: monthDeadProfit,
-        totalProfit: monthTotalProfit,
-        liveRevenue: monthLiveRevenue,
-        deadRevenue: monthDeadRevenue,
-        totalRevenue: monthTotalRevenue,
-        liveShare: monthTotalProfit > 0 ? Math.round((monthLiveProfit / monthTotalProfit) * 100) : 100,
-        deadShare: monthTotalProfit > 0 ? Math.round((monthDeadProfit / monthTotalProfit) * 100) : 0,
-        margin: monthTotalRevenue > 0 ? Math.round((monthTotalProfit / monthTotalRevenue) * 100) : 100,
+        subLabel: "Lợi nhuận các gói thuê phát sinh trong 30 ngày",
+        liveProfit: monthStats.liveProfit,
+        deadProfit: monthStats.deadProfit,
+        totalProfit: monthStats.totalProfit,
+        liveRevenue: monthStats.liveRevenue,
+        deadRevenue: monthStats.deadRevenue,
+        totalRevenue: monthStats.totalRevenue,
+        liveShare: monthStats.totalProfit > 0 ? Math.round((monthStats.liveProfit / monthStats.totalProfit) * 100) : 100,
+        deadShare: monthStats.totalProfit > 0 ? Math.round((monthStats.deadProfit / monthStats.totalProfit) * 100) : 0,
+        margin: monthStats.totalRevenue > 0 ? Math.round((monthStats.totalProfit / monthStats.totalRevenue) * 100) : 100,
       },
       YEAR: {
         label: "Cả Năm (365 Ngày)",
         subLabel: "Toàn bộ lợi nhuận năm từ gói thuê & chốt bán 20%",
-        liveProfit: yearLiveProfit,
-        deadProfit: yearDeadProfit,
-        totalProfit: yearTotalProfit,
-        liveRevenue: yearLiveRevenue,
-        deadRevenue: yearDeadRevenue,
-        totalRevenue: yearTotalRevenue,
-        liveShare: yearTotalProfit > 0 ? Math.round((yearLiveProfit / yearTotalProfit) * 100) : 100,
-        deadShare: yearTotalProfit > 0 ? Math.round((yearDeadProfit / yearTotalProfit) * 100) : 0,
-        margin: yearTotalRevenue > 0 ? Math.round((yearTotalProfit / yearTotalRevenue) * 100) : 100,
+        liveProfit: yearStats.liveProfit,
+        deadProfit: yearStats.deadProfit,
+        totalProfit: yearStats.totalProfit,
+        liveRevenue: yearStats.liveRevenue,
+        deadRevenue: yearStats.deadRevenue,
+        totalRevenue: yearStats.totalRevenue,
+        liveShare: yearStats.totalProfit > 0 ? Math.round((yearStats.liveProfit / yearStats.totalProfit) * 100) : 100,
+        deadShare: yearStats.totalProfit > 0 ? Math.round((yearStats.deadProfit / yearStats.totalProfit) * 100) : 0,
+        margin: yearStats.totalRevenue > 0 ? Math.round((yearStats.totalProfit / yearStats.totalRevenue) * 100) : 100,
       },
     }[profitPeriod];
 
@@ -472,40 +524,40 @@ export default function AdminDashboardPage() {
       frozenCapital,
       frozenAccountsCount: frozenAccounts.length,
       day: {
-        profit: dayTotalProfit,
-        liveProfit: dayLiveProfit,
-        deadProfit: dayDeadProfit,
-        revenue: dayTotalRevenue,
-        liveRevenue: dayLiveRevenue,
-        deadRevenue: dayDeadRevenue,
-        margin: dayTotalRevenue > 0 ? Math.round((dayTotalProfit / dayTotalRevenue) * 100) : 100,
+        profit: dayStats.totalProfit,
+        liveProfit: dayStats.liveProfit,
+        deadProfit: dayStats.deadProfit,
+        revenue: dayStats.totalRevenue,
+        liveRevenue: dayStats.liveRevenue,
+        deadRevenue: dayStats.deadRevenue,
+        margin: dayStats.totalRevenue > 0 ? Math.round((dayStats.totalProfit / dayStats.totalRevenue) * 100) : 100,
       },
       week: {
-        profit: weekTotalProfit,
-        liveProfit: weekLiveProfit,
-        deadProfit: weekDeadProfit,
-        revenue: weekTotalRevenue,
-        liveRevenue: weekLiveRevenue,
-        deadRevenue: weekDeadRevenue,
-        margin: weekTotalRevenue > 0 ? Math.round((weekTotalProfit / weekTotalRevenue) * 100) : 100,
+        profit: weekStats.totalProfit,
+        liveProfit: weekStats.liveProfit,
+        deadProfit: weekStats.deadProfit,
+        revenue: weekStats.totalRevenue,
+        liveRevenue: weekStats.liveRevenue,
+        deadRevenue: weekStats.deadRevenue,
+        margin: weekStats.totalRevenue > 0 ? Math.round((weekStats.totalProfit / weekStats.totalRevenue) * 100) : 100,
       },
       month: {
-        profit: monthTotalProfit,
-        liveProfit: monthLiveProfit,
-        deadProfit: monthDeadProfit,
-        revenue: monthTotalRevenue,
-        liveRevenue: monthLiveRevenue,
-        deadRevenue: monthDeadRevenue,
-        margin: monthTotalRevenue > 0 ? Math.round((monthTotalProfit / monthTotalRevenue) * 100) : 100,
+        profit: monthStats.totalProfit,
+        liveProfit: monthStats.liveProfit,
+        deadProfit: monthStats.deadProfit,
+        revenue: monthStats.totalRevenue,
+        liveRevenue: monthStats.liveRevenue,
+        deadRevenue: monthStats.deadRevenue,
+        margin: monthStats.totalRevenue > 0 ? Math.round((monthStats.totalProfit / monthStats.totalRevenue) * 100) : 100,
       },
       year: {
-        profit: yearTotalProfit,
-        liveProfit: yearLiveProfit,
-        deadProfit: yearDeadProfit,
-        revenue: yearTotalRevenue,
-        liveRevenue: yearLiveRevenue,
-        deadRevenue: yearDeadRevenue,
-        margin: yearTotalRevenue > 0 ? Math.round((yearTotalProfit / yearTotalRevenue) * 100) : 100,
+        profit: yearStats.totalProfit,
+        liveProfit: yearStats.liveProfit,
+        deadProfit: yearStats.deadProfit,
+        revenue: yearStats.totalRevenue,
+        liveRevenue: yearStats.liveRevenue,
+        deadRevenue: yearStats.deadRevenue,
+        margin: yearStats.totalRevenue > 0 ? Math.round((yearStats.totalProfit / yearStats.totalRevenue) * 100) : 100,
       },
       currentPeriodData,
     };
@@ -595,6 +647,95 @@ export default function AdminDashboardPage() {
         throw new Error(res.error || "Không thể cập nhật thời gian thuê!");
       }
 
+      // Tính giá gói và tên gói chính xác
+      let packagePrice = 0;
+      let packageName = "";
+
+      if (rentModalAccount.category === "VIP") {
+        const hPrice = Number(rentModalAccount.hourlyPrice) || 15000;
+        const dPrice = Number(rentModalAccount.dailyPrice) || 60000;
+        const val = Number(rentModalAccount.accountValue) || 850000;
+
+        if (isPermanent) {
+          packagePrice = val;
+          packageName = "Gói Vô Cực ∞ (Bán Đứt)";
+        } else if (quickHours === 2) {
+          packagePrice = hPrice * 2;
+          packageName = "Gói 2 Giờ VIP";
+        } else if (quickHours === 4) {
+          packagePrice = hPrice * 4;
+          packageName = "Gói 4 Giờ VIP";
+        } else if (quickHours === 10) {
+          packagePrice = Math.round(hPrice * 2.5);
+          packageName = "Gói Thuê Đêm 10H (VIP)";
+        } else if (quickHours === 24) {
+          packagePrice = dPrice;
+          packageName = "Gói 24 Giờ (1 Ngày VIP)";
+        } else if (quickHours === 72) {
+          packagePrice = Math.round(dPrice * 3 * 0.9);
+          packageName = "Gói 3 Ngày (VIP)";
+        } else if (quickHours === 168) {
+          packagePrice = Math.round(dPrice * 7 * 0.8);
+          packageName = "Gói 7 Ngày (1 Tuần VIP)";
+        } else if (quickHours === 720) {
+          packagePrice = Math.round(dPrice * 30 * 0.7);
+          packageName = "Gói 30 Ngày (1 Tháng VIP)";
+        } else {
+          const hours = Math.max(1, Math.round((targetDate.getTime() - Date.now()) / (3600 * 1000)));
+          packagePrice = hours * hPrice;
+          packageName = `Gói Tùy Chỉnh (${hours}H)`;
+        }
+      } else {
+        // CLONE
+        const mPrice = Number(rentModalAccount.monthlyPrice) || Number(rentModalAccount.periodPrice) || 210000;
+        const pPrice = Number(rentModalAccount.periodPrice) || 15000;
+        const cPrice = Number(rentModalAccount.price) || 150000;
+
+        if (isPermanent) {
+          packagePrice = cPrice;
+          packageName = "Gói Vô Cực ∞ (Bán Đứt)";
+        } else if (quickHours === 24) {
+          packagePrice = pPrice;
+          packageName = "Gói 1 Ngày (Clone)";
+        } else if (quickHours === 72) {
+          packagePrice = pPrice * 3;
+          packageName = "Gói 3 Ngày (Clone)";
+        } else if (quickHours === 168) {
+          packagePrice = pPrice * 6;
+          packageName = "Gói 7 Ngày (Clone)";
+        } else if (quickHours === 720 || quickHours === 0) {
+          packagePrice = mPrice;
+          packageName = "Gói 30 Ngày (1 Tháng Clone)";
+        } else {
+          packagePrice = mPrice;
+          packageName = "Gói Thuê Clone";
+        }
+      }
+
+      // Tự động tạo bản ghi Order tương ứng để chốt ngay lợi nhuận hôm nay
+      const orderRes = await createOrder({
+        type: rentModalAccount.category,
+        customer: "Khách Thuê Zalo",
+        phoneZalo: "09xx.xxx.xxx",
+        accountCode: rentModalAccount.code,
+        accountTitle: rentModalAccount.title,
+        package: packageName,
+        durationHours: isPermanent ? -1 : quickHours || 24,
+        amount: packagePrice,
+        status: "RENTING",
+        createdBy: "ADMIN",
+        source: "ADMIN",
+        startedAt: new Date().toISOString(),
+        expiresAt: targetDate.toISOString(),
+        accountLogin: rentModalAccount.code,
+        accountPass: "******",
+        notes: `Đơn cho thuê nhanh tạo từ Admin Dashboard lúc ${new Date().toLocaleTimeString("vi-VN")}`,
+      });
+
+      if (orderRes.success && orderRes.data) {
+        setOrders((prev) => [orderRes.data!, ...prev]);
+      }
+
       setAccounts((prev) =>
         prev.map((a) =>
           a.id === rentModalAccount.id
@@ -604,7 +745,7 @@ export default function AdminDashboardPage() {
       );
 
       toast.success(
-        `✅ Đã thiết lập cho thuê [${rentModalAccount.code}] (${isPermanent ? "Dòng tiền chết - Vĩnh viễn" : "Dòng tiền sống - Có hạn"}) thành công!`,
+        `✅ Đã cho thuê [${rentModalAccount.code}] (${packageName} - +${packagePrice.toLocaleString("vi-VN")}đ chốt lãi hôm nay) thành công!`,
         { id: toastId }
       );
       setRentModalAccount(null);
@@ -634,30 +775,8 @@ export default function AdminDashboardPage() {
       YEAR: 365 * 24 * 60 * 60 * 1000,
     }[period];
 
-    // 1. Kiểm tra nếu có đơn hàng tương ứng trong orders phát sinh trong kỳ
-    const hasOrderInPeriod = orders.some((o) => {
-      if (o.status === "CANCELLED") return false;
-      const matchCode = o.accountCode?.trim().toLowerCase() === account.code.trim().toLowerCase();
-      if (!matchCode) return false;
-      if (!o.createdAt) return true;
-      const orderMs = new Date(o.createdAt).getTime();
-      return !isNaN(orderMs) && nowMs - orderMs <= msRange;
-    });
-
-    if (hasOrderInPeriod) return true;
-
-    // 2. Nếu acc đang có trạng thái RENTED (không phải vĩnh viễn):
-    if (account.status === "RENTED" && !account.isPermanentRental) {
-      return true;
-    }
-
-    // 3. Nếu acc vĩnh viễn (isPermanentRental):
-    if (account.isPermanentRental) {
-      if (period === "YEAR") return true;
-      return hasOrderInPeriod;
-    }
-
-    return false;
+    const events = getAccountRentalEvents(account, orders);
+    return events.some((e) => nowMs - e.eventMs <= msRange && nowMs - e.eventMs >= -60000);
   };
 
   // Chi tiết gói thuê & lợi nhuận của từng acc trong kỳ
@@ -670,51 +789,28 @@ export default function AdminDashboardPage() {
       YEAR: 365 * 24 * 60 * 60 * 1000,
     }[period];
 
-    const matchedOrder = orders.find((o) => {
-      if (o.status === "CANCELLED") return false;
-      const matchCode = o.accountCode?.trim().toLowerCase() === account.code.trim().toLowerCase();
-      if (!matchCode) return false;
-      if (!o.createdAt) return true;
-      const t = new Date(o.createdAt).getTime();
-      return !isNaN(t) && nowMs - t <= msRange;
-    });
+    const events = getAccountRentalEvents(account, orders);
+    const eventInPeriod = events.find((e) => nowMs - e.eventMs <= msRange && nowMs - e.eventMs >= -60000) || events[0];
 
-    if (matchedOrder) {
-      const isDead =
-        matchedOrder.durationHours === -1 ||
-        matchedOrder.package?.toLowerCase().includes("vĩnh viễn") ||
-        matchedOrder.package?.toLowerCase().includes("vô cực");
-      const profit = isDead ? Math.round(Number(matchedOrder.amount) * deadProfitRate) : Number(matchedOrder.amount);
+    if (eventInPeriod) {
       return {
-        hasOrder: true,
-        package: matchedOrder.package || (isDead ? "Vô Cực ∞" : "Gói Thuê"),
-        amount: Number(matchedOrder.amount) || 0,
-        profit,
-        customer: matchedOrder.customer || matchedOrder.phoneZalo || "Khách Zalo",
-        time: matchedOrder.createdAt ? new Date(matchedOrder.createdAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) : "",
+        hasOrder: eventInPeriod.hasOrder,
+        package: eventInPeriod.package,
+        amount: eventInPeriod.amount,
+        profit: eventInPeriod.profit,
+        customer: eventInPeriod.customer,
+        time: eventInPeriod.createdAt
+          ? new Date(eventInPeriod.createdAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
+          : "",
       };
     }
 
-    if (account.isPermanentRental) {
-      const val = Number(account.accountValue) || Number(account.price) || 850000;
-      return {
-        hasOrder: false,
-        package: "Thuê Vô Cực ∞ (Chết)",
-        amount: val,
-        profit: Math.round(val * deadProfitRate),
-        customer: "Khách chốt vĩnh viễn",
-        time: "",
-      };
-    }
-
-    // Gói thuê đang chạy
-    const estProfit = account.category === "VIP" ? Math.max((Number(account.hourlyPrice) || 15000) * 4, 60000) : (Number(account.monthlyPrice) || 150000);
     return {
       hasOrder: false,
-      package: account.category === "VIP" ? "Gói Theo Giờ (VIP)" : "Gói Theo Tháng (Clone)",
-      amount: estProfit,
-      profit: estProfit,
-      customer: "Khách đang thuê",
+      package: "Chưa cho thuê",
+      amount: 0,
+      profit: 0,
+      customer: "Chưa có",
       time: "",
     };
   };
