@@ -67,7 +67,7 @@ export interface DashboardAccountItem {
   isPermanentRental?: boolean; // Cờ dòng tiền chết: Thuê vĩnh viễn / Vô cực
 }
 
-type FlowFilterType = "ALL" | "LIVE" | "DEAD" | "RENTED" | "AVAILABLE" | "EXPIRING";
+type FlowFilterType = "ALL" | "LIVE" | "DEAD" | "RENTED" | "AVAILABLE" | "EXPIRING" | "PERIOD";
 
 export default function AdminDashboardPage() {
   const [accounts, setAccounts] = useState<DashboardAccountItem[]>([]);
@@ -624,6 +624,121 @@ export default function AdminDashboardPage() {
     });
   };
 
+  // Danh sách các tài khoản đã/đang cho thuê theo chu kỳ (Hôm nay / Tuần / Tháng / Năm)
+  const isAccountRentedInPeriod = (account: DashboardAccountItem, period: "DAY" | "WEEK" | "MONTH" | "YEAR") => {
+    const nowMs = Date.now();
+    const msRange = {
+      DAY: 24 * 60 * 60 * 1000,
+      WEEK: 7 * 24 * 60 * 60 * 1000,
+      MONTH: 30 * 24 * 60 * 60 * 1000,
+      YEAR: 365 * 24 * 60 * 60 * 1000,
+    }[period];
+
+    // 1. Kiểm tra nếu có đơn hàng tương ứng trong orders phát sinh trong kỳ
+    const hasOrderInPeriod = orders.some((o) => {
+      if (o.status === "CANCELLED") return false;
+      const matchCode = o.accountCode?.trim().toLowerCase() === account.code.trim().toLowerCase();
+      if (!matchCode) return false;
+      if (!o.createdAt) return true;
+      const orderMs = new Date(o.createdAt).getTime();
+      return !isNaN(orderMs) && nowMs - orderMs <= msRange;
+    });
+
+    if (hasOrderInPeriod) return true;
+
+    // 2. Nếu acc đang có trạng thái RENTED (không phải vĩnh viễn):
+    if (account.status === "RENTED" && !account.isPermanentRental) {
+      return true;
+    }
+
+    // 3. Nếu acc vĩnh viễn (isPermanentRental):
+    if (account.isPermanentRental) {
+      if (period === "YEAR") return true;
+      return hasOrderInPeriod;
+    }
+
+    return false;
+  };
+
+  // Chi tiết gói thuê & lợi nhuận của từng acc trong kỳ
+  const getAccountRentalDetails = (account: DashboardAccountItem, period: "DAY" | "WEEK" | "MONTH" | "YEAR") => {
+    const nowMs = Date.now();
+    const msRange = {
+      DAY: 24 * 60 * 60 * 1000,
+      WEEK: 7 * 24 * 60 * 60 * 1000,
+      MONTH: 30 * 24 * 60 * 60 * 1000,
+      YEAR: 365 * 24 * 60 * 60 * 1000,
+    }[period];
+
+    const matchedOrder = orders.find((o) => {
+      if (o.status === "CANCELLED") return false;
+      const matchCode = o.accountCode?.trim().toLowerCase() === account.code.trim().toLowerCase();
+      if (!matchCode) return false;
+      if (!o.createdAt) return true;
+      const t = new Date(o.createdAt).getTime();
+      return !isNaN(t) && nowMs - t <= msRange;
+    });
+
+    if (matchedOrder) {
+      const isDead =
+        matchedOrder.durationHours === -1 ||
+        matchedOrder.package?.toLowerCase().includes("vĩnh viễn") ||
+        matchedOrder.package?.toLowerCase().includes("vô cực");
+      const profit = isDead ? Math.round(Number(matchedOrder.amount) * deadProfitRate) : Number(matchedOrder.amount);
+      return {
+        hasOrder: true,
+        package: matchedOrder.package || (isDead ? "Vô Cực ∞" : "Gói Thuê"),
+        amount: Number(matchedOrder.amount) || 0,
+        profit,
+        customer: matchedOrder.customer || matchedOrder.phoneZalo || "Khách Zalo",
+        time: matchedOrder.createdAt ? new Date(matchedOrder.createdAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }) : "",
+      };
+    }
+
+    if (account.isPermanentRental) {
+      const val = Number(account.accountValue) || Number(account.price) || 850000;
+      return {
+        hasOrder: false,
+        package: "Thuê Vô Cực ∞ (Chết)",
+        amount: val,
+        profit: Math.round(val * deadProfitRate),
+        customer: "Khách chốt vĩnh viễn",
+        time: "",
+      };
+    }
+
+    // Gói thuê đang chạy
+    const estProfit = account.category === "VIP" ? Math.max((Number(account.hourlyPrice) || 15000) * 4, 60000) : (Number(account.monthlyPrice) || 150000);
+    return {
+      hasOrder: false,
+      package: account.category === "VIP" ? "Gói Theo Giờ (VIP)" : "Gói Theo Tháng (Clone)",
+      amount: estProfit,
+      profit: estProfit,
+      customer: "Khách đang thuê",
+      time: "",
+    };
+  };
+
+  // Danh sách các tài khoản được cho thuê trong kỳ đang chọn (Hôm Nay / Tuần / Tháng / Năm)
+  const periodRentedAccounts = useMemo(() => {
+    return accounts.filter((a) => isAccountRentedInPeriod(a, profitPeriod));
+  }, [accounts, orders, profitPeriod]);
+
+  // Handler khi click chọn kỳ thời gian (Hôm nay / Tuần / Tháng / Năm)
+  const handleSelectProfitPeriod = (period: "DAY" | "WEEK" | "MONTH" | "YEAR", applyToInventory = true) => {
+    setProfitPeriod(period);
+    if (applyToInventory) {
+      setFlowFilter("PERIOD");
+    }
+    const label = {
+      DAY: "Hôm Nay (24 Giờ)",
+      WEEK: "Tuần Này (7 Ngày)",
+      MONTH: "Tháng Này (30 Ngày)",
+      YEAR: "Cả Năm (365 Ngày)",
+    }[period];
+    toast.success(`📅 Đang lọc các tài khoản được cho thuê: ${label}`, { id: "period-filter-notice" });
+  };
+
   // Danh sách tài khoản đã lọc theo Search, Category & Dòng Tiền (FlowFilter)
   const filteredAccounts = useMemo(() => {
     const nowMs = Date.now();
@@ -632,7 +747,7 @@ export default function AdminDashboardPage() {
       if (categoryFilter === "VIP" && a.category !== "VIP") return false;
       if (categoryFilter === "CLONE" && a.category !== "CLONE") return false;
 
-      // 2. Lọc theo Dòng Tiền (Flow Filter)
+      // 2. Lọc theo Dòng Tiền & Chu Kỳ Thuê (Flow Filter)
       if (flowFilter === "LIVE" && a.isPermanentRental) return false;
       if (flowFilter === "DEAD" && !a.isPermanentRental) return false;
       if (flowFilter === "RENTED" && a.status !== "RENTED") return false;
@@ -642,6 +757,7 @@ export default function AdminDashboardPage() {
         const expMs = new Date(a.rentedUntil).getTime();
         if (!isNaN(expMs) && expMs > nowMs + 24 * 60 * 60 * 1000) return false;
       }
+      if (flowFilter === "PERIOD" && !isAccountRentedInPeriod(a, profitPeriod)) return false;
 
       // 3. Lọc theo từ khóa tìm kiếm
       if (searchTerm.trim()) {
@@ -654,7 +770,7 @@ export default function AdminDashboardPage() {
       }
       return true;
     });
-  }, [accounts, categoryFilter, flowFilter, searchTerm]);
+  }, [accounts, categoryFilter, flowFilter, searchTerm, profitPeriod]);
 
   return (
     <div className="space-y-6 pb-12">
@@ -926,9 +1042,11 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: Hôm Nay / 24H */}
           <div
-            onClick={() => setProfitPeriod("DAY")}
+            onClick={() => handleSelectProfitPeriod("DAY")}
             className={`p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between space-y-3 ${
-              profitPeriod === "DAY"
+              profitPeriod === "DAY" && flowFilter === "PERIOD"
+                ? "bg-amber-50/90 border-amber-500 shadow-md ring-2 ring-amber-500/30 scale-[1.01]"
+                : profitPeriod === "DAY"
                 ? "bg-amber-50/80 border-amber-500 shadow-md ring-2 ring-amber-500/20"
                 : "bg-slate-50/70 border-slate-200 hover:border-amber-300 hover:bg-amber-50/30"
             }`}
@@ -939,7 +1057,7 @@ export default function AdminDashboardPage() {
                 <span>1. HÔM NAY (24H)</span>
               </span>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200/80 text-amber-900">
-                Thu Nhập Ngày
+                Thu Nhập Ngày ➔
               </span>
             </div>
 
@@ -966,9 +1084,11 @@ export default function AdminDashboardPage() {
 
           {/* Card 2: Tuần Này / 7 Ngày */}
           <div
-            onClick={() => setProfitPeriod("WEEK")}
+            onClick={() => handleSelectProfitPeriod("WEEK")}
             className={`p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between space-y-3 ${
-              profitPeriod === "WEEK"
+              profitPeriod === "WEEK" && flowFilter === "PERIOD"
+                ? "bg-teal-50/90 border-teal-500 shadow-md ring-2 ring-teal-500/30 scale-[1.01]"
+                : profitPeriod === "WEEK"
                 ? "bg-teal-50/80 border-teal-500 shadow-md ring-2 ring-teal-500/20"
                 : "bg-slate-50/70 border-slate-200 hover:border-teal-300 hover:bg-teal-50/30"
             }`}
@@ -979,7 +1099,7 @@ export default function AdminDashboardPage() {
                 <span>2. TUẦN NÀY (7N)</span>
               </span>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-200/80 text-teal-900">
-                Thu Nhập Tuần
+                Thu Nhập Tuần ➔
               </span>
             </div>
 
@@ -1006,9 +1126,11 @@ export default function AdminDashboardPage() {
 
           {/* Card 3: Tháng Này / 30 Ngày (HERO HIGHLIGHT) */}
           <div
-            onClick={() => setProfitPeriod("MONTH")}
+            onClick={() => handleSelectProfitPeriod("MONTH")}
             className={`p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between space-y-3 ${
-              profitPeriod === "MONTH"
+              profitPeriod === "MONTH" && flowFilter === "PERIOD"
+                ? "bg-gradient-to-b from-orange-50 to-amber-50 border-orange-500 shadow-xl ring-2 ring-orange-500/40 scale-[1.01]"
+                : profitPeriod === "MONTH"
                 ? "bg-gradient-to-b from-orange-50 to-amber-50/90 border-orange-500 shadow-lg ring-2 ring-orange-500/20"
                 : "bg-slate-50/70 border-slate-200 hover:border-orange-300 hover:bg-orange-50/30"
             }`}
@@ -1019,7 +1141,7 @@ export default function AdminDashboardPage() {
                 <span>3. THÁNG NÀY (30N)</span>
               </span>
               <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-orange-600 text-white shadow-xs">
-                🌟 Trọng Tâm
+                🌟 Trọng Tâm ➔
               </span>
             </div>
 
@@ -1046,9 +1168,11 @@ export default function AdminDashboardPage() {
 
           {/* Card 4: Cả Năm / 365 Ngày */}
           <div
-            onClick={() => setProfitPeriod("YEAR")}
+            onClick={() => handleSelectProfitPeriod("YEAR")}
             className={`p-4 sm:p-5 rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between space-y-3 ${
-              profitPeriod === "YEAR"
+              profitPeriod === "YEAR" && flowFilter === "PERIOD"
+                ? "bg-purple-50/90 border-purple-500 shadow-md ring-2 ring-purple-500/30 scale-[1.01]"
+                : profitPeriod === "YEAR"
                 ? "bg-purple-50/80 border-purple-500 shadow-md ring-2 ring-purple-500/20"
                 : "bg-slate-50/70 border-slate-200 hover:border-purple-300 hover:bg-purple-50/30"
             }`}
@@ -1059,7 +1183,7 @@ export default function AdminDashboardPage() {
                 <span>4. CẢ NĂM (365N)</span>
               </span>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-200/80 text-purple-900">
-                Lợi Nhuận Năm
+                Lợi Nhuận Năm ➔
               </span>
             </div>
 
@@ -1101,17 +1225,17 @@ export default function AdminDashboardPage() {
                 <button
                   key={period}
                   type="button"
-                  onClick={() => setProfitPeriod(period)}
+                  onClick={() => handleSelectProfitPeriod(period)}
                   className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                     profitPeriod === period
                       ? "bg-orange-600 text-white shadow-xs"
                       : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  {period === "DAY" && "Ngày (24H)"}
-                  {period === "WEEK" && "Tuần (7N)"}
-                  {period === "MONTH" && "Tháng (30N)"}
-                  {period === "YEAR" && "Năm (365N)"}
+                  {period === "DAY" && "Hôm Nay (24H)"}
+                  {period === "WEEK" && "Tuần Này (7N)"}
+                  {period === "MONTH" && "Tháng Này (30N)"}
+                  {period === "YEAR" && "Năm Nay (365N)"}
                 </button>
               ))}
             </div>
@@ -1179,6 +1303,77 @@ export default function AdminDashboardPage() {
                 Tổng lợi nhuận thu về trong chu kỳ đã chọn từ các gói thuê và các đơn chốt bán.
               </p>
             </div>
+          </div>
+
+          {/* DEDICATED SECTION: DANH SÁCH ACC ĐƯỢC CHO THUÊ TRONG KỲ */}
+          <div className="pt-4 border-t border-slate-800 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse" />
+                <h5 className="font-extrabold text-xs sm:text-sm text-white uppercase tracking-wider font-gaming">
+                  Danh Sách Acc Được Thuê Trong <span className="text-orange-400">{profitAnalytics.currentPeriodData.label}</span> ({periodRentedAccounts.length} Acc)
+                </h5>
+              </div>
+              <span className="text-[11px] text-slate-400">
+                Tổng Lợi Nhuận: <strong className="text-emerald-400 font-mono font-bold">+{profitAnalytics.currentPeriodData.totalProfit.toLocaleString("vi-VN")}đ</strong>
+              </span>
+            </div>
+
+            {periodRentedAccounts.length === 0 ? (
+              <div className="py-6 px-4 text-center bg-slate-800/40 rounded-2xl border border-dashed border-slate-700/80 space-y-1.5">
+                <span className="text-xl">⏳</span>
+                <p className="text-xs text-slate-300 font-medium">Chưa có giao dịch thuê acc nào phát sinh trong khung thời gian này</p>
+                <p className="text-[10px] text-slate-500">Thử click vào tab Tuần, Tháng hoặc Năm ở trên để xem thêm lịch sử thuê acc nhé!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                {periodRentedAccounts.map((account) => {
+                  const rentalDetail = getAccountRentalDetails(account, profitPeriod);
+                  const expiryInfo = formatRentalExpiry(account.rentedUntil);
+
+                  return (
+                    <div
+                      key={account.id}
+                      className="p-3 rounded-2xl bg-slate-800/90 border border-slate-700/80 hover:border-orange-500/60 transition-all flex items-start gap-3 text-xs group shadow-sm"
+                    >
+                      <img
+                        src={account.thumbnail}
+                        alt={account.code}
+                        className="w-12 h-12 rounded-xl object-cover border border-slate-700 flex-shrink-0"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "/avatar.jpg";
+                        }}
+                      />
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="font-mono font-bold text-[10px] px-1.5 py-0.2 rounded bg-slate-900 text-orange-400 border border-slate-700">
+                            {account.code}
+                          </span>
+                          <span className="font-mono font-black text-emerald-400 text-xs">
+                            +{rentalDetail.profit.toLocaleString("vi-VN")}đ
+                          </span>
+                        </div>
+
+                        <h6 className="font-bold text-white text-xs truncate" title={account.title}>
+                          {account.title}
+                        </h6>
+
+                        <div className="flex items-center justify-between text-[10px] text-slate-400 pt-0.5">
+                          <span className="truncate max-w-[130px] font-medium text-slate-300">{rentalDetail.package}</span>
+                          {account.isPermanentRental ? (
+                            <span className="text-purple-400 font-bold px-1.5 py-0.2 rounded bg-purple-950/60 border border-purple-800/60">Vô Cực ∞</span>
+                          ) : (
+                            <span className="text-orange-400 font-mono font-bold px-1.5 py-0.2 rounded bg-orange-950/60 border border-orange-800/60">
+                              {expiryInfo ? expiryInfo.shortCountdown : "Đang thuê"}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
@@ -1298,6 +1493,20 @@ export default function AdminDashboardPage() {
           >
             <span>Tất Cả</span>
             <span className="px-1.5 py-0.2 rounded-md bg-white/20 text-[10px] font-mono">{accounts.length}</span>
+          </button>
+
+          {/* TAB THUÊ TRONG KỲ ĐANG CHỌN */}
+          <button
+            type="button"
+            onClick={() => setFlowFilter("PERIOD")}
+            className={`px-3.5 py-2 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              flowFilter === "PERIOD"
+                ? "bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-md shadow-orange-600/20 ring-2 ring-orange-500/40"
+                : "bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-300"
+            }`}
+          >
+            <span>📅 Thuê Trong {profitAnalytics.currentPeriodData.label}</span>
+            <span className="px-1.5 py-0.2 rounded-md bg-white/20 text-[10px] font-mono font-black">{periodRentedAccounts.length}</span>
           </button>
 
           <button
