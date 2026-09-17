@@ -37,6 +37,8 @@ import {
   Layers,
   Crown,
 } from "lucide-react";
+import { OrderItem, getOrders } from "@/utils/orders-service";
+import ProfitAnalyticsChart from "@/components/admin/ProfitAnalyticsChart";
 
 export interface DashboardAccountItem {
   id: string;
@@ -59,6 +61,7 @@ export interface DashboardAccountItem {
 
 export default function AdminDashboardPage() {
   const [accounts, setAccounts] = useState<DashboardAccountItem[]>([]);
+  const [orders, setOrders] = useState<OrderItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<"ALL" | "VIP" | "CLONE">("ALL");
@@ -69,11 +72,19 @@ export default function AdminDashboardPage() {
   const [customEndTime, setCustomEndTime] = useState<string>("");
   const [isSubmittingRental, setIsSubmittingRental] = useState(false);
 
-  // 1. TẢI DỮ LIỆU TÀI KHOẢN TỪ DATABASE
+  // 1. TẢI DỮ LIỆU TÀI KHOẢN & ĐƠN HÀNG TỪ DATABASE
   const loadAccounts = async (showToastNotice = false) => {
     setIsLoading(true);
     try {
-      const { vipAccounts, cloneAccounts } = await getVipAndCloneAccounts();
+      const [{ vipAccounts, cloneAccounts }, ordersRes] = await Promise.all([
+        getVipAndCloneAccounts(),
+        getOrders(),
+      ]);
+
+      if (ordersRes && ordersRes.success) {
+        setOrders(ordersRes.data || []);
+      }
+
       const unifiedList: DashboardAccountItem[] = [
         ...(vipAccounts || []).map((v) => ({
           id: String(v.id),
@@ -108,7 +119,7 @@ export default function AdminDashboardPage() {
 
       setAccounts(unifiedList);
       if (showToastNotice) {
-        toast.success("✅ Đã làm mới số liệu kho tài khoản!");
+        toast.success("✅ Đã làm mới số liệu kho & đơn hàng!");
       }
     } catch (err: any) {
       console.error("Lỗi tải danh sách tài khoản:", err);
@@ -175,6 +186,24 @@ export default function AdminDashboardPage() {
       expiringCount: expiringList.length,
     };
   }, [accounts]);
+
+  // Danh sách các acc đang được cho thuê trong kho để đồng bộ biểu đồ lợi nhuận
+  const extraRentedAccounts = useMemo(() => {
+    return stats.rentedList.map((a) => {
+      let amount = 60000;
+      if (a.category === "VIP") {
+        amount = Number(a.hourlyPrice) ? Number(a.hourlyPrice) * 4 : 60000;
+      } else {
+        amount = Number(a.monthlyPrice) || Number(a.periodPrice) || 210000;
+      }
+      return {
+        category: a.category,
+        amount,
+        profit: amount,
+        title: a.title,
+      };
+    });
+  }, [stats.rentedList]);
 
   // 3. THAO TÁC THU HỒI TÀI KHOẢN (ĐỔI VỀ AVAILABLE)
   const handleReclaimAccount = async (account: DashboardAccountItem) => {
@@ -438,6 +467,12 @@ export default function AdminDashboardPage() {
         </div>
 
       </div>
+
+      {/* 2.5. BIỂU ĐỒ LỢI NHUẬN & DOANH THU SHOP (PROFIT ANALYTICS CHART) */}
+      <ProfitAnalyticsChart
+        orders={orders}
+        extraRentedAccounts={extraRentedAccounts}
+      />
 
       {/* 3. KHỐI DANH SÁCH: CÁC TÀI KHOẢN ĐANG ĐƯỢC CHO THUÊ (RENTED LIVE TABLE) */}
       <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
