@@ -37,7 +37,7 @@ import {
   Layers,
   Crown,
 } from "lucide-react";
-import { OrderItem, getOrders } from "@/utils/orders-service";
+import { OrderItem, getOrders, createOrder, updateOrder } from "@/utils/orders-service";
 import ProfitAnalyticsChart from "@/components/admin/ProfitAnalyticsChart";
 
 export interface DashboardAccountItem {
@@ -51,6 +51,7 @@ export interface DashboardAccountItem {
   rank?: string;
   rankBadge?: string;
   hourlyPrice?: number;
+  dailyPrice?: number;
   monthlyPrice?: number;
   periodPrice?: number;
   accountValue?: number;
@@ -96,6 +97,7 @@ export default function AdminDashboardPage() {
           rentedUntil: v.rentedUntil || null,
           rank: v.rank || "THÁCH ĐẤU",
           hourlyPrice: Number(v.hourlyPrice) || 15000,
+          dailyPrice: Number(v.dailyPrice) || 60000,
           accountValue: Number(v.accountValue) || 850000,
           price: Number(v.accountValue) || 850000,
           mainChibi: v.mainChibi || "",
@@ -205,10 +207,11 @@ export default function AdminDashboardPage() {
     });
   }, [stats.rentedList]);
 
-  // 3. THAO TÁC THU HỒI TÀI KHOẢN (ĐỔI VỀ AVAILABLE)
-  const handleReclaimAccount = async (account: DashboardAccountItem) => {
-    const toastId = toast.loading(`Đang thu hồi acc [${account.code}]...`);
+  // 3. THAO TÁC HOÀN THÀNH ĐƠN & THU HỒI ACC VỀ KHO (TÍNH LÃI VÀO DOANH THU)
+  const handleCompleteOrder = async (account: DashboardAccountItem) => {
+    const toastId = toast.loading(`Đang chốt hoàn thành đơn [${account.code}]...`);
     try {
+      // 1. Cập nhật trạng thái tài khoản về AVAILABLE trên Supabase
       const res = await updateAccountApi({
         id: account.id,
         status: "AVAILABLE",
@@ -216,17 +219,64 @@ export default function AdminDashboardPage() {
       });
 
       if (!res.success) {
-        throw new Error(res.error || "Không thể cập nhật trạng thái!");
+        throw new Error(res.error || "Không thể cập nhật trạng thái tài khoản!");
       }
 
-      // Cập nhật state local
+      // 2. Tìm đơn hàng tương ứng trong hệ thống đơn hoặc tạo mới để chốt lãi
+      const matchedOrder = orders.find(
+        (o) => o.accountCode === account.code && o.status === "RENTING"
+      );
+
+      if (matchedOrder) {
+        // Cập nhật đơn hàng hiện có sang COMPLETED
+        await updateOrder(matchedOrder.id, {
+          status: "COMPLETED",
+          notes: `${matchedOrder.notes || ""}\n[${new Date().toLocaleTimeString("vi-VN")}] Hoàn thành đơn & thu hồi acc về kho.`.trim(),
+        });
+        setOrders((prev) =>
+          prev.map((o) => (o.id === matchedOrder.id ? { ...o, status: "COMPLETED" } : o))
+        );
+      } else {
+        // Tự động sinh đơn hoàn thành với giá gói chính xác để ghi nhận lãi
+        let amount = 60000;
+        let packageName = "Gói 24 Giờ (1 Ngày VIP)";
+        if (account.category === "VIP") {
+          amount = account.dailyPrice || (account.hourlyPrice ? account.hourlyPrice * 4 : 60000);
+          packageName = "Gói Trải Nghiệm VIP";
+        } else {
+          amount = account.monthlyPrice || account.periodPrice || 210000;
+          packageName = "Gói Thuê Acc Clone";
+        }
+
+        const createRes = await createOrder({
+          type: account.category,
+          customer: "Khách Thuê Zalo",
+          phoneZalo: "0352.867.283",
+          accountCode: account.code,
+          accountTitle: account.title,
+          package: packageName,
+          amount,
+          status: "COMPLETED",
+          createdBy: "ADMIN",
+          source: "ADMIN",
+          accountLogin: `tft_${account.code.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
+          accountPass: "TuanTFT@Shop",
+          notes: "Đơn hoàn thành trực tiếp từ trang Quản trị tổng quan.",
+        });
+
+        if (createRes.success && createRes.data) {
+          setOrders((prev) => [createRes.data!, ...prev]);
+        }
+      }
+
+      // 3. Cập nhật state local danh sách tài khoản
       setAccounts((prev) =>
         prev.map((a) =>
           a.id === account.id ? { ...a, status: "AVAILABLE", rentedUntil: null } : a
         )
       );
 
-      toast.success(`✅ Đã thu hồi acc [${account.code}] về trạng thái SẴN SÀNG!`, {
+      toast.success(`✅ Đã hoàn thành đơn & thu hồi acc [${account.code}] về kho sẵn sàng!`, {
         id: toastId,
       });
     } catch (err: any) {
@@ -485,7 +535,7 @@ export default function AdminDashboardPage() {
               </h3>
             </div>
             <p className="text-xs text-slate-500 font-normal mt-0.5">
-              Theo dõi thời gian khách trả acc, đếm ngược thời gian và nút 1 chạm thu hồi / gia hạn tài khoản.
+              Theo dõi thời gian khách trả acc, đếm ngược thời gian và nút 1 chạm hoàn thành đơn chốt lãi / gia hạn tài khoản.
             </p>
           </div>
 
@@ -611,11 +661,12 @@ export default function AdminDashboardPage() {
 
                     <button
                       type="button"
-                      onClick={() => handleReclaimAccount(account)}
-                      className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1 transition-colors shadow-sm cursor-pointer"
+                      onClick={() => handleCompleteOrder(account)}
+                      className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm hover:shadow-emerald-600/20 active:scale-95 cursor-pointer"
+                      title="Chốt hoàn thành đơn, ghi nhận lãi vào doanh thu và thu hồi acc về kho"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Thu Hồi Acc</span>
+                      <span>Hoàn Thành Đơn</span>
                     </button>
                   </div>
                 </div>
