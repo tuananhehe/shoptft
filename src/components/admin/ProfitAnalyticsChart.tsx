@@ -26,6 +26,7 @@ import { OrderItem } from "@/utils/orders-service";
 interface ProfitAnalyticsChartProps {
   orders: OrderItem[];
   extraRentedAccounts?: Array<{
+    code?: string;
     category: "VIP" | "CLONE";
     amount: number;
     profit: number;
