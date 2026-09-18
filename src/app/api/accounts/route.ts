@@ -1,6 +1,91 @@
 import { NextRequest, NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
 import { supabase } from "@/utils/supabase/client";
 import { verifyAdminSessionToken, ADMIN_COOKIE_NAME } from "@/utils/admin-auth";
+import { determinePackageFromAccount, OrderItem } from "@/utils/orders-service";
+
+const ORDERS_FILE_PATH = path.join(process.cwd(), "src", "data", "orders.json");
+
+function syncOrdersOnAccountChange(updatedAccounts: any[]) {
+  try {
+    if (!fs.existsSync(ORDERS_FILE_PATH)) return;
+    const fileData = fs.readFileSync(ORDERS_FILE_PATH, "utf8");
+    let orders: OrderItem[] = JSON.parse(fileData);
+    if (!Array.isArray(orders)) return;
+
+    let modified = false;
+
+    for (const acc of updatedAccounts) {
+      if (!acc || !acc.code) continue;
+      const codeKey = acc.code.toLowerCase().trim();
+
+      const existingRentingIndex = orders.findIndex(
+        (o) => o.accountCode.toLowerCase().trim() === codeKey && o.status === "RENTING"
+      );
+
+      if (acc.status === "RENTED") {
+        const pkg = determinePackageFromAccount(
+          acc,
+          existingRentingIndex !== -1 ? orders[existingRentingIndex] : undefined
+        );
+        if (existingRentingIndex !== -1) {
+          orders[existingRentingIndex] = {
+            ...orders[existingRentingIndex],
+            package: pkg.packageName,
+            durationHours: pkg.durationHours,
+            amount: pkg.amount,
+            expiresAt: acc.rented_until || orders[existingRentingIndex].expiresAt,
+            accountTitle: acc.title || orders[existingRentingIndex].accountTitle,
+            accountCode: acc.code,
+          };
+          modified = true;
+        } else {
+          const codeNum = acc.code.replace(/[^0-9]/g, "") || Math.floor(1000 + Math.random() * 9000);
+          const newOrder: OrderItem = {
+            id: `ORD-${codeNum}`,
+            type: acc.type === "CLONE" ? "CLONE" : "VIP",
+            customer: "Khách hàng ẩn danh",
+            deliveredBy: "Admin",
+            phoneZalo: "0352.867.283",
+            accountCode: acc.code,
+            accountTitle: acc.title || `Tài khoản ${acc.code}`,
+            package: pkg.packageName,
+            durationHours: pkg.durationHours,
+            amount: pkg.amount,
+            paymentMethod: "TRANSFER",
+            status: "RENTING",
+            createdBy: "ADMIN",
+            source: "ADMIN",
+            createdAt: acc.created_at || new Date().toISOString(),
+            startedAt: acc.created_at || new Date().toISOString(),
+            expiresAt: acc.rented_until || new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
+            accountLogin: `tft_${acc.code.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
+            accountPass: `TuanTFT@${Math.floor(1000 + Math.random() * 9000)}`,
+            notes: "Đơn tự động đồng bộ khi cập nhật trạng thái Cho Thuê.",
+          };
+          orders = [newOrder, ...orders];
+          modified = true;
+        }
+      } else if (acc.status === "AVAILABLE") {
+        if (existingRentingIndex !== -1) {
+          orders[existingRentingIndex] = {
+            ...orders[existingRentingIndex],
+            status: "COMPLETED",
+            notes: `${orders[existingRentingIndex].notes || ""}\n[Tài khoản đã hoàn tất & thu hồi về kho]`.trim(),
+          };
+          modified = true;
+        }
+      }
+    }
+
+    if (modified) {
+      fs.writeFileSync(ORDERS_FILE_PATH, JSON.stringify(orders, null, 2), "utf8");
+    }
+  } catch (err) {
+    console.warn("Lỗi sync orders khi sửa account:", err);
+  }
+}
 
 function isAuthorizedAdmin(req: NextRequest): boolean {
   const cookieVal = req.cookies.get(ADMIN_COOKIE_NAME)?.value;
@@ -224,6 +309,16 @@ export async function PUT(req: NextRequest) {
         );
       }
 
+      // Tự động đồng bộ sang orders.json
+      try {
+        const { data: updatedList } = await supabase.from("accounts").select("*").in("id", body.ids);
+        if (Array.isArray(updatedList) && updatedList.length > 0) {
+          syncOrdersOnAccountChange(updatedList);
+        }
+      } catch (syncErr) {
+        console.warn("Lỗi sync orders batch:", syncErr);
+      }
+
       return NextResponse.json({
         success: true,
         message: `Đã cập nhật hàng loạt ${body.ids.length} tài khoản thành công!`,
@@ -284,6 +379,15 @@ export async function PUT(req: NextRequest) {
         { success: false, error: error.message },
         { status: 400 }
       );
+    }
+
+    // Tự động đồng bộ ngay vào orders.json
+    if (data) {
+      try {
+        syncOrdersOnAccountChange([data]);
+      } catch (syncErr) {
+        console.warn("Lỗi sync orders single:", syncErr);
+      }
     }
 
     return NextResponse.json({

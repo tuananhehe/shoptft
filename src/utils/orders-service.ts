@@ -367,7 +367,7 @@ export function determinePackageFromAccount(
   const startedAtStr = existingOrder?.startedAt || existingOrder?.createdAt || acc.created_at;
   const startedAt = startedAtStr ? new Date(startedAtStr) : new Date("2026-09-01");
 
-  // Tài khoản Clone / Smurf
+  // 1. Tài khoản Clone / Smurf
   if (acc.type === "CLONE") {
     const clonePrice = Number(acc.price) || Number(acc.period_price) || Number(acc.monthly_price) || 150000;
     return {
@@ -377,7 +377,7 @@ export function determinePackageFromAccount(
     };
   }
 
-  // Tài khoản VIP có giá tùy chỉnh (CUSTOM)
+  // 2. Tài khoản VIP có giá tùy chỉnh (CUSTOM)
   if (acc.price_display_type === "CUSTOM" && acc.custom_price && Number(acc.custom_price) > 0) {
     return {
       packageName: `Gói Tùy Chỉnh (${acc.custom_price_unit || "Theo yêu cầu"})`,
@@ -386,15 +386,59 @@ export function determinePackageFromAccount(
     };
   }
 
-  // Tài khoản VIP tính theo thời hạn thuê thực tế & cấu hình kho
+  // 3. Nếu Admin thiết lập hiển thị THEO GIỜ (HOURLY)
+  if (acc.price_display_type === "HOURLY") {
+    const hourly = Number(acc.hourly_price) > 0
+      ? Number(acc.hourly_price)
+      : Math.round((((accountValue * 0.03) + 20000) / 2) / 1000) * 1000;
+    
+    let hours = 2;
+    if (rentedUntil && !isNaN(rentedUntil.getTime())) {
+      const diffMs = Math.max(0, rentedUntil.getTime() - startedAt.getTime());
+      const calcHours = Math.round(diffMs / (3600 * 1000));
+      if (calcHours > 0 && calcHours <= 24) hours = calcHours;
+    }
+    const amount = (hourly * hours) + 20000;
+    return {
+      packageName: `Gói ${hours} Giờ (Trải Nghiệm Nhanh)`,
+      durationHours: hours,
+      amount: Math.round(amount / 1000) * 1000,
+    };
+  }
+
+  // 4. Nếu Admin thiết lập hiển thị THEO NGÀY (DAILY)
+  if (acc.price_display_type === "DAILY") {
+    const daily = Number(acc.daily_price) > 0
+      ? Number(acc.daily_price)
+      : Math.round((((accountValue * 0.12) + 20000) / 2) / 1000) * 1000;
+    return {
+      packageName: "Gói 24 Giờ (1 Ngày VIP)",
+      durationHours: 24,
+      amount: daily,
+    };
+  }
+
+  // 5. Nếu Admin thiết lập hiển thị LÂU DÀI (LONG_TERM)
+  if (acc.price_display_type === "LONG_TERM") {
+    const periodPrice = Number(acc.period_price) > 0
+      ? Number(acc.period_price)
+      : accountValue;
+    return {
+      packageName: "Gói Thuê Lâu Dài (Vô Cực ∞)",
+      durationHours: -1,
+      amount: periodPrice,
+    };
+  }
+
+  // 6. Trường hợp AUTO (Tự động tính theo thời hạn thuê rented_until thực tế)
   if (rentedUntil && !isNaN(rentedUntil.getTime())) {
     const endYear = rentedUntil.getFullYear();
     const diffMs = Math.max(0, rentedUntil.getTime() - startedAt.getTime());
     const diffHours = diffMs / (3600 * 1000);
     const diffDays = Math.round(diffMs / (24 * 3600 * 1000));
 
-    // Thuê Lâu Dài (Vô Cực ∞) nếu hết hạn >= 2028 hoặc period_unit chứa ∞ hoặc display là LONG_TERM
-    if (endYear >= 2028 || acc.period_unit?.includes("∞") || acc.price_display_type === "LONG_TERM") {
+    // Thuê Lâu Dài (Vô Cực ∞) nếu hết hạn >= 2028 hoặc period_unit chứa ∞
+    if (endYear >= 2028 || acc.period_unit?.includes("∞")) {
       return {
         packageName: "Gói Thuê Lâu Dài (Vô Cực ∞)",
         durationHours: -1,
@@ -402,7 +446,7 @@ export function determinePackageFromAccount(
       };
     }
 
-    // Thuê 30 Ngày (1 Tháng)
+    // Thuê 30 Ngày (1 Tháng VIP)
     if (diffDays >= 16) {
       const monthAmount = Math.round((accountValue * 0.30) / 1000) * 1000;
       return {
@@ -412,7 +456,7 @@ export function determinePackageFromAccount(
       };
     }
 
-    // Thuê 7 Ngày (1 Tuần)
+    // Thuê 7 Ngày (1 Tuần VIP)
     if (diffDays >= 4) {
       const weekAmount = Number(acc.weekly_price) > 0
         ? Number(acc.weekly_price)
@@ -424,8 +468,20 @@ export function determinePackageFromAccount(
       };
     }
 
-    // Thuê 24 Giờ (1 Ngày)
-    if (diffHours >= 12) {
+    // Thuê 12 Giờ (Qua Đêm VIP)
+    if (diffHours >= 8 && diffHours < 16) {
+      const hourly = Number(acc.hourly_price) > 0
+        ? Number(acc.hourly_price)
+        : Math.round((((accountValue * 0.03) + 20000) / 2) / 1000) * 1000;
+      return {
+        packageName: "Gói 12 Giờ (Qua Đêm VIP)",
+        durationHours: 12,
+        amount: Math.round((hourly * 2.5) / 1000) * 1000 + 20000,
+      };
+    }
+
+    // Thuê 24 Giờ (1 Ngày VIP)
+    if (diffHours >= 16) {
       const dailyAmount = Number(acc.daily_price) > 0
         ? Number(acc.daily_price)
         : Math.round((((accountValue * 0.12) + 20000) / 2) / 1000) * 1000;
@@ -436,33 +492,16 @@ export function determinePackageFromAccount(
       };
     }
 
-    // Thuê theo Giờ (2 Giờ Trải Nghiệm)
+    // Thuê theo Giờ (2 Giờ / 4 Giờ)
     const hoursCount = Math.max(2, Math.round(diffHours) || 2);
-    const hourAmount = Math.round((accountValue * 0.03) / 1000) * 1000 + 20000;
+    const hourly = Number(acc.hourly_price) > 0
+      ? Number(acc.hourly_price)
+      : Math.round((((accountValue * 0.03) + 20000) / 2) / 1000) * 1000;
+    const hourAmount = (hourly * hoursCount) + 20000;
     return {
       packageName: `Gói ${hoursCount} Giờ (Trải Nghiệm Nhanh)`,
       durationHours: hoursCount,
-      amount: hourAmount,
-    };
-  }
-
-  if (acc.price_display_type === "HOURLY") {
-    const hourAmount = Math.round((accountValue * 0.03) / 1000) * 1000 + 20000;
-    return {
-      packageName: "Gói 2 Giờ (Trải Nghiệm Nhanh)",
-      durationHours: 2,
-      amount: hourAmount,
-    };
-  }
-
-  if (acc.price_display_type === "DAILY") {
-    const dailyAmount = Number(acc.daily_price) > 0
-      ? Number(acc.daily_price)
-      : Math.round((((accountValue * 0.12) + 20000) / 2) / 1000) * 1000;
-    return {
-      packageName: "Gói 24 Giờ (1 Ngày VIP)",
-      durationHours: 24,
-      amount: dailyAmount,
+      amount: Math.round(hourAmount / 1000) * 1000,
     };
   }
 
