@@ -2,7 +2,8 @@
   {
     "id": "ORD-7351",
     "type": "VIP",
-    "customer": "Lê Hoàng Phúc",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0982.345.678",
     "accountCode": "MS: 735",
     "accountTitle": "KHÔNG RANK - Aatrox DRX",
@@ -18,12 +19,13 @@
     "expiresAt": "2026-10-11T13:37:15.809Z",
     "accountLogin": "tft_735",
     "accountPass": "TuanTFT@7350",
-    "notes": "Khách quen thuê Aatrox DRX test meta mới."
+    "notes": "Khách ẩn danh thuê Aatrox DRX test meta mới."
   },
   {
     "id": "ORD-7321",
     "type": "VIP",
-    "customer": "Trần Minh Quân",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0912.890.123",
     "accountCode": "MS: 732",
     "accountTitle": "KHÔNG RANK - Gwen Hồng Pha Lê Tí Nị",
@@ -39,12 +41,13 @@
     "expiresAt": "2026-10-13T09:05:00.676Z",
     "accountLogin": "tft_732",
     "accountPass": "TuanTFT@7321",
-    "notes": "Khách đặt cọc qua MoMo, bàn giao xong."
+    "notes": "Khách ẩn danh đặt cọc qua MoMo, bàn giao xong."
   },
   {
     "id": "ORD-7381",
     "type": "VIP",
-    "customer": "Nguyễn Văn Đức",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0977.112.233",
     "accountCode": "738",
     "accountTitle": "Yasuo Ma Kiếm Đột Phá + Tháp Cảnh Mộng Của Gwen",
@@ -60,12 +63,13 @@
     "expiresAt": "2026-10-16T18:07:41.854Z",
     "accountLogin": "tft_738",
     "accountPass": "TuanTFT@7388",
-    "notes": "Khách thuê combo Yasuo Ma Kiếm + Tháp Cảnh Mộng."
+    "notes": "Khách ẩn danh thuê combo Yasuo Ma Kiếm + Tháp Cảnh Mộng."
   },
   {
     "id": "ORD-6801",
     "type": "VIP",
-    "customer": "Vũ Anh Tuấn",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0934.567.890",
     "accountCode": "MS: 680",
     "accountTitle": "KHÔNG RANK - Leesin Tiểu Long Hàng Hiệu Và Đồng Bọn Tiếp",
@@ -81,12 +85,13 @@
     "expiresAt": "2026-10-01T15:20:56.100Z",
     "accountLogin": "tft_680",
     "accountPass": "TuanTFT@6800",
-    "notes": "Khách thuê dài hạn Leesin Hàng Hiệu 1 tháng."
+    "notes": "Khách ẩn danh thuê dài hạn Leesin Hàng Hiệu 1 tháng."
   },
   {
     "id": "ORD-6811",
     "type": "VIP",
-    "customer": "Nguyễn Hải Đăng",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0908.654.321",
     "accountCode": "MS: 681",
     "accountTitle": "KHÔNG RANK - Leesin Tiểu Long Hàng Và Đồng Bọn",
@@ -102,12 +107,13 @@
     "expiresAt": "2026-10-01T15:19:31.276Z",
     "accountLogin": "tft_681",
     "accountPass": "TuanTFT@6811",
-    "notes": "Khách đặt cọc gói 1 tháng Leesin Tiểu Long."
+    "notes": "Khách ẩn danh đặt cọc gói 1 tháng Leesin Tiểu Long."
   },
   {
     "id": "ORD-6381",
     "type": "VIP",
-    "customer": "Đỗ Hoàng Long",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0966.789.012",
     "accountCode": "MS: 638",
     "accountTitle": "KHÔNG RANK - Ahri Chiêu Hồn Thiên Hồ",
@@ -123,12 +129,13 @@
     "expiresAt": "2026-10-14T16:46:39.532Z",
     "accountLogin": "tft_638",
     "accountPass": "TuanTFT@6380",
-    "notes": "Khách thuê cày mùa giải mới."
+    "notes": "Khách ẩn danh thuê cày mùa giải mới."
   },
   {
     "id": "ORD-6791",
     "type": "VIP",
-    "customer": "Phan Quốc Huy",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0971.234.890",
     "accountCode": "MS: 679",
     "accountTitle": "ĐỒNG - Ez Hàng Hiệu - Gwen HPL - Yone T1",
@@ -144,12 +151,13 @@
     "expiresAt": "2029-05-27T15:22:53.028Z",
     "accountLogin": "tft_679",
     "accountPass": "TuanTFT@6799",
-    "notes": "Khách mua đứt gói vô cực Ez Hàng Hiệu + Gwen HPL."
+    "notes": "Khách ẩn danh mua đứt gói vô cực Ez Hàng Hiệu + Gwen HPL."
   },
   {
     "id": "ORD-5961",
     "type": "VIP",
-    "customer": "Bùi Đức Thịnh",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0938.990.112",
     "accountCode": "MS: 596",
     "accountTitle": "KHÔNG RANK - Tristana Tiệc Pengu",
@@ -165,12 +173,13 @@
     "expiresAt": "2029-06-07T08:31:15.433Z",
     "accountLogin": "tft_596",
     "accountPass": "TuanTFT@5966",
-    "notes": "Khách chọn Tristana Tiệc Pengu."
+    "notes": "Khách ẩn danh chọn Tristana Tiệc Pengu."
   },
   {
     "id": "ORD-7251",
     "type": "VIP",
-    "customer": "Lương Gia Kiệt",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0981.556.778",
     "accountCode": "MS: 725",
     "accountTitle": "ĐỒNG - Sett Song Hồn Hoang Thú",
@@ -186,12 +195,13 @@
     "expiresAt": "2029-06-01T07:50:18.562Z",
     "accountLogin": "tft_725",
     "accountPass": "TuanTFT@7255",
-    "notes": "Khách thanh toán qua ZaloPay."
+    "notes": "Khách ẩn danh thanh toán qua ZaloPay."
   },
   {
     "id": "ORD-6011",
     "type": "VIP",
-    "customer": "Trương Minh Đạt",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0909.112.334",
     "accountCode": "MS: 601",
     "accountTitle": "KHÔNG RANK - Anie Arcane Hàng Hiệu",
@@ -207,12 +217,13 @@
     "expiresAt": "2029-06-01T14:47:35.548Z",
     "accountLogin": "tft_601",
     "accountPass": "TuanTFT@6011",
-    "notes": "Annie Arcane Hàng Hiệu khách VIP thân thiết."
+    "notes": "Annie Arcane Hàng Hiệu khách ẩn danh thân thiết."
   },
   {
     "id": "ORD-7311",
     "type": "VIP",
-    "customer": "Lâm Quốc Bảo",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0944.887.990",
     "accountCode": "MS: 731",
     "accountTitle": "KHÔNG RANK - Leesin Tiểu Long Và Đồng Bọn",
@@ -233,7 +244,8 @@
   {
     "id": "ORD-1822",
     "type": "VIP",
-    "customer": "Hoàng Minh Trí",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0933.221.144",
     "accountCode": "MS: 182-2",
     "accountTitle": "THÁCH ĐẤU - Shyvana Thần Long Tí Nị Hàng Hiệu",
@@ -249,12 +261,13 @@
     "expiresAt": "2029-06-09T12:59:25.219Z",
     "accountLogin": "tft_1822",
     "accountPass": "TuanTFT@1822",
-    "notes": "Acc Thách Đấu Shyvana Hàng Hiệu."
+    "notes": "Acc Thách Đấu Shyvana Hàng Hiệu khách ẩn danh."
   },
   {
     "id": "ORD-7361",
     "type": "VIP",
-    "customer": "Võ Nhật Nam",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0983.445.566",
     "accountCode": "MS: 736",
     "accountTitle": "THÁCH ĐẤU - Morgana Ác Nữ Khác Tinh Tí Nị Hàng Hiệu",
@@ -275,7 +288,8 @@
   {
     "id": "ORD-1823",
     "type": "VIP",
-    "customer": "Đinh Quang Khải",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0919.778.899",
     "accountCode": "MS: 182-3",
     "accountTitle": "THÁCH ĐẤU - Shyvana Thần Long Tí Nị Hàng Hiệu",
@@ -296,7 +310,8 @@
   {
     "id": "ORD-6431",
     "type": "VIP",
-    "customer": "Phạm Gia Bảo",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0945.678.901",
     "accountCode": "MS: 643",
     "accountTitle": "THÁCH ĐẤU - Yone T1 Tí Nị",
@@ -312,12 +327,13 @@
     "expiresAt": "2029-06-10T16:31:16.178Z",
     "accountLogin": "tft_643",
     "accountPass": "TuanTFT@6430",
-    "notes": "Khách thuê Yone T1 leo Thách Đấu."
+    "notes": "Khách ẩn danh thuê Yone T1 leo Thách Đấu."
   },
   {
     "id": "ORD-5821",
     "type": "VIP",
-    "customer": "Hoàng Khắc Nam",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0989.998.877",
     "accountCode": "MS: 582",
     "accountTitle": "THÁCH ĐẤU - Ahri Chiêu Hồn Thiên Hồ Tí Nị - Hàng Hiệu",
@@ -333,12 +349,13 @@
     "expiresAt": "2026-09-18T08:00:00.000Z",
     "accountLogin": "tft_582",
     "accountPass": "TuanTFT@5820",
-    "notes": "Khách thuê Ahri Hàng Hiệu leo rank Thách Đấu, đã hoàn thành."
+    "notes": "Khách ẩn danh thuê Ahri Hàng Hiệu leo rank Thách Đấu, đã hoàn thành."
   },
   {
     "id": "ORD-6631",
     "type": "VIP",
-    "customer": "Cao Bá Quát",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0915.667.889",
     "accountCode": "MS: 663",
     "accountTitle": "KHÔNG RANK - Ahri Chiêu Hồn Thiên Hồ Tí Nị - Hàng Hiệu",
@@ -359,7 +376,8 @@
   {
     "id": "ORD-7401",
     "type": "VIP",
-    "customer": "Dương Văn Hùng",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0973.889.001",
     "accountCode": "740",
     "accountTitle": "3 Hàng Hiệu (Ahri, Riven, Yasuo) + Lee Sin Đột Phá + Gwen Hồng Pha Lê + Sân Gwen Thần Thoại",
@@ -375,12 +393,13 @@
     "expiresAt": "2026-09-16T12:00:00.000Z",
     "accountLogin": "tft_740",
     "accountPass": "TuanTFT@7400",
-    "notes": "Khách trải nghiệm combo 3 Hàng Hiệu cực phẩm."
+    "notes": "Khách ẩn danh trải nghiệm combo 3 Hàng Hiệu cực phẩm."
   },
   {
     "id": "ORD-7391",
     "type": "VIP",
-    "customer": "Vũ Đình Trọng",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0904.332.115",
     "accountCode": "739",
     "accountTitle": "Tí Nị Irelia Thần Thoại Đột Phá + Sân Đấu Hội Chợ Nhâm Dần",
@@ -401,7 +420,8 @@
   {
     "id": "ORD-1901",
     "type": "CLONE",
-    "customer": "Ngô Thành Đạt",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
     "phoneZalo": "0918.234.567",
     "accountCode": "CLONE-19",
     "accountTitle": "Jinx + Chưởng + Cổng + Sàn Tinh Võ",
@@ -417,6 +437,6 @@
     "expiresAt": "2026-10-13T11:00:00.000Z",
     "accountLogin": "tft_clone19",
     "accountPass": "TuanTFT@CL19",
-    "notes": "Khách mua thuê gói Clone Jinx Tinh Võ, bàn giao toàn quyền."
+    "notes": "Khách ẩn danh mua thuê gói Clone Jinx Tinh Võ, bàn giao toàn quyền."
   }
 ]

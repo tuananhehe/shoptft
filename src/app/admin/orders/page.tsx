@@ -37,6 +37,7 @@ import {
   ChevronDown,
   ArrowUpDown,
   History,
+  CalendarDays,
 } from "lucide-react";
 import { PROFILE_INFO, TFT_RENTAL_ACCOUNTS, TFT_CLONE_ACCOUNTS } from "@/data/tft-data";
 import { getVipAndCloneAccounts } from "@/utils/supabase/accounts-service";
@@ -53,6 +54,7 @@ import {
   generateRandomPassword,
   getRentalTimeRemaining,
   buildDeliveryMessage,
+  formatOrderDateTime,
 } from "@/utils/orders-service";
 import toast from "react-hot-toast";
 
@@ -96,13 +98,14 @@ export default function AdminOrdersPage() {
   // Create Order Modal State
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [createType, setCreateType] = useState<OrderType>("VIP");
-  const [newCustomer, setNewCustomer] = useState("");
-  const [newPhone, setNewPhone] = useState("");
-  const [newAccountCode, setNewAccountCode] = useState("MS: 8899");
+  const [newCustomer, setNewCustomer] = useState("Khách hàng ẩn danh");
+  const [newDeliveredBy, setNewDeliveredBy] = useState("Admin");
+  const [newPhone, setNewPhone] = useState("0352.867.283");
+  const [newAccountCode, setNewAccountCode] = useState("");
   const [newAccountTitle, setNewAccountTitle] = useState("");
-  const [newPackage, setNewPackage] = useState("2 Giờ Trải Nghiệm");
-  const [newDurationHours, setNewDurationHours] = useState<number>(2);
-  const [newAmount, setNewAmount] = useState<number>(30000);
+  const [newPackage, setNewPackage] = useState("Gói 24 Giờ (1 Ngày VIP)");
+  const [newDurationHours, setNewDurationHours] = useState<number>(24);
+  const [newAmount, setNewAmount] = useState<number>(60000);
   const [newPaymentMethod, setNewPaymentMethod] = useState<"TRANSFER" | "MOMO" | "ZALO_PAY" | "CARD">("TRANSFER");
   const [newLogin, setNewLogin] = useState("");
   const [newPass, setNewPass] = useState("");
@@ -128,7 +131,12 @@ export default function AdminOrdersPage() {
     loadOrdersData();
     // Load fresh accounts for selector
     getVipAndCloneAccounts().then(({ vipAccounts: vips, cloneAccounts: clones }) => {
-      if (vips && vips.length > 0) setVipAccounts(vips);
+      if (vips && vips.length > 0) {
+        setVipAccounts(vips);
+        if (!newAccountCode && vips[0]) {
+          setNewAccountCode(vips[0].code);
+        }
+      }
       if (clones && clones.length > 0) setCloneAccounts(clones);
     });
 
@@ -145,21 +153,21 @@ export default function AdminOrdersPage() {
     if (createType === "VIP") {
       const acc = vipAccounts.find((a) => a.code === newAccountCode) || vipAccounts[0];
       if (acc) {
-        setNewAccountTitle(acc.title || `${acc.mainChibi} - ${acc.mainArena}`);
+        setNewAccountTitle(acc.title || `${acc.mainChibi || "Tí Nị VIP"} - ${acc.rank || "Thách Đấu"}`);
         setNewLogin(`tft_${acc.code.toLowerCase().replace(/[^a-z0-9]/g, "")}`);
         setNewPass(generateRandomPassword());
-        if (newDurationHours === 2) {
-          setNewPackage("2 Giờ Trải Nghiệm");
-          setNewAmount(acc.hourlyPrice ? acc.hourlyPrice * 2 : 30000);
+        if (newDurationHours === 24) {
+          setNewPackage("Gói 24 Giờ (1 Ngày VIP)");
+          setNewAmount(acc.dailyPrice || (acc.hourlyPrice ? acc.hourlyPrice * 4 : 60000));
         }
       }
     } else if (createType === "CLONE") {
       const acc = cloneAccounts.find((a) => a.code === newAccountCode) || cloneAccounts[0];
       if (acc) {
-        setNewAccountTitle(acc.title || `Acc Clone ${acc.rankBadge}`);
-        setNewPackage("Full Sở Hữu (Bàn Giao Trọn Đời ∞)");
-        setNewDurationHours(-1);
-        setNewAmount(Number(acc.price) || 150000);
+        setNewAccountTitle(acc.title || `Acc Clone ${acc.rankBadge || "Unranked"}`);
+        setNewPackage("Gói 1 Tháng (30 Ngày)");
+        setNewDurationHours(720);
+        setNewAmount(Number(acc.monthlyPrice) || Number(acc.periodPrice) || Number(acc.price) || 210000);
         setNewLogin(`smurf_${acc.code.toLowerCase().replace(/[^a-z0-9]/g, "")}`);
         setNewPass(`ClonePass@${Math.floor(1000 + Math.random() * 9000)}`);
       }
@@ -172,28 +180,30 @@ export default function AdminOrdersPage() {
       setNewLogin("voice_discord");
       setNewPass("discord_coaching");
     }
-  }, [createType, newAccountCode]);
+  }, [createType, newAccountCode, vipAccounts, cloneAccounts]);
 
   // Handle preset duration change in Create Form
-  const handleSelectDurationPreset = (hours: number, label: string, priceMultiplier = 1) => {
+  const handleSelectDurationPreset = (hours: number, label: string) => {
     setNewDurationHours(hours);
     setNewPackage(label);
 
     if (createType === "VIP") {
       const acc = vipAccounts.find((a) => a.code === newAccountCode) || vipAccounts[0];
-      if (hours === 2) {
-        setNewAmount(acc.hourlyPrice ? acc.hourlyPrice * 2 : 30000);
-      } else if (hours === 24) {
-        setNewAmount(acc.dailyPrice || 50000);
-      } else if (hours === 168) {
-        setNewAmount(acc.weeklyPrice || 164000);
-      } else if (hours === 720) {
-        setNewAmount(acc.monthlyPrice || 360000);
-      } else if (hours === -1) {
-        setNewAmount(Number(acc.periodPrice) || 600000);
-      } else {
-        const hourly = acc.hourlyPrice || 15000;
-        setNewAmount(hourly * hours);
+      if (acc) {
+        if (hours === 2) {
+          setNewAmount(acc.hourlyPrice ? acc.hourlyPrice * 2 : 30000);
+        } else if (hours === 24) {
+          setNewAmount(acc.dailyPrice || (acc.hourlyPrice ? acc.hourlyPrice * 4 : 60000));
+        } else if (hours === 168) {
+          setNewAmount(acc.weeklyPrice || (acc.dailyPrice ? acc.dailyPrice * 6 : 240000));
+        } else if (hours === 720) {
+          setNewAmount(acc.monthlyPrice || 799000);
+        } else if (hours === -1) {
+          setNewAmount(Number(acc.periodPrice) || Number(acc.accountValue) || 1100000);
+        } else {
+          const hourly = acc.hourlyPrice || 15000;
+          setNewAmount(hourly * hours);
+        }
       }
     }
   };
@@ -201,20 +211,20 @@ export default function AdminOrdersPage() {
   // Submit Create Order
   const handleCreateOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCustomer.trim()) {
-      toast.error("Vui lòng nhập tên khách hàng!");
-      return;
-    }
 
     setActionLoading(true);
     const toastId = toast.loading("Đang khởi tạo đơn hàng & thông tin bàn giao...");
 
+    const customerName = newCustomer.trim() || "Khách hàng ẩn danh";
+    const delivererName = newDeliveredBy.trim() || "Admin";
+
     const res = await createOrder({
       type: createType,
-      customer: newCustomer.trim(),
-      phoneZalo: newPhone.trim() || "09xx.xxx.xxx",
-      accountCode: newAccountCode,
-      accountTitle: newAccountTitle,
+      customer: customerName,
+      deliveredBy: delivererName,
+      phoneZalo: newPhone.trim() || "0352.867.283",
+      accountCode: newAccountCode || (vipAccounts[0]?.code || "MS: 680"),
+      accountTitle: newAccountTitle || "Tài khoản TFT VIP",
       package: newPackage,
       durationHours: newDurationHours,
       amount: newAmount,
@@ -230,8 +240,8 @@ export default function AdminOrdersPage() {
     if (res.success && res.data) {
       toast.success(`✅ Đã tạo thành công đơn ${res.data.id}!`, { id: toastId });
       setCreateModalOpen(false);
-      setNewCustomer("");
-      setNewPhone("");
+      setNewCustomer("Khách hàng ẩn danh");
+      setNewPhone("0352.867.283");
       setNewNotes("");
 
       // Open detail modal immediately with newly created order
@@ -351,9 +361,10 @@ export default function AdminOrdersPage() {
           !query ||
           ord.id.toLowerCase().includes(query) ||
           ord.customer.toLowerCase().includes(query) ||
+          (ord.deliveredBy && ord.deliveredBy.toLowerCase().includes(query)) ||
           ord.accountCode.toLowerCase().includes(query) ||
           ord.accountTitle.toLowerCase().includes(query) ||
-          ord.phoneZalo.toLowerCase().includes(query) ||
+          (ord.phoneZalo && ord.phoneZalo.toLowerCase().includes(query)) ||
           (ord.notes && ord.notes.toLowerCase().includes(query));
 
         // 2. Type Filter
@@ -415,7 +426,7 @@ export default function AdminOrdersPage() {
               {stats.totalRevenue.toLocaleString("vi-VN")}đ
             </strong>
             <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 mt-1">
-              <TrendingUp className="w-3.5 h-3.5" /> Hệ thống giao dịch tự động
+              <TrendingUp className="w-3.5 h-3.5" /> 100% Lợi Nhuận Cho Thuê
             </span>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold shadow-xs">
@@ -427,7 +438,7 @@ export default function AdminOrdersPage() {
         <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block font-gaming">
-              Đang Thuê (Active)
+              Đang Cho Thuê (Active)
             </span>
             <strong className="text-2xl font-black text-orange-600 font-mono mt-1 block">
               {stats.rentingOrders} Đơn
@@ -485,10 +496,10 @@ export default function AdminOrdersPage() {
           <div>
             <h2 className="text-lg sm:text-xl font-black text-slate-900 flex items-center gap-2 font-gaming uppercase">
               <Receipt className="w-5 h-5 text-orange-600" />
-              <span>Quản Lý Đơn Hàng & Thuê Tài Khoản ĐTCL</span>
+              <span>Quản Lý Đơn Hàng & Tài Khoản Cho Thuê</span>
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Theo dõi thời gian thuê, sao chép tin nhắn bàn giao Riot ID, gia hạn giờ chơi và quản lý doanh thu.
+              Danh sách tài khoản đã cho thuê: Người nhận mặc định là <strong>Khách hàng ẩn danh</strong>, Người giao mặc định là <strong>Admin</strong>, đầy đủ Ngày cho thuê và Ngày kết thúc.
             </p>
           </div>
 
@@ -507,12 +518,14 @@ export default function AdminOrdersPage() {
               type="button"
               onClick={() => {
                 setCreateType("VIP");
+                setNewCustomer("Khách hàng ẩn danh");
+                setNewDeliveredBy("Admin");
                 setCreateModalOpen(true);
               }}
               className="flex-1 sm:flex-initial px-4 py-2.5 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-orange-600/25 transition-all hover:scale-105 cursor-pointer font-gaming"
             >
               <Plus className="w-4 h-4" />
-              <span>Tạo Đơn Nhanh</span>
+              <span>Tạo Đơn Cho Thuê Nhanh</span>
             </button>
           </div>
         </div>
@@ -581,7 +594,7 @@ export default function AdminOrdersPage() {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Tìm mã đơn, tên khách, số Zalo, mã acc..."
+                placeholder="Tìm mã đơn, khách, người giao, mã acc..."
                 className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 focus:border-orange-500 rounded-xl text-xs text-slate-900 focus:outline-none transition-colors"
               />
               {searchTerm && (
@@ -643,13 +656,15 @@ export default function AdminOrdersPage() {
               <p className="text-xs text-slate-500 max-w-md mx-auto">
                 {searchTerm || typeFilter !== "ALL" || statusFilter !== "ALL"
                   ? "Bạn có thể thử tìm kiếm với từ khóa khác hoặc đặt lại bộ lọc để xem toàn bộ danh sách."
-                  : "Hệ thống không tự động tạo đơn ảo. Mọi đơn thuê tài khoản hoặc dịch vụ do bạn (Admin) tạo sẽ được lưu trữ và hiển thị tại đây."}
+                  : "Hệ thống quản lý toàn bộ các đơn tài khoản cho thuê với đầy đủ ngày bắt đầu, ngày kết thúc, người nhận ẩn danh và người giao Admin."}
               </p>
             </div>
             <button
               type="button"
               onClick={() => {
                 setCreateType("VIP");
+                setNewCustomer("Khách hàng ẩn danh");
+                setNewDeliveredBy("Admin");
                 setCreateModalOpen(true);
               }}
               className="px-5 py-2.5 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl text-xs font-black uppercase tracking-wider inline-flex items-center gap-1.5 shadow-md shadow-orange-600/25 transition-all hover:scale-105 cursor-pointer font-gaming"
@@ -663,12 +678,12 @@ export default function AdminOrdersPage() {
             <table className="w-full text-left text-xs text-slate-700">
               <thead className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider font-gaming">
                 <tr>
-                  <th className="py-3.5 px-4">Mã Đơn</th>
-                  <th className="py-3.5 px-4">Khách Hàng & Zalo</th>
-                  <th className="py-3.5 px-4">Tài Khoản / Dịch Vụ</th>
-                  <th className="py-3.5 px-4">Gói Thuê</th>
-                  <th className="py-3.5 px-4">Thanh Toán</th>
-                  <th className="py-3.5 px-4">Hạn Sử Dụng</th>
+                  <th className="py-3.5 px-4">Mã Đơn & Người Giao</th>
+                  <th className="py-3.5 px-4">Người Nhận</th>
+                  <th className="py-3.5 px-4">Tài Khoản Cho Thuê</th>
+                  <th className="py-3.5 px-4">Ngày Cho Thuê</th>
+                  <th className="py-3.5 px-4">Ngày Kết Thúc (Hạn Trả)</th>
+                  <th className="py-3.5 px-4">Gói & Doanh Thu</th>
                   <th className="py-3.5 px-4">Trạng Thái</th>
                   <th className="py-3.5 px-4 text-right">Thao Tác</th>
                 </tr>
@@ -690,8 +705,8 @@ export default function AdminOrdersPage() {
                       }}
                       className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
                     >
-                      {/* 1. Mã Đơn & Type Badge */}
-                      <td className="py-4 px-4">
+                      {/* 1. Mã Đơn & Người Giao Badge */}
+                      <td className="py-4 px-4 align-top">
                         <div className="space-y-1">
                           <span className="px-2.5 py-1 rounded-lg bg-slate-900 text-white font-mono font-bold text-xs shadow-2xs block w-fit">
                             {ord.id}
@@ -710,36 +725,44 @@ export default function AdminOrdersPage() {
                             </span>
                             <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1 py-0.5 rounded">
                               <ShieldCheck className="w-2.5 h-2.5 text-emerald-600" />
-                              <span>Admin</span>
+                              <span>Giao: {ord.deliveredBy || "Admin"}</span>
                             </span>
                           </div>
                         </div>
                       </td>
 
-                      {/* 2. Khách Hàng */}
-                      <td className="py-4 px-4">
-                        <strong className="text-slate-900 font-bold block text-sm group-hover:text-orange-600 transition-colors">
-                          {ord.customer}
-                        </strong>
-                        <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-mono mt-0.5">
-                          <Phone className="w-3 h-3 text-slate-400" />
-                          <span>{ord.phoneZalo}</span>
-                          <a
-                            href={`https://zalo.me/${ord.phoneZalo.replace(/[^0-9]/g, "")}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="text-blue-600 hover:text-blue-800 font-bold ml-1 text-[10px] underline flex items-center gap-0.5"
-                            title="Chat Zalo ngay"
-                          >
-                            <span>Zalo</span>
-                            <ExternalLink className="w-2.5 h-2.5" />
-                          </a>
+                      {/* 2. Người Nhận (Khách hàng ẩn danh) */}
+                      <td className="py-4 px-4 align-top">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1">
+                            <User className="w-3.5 h-3.5 text-slate-400" />
+                            <strong className="text-slate-900 font-bold block text-xs group-hover:text-orange-600 transition-colors bg-slate-100 px-1.5 py-0.5 rounded">
+                              {ord.customer || "Khách hàng ẩn danh"}
+                            </strong>
+                          </div>
+
+                          {ord.phoneZalo && (
+                            <div className="flex items-center gap-1 text-[11px] text-slate-500 font-mono">
+                              <Phone className="w-3 h-3 text-slate-400" />
+                              <span>{ord.phoneZalo}</span>
+                              <a
+                                href={`https://zalo.me/${ord.phoneZalo.replace(/[^0-9]/g, "")}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-blue-600 hover:text-blue-800 font-bold ml-1 text-[10px] underline flex items-center gap-0.5"
+                                title="Chat Zalo ngay"
+                              >
+                                <span>Zalo</span>
+                                <ExternalLink className="w-2.5 h-2.5" />
+                              </a>
+                            </div>
+                          )}
                         </div>
                       </td>
 
-                      {/* 3. Tài Khoản */}
-                      <td className="py-4 px-4">
+                      {/* 3. Tài Khoản Cho Thuê */}
+                      <td className="py-4 px-4 align-top">
                         <div className="space-y-0.5 max-w-xs">
                           <div className="flex items-center gap-1.5">
                             <span className="px-2 py-0.5 rounded bg-orange-100 text-orange-700 font-mono font-bold text-[11px]">
@@ -754,41 +777,29 @@ export default function AdminOrdersPage() {
                         </div>
                       </td>
 
-                      {/* 4. Gói Thuê */}
-                      <td className="py-4 px-4">
-                        <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 font-semibold border border-slate-200 text-xs inline-block">
-                          {ord.package}
-                        </span>
+                      {/* 4. Ngày Cho Thuê */}
+                      <td className="py-4 px-4 align-top">
+                        <div className="flex items-center gap-1 text-slate-700 font-mono font-medium text-xs">
+                          <CalendarDays className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                          <span>{formatOrderDateTime(ord.startedAt || ord.createdAt)}</span>
+                        </div>
                       </td>
 
-                      {/* 5. Thanh Toán */}
-                      <td className="py-4 px-4">
-                        <span className="font-mono font-bold text-red-600 text-sm block">
-                          {ord.amount.toLocaleString("vi-VN")}đ
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-medium">Chuyển khoản</span>
-                      </td>
-
-                      {/* 6. Hạn Sử Dụng */}
-                      <td className="py-4 px-4">
+                      {/* 5. Ngày Kết Thúc (Hạn Trả) */}
+                      <td className="py-4 px-4 align-top">
                         {ord.expiresAt ? (
-                          <div className="space-y-0.5">
-                            <span className="text-slate-800 font-mono font-semibold block text-xs">
-                              {new Date(ord.expiresAt).toLocaleString("vi-VN", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                day: "2-digit",
-                                month: "2-digit",
-                              })}
+                          <div className="space-y-1">
+                            <span className="text-slate-900 font-mono font-bold block text-xs">
+                              {formatOrderDateTime(ord.expiresAt)}
                             </span>
                             {isRenting && (
                               <span
                                 className={`text-[10px] font-bold px-1.5 py-0.5 rounded block w-fit font-mono ${
                                   timeInfo.isExpired
-                                    ? "bg-rose-100 text-rose-700 animate-pulse"
+                                    ? "bg-rose-100 text-rose-700 animate-pulse border border-rose-200"
                                     : timeInfo.isExpiringSoon
-                                    ? "bg-amber-100 text-amber-800 animate-pulse"
-                                    : "bg-emerald-50 text-emerald-700"
+                                    ? "bg-amber-100 text-amber-800 animate-pulse border border-amber-200"
+                                    : "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                 }`}
                               >
                                 {timeInfo.formatted}
@@ -802,8 +813,20 @@ export default function AdminOrdersPage() {
                         )}
                       </td>
 
+                      {/* 6. Gói & Doanh Thu */}
+                      <td className="py-4 px-4 align-top">
+                        <div className="space-y-0.5">
+                          <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-800 font-semibold border border-slate-200 text-[11px] inline-block">
+                            {ord.package}
+                          </span>
+                          <span className="font-mono font-bold text-red-600 text-xs block">
+                            {ord.amount.toLocaleString("vi-VN")}đ
+                          </span>
+                        </div>
+                      </td>
+
                       {/* 7. Trạng Thái */}
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 align-top">
                         {ord.status === "RENTING" ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-700 text-xs font-bold">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -822,7 +845,7 @@ export default function AdminOrdersPage() {
                       </td>
 
                       {/* 8. Thao Tác Nhanh */}
-                      <td className="py-4 px-4 text-right">
+                      <td className="py-4 px-4 text-right align-top">
                         <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                           {/* Nút Copy Delivery Message */}
                           <button
@@ -883,7 +906,7 @@ export default function AdminOrdersPage() {
                     </span>
                   </div>
                   <span className="text-xs text-slate-500">
-                    Khởi tạo lúc: {new Date(selectedOrder.createdAt).toLocaleString("vi-VN")}
+                    Khởi tạo lúc: {formatOrderDateTime(selectedOrder.createdAt)}
                   </span>
                 </div>
               </div>
@@ -899,35 +922,49 @@ export default function AdminOrdersPage() {
 
             {/* Content Cards */}
             <div className="space-y-4 text-xs">
-              {/* Creator Banner */}
-              <div className="flex items-center justify-between p-2.5 bg-emerald-50 border border-emerald-200/80 rounded-xl text-[11px] text-emerald-900 font-semibold">
-                <div className="flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Người tạo đơn: <strong>Admin (Tuấn Thái Bình)</strong></span>
+              {/* Deliverer & Recipient Banner */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-200/80 rounded-2xl text-[11px] text-emerald-900 font-semibold">
+                  <div className="flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <span>Người Giao: <strong>{selectedOrder.deliveredBy || "Admin (Tuấn Thái Bình)"}</strong></span>
+                  </div>
+                  <span className="text-[10px] font-mono text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-200 font-bold">
+                    🛡️ Admin
+                  </span>
                 </div>
-                <span className="text-[10px] font-mono text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-200 font-bold">
-                  🛡️ Chính Chủ
-                </span>
+
+                <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200/80 rounded-2xl text-[11px] text-blue-900 font-semibold">
+                  <div className="flex items-center gap-1.5">
+                    <User className="w-4 h-4 text-blue-600" />
+                    <span>Người Nhận: <strong>{selectedOrder.customer || "Khách hàng ẩn danh"}</strong></span>
+                  </div>
+                  <span className="text-[10px] font-mono text-blue-700 bg-white px-2 py-0.5 rounded border border-blue-200 font-bold">
+                    👤 Khách Hàng
+                  </span>
+                </div>
               </div>
 
               {/* Box 1: Thông tin khách hàng & Tài khoản bàn giao */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <span className="text-slate-400 font-medium block text-[11px]">Khách hàng:</span>
-                    <strong className="text-slate-900 text-sm font-bold block">{selectedOrder.customer}</strong>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="font-mono text-slate-600">{selectedOrder.phoneZalo}</span>
-                      <a
-                        href={`https://zalo.me/${selectedOrder.phoneZalo.replace(/[^0-9]/g, "")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-2 py-0.5 bg-blue-600 text-white rounded text-[10px] font-bold flex items-center gap-1 hover:bg-blue-700"
-                      >
-                        <MessageCircle className="w-3 h-3" />
-                        <span>Mở Zalo</span>
-                      </a>
-                    </div>
+                    <span className="text-slate-400 font-medium block text-[11px]">Thông tin liên hệ Zalo:</span>
+                    <strong className="text-slate-900 text-sm font-bold block">{selectedOrder.customer || "Khách hàng ẩn danh"}</strong>
+                    {selectedOrder.phoneZalo && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="font-mono text-slate-600">{selectedOrder.phoneZalo}</span>
+                        <a
+                          href={`https://zalo.me/${selectedOrder.phoneZalo.replace(/[^0-9]/g, "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2 py-0.5 bg-blue-600 text-white rounded text-[10px] font-bold flex items-center gap-1 hover:bg-blue-700"
+                        >
+                          <MessageCircle className="w-3 h-3" />
+                          <span>Mở Zalo</span>
+                        </a>
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -994,18 +1031,31 @@ export default function AdminOrdersPage() {
                 </div>
               </div>
 
-              {/* Box 2: Hạn sử dụng & Gia Hạn Thuê */}
+              {/* Box 2: Ngày Cho Thuê & Ngày Kết Thúc */}
               <div className="p-4 bg-orange-50/60 rounded-2xl border border-orange-200/80 space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <span className="text-[11px] font-bold text-orange-800 block">Thời hạn sử dụng đơn thuê:</span>
-                    <strong className="text-slate-900 font-mono text-sm block">
-                      {selectedOrder.expiresAt
-                        ? new Date(selectedOrder.expiresAt).toLocaleString("vi-VN")
-                        : "Full Sở Hữu Vô Cực ∞"}
+                    <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+                      <CalendarDays className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Ngày Cho Thuê (Bắt Đầu):</span>
+                    </span>
+                    <strong className="text-slate-900 font-mono text-sm block mt-0.5">
+                      {formatOrderDateTime(selectedOrder.startedAt || selectedOrder.createdAt)}
                     </strong>
                   </div>
 
+                  <div>
+                    <span className="text-[11px] font-bold text-orange-800 flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-orange-600" />
+                      <span>Ngày Kết Thúc (Hạn Trả):</span>
+                    </span>
+                    <strong className="text-slate-900 font-mono text-sm block mt-0.5">
+                      {selectedOrder.expiresAt ? formatOrderDateTime(selectedOrder.expiresAt) : "Full Sở Hữu Vô Cực ∞"}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-orange-200/60 flex-wrap gap-2">
                   <div className="flex items-center gap-2">
                     {selectedOrder.status === "RENTING" && (
                       <button
@@ -1048,27 +1098,27 @@ export default function AdminOrdersPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleQuickExtend(selectedOrder, 24, 50000)}
+                        onClick={() => handleQuickExtend(selectedOrder, 24, 60000)}
                         className="p-2 bg-slate-50 hover:bg-orange-100 border border-slate-200 rounded-lg text-center cursor-pointer"
                       >
                         <strong className="block text-slate-900 text-xs">+1 Ngày (24h)</strong>
-                        <span className="text-[10px] text-orange-600 font-mono">+50.000đ</span>
+                        <span className="text-[10px] text-orange-600 font-mono">+60.000đ</span>
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleQuickExtend(selectedOrder, 168, 164000)}
+                        onClick={() => handleQuickExtend(selectedOrder, 168, 240000)}
                         className="p-2 bg-slate-50 hover:bg-orange-100 border border-slate-200 rounded-lg text-center cursor-pointer"
                       >
                         <strong className="block text-slate-900 text-xs">+7 Ngày (1 Tuần)</strong>
-                        <span className="text-[10px] text-orange-600 font-mono">+164.000đ</span>
+                        <span className="text-[10px] text-orange-600 font-mono">+240.000đ</span>
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleQuickExtend(selectedOrder, 720, 360000)}
+                        onClick={() => handleQuickExtend(selectedOrder, 720, 799000)}
                         className="p-2 bg-slate-50 hover:bg-orange-100 border border-slate-200 rounded-lg text-center cursor-pointer"
                       >
                         <strong className="block text-slate-900 text-xs">+30 Ngày (1 Tháng)</strong>
-                        <span className="text-[10px] text-orange-600 font-mono">+360.000đ</span>
+                        <span className="text-[10px] text-orange-600 font-mono">+799.000đ</span>
                       </button>
                     </div>
                   </div>
@@ -1143,7 +1193,7 @@ export default function AdminOrdersPage() {
                   className="flex-1 sm:flex-initial px-5 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-orange-600/25 cursor-pointer font-gaming"
                 >
                   {copiedDelivery ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  <span>{copiedDelivery ? "Đã Sao Chép!" : "Copy Tin Nhắn Bàn Giao"}</span>
+                  <span>{copiedDelivery ? "Đã Sao Chép!" : "Copy Tin Nhắn Bàn Giao Zalo"}</span>
                 </button>
               </div>
             </div>
@@ -1162,8 +1212,8 @@ export default function AdminOrdersPage() {
                   <Plus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-black text-lg text-slate-900 font-gaming uppercase">Tạo Đơn Hàng Mới</h3>
-                  <span className="text-xs text-slate-500">Khởi tạo đơn thuê tài khoản & bàn giao tức thì 30s</span>
+                  <h3 className="font-black text-lg text-slate-900 font-gaming uppercase">Tạo Đơn Cho Thuê Mới</h3>
+                  <span className="text-xs text-slate-500">Khởi tạo đơn thuê tài khoản & bàn giao tức thì</span>
                 </div>
               </div>
 
@@ -1176,20 +1226,23 @@ export default function AdminOrdersPage() {
               </button>
             </div>
 
-            {/* Admin Creator Indicator */}
-            <div className="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-200/80 rounded-2xl text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                </div>
+            {/* Admin & Recipient Indicator */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200/80 rounded-2xl text-xs">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 <div>
-                  <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider block font-gaming">Người tạo đơn</span>
-                  <strong className="text-slate-900">Tuấn Thái Bình (Admin)</strong>
+                  <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider block font-gaming">Người Giao</span>
+                  <strong className="text-slate-900">Admin (Tuấn Thái Bình)</strong>
                 </div>
               </div>
-              <span className="text-[10px] font-mono text-emerald-700 bg-white px-2.5 py-1 rounded-lg border border-emerald-200 font-bold shadow-2xs">
-                🛡️ Đơn Admin Tạo
-              </span>
+
+              <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200/80 rounded-2xl text-xs">
+                <User className="w-4 h-4 text-blue-600" />
+                <div>
+                  <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider block font-gaming">Người Nhận Mặc Định</span>
+                  <strong className="text-slate-900">Khách Hàng Ẩn Danh</strong>
+                </div>
+              </div>
             </div>
 
             {/* Form */}
@@ -1250,7 +1303,7 @@ export default function AdminOrdersPage() {
                   >
                     {vipAccounts.map((a) => (
                       <option key={a.id || a.code} value={a.code}>
-                        [{a.code}] - {a.mainChibi} ({a.rank}) - {a.hourlyPrice?.toLocaleString("vi-VN")}đ/h
+                        [{a.code}] - {a.mainChibi || a.title} ({a.rank}) - {a.hourlyPrice?.toLocaleString("vi-VN")}đ/h
                       </option>
                     ))}
                   </select>
@@ -1290,7 +1343,7 @@ export default function AdminOrdersPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleSelectDurationPreset(24, "Thuê 1 Ngày (24h)")}
+                      onClick={() => handleSelectDurationPreset(24, "Gói 24 Giờ (1 Ngày VIP)")}
                       className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
                         newDurationHours === 24 ? "bg-orange-50 border-orange-500 font-bold" : "bg-slate-50 border-slate-200"
                       }`}
@@ -1299,7 +1352,7 @@ export default function AdminOrdersPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleSelectDurationPreset(168, "Thuê 7 Ngày (1 Tuần)")}
+                      onClick={() => handleSelectDurationPreset(168, "Gói 7 Ngày (1 Tuần VIP)")}
                       className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
                         newDurationHours === 168 ? "bg-orange-50 border-orange-500 font-bold" : "bg-slate-50 border-slate-200"
                       }`}
@@ -1308,7 +1361,7 @@ export default function AdminOrdersPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleSelectDurationPreset(720, "Thuê 30 Ngày (1 Tháng)")}
+                      onClick={() => handleSelectDurationPreset(720, "Gói 1 Tháng (30 Ngày VIP)")}
                       className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
                         newDurationHours === 720 ? "bg-orange-50 border-orange-500 font-bold" : "bg-slate-50 border-slate-200"
                       }`}
@@ -1319,16 +1372,15 @@ export default function AdminOrdersPage() {
                 </div>
               )}
 
-              {/* 4. Khách hàng & Giá */}
+              {/* 4. Khách hàng (Người nhận) & Người Giao */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-800 block">Tên Khách Hàng (*):</label>
+                  <label className="font-bold text-slate-800 block">Tên Người Nhận (Khách Hàng):</label>
                   <input
                     type="text"
-                    required
                     value={newCustomer}
                     onChange={(e) => setNewCustomer(e.target.value)}
-                    placeholder="Nguyễn Văn A"
+                    placeholder="Khách hàng ẩn danh"
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-900 focus:outline-none focus:border-orange-500"
                   />
                 </div>
@@ -1339,7 +1391,7 @@ export default function AdminOrdersPage() {
                     type="text"
                     value={newPhone}
                     onChange={(e) => setNewPhone(e.target.value)}
-                    placeholder="0912.345.678"
+                    placeholder="0352.867.283"
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500"
                   />
                 </div>
@@ -1432,7 +1484,7 @@ export default function AdminOrdersPage() {
                   className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md shadow-orange-600/25 transition-all hover:scale-105 cursor-pointer font-gaming disabled:opacity-50"
                 >
                   {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                  <span>Tạo Đơn Hàng</span>
+                  <span>Tạo Đơn Cho Thuê</span>
                 </button>
               </div>
             </form>

@@ -42,6 +42,7 @@ import {
   TrendingUp,
   User,
   Tag,
+  CalendarDays,
 } from "lucide-react";
 import {
   OrderItem,
@@ -50,6 +51,7 @@ import {
   updateOrder,
   buildDeliveryMessage,
   getRentalTimeRemaining,
+  formatOrderDateTime,
 } from "@/utils/orders-service";
 import ProfitAnalyticsChart from "@/components/admin/ProfitAnalyticsChart";
 
@@ -252,7 +254,8 @@ export default function AdminDashboardPage() {
           return (
             o.id.toLowerCase().includes(q) ||
             o.customer.toLowerCase().includes(q) ||
-            o.phoneZalo.toLowerCase().includes(q) ||
+            (o.deliveredBy && o.deliveredBy.toLowerCase().includes(q)) ||
+            (o.phoneZalo && o.phoneZalo.toLowerCase().includes(q)) ||
             o.accountCode.toLowerCase().includes(q) ||
             o.accountTitle.toLowerCase().includes(q) ||
             o.package.toLowerCase().includes(q)
@@ -352,7 +355,8 @@ export default function AdminDashboardPage() {
 
         const createRes = await createOrder({
           type: account.category,
-          customer: "Khách Thuê Zalo",
+          customer: "Khách hàng ẩn danh",
+          deliveredBy: "Admin",
           phoneZalo: "0352.867.283",
           accountCode: account.code,
           accountTitle: account.title,
@@ -675,11 +679,11 @@ export default function AdminDashboardPage() {
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-orange-600" />
               <h3 className="font-extrabold text-slate-900 text-base font-gaming uppercase tracking-tight">
-                Chi Tiết Đơn Hàng & Doanh Thu Thật ({filteredOrders.length} Đơn)
+                Chi Tiết Đơn Hàng & Doanh Thu Cho Thuê ({filteredOrders.length} Đơn)
               </h3>
             </div>
             <p className="text-xs text-slate-500 font-normal mt-0.5">
-              Danh sách đơn hàng khớp 100% với tài khoản trong cơ sở dữ liệu Supabase, tính đúng doanh thu, lợi nhuận và hạn trả pass.
+              Danh sách các tài khoản đã cho thuê: đầy đủ Ngày cho thuê, Ngày kết thúc, Người nhận (Khách hàng ẩn danh) và Người giao (Admin).
             </p>
           </div>
 
@@ -732,7 +736,7 @@ export default function AdminDashboardPage() {
               className="px-3 py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 rounded-xl font-bold text-xs flex items-center gap-1 transition-colors"
             >
               <ExternalLink className="w-3 h-3" />
-              <span>Toàn Bộ Đơn</span>
+              <span>Quản Lý Toàn Bộ Đơn</span>
             </Link>
           </div>
         </div>
@@ -750,11 +754,11 @@ export default function AdminDashboardPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider bg-slate-50/80">
-                  <th className="py-3 px-3 rounded-l-xl">Mã Đơn & Thời Gian</th>
-                  <th className="py-3 px-3">Khách Hàng (Zalo)</th>
-                  <th className="py-3 px-3">Tài Khoản Giao Khách</th>
-                  <th className="py-3 px-3">Gói Thuê & Hạn Trả</th>
-                  <th className="py-3 px-3">Doanh Thu / Lãi</th>
+                  <th className="py-3 px-3 rounded-l-xl">Mã Đơn & Nguồn</th>
+                  <th className="py-3 px-3">Người Nhận & Người Giao</th>
+                  <th className="py-3 px-3">Tài Khoản Cho Thuê</th>
+                  <th className="py-3 px-3">Ngày Thuê ➔ Hạn Trả</th>
+                  <th className="py-3 px-3">Gói Thuê & Doanh Thu</th>
                   <th className="py-3 px-3 text-right rounded-r-xl">Trạng Thái & Thao Tác</th>
                 </tr>
               </thead>
@@ -765,7 +769,7 @@ export default function AdminDashboardPage() {
 
                   return (
                     <tr key={ord.id} className="hover:bg-slate-50/80 transition-colors group">
-                      {/* Cột 1: Mã đơn & Thời gian */}
+                      {/* Cột 1: Mã đơn & Nguồn */}
                       <td className="py-3.5 px-3 align-top">
                         <div className="space-y-1">
                           <div className="flex items-center gap-1.5">
@@ -777,34 +781,42 @@ export default function AdminDashboardPage() {
                             </span>
                           </div>
                           <p className="text-[10px] text-slate-400 font-mono">
-                            {new Date(ord.createdAt).toLocaleString("vi-VN", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              day: "2-digit",
-                              month: "2-digit",
-                            })}
+                            Tạo: {formatOrderDateTime(ord.createdAt)}
                           </p>
                         </div>
                       </td>
 
-                      {/* Cột 2: Khách Hàng (Zalo) */}
+                      {/* Cột 2: Người Nhận (Khách hàng ẩn danh) & Người Giao (Admin) */}
                       <td className="py-3.5 px-3 align-top">
                         <div className="space-y-1">
-                          <div className="font-bold text-slate-900 flex items-center gap-1">
-                            <User className="w-3.5 h-3.5 text-slate-400" />
-                            <span>{ord.customer}</span>
+                          {/* Người nhận */}
+                          <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                            <User className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                            <span className="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-[11px]">
+                              {ord.customer || "Khách hàng ẩn danh"}
+                            </span>
                           </div>
-                          <a
-                            href={`https://zalo.me/${ord.phoneZalo.replace(/[^0-9]/g, "")}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-blue-600 hover:text-blue-700 hover:underline"
-                            title="Chat Zalo trực tiếp với khách"
-                          >
-                            <Phone className="w-3 h-3" />
-                            <span>{ord.phoneZalo}</span>
-                            <ArrowUpRight className="w-2.5 h-2.5 opacity-60" />
-                          </a>
+
+                          {/* Người giao */}
+                          <div className="flex items-center gap-1 text-[11px] text-emerald-700 font-semibold">
+                            <ShieldCheck className="w-3 h-3 text-emerald-600 flex-shrink-0" />
+                            <span>Giao: <strong>{ord.deliveredBy || "Admin"}</strong></span>
+                          </div>
+
+                          {/* SĐT Zalo */}
+                          {ord.phoneZalo && (
+                            <a
+                              href={`https://zalo.me/${ord.phoneZalo.replace(/[^0-9]/g, "")}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-blue-600 hover:text-blue-700 hover:underline"
+                              title="Chat Zalo trực tiếp"
+                            >
+                              <Phone className="w-2.5 h-2.5" />
+                              <span>{ord.phoneZalo}</span>
+                              <ArrowUpRight className="w-2.5 h-2.5 opacity-60" />
+                            </a>
+                          )}
                         </div>
                       </td>
 
@@ -834,24 +846,38 @@ export default function AdminDashboardPage() {
                         </div>
                       </td>
 
-                      {/* Cột 4: Gói Thuê & Hạn Trả */}
+                      {/* Cột 4: Ngày Cho Thuê & Ngày Kết Thúc */}
                       <td className="py-3.5 px-3 align-top">
-                        <div className="space-y-1">
-                          <span className="inline-block px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 font-bold text-[10px]">
-                            {ord.package}
-                          </span>
+                        <div className="space-y-1.5 min-w-[190px]">
+                          {/* Ngày cho thuê */}
+                          <div className="flex items-center gap-1 text-[11px] text-slate-600">
+                            <CalendarDays className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                            <span className="text-slate-400 font-normal">Thuê:</span>
+                            <strong className="font-mono text-slate-800 font-semibold">
+                              {formatOrderDateTime(ord.startedAt || ord.createdAt)}
+                            </strong>
+                          </div>
+
+                          {/* Ngày kết thúc */}
+                          <div className="flex items-center gap-1 text-[11px] text-slate-900">
+                            <Clock className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" />
+                            <span className="text-slate-400 font-normal">Hạn:</span>
+                            <strong className="font-mono font-bold text-slate-900">
+                              {ord.expiresAt ? formatOrderDateTime(ord.expiresAt) : "Vô Cực ∞"}
+                            </strong>
+                          </div>
+
+                          {/* Countdown badge */}
                           {isRenting ? (
-                            <div className="flex items-center gap-1">
-                              <span
-                                className={`text-[11px] font-mono font-bold ${
-                                  remaining.isExpired
-                                    ? "text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200"
-                                    : "text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-200"
-                                }`}
-                              >
-                                {remaining.isExpired ? `⚠️ ${remaining.formatted}` : `⏳ ${remaining.formatted}`}
-                              </span>
-                            </div>
+                            <span
+                              className={`inline-block text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${
+                                remaining.isExpired
+                                  ? "text-rose-600 bg-rose-50 border-rose-200 animate-pulse"
+                                  : "text-orange-600 bg-orange-50 border-orange-200"
+                              }`}
+                            >
+                              {remaining.isExpired ? `⚠️ ${remaining.formatted}` : `⏳ ${remaining.formatted}`}
+                            </span>
                           ) : (
                             <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
                               <CheckCircle2 className="w-3 h-3" />
@@ -861,9 +887,12 @@ export default function AdminDashboardPage() {
                         </div>
                       </td>
 
-                      {/* Cột 5: Doanh Thu & Lãi */}
+                      {/* Cột 5: Gói Thuê & Doanh Thu */}
                       <td className="py-3.5 px-3 align-top">
                         <div className="space-y-1">
+                          <span className="inline-block px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 font-bold text-[10px]">
+                            {ord.package}
+                          </span>
                           <div className="font-mono font-black text-slate-900 text-sm">
                             {ord.amount.toLocaleString("vi-VN")}đ
                           </div>
@@ -871,9 +900,6 @@ export default function AdminDashboardPage() {
                             <TrendingUp className="w-3 h-3" />
                             <span>+{(Number(ord.amount) || 0).toLocaleString("vi-VN")}đ LÃI</span>
                           </div>
-                          <span className="text-[9px] text-slate-400 uppercase font-mono">
-                            {ord.paymentMethod === "MOMO" ? "Ví MoMo" : ord.paymentMethod === "ZALO_PAY" ? "Ví ZaloPay" : "Chuyển Khoản"}
-                          </span>
                         </div>
                       </td>
 

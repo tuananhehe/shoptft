@@ -117,13 +117,6 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    if (!body.customer || !body.customer.trim()) {
-      return NextResponse.json(
-        { success: false, error: "Vui lòng nhập tên khách hàng!" },
-        { status: 400 }
-      );
-    }
-
     const currentOrders = readOrdersFromFile();
     const newId = body.id || `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
 
@@ -141,7 +134,8 @@ export async function POST(req: NextRequest) {
     const newOrder: OrderItem = {
       id: newId,
       type: body.type || "VIP",
-      customer: body.customer.trim(),
+      customer: body.customer?.trim() || "Khách hàng ẩn danh",
+      deliveredBy: body.deliveredBy?.trim() || "Admin",
       phoneZalo: body.phoneZalo?.trim() || "09xx.xxx.xxx",
       accountCode: body.accountCode?.trim() || "MS: 8899",
       accountTitle: body.accountTitle?.trim() || "Tài khoản TFT VIP",
