@@ -183,15 +183,17 @@ export default function AdminSurveysPage() {
   };
 
   // CONFIG BUILDER ACTIONS
-  const handleSaveConfig = async () => {
-    if (!config) return;
+  const handleSaveConfig = async (overrideConfig?: SurveyConfig) => {
+    const targetConfig = overrideConfig || config;
+    if (!targetConfig) return;
     setSavingConfig(true);
     const toastId = toast.loading("Đang lưu cấu hình câu hỏi & phần quà...");
 
     try {
-      const res = await updateSurveyConfigApi(config);
-      if (res.success) {
-        toast.success("Đã cập nhật cấu hình khảo sát & quà tặng thành công!", { id: toastId });
+      const res = await updateSurveyConfigApi(targetConfig);
+      if (res.success && res.data) {
+        setConfig(res.data);
+        toast.success("✅ Đã lưu cấu hình khảo sát & quà tặng thành công!", { id: toastId });
       } else {
         toast.error(res.error || "Lưu cấu hình thất bại!", { id: toastId });
       }
@@ -202,19 +204,65 @@ export default function AdminSurveysPage() {
     }
   };
 
-  const toggleQuestionEnabled = (qId: string) => {
+  const toggleQuestionEnabled = async (qId: string) => {
     if (!config) return;
     const updated = config.questions.map((q) =>
       q.id === qId ? { ...q, enabled: !q.enabled } : q
     );
-    setConfig({ ...config, questions: updated });
+    const newConfig = { ...config, questions: updated };
+    setConfig(newConfig);
+    
+    try {
+      const res = await updateSurveyConfigApi(newConfig);
+      if (res.success) {
+        toast.success("✅ Đã lưu trạng thái câu hỏi!");
+      }
+    } catch {
+      toast.error("Lỗi lưu trạng thái câu hỏi!");
+    }
   };
 
-  const handleDeleteQuestion = (qId: string) => {
+  const handleDeleteQuestion = async (qId: string) => {
     if (!config) return;
     if (!window.confirm("Bạn có chắc muốn xóa câu hỏi này khỏi biểu mẫu?")) return;
     const updated = config.questions.filter((q) => q.id !== qId);
-    setConfig({ ...config, questions: updated });
+    const newConfig = { ...config, questions: updated };
+    setConfig(newConfig);
+
+    const toastId = toast.loading("Đang xóa và cập nhật...");
+    try {
+      const res = await updateSurveyConfigApi(newConfig);
+      if (res.success) {
+        toast.success("✅ Đã xóa câu hỏi thành công!", { id: toastId });
+      } else {
+        toast.error(res.error || "Không thể lưu thay đổi!", { id: toastId });
+      }
+    } catch {
+      toast.error("Lỗi kết nối khi lưu!", { id: toastId });
+    }
+  };
+
+  const handleMoveQuestion = async (index: number, direction: "UP" | "DOWN") => {
+    if (!config) return;
+    const targetIdx = direction === "UP" ? index - 1 : index + 1;
+    if (targetIdx < 0 || targetIdx >= config.questions.length) return;
+
+    const updated = [...config.questions];
+    const temp = updated[index];
+    updated[index] = updated[targetIdx];
+    updated[targetIdx] = temp;
+
+    const newConfig = { ...config, questions: updated };
+    setConfig(newConfig);
+
+    try {
+      const res = await updateSurveyConfigApi(newConfig);
+      if (res.success) {
+        toast.success("✅ Đã cập nhật thứ tự câu hỏi!");
+      }
+    } catch {
+      toast.error("Lỗi lưu thứ tự!");
+    }
   };
 
   const openAddQuestionModal = () => {
@@ -238,7 +286,7 @@ export default function AdminSurveysPage() {
     setIsQuestionModalOpen(true);
   };
 
-  const handleSaveQuestionModal = () => {
+  const handleSaveQuestionModal = async () => {
     if (!editingQuestion || !config) return;
     if (!editingQuestion.title.trim()) {
       toast.error("Vui lòng nhập tiêu đề câu hỏi!");
@@ -256,10 +304,23 @@ export default function AdminSurveysPage() {
       updatedQuestions = [...config.questions, editingQuestion];
     }
 
-    setConfig({ ...config, questions: updatedQuestions });
+    const newConfig = { ...config, questions: updatedQuestions };
+    setConfig(newConfig);
     setIsQuestionModalOpen(false);
     setEditingQuestion(null);
-    toast.success("Đã cập nhật câu hỏi vào danh sách! Nhớ bấm 'Lưu Cấu Hình' nhé.");
+
+    const toastId = toast.loading("Đang lưu câu hỏi vào hệ thống...");
+    try {
+      const res = await updateSurveyConfigApi(newConfig);
+      if (res.success && res.data) {
+        setConfig(res.data);
+        toast.success("✅ Đã lưu câu hỏi khảo sát thành công!", { id: toastId });
+      } else {
+        toast.error(res.error || "Lỗi lưu câu hỏi!", { id: toastId });
+      }
+    } catch {
+      toast.error("Lỗi kết nối máy chủ khi lưu câu hỏi!", { id: toastId });
+    }
   };
 
   const handleAddOptionToQuestion = () => {
@@ -805,7 +866,7 @@ export default function AdminSurveysPage() {
 
               <button
                 type="button"
-                onClick={handleSaveConfig}
+                onClick={() => handleSaveConfig()}
                 disabled={savingConfig}
                 className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-orange-600/20 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
               >
@@ -895,6 +956,18 @@ export default function AdminSurveysPage() {
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                 />
               </div>
+
+              <div className="sm:col-span-2 pt-2 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => handleSaveConfig()}
+                  disabled={savingConfig}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Lưu Thiết Lập Quà Tặng</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -951,6 +1024,18 @@ export default function AdminSurveysPage() {
                   }
                   className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 resize-none"
                 />
+              </div>
+
+              <div className="sm:col-span-2 pt-2 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => handleSaveConfig()}
+                  disabled={savingConfig}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Lưu Lời Dẫn & Tiêu Đề</span>
+                </button>
               </div>
             </div>
           </div>
@@ -1051,6 +1136,26 @@ export default function AdminSurveysPage() {
                       <div className="flex items-center gap-1.5 self-end sm:self-center">
                         <button
                           type="button"
+                          disabled={idx === 0}
+                          onClick={() => handleMoveQuestion(idx, "UP")}
+                          className="p-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                          title="Di chuyển lên trên"
+                        >
+                          <MoveUp className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={idx === config.questions.length - 1}
+                          onClick={() => handleMoveQuestion(idx, "DOWN")}
+                          className="p-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                          title="Di chuyển xuống dưới"
+                        >
+                          <MoveDown className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          type="button"
                           onClick={() => toggleQuestionEnabled(q.id)}
                           className={`p-2 rounded-xl border text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 ${
                             q.enabled
@@ -1060,7 +1165,7 @@ export default function AdminSurveysPage() {
                           title={q.enabled ? "Đang bật (Chạm để ẩn)" : "Đang ẩn (Chạm để hiện)"}
                         >
                           {q.enabled ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                          <span className="text-[11px]">{q.enabled ? "Đang hiện" : "Đã ẩn"}</span>
+                          <span className="text-[11px]">{q.enabled ? "Hiện" : "Ẩn"}</span>
                         </button>
 
                         <button

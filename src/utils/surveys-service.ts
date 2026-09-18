@@ -196,6 +196,7 @@ export async function getSurveysApi(): Promise<{
       method: 'GET',
       headers: getAuthHeaders(),
       cache: 'no-store',
+      credentials: 'include',
     });
 
     const result = await res.json();
@@ -216,6 +217,7 @@ export async function deleteSurveyApi(
     const res = await fetch('/api/surveys?id=' + encodeURIComponent(id), {
       method: 'DELETE',
       headers: getAuthHeaders(),
+      credentials: 'include',
     });
 
     const result = await res.json();
@@ -241,6 +243,7 @@ export async function getSurveyConfigApi(): Promise<{
     const res = await fetch('/api/surveys/config', {
       method: 'GET',
       cache: 'no-store',
+      credentials: 'include',
     });
 
     const result = await res.json();
@@ -264,6 +267,7 @@ export async function updateSurveyConfigApi(
     const res = await fetch('/api/surveys/config', {
       method: 'PUT',
       headers: getAuthHeaders(),
+      credentials: 'include',
       body: JSON.stringify(config),
     });
 
@@ -290,6 +294,7 @@ export async function updateSurveyGiftStatusApi(
     const res = await fetch('/api/surveys', {
       method: 'PATCH',
       headers: getAuthHeaders(),
+      credentials: 'include',
       body: JSON.stringify({ id, giftDelivered, note }),
     });
 
