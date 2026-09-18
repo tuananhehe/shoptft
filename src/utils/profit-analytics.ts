@@ -64,6 +64,7 @@ export function aggregateProfitData(
   orders: OrderItem[],
   timeRange: TimeRange = "7d",
   extraRentedAccounts: Array<{
+    code?: string;
     category: "VIP" | "CLONE";
     amount: number;
     profit: number;
@@ -175,10 +176,20 @@ export function aggregateProfitData(
   });
 
   // Tích hợp thêm các tài khoản đang RENTED trong kho vào ngày "Hôm nay"
-  if (extraRentedAccounts.length > 0) {
+  // Loại trừ các tài khoản đã có đơn hàng RENTING trong danh sách orders để tránh trùng lặp doanh thu
+  const rentingOrderCodes = new Set(
+    orders.filter((o) => o.status === "RENTING").map((o) => o.accountCode.trim().toLowerCase())
+  );
+
+  const deduplicatedRentedAccounts = extraRentedAccounts.filter((acc) => {
+    if (!acc.code) return true;
+    return !rentingOrderCodes.has(acc.code.trim().toLowerCase());
+  });
+
+  if (deduplicatedRentedAccounts.length > 0) {
     const todayPoint = timeRange === "12m" ? points[now.getMonth()] : points[points.length - 1];
     if (todayPoint) {
-      extraRentedAccounts.forEach((acc) => {
+      deduplicatedRentedAccounts.forEach((acc) => {
         todayPoint.revenue += acc.amount;
         todayPoint.profit += acc.profit;
         todayPoint.orderCount += 1;

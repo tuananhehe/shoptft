@@ -1,5 +1,38 @@
 [
   {
+    "id": "survey-1789752015386-355",
+    "createdAt": "2026-09-18T17:20:15.386Z",
+    "servicesUsed": [
+      "Thuê Acc TFT"
+    ],
+    "satisfactionRating": 5,
+    "deliverySpeed": "⏱️ Nhanh & đúng hẹn (1 - 3 phút)",
+    "supportAttitude": "Rất nhiệt tình & chu đáo",
+    "accountQuality": "Đúng 100% như mô tả",
+    "requestedAdditions": "fsdf",
+    "pricingPerception": "Hợp lý, vừa túi tiền",
+    "improvementSuggestion": "Khảo sát nhánh: Thuê Acc TFT",
+    "recommendScore": 10,
+    "customerName": "6756765765",
+    "customerZalo": "7568678",
+    "customAnswers": {
+      "q_branch": "Thuê Acc TFT",
+      "q_services": [
+        "Thuê Acc TFT"
+      ],
+      "q_thue_duration": "⚡ Gói 2h - 4h (Chơi nhanh giải trí theo ca)",
+      "q_thue_criteria": [
+        "🏟️ Sân đấu Thần Thoại đẹp mắt (Tiệm Trà, EDM, Lễ Hội...)"
+      ],
+      "q_thue_speed": "⏱️ Nhanh & đúng hẹn (1 - 3 phút)",
+      "q_thue_additions": "fsdf",
+      "q_satisfaction": 5,
+      "q_recommend": 10,
+      "selectedBranch": "THUE_ACC",
+      "branchName": "Thuê Acc TFT"
+    }
+  },
+  {
     "id": "survey-1789557661463-691",
     "createdAt": "2026-09-16T11:21:01.462Z",
     "servicesUsed": [

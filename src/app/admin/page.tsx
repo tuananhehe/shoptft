@@ -36,8 +36,21 @@ import {
   Calendar,
   Layers,
   Crown,
+  ShoppingBag,
+  Phone,
+  MessageCircle,
+  TrendingUp,
+  User,
+  Tag,
 } from "lucide-react";
-import { OrderItem, getOrders, createOrder, updateOrder } from "@/utils/orders-service";
+import {
+  OrderItem,
+  getOrders,
+  createOrder,
+  updateOrder,
+  buildDeliveryMessage,
+  getRentalTimeRemaining,
+} from "@/utils/orders-service";
 import ProfitAnalyticsChart from "@/components/admin/ProfitAnalyticsChart";
 
 export interface DashboardAccountItem {
@@ -64,8 +77,14 @@ export default function AdminDashboardPage() {
   const [accounts, setAccounts] = useState<DashboardAccountItem[]>([]);
   const [orders, setOrders] = useState<OrderItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Bộ lọc kho acc sẵn sàng
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<"ALL" | "VIP" | "CLONE">("ALL");
+
+  // Bộ lọc Bảng Đơn Hàng & Doanh Thu Thật
+  const [orderFilter, setOrderFilter] = useState<"ALL" | "RENTING" | "COMPLETED">("ALL");
+  const [orderSearchTerm, setOrderSearchTerm] = useState("");
 
   // Modal Cho Thuê / Gia Hạn Nhanh
   const [rentModalAccount, setRentModalAccount] = useState<DashboardAccountItem | null>(null);
@@ -194,11 +213,12 @@ export default function AdminDashboardPage() {
     return stats.rentedList.map((a) => {
       let amount = 60000;
       if (a.category === "VIP") {
-        amount = Number(a.hourlyPrice) ? Number(a.hourlyPrice) * 4 : 60000;
+        amount = Number(a.dailyPrice) || (Number(a.hourlyPrice) ? Number(a.hourlyPrice) * 4 : 60000);
       } else {
         amount = Number(a.monthlyPrice) || Number(a.periodPrice) || 210000;
       }
       return {
+        code: a.code,
         category: a.category,
         amount,
         profit: amount,
@@ -207,8 +227,90 @@ export default function AdminDashboardPage() {
     });
   }, [stats.rentedList]);
 
-  // 3. THAO TÁC HOÀN THÀNH ĐƠN & THU HỒI ACC VỀ KHO (TÍNH LÃI VÀO DOANH THU)
-  const handleCompleteOrder = async (account: DashboardAccountItem) => {
+  // 3. TÍNH TOÁN DOANH THU & ĐƠN HÀNG THỰC TẾ
+  const orderMetrics = useMemo(() => {
+    const totalRevenue = orders.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+    const totalProfit = totalRevenue; // Thuê acc & dịch vụ lãi 100% doanh thu
+    const rentingCount = orders.filter((o) => o.status === "RENTING").length;
+    const completedCount = orders.filter((o) => o.status === "COMPLETED").length;
+    return {
+      totalRevenue,
+      totalProfit,
+      rentingCount,
+      completedCount,
+    };
+  }, [orders]);
+
+  // Danh sách đơn hàng đã lọc và tìm kiếm
+  const filteredOrders = useMemo(() => {
+    return orders
+      .filter((o) => {
+        if (orderFilter === "RENTING" && o.status !== "RENTING") return false;
+        if (orderFilter === "COMPLETED" && o.status !== "COMPLETED") return false;
+        if (orderSearchTerm.trim()) {
+          const q = orderSearchTerm.toLowerCase();
+          return (
+            o.id.toLowerCase().includes(q) ||
+            o.customer.toLowerCase().includes(q) ||
+            o.phoneZalo.toLowerCase().includes(q) ||
+            o.accountCode.toLowerCase().includes(q) ||
+            o.accountTitle.toLowerCase().includes(q) ||
+            o.package.toLowerCase().includes(q)
+          );
+        }
+        return true;
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [orders, orderFilter, orderSearchTerm]);
+
+  // 4. THAO TÁC HOÀN THÀNH ĐƠN (TỪ BẢNG ĐƠN HÀNG)
+  const handleCompleteExistingOrder = async (ord: OrderItem) => {
+    const toastId = toast.loading(`Đang chốt hoàn thành đơn [${ord.id}]...`);
+    try {
+      // 1. Cập nhật trạng thái đơn hàng sang COMPLETED
+      const res = await updateOrder(ord.id, {
+        status: "COMPLETED",
+        notes: `${ord.notes || ""}\n[${new Date().toLocaleTimeString("vi-VN")}] Admin chốt hoàn thành đơn & thu hồi acc về kho.`.trim(),
+      });
+
+      if (!res.success) {
+        throw new Error(res.error || "Không thể cập nhật trạng thái đơn hàng!");
+      }
+
+      // 2. Tìm tài khoản tương ứng trong Supabase và đưa về AVAILABLE
+      const matchedAccount = accounts.find(
+        (a) => a.code.toLowerCase().trim() === ord.accountCode.toLowerCase().trim()
+      );
+
+      if (matchedAccount) {
+        await updateAccountApi({
+          id: matchedAccount.id,
+          status: "AVAILABLE",
+          rented_until: null,
+        });
+
+        setAccounts((prev) =>
+          prev.map((a) =>
+            a.id === matchedAccount.id ? { ...a, status: "AVAILABLE", rentedUntil: null } : a
+          )
+        );
+      }
+
+      // 3. Cập nhật state local đơn hàng
+      setOrders((prev) =>
+        prev.map((o) => (o.id === ord.id ? { ...o, status: "COMPLETED" } : o))
+      );
+
+      toast.success(`✅ Đã hoàn thành đơn [${ord.id}] & thu hồi acc [${ord.accountCode}] về kho sẵn sàng!`, {
+        id: toastId,
+      });
+    } catch (err: any) {
+      toast.error(`Lỗi: ${err.message}`, { id: toastId });
+    }
+  };
+
+  // 5. THAO TÁC HOÀN THÀNH ĐƠN & THU HỒI ACC VỀ KHO (TỪ BẢNG KHO ACC ĐANG THUÊ)
+  const handleCompleteOrderFromAccount = async (account: DashboardAccountItem) => {
     const toastId = toast.loading(`Đang chốt hoàn thành đơn [${account.code}]...`);
     try {
       // 1. Cập nhật trạng thái tài khoản về AVAILABLE trên Supabase
@@ -224,7 +326,7 @@ export default function AdminDashboardPage() {
 
       // 2. Tìm đơn hàng tương ứng trong hệ thống đơn hoặc tạo mới để chốt lãi
       const matchedOrder = orders.find(
-        (o) => o.accountCode === account.code && o.status === "RENTING"
+        (o) => o.accountCode.trim().toLowerCase() === account.code.trim().toLowerCase() && o.status === "RENTING"
       );
 
       if (matchedOrder) {
@@ -284,7 +386,7 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // 4. MỞ MODAL CHO THUÊ / GIA HẠN NHANH
+  // 6. MỞ MODAL CHO THUÊ / GIA HẠN NHANH
   const openRentModal = (account: DashboardAccountItem) => {
     setRentModalAccount(account);
     const initialHours = 2;
@@ -295,6 +397,25 @@ export default function AdminDashboardPage() {
     setCustomEndTime(toLocalDatetimeInputString(d));
   };
 
+  // Mở modal gia hạn từ đơn hàng
+  const openRentModalFromOrder = (ord: OrderItem) => {
+    const matched = accounts.find((a) => a.code.trim().toLowerCase() === ord.accountCode.trim().toLowerCase());
+    if (matched) {
+      openRentModal(matched);
+    } else {
+      // Tạo mock account item để mở modal
+      openRentModal({
+        id: ord.id,
+        category: ord.type === "CLONE" ? "CLONE" : "VIP",
+        code: ord.accountCode,
+        title: ord.accountTitle,
+        thumbnail: "/avatar.jpg",
+        status: "RENTED",
+        rentedUntil: ord.expiresAt,
+      });
+    }
+  };
+
   // Chọn số giờ thuê mẫu nhanh
   const handleSelectQuickHours = (hours: number) => {
     setQuickHours(hours);
@@ -302,7 +423,7 @@ export default function AdminDashboardPage() {
     setCustomEndTime(toLocalDatetimeInputString(d));
   };
 
-  // 5. LƯU THỜI GIAN CHO THUÊ / GIA HẠN
+  // 7. LƯU THỜI GIAN CHO THUÊ / GIA HẠN
   const handleSaveRentalDuration = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!rentModalAccount) return;
@@ -333,7 +454,7 @@ export default function AdminDashboardPage() {
         throw new Error(res.error || "Không thể cập nhật thời gian thuê!");
       }
 
-      // Cập nhật state local
+      // Cập nhật state local tài khoản
       setAccounts((prev) =>
         prev.map((a) =>
           a.id === rentModalAccount.id
@@ -341,6 +462,17 @@ export default function AdminDashboardPage() {
             : a
         )
       );
+
+      // Đồng thời cập nhật expiresAt trong đơn hàng nếu có
+      const matchedOrder = orders.find(
+        (o) => o.accountCode.trim().toLowerCase() === rentModalAccount.code.trim().toLowerCase() && o.status === "RENTING"
+      );
+      if (matchedOrder) {
+        await updateOrder(matchedOrder.id, { expiresAt: isoString });
+        setOrders((prev) =>
+          prev.map((o) => (o.id === matchedOrder.id ? { ...o, expiresAt: isoString } : o))
+        );
+      }
 
       toast.success(`✅ Đã thiết lập cho thuê acc [${rentModalAccount.code}] thành công!`, {
         id: toastId,
@@ -351,6 +483,14 @@ export default function AdminDashboardPage() {
     } finally {
       setIsSubmittingRental(false);
     }
+  };
+
+  // Sao chép tin nhắn bàn giao chuẩn Zalo
+  const handleCopyDelivery = (ord: OrderItem) => {
+    const msg = buildDeliveryMessage(ord);
+    navigator.clipboard.writeText(msg).then(() => {
+      toast.success(`Đã sao chép tin nhắn bàn giao đơn [${ord.id}]!`);
+    });
   };
 
   // Sao chép thông tin tài khoản cho khách Zalo
@@ -410,18 +550,25 @@ export default function AdminDashboardPage() {
           </button>
 
           <Link
+            href="/admin/orders"
+            className="px-3.5 py-2.5 bg-white/15 hover:bg-white/25 text-white font-bold text-xs uppercase tracking-wider rounded-xl backdrop-blur-sm transition-all flex items-center gap-1.5 cursor-pointer border border-white/20"
+          >
+            <Receipt className="w-3.5 h-3.5" />
+            <span>Quản Lý Đơn Hàng</span>
+          </Link>
+
+          <Link
             href="/admin/accounts"
             className="px-4 py-2.5 bg-white hover:bg-slate-50 text-orange-700 font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all hover:scale-105 flex items-center gap-2 cursor-pointer font-gaming"
           >
             <Gamepad2 className="w-4 h-4" />
-            <span>Quản Lý Chi Tiết Kho Acc ➔</span>
+            <span>Kho Chi Tiết ➔</span>
           </Link>
         </div>
       </div>
 
       {/* 2. STATS GRID: 4 THẺ THỐNG KÊ DỮ LIỆU THỰC TẾ */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
         {/* Card 1: Tổng Kho Tài Khoản */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2 relative overflow-hidden group hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
@@ -491,31 +638,28 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        {/* Card 4: Acc Cần Thu Hồi / Sắp Hết Hạn */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2 relative overflow-hidden group hover:border-rose-300 transition-all">
+        {/* Card 4: Doanh Thu & Lợi Nhuận Thật */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2 relative overflow-hidden group hover:border-blue-300 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider font-gaming">
-              Sắp Hết Giờ / Thu Hồi
+              Tổng Doanh Thu Đơn
             </span>
-            <span className="p-2 bg-rose-100 text-rose-600 rounded-xl">
-              <Hourglass className="w-4 h-4 text-rose-600" />
+            <span className="p-2 bg-blue-100 text-blue-600 rounded-xl">
+              <DollarSign className="w-4 h-4" />
             </span>
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black text-rose-600 font-mono">
-              {stats.expiringCount} Acc
+            <span className="text-2xl font-black text-blue-600 font-mono">
+              {orderMetrics.totalRevenue.toLocaleString("vi-VN")}đ
             </span>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-              stats.expiringCount > 0 ? "bg-rose-100 text-rose-700 font-mono" : "bg-slate-100 text-slate-600"
-            }`}>
-              {stats.expiringCount > 0 ? "Cần Đổi Pass" : "An Toàn"}
+            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-mono">
+              100% LÃI
             </span>
           </div>
           <p className="text-[11px] text-slate-500 font-normal">
-            Hết hạn trong 24h hoặc cần thu hồi
+            {orders.length} Đơn hàng thực tế • {orderMetrics.rentingCount} đang thuê
           </p>
         </div>
-
       </div>
 
       {/* 2.5. BIỂU ĐỒ LỢI NHUẬN & DOANH THU SHOP (PROFIT ANALYTICS CHART) */}
@@ -524,14 +668,313 @@ export default function AdminDashboardPage() {
         extraRentedAccounts={extraRentedAccounts}
       />
 
-      {/* 3. KHỐI DANH SÁCH: CÁC TÀI KHOẢN ĐANG ĐƯỢC CHO THUÊ (RENTED LIVE TABLE) */}
+      {/* 3. BẢNG CHI TIẾT ĐƠN HÀNG & DOANH THU THẬT (REAL ORDERS & REVENUE DETAILS) */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <ShoppingBag className="w-5 h-5 text-orange-600" />
+              <h3 className="font-extrabold text-slate-900 text-base font-gaming uppercase tracking-tight">
+                Chi Tiết Đơn Hàng & Doanh Thu Thật ({filteredOrders.length} Đơn)
+              </h3>
+            </div>
+            <p className="text-xs text-slate-500 font-normal mt-0.5">
+              Danh sách đơn hàng khớp 100% với tài khoản trong cơ sở dữ liệu Supabase, tính đúng doanh thu, lợi nhuận và hạn trả pass.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Thanh tìm kiếm đơn */}
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={orderSearchTerm}
+                onChange={(e) => setOrderSearchTerm(e.target.value)}
+                placeholder="Tìm mã đơn, khách, SĐT, mã acc..."
+                className="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-orange-500 w-48 sm:w-60"
+              />
+            </div>
+
+            {/* Tab lọc trạng thái đơn */}
+            <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs">
+              <button
+                type="button"
+                onClick={() => setOrderFilter("ALL")}
+                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                  orderFilter === "ALL" ? "bg-white text-slate-900 shadow-xs" : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                Tất cả ({orders.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setOrderFilter("RENTING")}
+                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                  orderFilter === "RENTING" ? "bg-white text-orange-700 shadow-xs" : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                Đang thuê ({orderMetrics.rentingCount}) 📦
+              </button>
+              <button
+                type="button"
+                onClick={() => setOrderFilter("COMPLETED")}
+                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                  orderFilter === "COMPLETED" ? "bg-white text-emerald-700 shadow-xs" : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                Đã xong ({orderMetrics.completedCount}) ✅
+              </button>
+            </div>
+
+            <Link
+              href="/admin/orders"
+              className="px-3 py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 rounded-xl font-bold text-xs flex items-center gap-1 transition-colors"
+            >
+              <ExternalLink className="w-3 h-3" />
+              <span>Toàn Bộ Đơn</span>
+            </Link>
+          </div>
+        </div>
+
+        {filteredOrders.length === 0 ? (
+          <div className="py-12 px-4 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-2">
+            <Receipt className="w-8 h-8 text-slate-400 mx-auto" />
+            <h4 className="font-bold text-sm text-slate-800">Không Có Đơn Hàng Phù Hợp</h4>
+            <p className="text-xs text-slate-500 max-w-md mx-auto">
+              Không tìm thấy đơn hàng nào khớp với từ khóa tìm kiếm hoặc bộ lọc hiện tại.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider bg-slate-50/80">
+                  <th className="py-3 px-3 rounded-l-xl">Mã Đơn & Thời Gian</th>
+                  <th className="py-3 px-3">Khách Hàng (Zalo)</th>
+                  <th className="py-3 px-3">Tài Khoản Giao Khách</th>
+                  <th className="py-3 px-3">Gói Thuê & Hạn Trả</th>
+                  <th className="py-3 px-3">Doanh Thu / Lãi</th>
+                  <th className="py-3 px-3 text-right rounded-r-xl">Trạng Thái & Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-xs">
+                {filteredOrders.map((ord) => {
+                  const remaining = getRentalTimeRemaining(ord.expiresAt);
+                  const isRenting = ord.status === "RENTING";
+
+                  return (
+                    <tr key={ord.id} className="hover:bg-slate-50/80 transition-colors group">
+                      {/* Cột 1: Mã đơn & Thời gian */}
+                      <td className="py-3.5 px-3 align-top">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded text-[11px]">
+                              {ord.id}
+                            </span>
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                              {ord.source || "ZALO"}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-slate-400 font-mono">
+                            {new Date(ord.createdAt).toLocaleString("vi-VN", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              day: "2-digit",
+                              month: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                      </td>
+
+                      {/* Cột 2: Khách Hàng (Zalo) */}
+                      <td className="py-3.5 px-3 align-top">
+                        <div className="space-y-1">
+                          <div className="font-bold text-slate-900 flex items-center gap-1">
+                            <User className="w-3.5 h-3.5 text-slate-400" />
+                            <span>{ord.customer}</span>
+                          </div>
+                          <a
+                            href={`https://zalo.me/${ord.phoneZalo.replace(/[^0-9]/g, "")}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-blue-600 hover:text-blue-700 hover:underline"
+                            title="Chat Zalo trực tiếp với khách"
+                          >
+                            <Phone className="w-3 h-3" />
+                            <span>{ord.phoneZalo}</span>
+                            <ArrowUpRight className="w-2.5 h-2.5 opacity-60" />
+                          </a>
+                        </div>
+                      </td>
+
+                      {/* Cột 3: Tài Khoản */}
+                      <td className="py-3.5 px-3 align-top">
+                        <div className="space-y-1 max-w-xs">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="px-1.5 py-0.5 rounded bg-black/80 text-white font-mono font-bold text-[10px]">
+                              {ord.accountCode}
+                            </span>
+                            <span
+                              className={`px-1.5 py-0.5 rounded font-extrabold text-[9px] ${
+                                ord.type === "VIP"
+                                  ? "bg-orange-100 text-orange-700 border border-orange-200"
+                                  : "bg-purple-100 text-purple-700 border border-purple-200"
+                              }`}
+                            >
+                              {ord.type === "VIP" ? "KHO VIP" : "KHO CLONE"}
+                            </span>
+                          </div>
+                          <h5 className="font-bold text-slate-800 text-xs line-clamp-1" title={ord.accountTitle}>
+                            {ord.accountTitle}
+                          </h5>
+                          <div className="text-[10px] text-slate-500 font-mono">
+                            Acc Login: <code className="bg-slate-100 px-1 py-0.2 rounded text-slate-700">{ord.accountLogin}</code>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Cột 4: Gói Thuê & Hạn Trả */}
+                      <td className="py-3.5 px-3 align-top">
+                        <div className="space-y-1">
+                          <span className="inline-block px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 font-bold text-[10px]">
+                            {ord.package}
+                          </span>
+                          {isRenting ? (
+                            <div className="flex items-center gap-1">
+                              <span
+                                className={`text-[11px] font-mono font-bold ${
+                                  remaining.isExpired
+                                    ? "text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200"
+                                    : "text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-200"
+                                }`}
+                              >
+                                {remaining.isExpired ? `⚠️ ${remaining.formatted}` : `⏳ ${remaining.formatted}`}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3" />
+                              <span>Đã thu hồi / Bàn giao xong</span>
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Cột 5: Doanh Thu & Lãi */}
+                      <td className="py-3.5 px-3 align-top">
+                        <div className="space-y-1">
+                          <div className="font-mono font-black text-slate-900 text-sm">
+                            {ord.amount.toLocaleString("vi-VN")}đ
+                          </div>
+                          <div className="flex items-center gap-1 text-[10px] text-emerald-700 font-bold font-mono">
+                            <TrendingUp className="w-3 h-3" />
+                            <span>+{(Number(ord.amount) || 0).toLocaleString("vi-VN")}đ LÃI</span>
+                          </div>
+                          <span className="text-[9px] text-slate-400 uppercase font-mono">
+                            {ord.paymentMethod === "MOMO" ? "Ví MoMo" : ord.paymentMethod === "ZALO_PAY" ? "Ví ZaloPay" : "Chuyển Khoản"}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Cột 6: Trạng Thái & Thao Tác */}
+                      <td className="py-3.5 px-3 align-top text-right">
+                        <div className="flex flex-col items-end gap-1.5">
+                          {isRenting ? (
+                            <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 font-bold text-[10px] border border-orange-200 animate-pulse">
+                              📦 Đang Thuê Pass
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px] border border-emerald-200">
+                              ✅ Đã Hoàn Thành
+                            </span>
+                          )}
+
+                          <div className="flex items-center gap-1 justify-end flex-wrap mt-1">
+                            <button
+                              type="button"
+                              onClick={() => handleCopyDelivery(ord)}
+                              className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors cursor-pointer"
+                              title="Sao chép tin nhắn bàn giao chuẩn Zalo"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                            </button>
+
+                            {isRenting && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => openRentModalFromOrder(ord)}
+                                  className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                                  title="Gia hạn thời gian thuê"
+                                >
+                                  <Clock className="w-3 h-3" />
+                                  <span>Gia Hạn</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleCompleteExistingOrder(ord)}
+                                  className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[11px] flex items-center gap-1 transition-colors shadow-xs cursor-pointer"
+                                  title="Chốt hoàn thành đơn và thu hồi acc về kho"
+                                >
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  <span>Hoàn Thành</span>
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Tổng kết dưới chân bảng */}
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-4 text-slate-600">
+            <span>
+              Tổng số đơn: <strong className="font-mono text-slate-900 font-bold">{orders.length}</strong>
+            </span>
+            <span>•</span>
+            <span>
+              Đang cho thuê: <strong className="font-mono text-orange-600 font-bold">{orderMetrics.rentingCount}</strong>
+            </span>
+            <span>•</span>
+            <span>
+              Đã hoàn thành: <strong className="font-mono text-emerald-600 font-bold">{orderMetrics.completedCount}</strong>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <span className="text-[11px] text-slate-500 font-medium mr-2">Tổng Doanh Thu:</span>
+              <strong className="font-mono text-slate-900 font-black text-sm">
+                {orderMetrics.totalRevenue.toLocaleString("vi-VN")}đ
+              </strong>
+            </div>
+            <div className="text-right border-l border-slate-200 pl-4">
+              <span className="text-[11px] text-slate-500 font-medium mr-2">Tổng Lãi Ròng:</span>
+              <strong className="font-mono text-emerald-600 font-black text-sm">
+                +{orderMetrics.totalProfit.toLocaleString("vi-VN")}đ
+              </strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. KHỐI DANH SÁCH: CÁC TÀI KHOẢN ĐANG ĐƯỢC CHO THUÊ TRONG KHO (RENTED LIVE TABLE) */}
       <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
               <h3 className="font-extrabold text-slate-900 text-base font-gaming uppercase tracking-tight">
-                Danh Sách Tài Khoản Đang Cho Thuê ({stats.rentedList.length} Acc)
+                Kho Tài Khoản Đang Cho Thuê ({stats.rentedList.length} Acc)
               </h3>
             </div>
             <p className="text-xs text-slate-500 font-normal mt-0.5">
@@ -661,7 +1104,7 @@ export default function AdminDashboardPage() {
 
                     <button
                       type="button"
-                      onClick={() => handleCompleteOrder(account)}
+                      onClick={() => handleCompleteOrderFromAccount(account)}
                       className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm hover:shadow-emerald-600/20 active:scale-95 cursor-pointer"
                       title="Chốt hoàn thành đơn, ghi nhận lãi vào doanh thu và thu hồi acc về kho"
                     >
@@ -676,7 +1119,7 @@ export default function AdminDashboardPage() {
         )}
       </div>
 
-      {/* 4. KHỐI DANH SÁCH: TÀI KHOẢN SẴN SÀNG CHO THUÊ (AVAILABLE ACCOUNTS PREVIEW) */}
+      {/* 5. KHỐI DANH SÁCH: TÀI KHOẢN SẴN SÀNG CHO THUÊ (AVAILABLE ACCOUNTS PREVIEW) */}
       <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
@@ -778,7 +1221,7 @@ export default function AdminDashboardPage() {
                       <span className="font-mono font-bold text-red-600">
                         {account.category === "VIP"
                           ? `${(account.hourlyPrice || 15000).toLocaleString("vi-VN")}đ/h`
-                          : `${(account.monthlyPrice || 150000).toLocaleString("vi-VN")}đ/vô cực`}
+                          : `${(account.monthlyPrice || 150000).toLocaleString("vi-VN")}đ/tháng`}
                       </span>
                       <span className="text-slate-400 text-[10px]">
                         • Vốn {(account.accountValue || 850000).toLocaleString("vi-VN")}đ
@@ -823,7 +1266,7 @@ export default function AdminDashboardPage() {
         )}
       </div>
 
-      {/* 5. MODAL: THIẾT LẬP THỜI GIAN CHO THUÊ / GIA HẠN NHANH */}
+      {/* 6. MODAL: THIẾT LẬP THỜI GIAN CHO THUÊ / GIA HẠN NHANH */}
       {rentModalAccount && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4">
