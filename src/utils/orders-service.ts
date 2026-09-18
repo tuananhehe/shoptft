@@ -353,3 +353,123 @@ Xin chào ${customerName}, Shop gửi bạn thông tin tài khoản trải nghi�
 - Hỗ trợ đổi acc / gia hạn / nâng cấp sở hữu bù 70% qua Zalo 0352.867.283.
 🛡️ Shop bảo hành 100% suốt thời gian bạn thuê! Chúc bạn leo rank vui vẻ!`;
 }
+
+/**
+ * Helper xác định chính xác Gói Thuê, Số Giờ Thuê và Giá Tiền dựa trên cấu hình trong Quản Lý Acc & Supabase
+ */
+export function determinePackageFromAccount(
+  acc: any,
+  existingOrder?: Partial<OrderItem>
+): { packageName: string; durationHours: number; amount: number } {
+  const accountValue = Number(acc.price) || Number(acc.period_price) || Number(acc.accountValue) || 850000;
+  const rentedUntilStr = existingOrder?.expiresAt || acc.rented_until;
+  const rentedUntil = rentedUntilStr ? new Date(rentedUntilStr) : null;
+  const startedAtStr = existingOrder?.startedAt || existingOrder?.createdAt || acc.created_at;
+  const startedAt = startedAtStr ? new Date(startedAtStr) : new Date("2026-09-01");
+
+  // Tài khoản Clone / Smurf
+  if (acc.type === "CLONE") {
+    const clonePrice = Number(acc.price) || Number(acc.period_price) || Number(acc.monthly_price) || 150000;
+    return {
+      packageName: "Gói Thuê Lâu Dài (Bàn Giao Full Thông Tin)",
+      durationHours: -1,
+      amount: clonePrice,
+    };
+  }
+
+  // Tài khoản VIP có giá tùy chỉnh (CUSTOM)
+  if (acc.price_display_type === "CUSTOM" && acc.custom_price && Number(acc.custom_price) > 0) {
+    return {
+      packageName: `Gói Tùy Chỉnh (${acc.custom_price_unit || "Theo yêu cầu"})`,
+      durationHours: 24,
+      amount: Number(acc.custom_price),
+    };
+  }
+
+  // Tài khoản VIP tính theo thời hạn thuê thực tế & cấu hình kho
+  if (rentedUntil && !isNaN(rentedUntil.getTime())) {
+    const endYear = rentedUntil.getFullYear();
+    const diffMs = Math.max(0, rentedUntil.getTime() - startedAt.getTime());
+    const diffHours = diffMs / (3600 * 1000);
+    const diffDays = Math.round(diffMs / (24 * 3600 * 1000));
+
+    // Thuê Lâu Dài (Vô Cực ∞) nếu hết hạn >= 2028 hoặc period_unit chứa ∞ hoặc display là LONG_TERM
+    if (endYear >= 2028 || acc.period_unit?.includes("∞") || acc.price_display_type === "LONG_TERM") {
+      return {
+        packageName: "Gói Thuê Lâu Dài (Vô Cực ∞)",
+        durationHours: -1,
+        amount: accountValue,
+      };
+    }
+
+    // Thuê 30 Ngày (1 Tháng)
+    if (diffDays >= 16) {
+      const monthAmount = Math.round((accountValue * 0.30) / 1000) * 1000;
+      return {
+        packageName: "Gói 30 Ngày (1 Tháng VIP)",
+        durationHours: 720,
+        amount: monthAmount,
+      };
+    }
+
+    // Thuê 7 Ngày (1 Tuần)
+    if (diffDays >= 4) {
+      const weekAmount = Number(acc.weekly_price) > 0
+        ? Number(acc.weekly_price)
+        : Math.round((accountValue * 0.12) / 1000) * 1000 + 20000;
+      return {
+        packageName: "Gói 7 Ngày (Tiết Kiệm VIP)",
+        durationHours: 168,
+        amount: weekAmount,
+      };
+    }
+
+    // Thuê 24 Giờ (1 Ngày)
+    if (diffHours >= 12) {
+      const dailyAmount = Number(acc.daily_price) > 0
+        ? Number(acc.daily_price)
+        : Math.round((((accountValue * 0.12) + 20000) / 2) / 1000) * 1000;
+      return {
+        packageName: "Gói 24 Giờ (1 Ngày VIP)",
+        durationHours: 24,
+        amount: dailyAmount,
+      };
+    }
+
+    // Thuê theo Giờ (2 Giờ Trải Nghiệm)
+    const hoursCount = Math.max(2, Math.round(diffHours) || 2);
+    const hourAmount = Math.round((accountValue * 0.03) / 1000) * 1000 + 20000;
+    return {
+      packageName: `Gói ${hoursCount} Giờ (Trải Nghiệm Nhanh)`,
+      durationHours: hoursCount,
+      amount: hourAmount,
+    };
+  }
+
+  if (acc.price_display_type === "HOURLY") {
+    const hourAmount = Math.round((accountValue * 0.03) / 1000) * 1000 + 20000;
+    return {
+      packageName: "Gói 2 Giờ (Trải Nghiệm Nhanh)",
+      durationHours: 2,
+      amount: hourAmount,
+    };
+  }
+
+  if (acc.price_display_type === "DAILY") {
+    const dailyAmount = Number(acc.daily_price) > 0
+      ? Number(acc.daily_price)
+      : Math.round((((accountValue * 0.12) + 20000) / 2) / 1000) * 1000;
+    return {
+      packageName: "Gói 24 Giờ (1 Ngày VIP)",
+      durationHours: 24,
+      amount: dailyAmount,
+    };
+  }
+
+  return {
+    packageName: "Gói Thuê Lâu Dài (Vô Cực ∞)",
+    durationHours: -1,
+    amount: accountValue,
+  };
+}
+

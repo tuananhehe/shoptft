@@ -156,18 +156,31 @@ export default function AdminOrdersPage() {
         setNewAccountTitle(acc.title || `${acc.mainChibi || "Tí Nị VIP"} - ${acc.rank || "Thách Đấu"}`);
         setNewLogin(`tft_${acc.code.toLowerCase().replace(/[^a-z0-9]/g, "")}`);
         setNewPass(generateRandomPassword());
-        if (newDurationHours === 24) {
+        const accountValue = Number(acc.accountValue) || Number(acc.periodPrice) || 850000;
+        if (newDurationHours === 2) {
+          setNewPackage("Gói 2 Giờ (Trải Nghiệm Nhanh)");
+          setNewAmount(Math.round((accountValue * 0.03) / 1000) * 1000 + 20000);
+        } else if (newDurationHours === 24) {
           setNewPackage("Gói 24 Giờ (1 Ngày VIP)");
-          setNewAmount(acc.dailyPrice || (acc.hourlyPrice ? acc.hourlyPrice * 4 : 60000));
+          setNewAmount(acc.dailyPrice || Math.round((((accountValue * 0.12) + 20000) / 2) / 1000) * 1000);
+        } else if (newDurationHours === 168) {
+          setNewPackage("Gói 7 Ngày (Tiết Kiệm VIP)");
+          setNewAmount(acc.weeklyPrice || (Math.round((accountValue * 0.12) / 1000) * 1000 + 20000));
+        } else if (newDurationHours === 720) {
+          setNewPackage("Gói 30 Ngày (1 Tháng VIP)");
+          setNewAmount(Math.round((accountValue * 0.30) / 1000) * 1000);
+        } else if (newDurationHours === -1) {
+          setNewPackage("Gói Thuê Lâu Dài (Vô Cực ∞)");
+          setNewAmount(accountValue);
         }
       }
     } else if (createType === "CLONE") {
       const acc = cloneAccounts.find((a) => a.code === newAccountCode) || cloneAccounts[0];
       if (acc) {
         setNewAccountTitle(acc.title || `Acc Clone ${acc.rankBadge || "Unranked"}`);
-        setNewPackage("Gói 1 Tháng (30 Ngày)");
-        setNewDurationHours(720);
-        setNewAmount(Number(acc.monthlyPrice) || Number(acc.periodPrice) || Number(acc.price) || 210000);
+        setNewPackage("Gói Thuê Lâu Dài (Bàn Giao Full Thông Tin)");
+        setNewDurationHours(-1);
+        setNewAmount(Number(acc.price) || Number(acc.periodPrice) || Number(acc.monthlyPrice) || 150000);
         setNewLogin(`smurf_${acc.code.toLowerCase().replace(/[^a-z0-9]/g, "")}`);
         setNewPass(`ClonePass@${Math.floor(1000 + Math.random() * 9000)}`);
       }
@@ -190,19 +203,32 @@ export default function AdminOrdersPage() {
     if (createType === "VIP") {
       const acc = vipAccounts.find((a) => a.code === newAccountCode) || vipAccounts[0];
       if (acc) {
+        const accountValue = Number(acc.accountValue) || Number(acc.periodPrice) || 850000;
         if (hours === 2) {
-          setNewAmount(acc.hourlyPrice ? acc.hourlyPrice * 2 : 30000);
+          setNewAmount(Math.round((accountValue * 0.03) / 1000) * 1000 + 20000);
         } else if (hours === 24) {
-          setNewAmount(acc.dailyPrice || (acc.hourlyPrice ? acc.hourlyPrice * 4 : 60000));
+          setNewAmount(acc.dailyPrice || Math.round((((accountValue * 0.12) + 20000) / 2) / 1000) * 1000);
         } else if (hours === 168) {
-          setNewAmount(acc.weeklyPrice || (acc.dailyPrice ? acc.dailyPrice * 6 : 240000));
+          setNewAmount(acc.weeklyPrice || (Math.round((accountValue * 0.12) / 1000) * 1000 + 20000));
         } else if (hours === 720) {
-          setNewAmount(acc.monthlyPrice || 799000);
+          setNewAmount(Math.round((accountValue * 0.30) / 1000) * 1000);
         } else if (hours === -1) {
-          setNewAmount(Number(acc.periodPrice) || Number(acc.accountValue) || 1100000);
+          setNewAmount(accountValue);
         } else {
-          const hourly = acc.hourlyPrice || 15000;
+          const hourly = acc.hourlyPrice || Math.round((((accountValue * 0.03) + 20000) / 2) / 1000) * 1000;
           setNewAmount(hourly * hours);
+        }
+      }
+    } else if (createType === "CLONE") {
+      const acc = cloneAccounts.find((a) => a.code === newAccountCode) || cloneAccounts[0];
+      if (acc) {
+        const clonePrice = Number(acc.price) || Number(acc.periodPrice) || 150000;
+        if (hours === 168) {
+          setNewAmount(Number(acc.weeklyPrice) || 50000);
+        } else if (hours === 720) {
+          setNewAmount(Number(acc.monthlyPrice) || clonePrice);
+        } else {
+          setNewAmount(clonePrice);
         }
       }
     }
@@ -1331,15 +1357,15 @@ export default function AdminOrdersPage() {
               {createType === "VIP" && (
                 <div className="space-y-1.5">
                   <label className="font-bold text-slate-800 block">3. Chọn Gói Thời Gian Thuê:</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                     <button
                       type="button"
-                      onClick={() => handleSelectDurationPreset(2, "2 Giờ Trải Nghiệm")}
+                      onClick={() => handleSelectDurationPreset(2, "Gói 2 Giờ (Trải Nghiệm Nhanh)")}
                       className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
                         newDurationHours === 2 ? "bg-orange-50 border-orange-500 font-bold" : "bg-slate-50 border-slate-200"
                       }`}
                     >
-                      <span className="block text-slate-900">2 Giờ</span>
+                      <span className="block text-slate-900 text-xs">2 Giờ</span>
                     </button>
                     <button
                       type="button"
@@ -1348,25 +1374,34 @@ export default function AdminOrdersPage() {
                         newDurationHours === 24 ? "bg-orange-50 border-orange-500 font-bold" : "bg-slate-50 border-slate-200"
                       }`}
                     >
-                      <span className="block text-slate-900">1 Ngày (24h)</span>
+                      <span className="block text-slate-900 text-xs">1 Ngày (24h)</span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleSelectDurationPreset(168, "Gói 7 Ngày (1 Tuần VIP)")}
+                      onClick={() => handleSelectDurationPreset(168, "Gói 7 Ngày (Tiết Kiệm VIP)")}
                       className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
                         newDurationHours === 168 ? "bg-orange-50 border-orange-500 font-bold" : "bg-slate-50 border-slate-200"
                       }`}
                     >
-                      <span className="block text-slate-900">7 Ngày</span>
+                      <span className="block text-slate-900 text-xs">7 Ngày</span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleSelectDurationPreset(720, "Gói 1 Tháng (30 Ngày VIP)")}
+                      onClick={() => handleSelectDurationPreset(720, "Gói 30 Ngày (1 Tháng VIP)")}
                       className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
                         newDurationHours === 720 ? "bg-orange-50 border-orange-500 font-bold" : "bg-slate-50 border-slate-200"
                       }`}
                     >
-                      <span className="block text-slate-900">30 Ngày</span>
+                      <span className="block text-slate-900 text-xs">30 Ngày</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSelectDurationPreset(-1, "Gói Thuê Lâu Dài (Vô Cực ∞)")}
+                      className={`p-2 rounded-xl border text-center transition-all cursor-pointer col-span-2 sm:col-span-1 ${
+                        newDurationHours === -1 ? "bg-orange-50 border-orange-500 font-bold" : "bg-slate-50 border-slate-200"
+                      }`}
+                    >
+                      <span className="block text-slate-900 text-xs">Lâu Dài (∞)</span>
                     </button>
                   </div>
                 </div>

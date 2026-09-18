@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { supabase } from "@/utils/supabase/client";
 import { verifyAdminSessionToken, ADMIN_COOKIE_NAME } from "@/utils/admin-auth";
-import { OrderItem, OrdersStats, OrderStatus } from "@/utils/orders-service";
+import { OrderItem, OrdersStats, OrderStatus, determinePackageFromAccount } from "@/utils/orders-service";
 
 const ORDERS_FILE_PATH = path.join(process.cwd(), "src", "data", "orders.json");
 
@@ -106,15 +106,19 @@ export async function GET(req: NextRequest) {
 
         const rentedCodesWithActiveOrder = new Set<string>();
 
-        // 2. Cập nhật các đơn hàng hiện có theo trạng thái thật của Supabase
+        // 2. Cập nhật các đơn hàng hiện có theo trạng thái thật & đúng gói thuê set trong Quản lý acc
         orders = orders.map((ord) => {
           const acc = dbMap.get(ord.accountCode.toLowerCase().trim());
           if (acc) {
             if (acc.status === "RENTED") {
               if (ord.status === "RENTING") {
                 rentedCodesWithActiveOrder.add(acc.code.toLowerCase().trim());
+                const pkg = determinePackageFromAccount(acc, ord);
                 return {
                   ...ord,
+                  package: pkg.packageName,
+                  durationHours: pkg.durationHours,
+                  amount: pkg.amount,
                   expiresAt: acc.rented_until || ord.expiresAt,
                   accountTitle: acc.title || ord.accountTitle,
                   accountCode: acc.code,
@@ -141,10 +145,7 @@ export async function GET(req: NextRequest) {
             const codeKey = acc.code.toLowerCase().trim();
             if (!rentedCodesWithActiveOrder.has(codeKey)) {
               const codeNum = acc.code.replace(/[^0-9]/g, "") || Math.floor(1000 + Math.random() * 9000);
-              const amount = acc.type === "VIP"
-                ? (Number(acc.daily_price) || (Number(acc.hourly_price) ? Number(acc.hourly_price) * 4 : 60000))
-                : (Number(acc.price) || Number(acc.period_price) || 210000);
-              const packageName = acc.type === "VIP" ? "Gói 24 Giờ (1 Ngày VIP)" : "Gói 1 Tháng (30 Ngày)";
+              const pkg = determinePackageFromAccount(acc);
 
               const autoOrder: OrderItem = {
                 id: `ORD-${codeNum}`,
@@ -154,9 +155,9 @@ export async function GET(req: NextRequest) {
                 phoneZalo: "0352.867.283",
                 accountCode: acc.code,
                 accountTitle: acc.title || `Tài khoản ${acc.code}`,
-                package: packageName,
-                durationHours: acc.type === "CLONE" ? 720 : 24,
-                amount: amount,
+                package: pkg.packageName,
+                durationHours: pkg.durationHours,
+                amount: pkg.amount,
                 paymentMethod: "TRANSFER",
                 status: "RENTING",
                 createdBy: "ADMIN",

@@ -342,15 +342,35 @@ export default function AdminDashboardPage() {
           prev.map((o) => (o.id === matchedOrder.id ? { ...o, status: "COMPLETED" } : o))
         );
       } else {
-        // Tự động sinh đơn hoàn thành với giá gói chính xác để ghi nhận lãi
-        let amount = 60000;
-        let packageName = "Gói 24 Giờ (1 Ngày VIP)";
+        // Tự động sinh đơn hoàn thành với giá gói chính xác theo cấu hình trong Quản lý Acc
+        let amount = 850000;
+        let packageName = "Gói Thuê Lâu Dài (Vô Cực ∞)";
         if (account.category === "VIP") {
-          amount = account.dailyPrice || (account.hourlyPrice ? account.hourlyPrice * 4 : 60000);
-          packageName = "Gói Trải Nghiệm VIP";
+          const accountValue = Number(account.accountValue) || Number(account.price) || 850000;
+          if (account.rentedUntil) {
+            const expDate = new Date(account.rentedUntil);
+            const now = new Date();
+            const diffDays = Math.round((expDate.getTime() - now.getTime()) / (24 * 3600 * 1000));
+            if (expDate.getFullYear() >= 2028) {
+              packageName = "Gói Thuê Lâu Dài (Vô Cực ∞)";
+              amount = accountValue;
+            } else if (diffDays >= 16) {
+              packageName = "Gói 30 Ngày (1 Tháng VIP)";
+              amount = Math.round((accountValue * 0.30) / 1000) * 1000;
+            } else if (diffDays >= 4) {
+              packageName = "Gói 7 Ngày (Tiết Kiệm VIP)";
+              amount = Math.round((accountValue * 0.12) / 1000) * 1000 + 20000;
+            } else {
+              packageName = "Gói 24 Giờ (1 Ngày VIP)";
+              amount = Number(account.dailyPrice) || Math.round((((accountValue * 0.12) + 20000) / 2) / 1000) * 1000;
+            }
+          } else {
+            packageName = "Gói Thuê Lâu Dài (Vô Cực ∞)";
+            amount = accountValue;
+          }
         } else {
-          amount = account.monthlyPrice || account.periodPrice || 210000;
-          packageName = "Gói Thuê Acc Clone";
+          amount = Number(account.monthlyPrice) || Number(account.periodPrice) || Number(account.price) || 150000;
+          packageName = "Gói Thuê Lâu Dài (Bàn Giao Full Thông Tin)";
         }
 
         const createRes = await createOrder({
