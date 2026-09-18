@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { supabase } from "@/utils/supabase/client";
 import { verifyAdminSessionToken, ADMIN_COOKIE_NAME } from "@/utils/admin-auth";
-import { OrderItem, OrdersStats } from "@/utils/orders-service";
+import { OrderItem, OrdersStats, OrderStatus } from "@/utils/orders-service";
 
 const ORDERS_FILE_PATH = path.join(process.cwd(), "src", "data", "orders.json");
 
@@ -82,11 +83,107 @@ function calculateStats(orders: OrderItem[]): OrdersStats {
 
 /**
  * GET /api/orders
- * Lấy toàn bộ danh sách đơn hàng & số liệu thống kê
+ * Lấy danh sách toàn bộ đơn hàng & tự động đồng bộ 100% với kho Supabase
  */
 export async function GET(req: NextRequest) {
   try {
-    const orders = readOrdersFromFile();
+    let orders = readOrdersFromFile();
+
+    // 1. Truy vấn toàn bộ tài khoản thực tế từ Supabase
+    try {
+      const { data: dbAccounts } = await supabase
+        .from("accounts")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (Array.isArray(dbAccounts) && dbAccounts.length > 0) {
+        const dbMap = new Map<string, any>();
+        dbAccounts.forEach((acc) => {
+          if (acc.code) {
+            dbMap.set(acc.code.toLowerCase().trim(), acc);
+          }
+        });
+
+        const rentedCodesWithActiveOrder = new Set<string>();
+
+        // 2. Cập nhật các đơn hàng hiện có theo trạng thái thật của Supabase
+        orders = orders.map((ord) => {
+          const acc = dbMap.get(ord.accountCode.toLowerCase().trim());
+          if (acc) {
+            if (acc.status === "RENTED") {
+              if (ord.status === "RENTING") {
+                rentedCodesWithActiveOrder.add(acc.code.toLowerCase().trim());
+                return {
+                  ...ord,
+                  expiresAt: acc.rented_until || ord.expiresAt,
+                  accountTitle: acc.title || ord.accountTitle,
+                  accountCode: acc.code,
+                  customer: ord.customer || "Khách hàng ẩn danh",
+                  deliveredBy: ord.deliveredBy || "Admin",
+                };
+              }
+            } else if (acc.status === "AVAILABLE" && ord.status === "RENTING") {
+              // Acc trong kho đã về AVAILABLE => đánh dấu đơn COMPLETED
+              return {
+                ...ord,
+                status: "COMPLETED" as OrderStatus,
+                notes: `${ord.notes || ""}\n[Tài khoản đã hoàn tất & thu hồi về kho]`.trim(),
+              };
+            }
+          }
+          return ord;
+        });
+
+        // 3. Tự động sinh đơn cho các tài khoản đang RENTED trong DB mà chưa có trong danh sách đơn RENTING
+        const newRentingOrders: OrderItem[] = [];
+        dbAccounts.forEach((acc) => {
+          if (acc.status === "RENTED") {
+            const codeKey = acc.code.toLowerCase().trim();
+            if (!rentedCodesWithActiveOrder.has(codeKey)) {
+              const codeNum = acc.code.replace(/[^0-9]/g, "") || Math.floor(1000 + Math.random() * 9000);
+              const amount = acc.type === "VIP"
+                ? (Number(acc.daily_price) || (Number(acc.hourly_price) ? Number(acc.hourly_price) * 4 : 60000))
+                : (Number(acc.price) || Number(acc.period_price) || 210000);
+              const packageName = acc.type === "VIP" ? "Gói 24 Giờ (1 Ngày VIP)" : "Gói 1 Tháng (30 Ngày)";
+
+              const autoOrder: OrderItem = {
+                id: `ORD-${codeNum}`,
+                type: acc.type === "CLONE" ? "CLONE" : "VIP",
+                customer: "Khách hàng ẩn danh",
+                deliveredBy: "Admin",
+                phoneZalo: "0352.867.283",
+                accountCode: acc.code,
+                accountTitle: acc.title || `Tài khoản ${acc.code}`,
+                package: packageName,
+                durationHours: acc.type === "CLONE" ? 720 : 24,
+                amount: amount,
+                paymentMethod: "TRANSFER",
+                status: "RENTING",
+                createdBy: "ADMIN",
+                source: "ADMIN",
+                createdAt: acc.created_at || new Date().toISOString(),
+                startedAt: acc.created_at || new Date().toISOString(),
+                expiresAt: acc.rented_until || new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
+                accountLogin: `tft_${acc.code.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
+                accountPass: `TuanTFT@${Math.floor(1000 + Math.random() * 9000)}`,
+                notes: "Đơn tự động đồng bộ từ kho tài khoản đang cho thuê.",
+              };
+              newRentingOrders.push(autoOrder);
+              rentedCodesWithActiveOrder.add(codeKey);
+            }
+          }
+        });
+
+        if (newRentingOrders.length > 0) {
+          orders = [...newRentingOrders, ...orders];
+        }
+
+        writeOrdersToFile(orders);
+      }
+    } catch (syncErr) {
+      console.warn("Lưu ý đồng bộ Supabase accounts:", syncErr);
+    }
+
     const stats = calculateStats(orders);
 
     return NextResponse.json({
@@ -104,7 +201,7 @@ export async function GET(req: NextRequest) {
 
 /**
  * POST /api/orders
- * Tạo mới một đơn hàng
+ * Tạo mới một đơn hàng (đồng thời cập nhật Supabase account status)
  */
 export async function POST(req: NextRequest) {
   if (!isAuthorizedAdmin(req)) {
@@ -157,6 +254,21 @@ export async function POST(req: NextRequest) {
     const updatedOrders = [newOrder, ...currentOrders];
     writeOrdersToFile(updatedOrders);
 
+    // Cập nhật trạng thái sang RENTED trong Supabase nếu đơn là RENTING
+    if (newOrder.status === "RENTING" && newOrder.accountCode) {
+      try {
+        await supabase
+          .from("accounts")
+          .update({
+            status: "RENTED",
+            rented_until: expiresAt,
+          })
+          .ilike("code", newOrder.accountCode);
+      } catch (dbErr) {
+        console.warn("Không thể cập nhật trạng thái account trên DB:", dbErr);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: `Đã tạo đơn hàng ${newId} thành công!`,
@@ -172,7 +284,7 @@ export async function POST(req: NextRequest) {
 
 /**
  * PUT /api/orders?id=ORD-xxxx
- * Cập nhật, gia hạn hoặc đổi trạng thái đơn hàng
+ * Cập nhật, gia hạn hoặc đổi trạng thái đơn hàng (đồng bộ Supabase)
  */
 export async function PUT(req: NextRequest) {
   if (!isAuthorizedAdmin(req)) {
@@ -228,6 +340,21 @@ export async function PUT(req: NextRequest) {
       currentOrders[orderIndex] = updatedOrder;
       writeOrdersToFile(currentOrders);
 
+      // Đồng bộ thời gian hết hạn sang Supabase
+      if (currentOrder.accountCode) {
+        try {
+          await supabase
+            .from("accounts")
+            .update({
+              status: "RENTED",
+              rented_until: newExpiry,
+            })
+            .ilike("code", currentOrder.accountCode);
+        } catch (dbErr) {
+          console.warn("Lỗi đồng bộ gia hạn Supabase:", dbErr);
+        }
+      }
+
       return NextResponse.json({
         success: true,
         message: `Đã gia hạn đơn hàng ${id} thêm ${extraHours} giờ!`,
@@ -235,7 +362,7 @@ export async function PUT(req: NextRequest) {
       });
     }
 
-    // Action 2: Cập nhật thông thường
+    // Action 2: Cập nhật thông thường (ví dụ: Chốt hoàn thành đơn)
     const updatedOrder: OrderItem = {
       ...currentOrder,
       ...body,
@@ -245,6 +372,34 @@ export async function PUT(req: NextRequest) {
 
     currentOrders[orderIndex] = updatedOrder;
     writeOrdersToFile(currentOrders);
+
+    // Nếu đơn hàng chuyển sang COMPLETED => Trả acc về AVAILABLE trong Supabase
+    if (body.status === "COMPLETED" && currentOrder.accountCode) {
+      try {
+        await supabase
+          .from("accounts")
+          .update({
+            status: "AVAILABLE",
+            rented_until: null,
+          })
+          .ilike("code", currentOrder.accountCode);
+      } catch (dbErr) {
+        console.warn("Lỗi đồng bộ hoàn thành Supabase:", dbErr);
+      }
+    } else if (body.status === "RENTING" && currentOrder.accountCode) {
+      // Nếu đơn chuyển sang RENTING => Đặt RENTED trong Supabase
+      try {
+        await supabase
+          .from("accounts")
+          .update({
+            status: "RENTED",
+            rented_until: updatedOrder.expiresAt || null,
+          })
+          .ilike("code", currentOrder.accountCode);
+      } catch (dbErr) {
+        console.warn("Lỗi đồng bộ mở lại Supabase:", dbErr);
+      }
+    }
 
     return NextResponse.json({
       success: true,
