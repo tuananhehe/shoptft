@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { PROFILE_INFO } from "@/data/tft-data";
-import { KeyRound, MessageCircle, Menu, X } from "lucide-react";
+import { KeyRound, MessageCircle, Menu, X, Crown, User, Sparkles, Gamepad2, ChevronRight } from "lucide-react";
 import { HomepageConfig, getHomepageConfig } from "@/utils/homepage-service";
+import { useUserAuth } from "@/context/user-auth-context";
 import defaultConfig from "@/data/homepage-config.json";
 
 interface TFTNavbarProps {
@@ -50,6 +51,8 @@ export const TFTNavbar: React.FC<TFTNavbarProps> = ({ sectionsConfig }) => {
 
   const navLinks = allPossibleLinks.filter((link) => link.enabled);
 
+  const { user, openProfileModal, vipInfo, activeRentals } = useUserAuth();
+
   return (
     <header className="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-slate-200/70 text-slate-800 shadow-sm transition-all">
       {/* Top Accent Gradient Line */}
@@ -86,7 +89,7 @@ export const TFTNavbar: React.FC<TFTNavbarProps> = ({ sectionsConfig }) => {
           </Link>
 
           {/* 2. Ở GIỮA: DÀN ĐỀU CÁC MENU ĐIỀU HƯỚNG VỚI KHOẢNG CÁCH THÔNG THOÁNG */}
-          <nav className="hidden lg:flex items-center gap-7 xl:gap-9 text-sm font-semibold text-slate-700">
+          <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-sm font-semibold text-slate-700">
             {navLinks.map((link) => (
               <Link
                 key={link.label}
@@ -99,18 +102,65 @@ export const TFTNavbar: React.FC<TFTNavbarProps> = ({ sectionsConfig }) => {
             ))}
           </nav>
 
-          {/* 3. BÊN PHẢI: NÚT THUÊ ACC (DESKTOP) & NÚT MOBILE MENU */}
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          {/* 3. BÊN PHẢI: NÚT THÀNH VIÊN VIP / GOOGLE AUTH & NÚT THUÊ ACC */}
+          <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
+            {/* User Profile / Google Login Button (Desktop) */}
+            {user ? (
+              <button
+                onClick={() => openProfileModal("RENTALS")}
+                className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold transition-all shadow-xs hover:border-amber-400 group cursor-pointer relative"
+              >
+                <div className="relative w-6 h-6 rounded-full overflow-hidden border border-amber-400 flex-shrink-0">
+                  <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                </div>
+                <span className="max-w-[100px] truncate">{user.name.split(" ")[0]}</span>
+                <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-md ${vipInfo.currentTier.badgeBg}`}>
+                  {vipInfo.currentTier.badge}
+                </span>
+                {activeRentals.length > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-emerald-500 text-white text-[9px] font-black flex items-center justify-center animate-bounce shadow-xs">
+                    {activeRentals.length}
+                  </span>
+                )}
+              </button>
+            ) : (
+              <button
+                onClick={() => openProfileModal("VIP")}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 hover:border-slate-300 text-xs font-bold transition-all shadow-xs cursor-pointer"
+              >
+                <img
+                  src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                  alt="Google"
+                  className="w-3.5 h-3.5"
+                />
+                <span>Đăng Nhập</span>
+              </button>
+            )}
+
             {/* Desktop Action Button */}
             {sections?.vipShop !== false && (
               <Link
                 href="/#shop"
-                className="hidden lg:inline-flex items-center gap-1.5 px-5 py-2.5 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-sm rounded-xl shadow-md shadow-orange-700/20 hover:shadow-lg transition-all hover:scale-105"
+                className="hidden lg:inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-orange-700/20 hover:shadow-lg transition-all hover:scale-105"
               >
                 <KeyRound className="w-4 h-4" />
                 <span>Thuê Acc Ngay</span>
               </Link>
             )}
+
+            {/* Mobile User Profile Quick Button */}
+            <button
+              onClick={() => openProfileModal("RENTALS")}
+              className="lg:hidden p-2 rounded-xl bg-orange-50 text-orange-700 border border-orange-200 relative cursor-pointer"
+              aria-label="Tài khoản của tôi"
+            >
+              <Crown className="w-4 h-4" />
+              {activeRentals.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 text-white text-[8px] font-black flex items-center justify-center">
+                  {activeRentals.length}
+                </span>
+              )}
+            </button>
 
             {/* Mobile Menu Button */}
             <button
@@ -128,6 +178,56 @@ export const TFTNavbar: React.FC<TFTNavbarProps> = ({ sectionsConfig }) => {
       {/* Mobile Menu Drawer */}
       {mobileOpen && (
         <div className="lg:hidden bg-white border-b border-slate-200 px-4 py-4 space-y-3 shadow-xl animate-fadeIn max-h-[85vh] overflow-y-auto">
+          {/* Mobile User Member Banner */}
+          {user ? (
+            <div
+              onClick={() => {
+                setMobileOpen(false);
+                openProfileModal("RENTALS");
+              }}
+              className="p-3.5 rounded-2xl bg-gradient-to-r from-slate-900 to-stone-900 text-white flex items-center justify-between border border-amber-400/40 shadow-sm cursor-pointer active:scale-98 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-xl border border-amber-400" />
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-extrabold text-sm text-white">{user.name}</span>
+                    <span className={`text-[9px] font-black px-1.5 py-0.2 rounded ${vipInfo.currentTier.badgeBg}`}>
+                      {vipInfo.currentTier.badge}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-amber-300 font-bold block mt-0.5">
+                    🎮 Acc Đang Thuê: {activeRentals.length} • Giảm {vipInfo.currentTier.discountPercent}%
+                  </span>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                setMobileOpen(false);
+                openProfileModal("VIP");
+              }}
+              className="w-full p-3 rounded-2xl bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 flex items-center justify-between text-left cursor-pointer active:scale-98 transition-all"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-xs">
+                  <img
+                    src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                    alt="Google"
+                    className="w-4 h-4"
+                  />
+                </div>
+                <div>
+                  <span className="font-bold text-xs text-slate-900 block">Đăng Nhập Google / Thành Viên VIP</span>
+                  <span className="text-[10px] text-orange-700 font-medium">Nhận ngay giảm 2-10% & Vé Test Acc 2H</span>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            </button>
+          )}
+
           {/* Quick Access Top Cards for Mobile */}
           <div className="grid grid-cols-2 gap-2 pb-1">
             {sections?.vipShop !== false && (
@@ -206,3 +306,4 @@ export const TFTNavbar: React.FC<TFTNavbarProps> = ({ sectionsConfig }) => {
     </header>
   );
 };
+

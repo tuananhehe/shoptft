@@ -1,5 +1,29 @@
 [
   {
+    "id": "survey-rev-rev-1790076190175-258",
+    "createdAt": "2026-09-22T11:23:10.175Z",
+    "servicesUsed": [
+      "Thuê Acc TFT"
+    ],
+    "satisfactionRating": 5,
+    "deliverySpeed": "⚡ Siêu nhanh (< 1 phút)",
+    "supportAttitude": "🌟 Rất nhiệt tình & chu đáo",
+    "accountQuality": "🎯 Đúng 100% như hình & mô tả",
+    "pricingPerception": "Hợp lý, vừa túi tiền",
+    "improvementSuggestion": "Dịch vụ quá đỉnh cao! Vừa đăng nhập Google là nhận ngay đặc quyền VIP giảm 5% và xem acc đang thuê trực tiếp. | Góp ý thêm: Mọi thứ rất mượt mà!",
+    "recommendScore": 10,
+    "customerName": "Nguyễn Văn Thử Nghiệm",
+    "customerZalo": "0352.888.999",
+    "giftDelivered": false,
+    "customAnswers": {
+      "isGoogleReview": true,
+      "googleAvatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200",
+      "customerEmail": "tester.tft@gmail.com",
+      "vipTier": "GOLD",
+      "accountBought": "Gói Thuê 24h - Acc Thách Đấu Ahri Tinh Quái"
+    }
+  },
+  {
     "id": "survey-1789752015386-355",
     "createdAt": "2026-09-18T17:20:15.386Z",
     "servicesUsed": [

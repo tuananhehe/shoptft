@@ -13,6 +13,12 @@ import {
   updateSurveyConfigApi,
   updateSurveyGiftStatusApi,
 } from "@/utils/surveys-service";
+import {
+  getReviewsApi,
+  updateReviewStatusApi,
+  deleteReviewApi,
+  CustomerReviewItem,
+} from "@/utils/reviews-service";
 import toast from "react-hot-toast";
 import {
   ClipboardCheck,
@@ -45,6 +51,8 @@ import {
   Phone,
   User,
   Clock,
+  MessageSquarePlus,
+  Send,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -58,7 +66,15 @@ const QUESTION_TYPE_LABELS: Record<SurveyQuestionType, { label: string; color: s
 };
 
 export default function AdminSurveysPage() {
-  const [activeTab, setActiveTab] = useState<"RESPONSES" | "SETTINGS">("RESPONSES");
+  const [activeTab, setActiveTab] = useState<"REVIEWS" | "RESPONSES" | "SETTINGS">("REVIEWS");
+
+  // TAB REVIEWS: Google & Web Reviews state
+  const [reviews, setReviews] = useState<CustomerReviewItem[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState<boolean>(true);
+  const [reviewSearch, setReviewSearch] = useState<string>("");
+  const [reviewCategoryFilter, setReviewCategoryFilter] = useState<string>("ALL");
+  const [replyingReviewId, setReplyingReviewId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState<string>("");
 
   // TAB 1: Responses state
   const [surveys, setSurveys] = useState<SurveyResponse[]>([]);
@@ -110,10 +126,82 @@ export default function AdminSurveysPage() {
     }
   };
 
+  const fetchAdminReviews = async () => {
+    setLoadingReviews(true);
+    try {
+      const res = await getReviewsApi(true);
+      if (res.success && Array.isArray(res.data)) {
+        setReviews(res.data);
+      }
+    } catch {
+      console.warn("Lỗi tải đánh giá Admin");
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
   useEffect(() => {
     fetchSurveys();
     fetchConfig();
+    fetchAdminReviews();
   }, []);
+
+  const handleToggleReviewApprove = async (review: CustomerReviewItem) => {
+    const nextApproved = !review.isApproved;
+    const toastId = toast.loading(nextApproved ? "Đang duyệt hiển thị..." : "Đang ẩn đánh giá...");
+    try {
+      const res = await updateReviewStatusApi(review.id, { isApproved: nextApproved });
+      if (res.success && res.data) {
+        toast.success(nextApproved ? "✅ Đã duyệt hiển thị công khai lên Trang Chủ!" : "Đã ẩn đánh giá khỏi Trang Chủ!", {
+          id: toastId,
+        });
+        setReviews((prev) => prev.map((r) => (r.id === review.id ? { ...r, isApproved: nextApproved } : r)));
+      } else {
+        toast.error(res.error || "Lỗi cập nhật trạng thái", { id: toastId });
+      }
+    } catch {
+      toast.error("Lỗi kết nối", { id: toastId });
+    }
+  };
+
+  const handleSaveAdminReply = async (reviewId: string) => {
+    if (!replyText.trim()) {
+      toast.error("Vui lòng nhập nội dung phản hồi!");
+      return;
+    }
+    const toastId = toast.loading("Đang lưu phản hồi...");
+    try {
+      const res = await updateReviewStatusApi(reviewId, { adminReply: replyText.trim() });
+      if (res.success && res.data) {
+        toast.success("✅ Đã lưu phản hồi thành công!", { id: toastId });
+        setReviews((prev) =>
+          prev.map((r) => (r.id === reviewId ? { ...r, adminReply: replyText.trim(), adminReplyAt: new Date().toISOString() } : r))
+        );
+        setReplyingReviewId(null);
+        setReplyText("");
+      } else {
+        toast.error(res.error || "Không thể lưu phản hồi", { id: toastId });
+      }
+    } catch {
+      toast.error("Lỗi kết nối máy chủ", { id: toastId });
+    }
+  };
+
+  const handleDeleteReview = async (id: string) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa đánh giá này?")) return;
+    const toastId = toast.loading("Đang xóa đánh giá...");
+    try {
+      const res = await deleteReviewApi(id);
+      if (res.success) {
+        toast.success("Đã xóa đánh giá thành công!", { id: toastId });
+        setReviews((prev) => prev.filter((r) => r.id !== id));
+      } else {
+        toast.error(res.error || "Không thể xóa!", { id: toastId });
+      }
+    } catch {
+      toast.error("Lỗi kết nối", { id: toastId });
+    }
+  };
 
   const handleCopyZalo = (zalo: string, id: string) => {
     navigator.clipboard.writeText(zalo);
@@ -398,23 +486,35 @@ export default function AdminSurveysPage() {
         </div>
       </div>
 
-      {/* 2. Top Tabs: Responses vs Settings */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+      {/* 2. Top Tabs: Reviews vs Responses vs Settings */}
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto no-scrollbar">
+        <button
+          onClick={() => setActiveTab("REVIEWS")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === "REVIEWS"
+              ? "bg-orange-600 text-white shadow-md shadow-orange-600/20"
+              : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
+          }`}
+        >
+          <Star className="w-4 h-4 text-amber-300 fill-amber-300" />
+          <span>⭐ Đánh Giá Google & Khách Hàng ({reviews.length})</span>
+        </button>
+
         <button
           onClick={() => setActiveTab("RESPONSES")}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
             activeTab === "RESPONSES"
               ? "bg-orange-600 text-white shadow-md shadow-orange-600/20"
               : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
           }`}
         >
           <Users className="w-4 h-4" />
-          <span>📊 Kết Quả Khảo Sát ({surveys.length})</span>
+          <span>📊 Khảo Sát Chi Tiết ({surveys.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab("SETTINGS")}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
             activeTab === "SETTINGS"
               ? "bg-orange-600 text-white shadow-md shadow-orange-600/20"
               : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
@@ -427,6 +527,311 @@ export default function AdminSurveysPage() {
           )}
         </button>
       </div>
+
+      {/* ============================================================ */}
+      {/* TAB REVIEWS: ĐÁNH GIÁ GOOGLE & KHÁCH HÀNG                    */}
+      {/* ============================================================ */}
+      {activeTab === "REVIEWS" && (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Reviews Scorecards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
+              <div className="flex items-center justify-between text-slate-500 text-xs font-bold">
+                <span>Tổng Đánh Giá</span>
+                <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+              </div>
+              <div className="text-2xl sm:text-3xl font-black text-slate-900 font-mono">
+                {reviews.length}
+              </div>
+              <div className="text-[11px] text-slate-500">Đánh giá ghi nhận</div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
+              <div className="flex items-center justify-between text-emerald-700 text-xs font-bold">
+                <span>Hiển Thị Trang Chủ</span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              </div>
+              <div className="text-2xl sm:text-3xl font-black text-emerald-600 font-mono">
+                {reviews.filter((r) => r.isApproved !== false).length}
+              </div>
+              <div className="text-[11px] text-emerald-700 font-medium">Đã duyệt công khai</div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
+              <div className="flex items-center justify-between text-blue-700 text-xs font-bold">
+                <span>Tài Khoản Google</span>
+                <Sparkles className="w-4 h-4 text-blue-600" />
+              </div>
+              <div className="text-2xl sm:text-3xl font-black text-blue-600 font-mono">
+                {reviews.filter((r) => r.isGoogleUser).length}
+              </div>
+              <div className="text-[11px] text-blue-700 font-medium">Xác thực chính chủ</div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
+              <div className="flex items-center justify-between text-amber-700 text-xs font-bold">
+                <span>Đánh Giá 5 Sao</span>
+                <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+              </div>
+              <div className="text-2xl sm:text-3xl font-black text-amber-600 font-mono">
+                {reviews.filter((r) => (r.rating || 5) === 5).length}
+              </div>
+              <div className="text-[11px] text-amber-700 font-medium">Khách khen ngợi</div>
+            </div>
+          </div>
+
+          {/* Filter Bar */}
+          <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-3">
+            <div className="relative w-full">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={reviewSearch}
+                onChange={(e) => setReviewSearch(e.target.value)}
+                placeholder="🔍 Tìm theo Tên khách hàng, Email, Số Zalo, nội dung đánh giá..."
+                className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-inner"
+              />
+              {reviewSearch && (
+                <button
+                  type="button"
+                  onClick={() => setReviewSearch("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100 text-xs">
+              <span className="font-bold text-slate-500 mr-1">Dịch vụ:</span>
+              {[
+                { id: "ALL", label: "Tất Cả" },
+                { id: "THUE_ACC", label: "🎮 Thuê Acc" },
+                { id: "CAY_THUE", label: "⚔️ Cày Rank" },
+                { id: "COACHING", label: "🎙️ Coaching" },
+                { id: "GDTG", label: "🛡️ GDTG" },
+              ].map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => setReviewCategoryFilter(c.id)}
+                  className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+                    reviewCategoryFilter === c.id
+                      ? "bg-orange-600 text-white shadow-xs"
+                      : "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                  }`}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Reviews List */}
+          <div className="space-y-4">
+            {reviews
+              .filter((r) => {
+                if (reviewCategoryFilter !== "ALL" && r.category !== reviewCategoryFilter) return false;
+                if (!reviewSearch.trim()) return true;
+                const q = reviewSearch.toLowerCase().trim();
+                return (
+                  r.customerName?.toLowerCase().includes(q) ||
+                  r.customerEmail?.toLowerCase().includes(q) ||
+                  r.customerZalo?.includes(q) ||
+                  r.comment?.toLowerCase().includes(q) ||
+                  r.improvementSuggestion?.toLowerCase().includes(q)
+                );
+              })
+              .map((rev) => (
+                <div
+                  key={rev.id}
+                  className="p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-300 shadow-xs space-y-4 transition-all"
+                >
+                  {/* Review Top */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-3">
+                      {rev.customerAvatar && rev.customerAvatar.startsWith("http") ? (
+                        <img
+                          src={rev.customerAvatar}
+                          alt={rev.customerName}
+                          className="w-10 h-10 rounded-xl object-cover border border-amber-300 shadow-xs flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-700 font-bold flex items-center justify-center text-sm flex-shrink-0 border border-orange-200">
+                          {rev.customerName.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="font-extrabold text-sm text-slate-900">{rev.customerName}</h4>
+                          {rev.isGoogleUser && (
+                            <span className="text-[10px] font-black text-blue-600 bg-blue-50 border border-blue-200 px-1.5 py-0.2 rounded">
+                              Google User ✓
+                            </span>
+                          )}
+                          {rev.vipTier && (
+                            <span className="text-[10px] font-black text-amber-800 bg-amber-100 border border-amber-300 px-1.5 py-0.2 rounded">
+                              VIP {rev.vipTier}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium mt-0.5">
+                          {rev.customerEmail && <span>{rev.customerEmail}</span>}
+                          {rev.customerZalo && (
+                            <span className="flex items-center gap-1 font-mono text-slate-700">
+                              • Zalo: {rev.customerZalo}
+                              <button
+                                onClick={() => handleCopyZalo(rev.customerZalo!, rev.id)}
+                                className="p-0.5 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600 cursor-pointer"
+                                title="Sao chép Zalo"
+                              >
+                                {copiedZaloId === rev.id ? (
+                                  <Check className="w-3 h-3 text-emerald-600" />
+                                ) : (
+                                  <Copy className="w-3 h-3" />
+                                )}
+                              </button>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="flex text-amber-500">
+                        {[...Array(rev.rating || 5)].map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-amber-500" />
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() => handleToggleReviewApprove(rev)}
+                        className={`px-3 py-1 rounded-xl text-xs font-bold transition-colors cursor-pointer border ${
+                          rev.isApproved !== false
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100"
+                            : "bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200"
+                        }`}
+                      >
+                        {rev.isApproved !== false ? "✓ Đang Hiển Thị Web" : "✕ Đang Ẩn"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Review Content */}
+                  <div className="space-y-2">
+                    <p className="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
+                      "{rev.comment}"
+                    </p>
+
+                    {rev.improvementSuggestion && (
+                      <div className="text-xs text-amber-800 bg-amber-50/70 p-2.5 rounded-xl border border-amber-200 flex items-start gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <span>
+                          <strong>Góp ý thêm:</strong> {rev.improvementSuggestion}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Admin Reply Section */}
+                  {rev.adminReply ? (
+                    <div className="p-3.5 bg-orange-50 border border-orange-200 rounded-xl text-xs space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-orange-950 flex items-center gap-1.5">
+                          <MessageCircle className="w-3.5 h-3.5 text-orange-600" />
+                          <span>Phản hồi từ Tuấn Thái Bình:</span>
+                        </span>
+                        <button
+                          onClick={() => {
+                            setReplyingReviewId(rev.id);
+                            setReplyText(rev.adminReply || "");
+                          }}
+                          className="text-[11px] text-orange-700 font-bold hover:underline cursor-pointer"
+                        >
+                          Sửa
+                        </button>
+                      </div>
+                      <p className="text-slate-700 leading-relaxed">{rev.adminReply}</p>
+                    </div>
+                  ) : null}
+
+                  {replyingReviewId === rev.id && (
+                    <div className="p-3 bg-slate-50 border border-orange-300 rounded-xl space-y-2">
+                      <label className="text-xs font-bold text-slate-800 block">
+                        Viết phản hồi công khai tới khách hàng:
+                      </label>
+                      <textarea
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        placeholder="Nhập lời cảm ơn hoặc giải đáp thắc mắc..."
+                        rows={2}
+                        className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs font-medium focus:outline-hidden"
+                      />
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => {
+                            setReplyingReviewId(null);
+                            setReplyText("");
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer"
+                        >
+                          Hủy
+                        </button>
+                        <button
+                          onClick={() => handleSaveAdminReply(rev.id)}
+                          className="px-4 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold shadow-xs cursor-pointer"
+                        >
+                          Lưu Phản Hồi
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Actions Footer */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs text-slate-400">
+                    <div className="flex items-center gap-3">
+                      <span>{rev.date}</span>
+                      <span>• Dịch vụ: <strong className="text-slate-700">{rev.accountBought}</strong></span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {replyingReviewId !== rev.id && !rev.adminReply && (
+                        <button
+                          onClick={() => {
+                            setReplyingReviewId(rev.id);
+                            setReplyText(`Cảm ơn bạn đã ủng hộ Shop TFT Tuấn Thái Bình!`);
+                          }}
+                          className="px-3 py-1 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold border border-orange-200 cursor-pointer"
+                        >
+                          💬 Trả Lời
+                        </button>
+                      )}
+
+                      {rev.customerZalo && (
+                        <a
+                          href={`https://zalo.me/${rev.customerZalo.replace(/[^0-9]/g, "")}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-3 py-1 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold border border-blue-200 cursor-pointer"
+                        >
+                          Nhắn Zalo
+                        </a>
+                      )}
+
+                      <button
+                        onClick={() => handleDeleteReview(rev.id)}
+                        className="p-1 text-slate-400 hover:text-rose-600 cursor-pointer"
+                        title="Xóa đánh giá"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
 
       {/* ============================================================ */}
       {/* TAB 1: KẾT QUẢ KHẢO SÁT & Ý KIẾN KHÁCH HÀNG                   */}
