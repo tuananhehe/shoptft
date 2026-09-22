@@ -131,14 +131,31 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({ isOpen, onClose, onSuc
                   <span className="font-bold text-slate-900 block">Đăng nhập nhanh với Google:</span>
                   <span>Để tự động gắn Avatar và Huy hiệu VIP vào đánh giá</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={loginWithGoogle}
-                  className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 font-bold text-xs text-slate-800 shadow-xs flex items-center gap-1.5 cursor-pointer"
-                >
-                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" className="w-3.5 h-3.5" />
-                  <span>Google</span>
-                </button>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={loginWithGoogle}
+                    className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 font-bold text-xs text-slate-800 shadow-xs flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" className="w-3.5 h-3.5" />
+                    <span>Google</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      quickLogin({
+                        name: "Tuấn Anh (Google Test)",
+                        email: "tuananh.tft@gmail.com",
+                        avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200",
+                        phoneZalo: "0352.867.283",
+                      })
+                    }
+                    className="px-2.5 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 border border-amber-300 font-bold text-[11px] text-amber-900 shadow-xs flex items-center gap-1 cursor-pointer"
+                    title="Test nhanh tài khoản Google mẫu"
+                  >
+                    <span>⚡ Test</span>
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">

@@ -216,24 +216,42 @@ export const UserProfileModal: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-lg sm:text-xl font-black text-white">TRUNG TÂM THÀNH VIÊN SHOPTFT</h3>
                 <p className="text-xs text-slate-300 mt-1">
                   Đăng nhập bằng Google để nhận ngay đặc quyền VIP, quản lý tài khoản đang thuê và gửi đánh giá!
                 </p>
               </div>
-              <button
-                onClick={loginWithGoogle}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer whitespace-nowrap"
-              >
-                <img
-                  src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                  alt="Google"
-                  className="w-4 h-4"
-                />
-                <span>Đăng Nhập Bằng Google</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={loginWithGoogle}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+                >
+                  <img
+                    src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                    alt="Google"
+                    className="w-4 h-4"
+                  />
+                  <span>Đăng Nhập Google</span>
+                </button>
+
+                <button
+                  onClick={() =>
+                    quickLogin({
+                      name: "Tuấn Anh (Google Test)",
+                      email: "tuananh.tft@gmail.com",
+                      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200",
+                      phoneZalo: "0352.867.283",
+                    })
+                  }
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/40 font-bold text-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+                  title="Test nhanh tài khoản Google trên môi trường Local"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>⚡ Test Nhanh Local</span>
+                </button>
+              </div>
             </div>
           )}
 
