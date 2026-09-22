@@ -69,22 +69,23 @@ export async function POST(req: NextRequest) {
 // ============================================================
 async function handleGeminiVision(images: string[], apiKey: string) {
   const systemPrompt = `Bạn là chuyên gia thẩm định và nhận diện tài khoản game Đấu Trường Chân Lý (TFT / ĐTCL Việt Nam).
-Nhiệm vụ: Phân tích kỹ các ảnh chụp màn hình game ĐTCL (kho tướng tí nị / chibi, kho sân đấu, bậc rank...) và trả về DUY NHẤT một chuỗi JSON hợp lệ theo định dạng sau:
+Nhiệm vụ: Phân tích kỹ các ảnh chụp màn hình game ĐTCL (kho tướng đột phá, kho tướng tí nị / chibi, linh thú, kho sân đấu, bậc rank...) và trả về DUY NHẤT một chuỗi JSON hợp lệ theo định dạng sau:
 {
   "category": "VIP",
   "code": "",
-  "mainChibi": "Tên Tướng Tí Nị / Linh Thú Chính chuẩn ĐTCL Việt Nam (VD: Tí Nị Ahri Chiêu Hồn)",
+  "mainChibi": "Tên Tướng Đột Phá hoặc Tướng Tí Nị / Linh Thú Chính chuẩn ĐTCL Việt Nam (VD: Arcane Jinx Đột Phá, Tí Nị Ahri Chiêu Hồn, Yasuo Long Kiếm)",
   "allChibi": ["Tên Linh Thú 1", "Tên Linh Thú 2"],
-  "mainArena": "Tên Sân Đấu Thần Thoại Chính chuẩn ĐTCL Việt Nam (VD: Sân Đấu Tiệm Trà Tâm Linh EDM)",
+  "mainArena": "Tên Sân Đấu Thần Thoại Chính chuẩn ĐTCL Việt Nam (VD: Sân Khấu K/DA Neon, Sân Đấu Tiệm Trà Tâm Linh EDM)",
   "allArenas": ["Tên Sân Đấu 1"],
   "rank": "THÁCH ĐẤU",
   "accountValue": 850000,
-  "title": "Ahri Chiêu Hồn + Sân Tiệm Trà EDM",
+  "title": "Jinx Đột Phá + Sân Khấu K/DA EDM",
   "description": "Tài khoản VIP chất lượng cao"
 }
 
 Quy tắc:
 - rank: chọn 1 trong ["THÁCH ĐẤU", "ĐẠI CAO THỦ", "CAO THỦ", "KIM CƯƠNG", "LỤC BẢO", "VÀNG/BẠCH KIM", "BẠC", "ĐỒNG", "KHÔNG RANK"].
+- Tướng Đột Phá: Nếu thấy Jinx, Warwick, Yasuo, Jhin, Lee Sin, Garen, Darius... phong cách Đột Phá/Arcane, hãy ghi rõ (VD: Arcane Jinx Đột Phá, Arcane Warwick Đột Phá).
 - Chỉ trả về chuỗi JSON, không viết lời dẫn hay markdown thừa.`;
 
   const parts: any[] = [{ text: systemPrompt }];
@@ -98,22 +99,22 @@ Quy tắc:
         const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
         const base64Data = img.substring(commaIdx + 1);
         parts.push({
-          inline_data: {
-            mime_type: mimeType,
+          inlineData: {
+            mimeType: mimeType,
             data: base64Data,
           },
         });
       }
     } else if (img.startsWith("http")) {
       try {
-        const fetchRes = await fetch(img);
+        const fetchRes = await fetch(img, { signal: AbortSignal.timeout(8000) });
         if (fetchRes.ok) {
           const buffer = await fetchRes.arrayBuffer();
           const mimeType = fetchRes.headers.get("content-type") || "image/jpeg";
           const base64 = Buffer.from(buffer).toString("base64");
           parts.push({
-            inline_data: {
-              mime_type: mimeType,
+            inlineData: {
+              mimeType: mimeType,
               data: base64,
             },
           });
@@ -124,20 +125,51 @@ Quy tắc:
     }
   }
 
-  // Danh sách model Gemini ưu tiên từ mới nhất và hoạt động tốt nhất
-  const candidateModels = [
-    "gemini-3.6-flash",
-    "gemini-3.1-flash-lite",
-    "gemini-flash-lite-latest",
-    "gemini-3.8-flash",
-    "gemini-3.5-flash",
-    "gemini-3.7-flash",
-    "gemini-flash-latest",
+  // Danh sách model mặc định, ưu tiên model Gemini nhanh và ổn định nhất
+  let candidateModels = [
     "gemini-2.0-flash",
-    "gemini-1.5-flash-latest",
+    "gemini-2.0-flash-lite",
     "gemini-1.5-flash",
-    "gemini-pro-latest",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-flash-001",
+    "gemini-1.5-flash-002",
+    "gemini-1.5-flash-8b",
+    "gemini-1.5-pro",
+    "gemini-1.5-pro-latest",
   ];
+
+  // Tự động truy vấn danh sách model khả dụng của API Key từ Google
+  try {
+    const listRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
+      { signal: AbortSignal.timeout(5000) }
+    );
+    if (listRes.ok) {
+      const listData = await listRes.json();
+      if (Array.isArray(listData?.models)) {
+        const available = listData.models
+          .filter((m: any) =>
+            m.supportedGenerationMethods?.includes("generateContent")
+          )
+          .map((m: any) => m.name.replace("models/", ""));
+
+        if (available.length > 0) {
+          const priority = ["2.0-flash", "1.5-flash", "flash", "pro"];
+          available.sort((a: string, b: string) => {
+            const aIdx = priority.findIndex((p) => a.includes(p));
+            const bIdx = priority.findIndex((p) => b.includes(p));
+            if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+            if (aIdx !== -1) return -1;
+            if (bIdx !== -1) return 1;
+            return 0;
+          });
+          candidateModels = Array.from(new Set([...available, ...candidateModels]));
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Không thể lấy danh sách models Gemini:", err);
+  }
 
   let lastError = "";
   let lastStatus = 500;
@@ -153,7 +185,6 @@ Quy tắc:
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-goog-api-key": apiKey,
         },
         body: JSON.stringify({
           contents: [{ parts }],
@@ -161,6 +192,7 @@ Quy tắc:
             temperature: 0.1,
           },
         }),
+        signal: AbortSignal.timeout(15000),
       });
 
       if (response.ok) {
@@ -188,7 +220,7 @@ Quy tắc:
         const errMsg = errJson?.error?.message || (await response.text().catch(() => "Unknown error"));
         lastError = `[${response.status}] ${errMsg}`;
 
-        // Khi gặp lỗi 404 (model không hỗ trợ), 503 (quá tải), 429 (hết quota) hoặc 400, tự động thử model kế tiếp
+        // Khi gặp lỗi 404 hoặc 400, tự động thử model kế tiếp
         continue;
       }
     } catch (err: any) {

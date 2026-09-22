@@ -10,8 +10,14 @@ const ORDERS_FILE_PATH = path.join(process.cwd(), "src", "data", "orders.json");
 function syncOrdersOnAccountChange(updatedAccounts: any[]) {
   try {
     if (!fs.existsSync(ORDERS_FILE_PATH)) return;
-    const fileData = fs.readFileSync(ORDERS_FILE_PATH, "utf8");
-    let orders: OrderItem[] = JSON.parse(fileData);
+    const fileData = fs.readFileSync(ORDERS_FILE_PATH, "utf8").trim();
+    if (!fileData) return;
+    let orders: OrderItem[];
+    try {
+      orders = JSON.parse(fileData);
+    } catch {
+      return;
+    }
     if (!Array.isArray(orders)) return;
 
     let modified = false;
@@ -186,6 +192,80 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
+    // 1. XỬ LÝ THÊM HÀNG LOẠT (BULK INSERT) NẾU TRUYỀN MẢNG ACCOUNTS
+    const rawAccounts = Array.isArray(body?.accounts)
+      ? body.accounts
+      : Array.isArray(body)
+      ? body
+      : null;
+
+    if (rawAccounts && rawAccounts.length > 0) {
+      const rowsToInsert = rawAccounts.map((item: any) => {
+        const itemType = item.type || "CLONE";
+        const accountPrice = Number(item.price) || Number(item.period_price) || 150000;
+        const computedHourly = Number(item.hourly_price) > 0
+          ? Number(item.hourly_price)
+          : itemType === "VIP"
+          ? Math.round((((accountPrice * 0.03) + 20000) / 2) / 1000) * 1000
+          : 0;
+
+        return {
+          code: (item.code || `CLONE-${Math.floor(1000 + Math.random() * 9000)}`).trim(),
+          type: itemType,
+          title: item.title || `${item.rank || "CLONE"} - ${item.code}`,
+          rank: item.rank || (itemType === "VIP" ? "THÁCH ĐẤU" : "UNRANKED"),
+          price: accountPrice,
+          hourly_price: computedHourly,
+          daily_price: Number(item.daily_price) || 0,
+          weekly_price: Number(item.weekly_price) || 0,
+          period_price: Number(item.period_price) || accountPrice,
+          period_unit: item.period_unit || (itemType === "CLONE" ? " / ∞" : " / Giờ"),
+          price_display_type: item.price_display_type || (itemType === "CLONE" ? "LONG_TERM" : "HOURLY"),
+          custom_price: item.custom_price ? Number(item.custom_price) : null,
+          custom_price_unit: item.custom_price_unit || null,
+          champions: Array.isArray(item.champions) ? item.champions.filter(Boolean) : (item.mainChibi ? [item.mainChibi] : []),
+          arenas: Array.isArray(item.arenas) ? item.arenas.filter(Boolean) : (item.mainArena ? [item.mainArena] : []),
+          features: Array.isArray(item.features) ? item.features.filter(Boolean) : [],
+          image_url: item.image_url || item.thumbnail || "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop",
+          status: item.status === "RENTED" ? "RENTED" : "AVAILABLE",
+          rented_until: item.rented_until || null,
+          description: item.description || "Tài khoản chính chủ chất lượng cao.",
+        };
+      });
+
+      const { data, error } = await executeSupabaseWithSchemaFallback(async (samplePayload) => {
+        const sanitizedRows = rowsToInsert.map((row: any) => {
+          const newRow: any = {};
+          for (const key of Object.keys(row)) {
+            if (Object.prototype.hasOwnProperty.call(samplePayload, key)) {
+              newRow[key] = (row as any)[key];
+            }
+          }
+          return newRow;
+        });
+        return await supabase.from("accounts").insert(sanitizedRows).select();
+      }, rowsToInsert[0] || {});
+
+      if (error) {
+        console.error("Lỗi khi thêm hàng loạt tài khoản vào Supabase:", error);
+        return NextResponse.json(
+          { success: false, error: error.message },
+          { status: 400 }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: `Đã thêm thành công ${rowsToInsert.length} tài khoản!`,
+          count: rowsToInsert.length,
+          data,
+        },
+        { status: 201 }
+      );
+    }
+
+    // 2. XỬ LÝ THÊM ĐƠN LẺ (SINGLE INSERT)
     // Validate các trường bắt buộc
     if (!body.code) {
       return NextResponse.json(

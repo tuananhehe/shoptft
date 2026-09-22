@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useMemo, useDeferredValue } from "react";
 import Link from "next/link";
-import { TFTRentalAccount, TFT_RENTAL_ACCOUNTS } from "@/data/tft-data";
+import { TFTRentalAccount } from "@/data/tft-data";
 import { getVipAndCloneAccounts, formatRentalExpiry } from "@/utils/supabase/accounts-service";
 import { getHomepageConfig } from "@/utils/homepage-service";
 import { getAccountProductUrl } from "@/utils/account-lookup";
@@ -193,10 +193,10 @@ const matchesAccountSearch = (acc: TFTRentalAccount, query: string): boolean => 
 };
 
 export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
-  // Khởi tạo sẵn danh sách có sẵn để render tức thì 0s, sau đó fetch ngầm từ Supabase
-  const [vipAccounts, setVipAccounts] = useState<TFTRentalAccount[]>(TFT_RENTAL_ACCOUNTS || []);
+  // Khởi tạo trạng thái đang load, fetch trực tiếp dữ liệu từ Database
+  const [vipAccounts, setVipAccounts] = useState<TFTRentalAccount[]>([]);
   const [globalPriceMode, setGlobalPriceMode] = useState<string>("AUTO");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [showFullCatalog, setShowFullCatalog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const deferredSearchTerm = useDeferredValue(searchTerm);
@@ -211,11 +211,20 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
   // Fetch dữ liệu mới nhất từ Supabase & cấu hình giá toàn cục chạy ngầm
   useEffect(() => {
     let isMounted = true;
-    getVipAndCloneAccounts().then(({ vipAccounts: fetchedVip }) => {
-      if (isMounted && fetchedVip && fetchedVip.length > 0) {
-        setVipAccounts(fetchedVip);
-      }
-    });
+    setIsLoading(true);
+    getVipAndCloneAccounts()
+      .then(({ vipAccounts: fetchedVip }) => {
+        if (isMounted) {
+          if (fetchedVip && fetchedVip.length > 0) {
+            setVipAccounts(fetchedVip);
+          }
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.warn("Lỗi tải vip accounts:", err);
+        if (isMounted) setIsLoading(false);
+      });
     getHomepageConfig().then((cfg) => {
       if (isMounted && cfg?.pricing?.defaultPriceDisplayMode) {
         setGlobalPriceMode(cfg.pricing.defaultPriceDisplayMode);
@@ -247,10 +256,25 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
     setVisibleCount(12);
   }, [searchTerm, selectedStatus, selectedSort, showFullCatalog]);
 
-  // Top 6 Featured Accounts for horizontal loop
-  const featuredAccounts = vipAccounts.slice(0, 6);
-  const loopAccounts =
-    featuredAccounts.length > 0 ? [...featuredAccounts, ...featuredAccounts] : [];
+  // Top Featured Accounts for horizontal loop (Đồng bộ số lượng và tốc độ với Kho Clone)
+  const featuredAccounts = useMemo(() => {
+    return vipAccounts.slice(0, 10);
+  }, [vipAccounts]);
+
+  const loopAccounts = useMemo(() => {
+    if (featuredAccounts.length === 0) return [];
+    let base = [...featuredAccounts];
+    while (base.length < 6) {
+      base = [...base, ...featuredAccounts];
+    }
+    return [...base, ...base];
+  }, [featuredAccounts]);
+
+  // Tốc độ đồng bộ chuẩn xác: 8 giây / 1 thẻ acc (y hệt Kho Clone)
+  const scrollDuration = useMemo(() => {
+    const halfCount = loopAccounts.length / 2;
+    return Math.max(halfCount * 8, 20);
+  }, [loopAccounts]);
 
   const handlePrev = () => {
     if (sliderRef.current) {
@@ -316,26 +340,26 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
   }, [showFullCatalog, visibleCount, filteredAccounts.length]);
 
   return (
-    <section id="shop" className="pt-16 pb-16 sm:pt-20 sm:pb-20 lg:pt-24 lg:pb-24 bg-[#F8F9FA] border-t border-slate-200/90 border-b border-slate-200/90 text-slate-900 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+    <section id="shop" className="pt-6 pb-8 sm:pt-16 sm:pb-16 lg:pt-20 lg:pb-20 bg-[#F8F9FA] border-t border-slate-200/90 border-b border-slate-200/90 text-slate-900 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4 sm:mb-8">
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="flex flex-col md:flex-row md:items-end justify-between gap-4"
+          className="flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-4"
         >
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-100/80 border border-orange-200 text-orange-700 text-xs font-bold uppercase tracking-wider shadow-sm">
-              <Flame className="w-3.5 h-3.5 text-orange-600" />
+          <div className="space-y-1 sm:space-y-2">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3.5 sm:py-1 rounded-full bg-orange-100/80 border border-orange-200 text-orange-700 text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-2xs">
+              <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-600" />
               <span>Tài Khoản & Dịch Vụ Nổi Bật</span>
             </div>
 
-            <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900 font-gaming uppercase">
+            <h2 className="text-xl sm:text-4xl font-black tracking-tight text-slate-900 font-gaming uppercase">
               KHO THUÊ ACC TFT VIP
             </h2>
-            <p className="text-slate-600 text-sm sm:text-base max-w-2xl font-normal">
+            <p className="text-slate-600 text-xs sm:text-base max-w-2xl font-normal line-clamp-2 sm:line-clamp-none">
               Trải nghiệm acc VIP sở hữu Tướng Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc chỉ từ 6k/giờ. Tự động nhận pass sau khi thanh toán.
             </p>
           </div>
@@ -363,22 +387,14 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
       {/* 1. SEAMLESS INFINITE MARQUEE AUTO-LOOP TRACK */}
       <div className="max-w-7xl mx-auto relative w-full py-3 overflow-hidden">
         {isLoading ? (
-          /* SKELETON LOADING STATE CHO KHO VIP */
-          <div className="flex gap-3 sm:gap-5 px-3 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar py-2">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div
-                key={i}
-                className="w-[165px] sm:w-[280px] lg:w-[280px] xl:w-[290px] flex-shrink-0 bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4.5 shadow-xs animate-pulse space-y-2.5"
-              >
-                <div className="aspect-square w-full rounded-lg sm:rounded-xl bg-slate-200" />
-                <div className="h-3.5 bg-slate-200 rounded-md w-3/4" />
-                <div className="h-3 bg-slate-100 rounded-md w-1/2" />
-                <div className="pt-2 border-t border-slate-100 flex justify-between items-center gap-2">
-                  <div className="h-3.5 bg-slate-200 rounded-md w-1/3" />
-                  <div className="h-7 sm:h-8 bg-slate-200 rounded-lg sm:rounded-xl w-1/2" />
-                </div>
-              </div>
-            ))}
+          /* HIỆU ỨNG XOAY XOAY CHỜ LOAD CHO KHO VIP */
+          <div className="w-full py-16 sm:py-20 flex flex-col items-center justify-center gap-3.5 bg-white rounded-2xl border border-slate-200/80 mx-auto px-4 shadow-xs">
+            <div className="relative flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full border-[3px] border-orange-100 border-t-orange-600 animate-spin" />
+            </div>
+            <p className="text-xs sm:text-sm font-semibold text-slate-500">
+              Đang tải danh sách tài khoản VIP...
+            </p>
           </div>
         ) : vipAccounts.length === 0 ? (
           /* EMPTY STATE */
@@ -390,6 +406,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
         ) : (
           <div
             ref={sliderRef}
+            style={{ animationDuration: `${scrollDuration}s` }}
             className="animate-infinite-loop flex items-stretch gap-3 sm:gap-4 px-3 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar scroll-smooth py-2"
           >
             {loopAccounts.map((account, index) => (
@@ -411,14 +428,14 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                     />
 
                     {/* Top Right Code Badge */}
-                    <div className="absolute top-1.5 right-1.5 sm:top-2.5 sm:right-2.5">
+                    <div className="hidden sm:block absolute top-1.5 right-1.5 sm:top-2.5 sm:right-2.5">
                       <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-black/80 text-[9px] sm:text-[11px] font-mono font-bold text-white shadow-sm backdrop-blur-sm">
                         {account.code}
                       </span>
                     </div>
 
                     {/* Top Left Status Badge */}
-                    <div className="absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5">
+                    <div className={`absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5 ${account.status === "AVAILABLE" ? "hidden sm:block" : ""}`}>
                       {account.status === "AVAILABLE" ? (
                         <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-emerald-600/90 text-white text-[8px] sm:text-[10px] font-bold tracking-tight sm:tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
                           <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white animate-pulse" />
@@ -437,7 +454,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                     </div>
 
                     {/* Bottom Rank Badge */}
-                    <div className="absolute bottom-1.5 left-1.5 sm:bottom-2.5 sm:left-2.5">
+                    <div className="hidden sm:block absolute bottom-1.5 left-1.5 sm:bottom-2.5 sm:left-2.5">
                       <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded sm:rounded-md bg-white/95 text-slate-900 text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
                         {account.rank}
                       </span>
@@ -455,7 +472,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                   {/* Sân Đấu - Cố định chiều cao dòng */}
                   <p
                     onClick={() => onSelectAccount(account)}
-                    className="text-[10px] sm:text-xs text-slate-500 line-clamp-1 truncate mt-0.5 sm:mt-1 font-medium flex items-center gap-1 h-3.5 sm:h-4 cursor-pointer"
+                    className="hidden sm:flex text-[10px] sm:text-xs text-slate-500 line-clamp-1 truncate mt-0.5 sm:mt-1 font-medium items-center gap-1 h-3.5 sm:h-4 cursor-pointer"
                   >
                     <span>🏟️</span>
                     <span className="truncate">{account.mainArena}</span>
@@ -686,7 +703,16 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
           </div>
 
           {/* GRID 4 CỘT HIỂN THỊ TOÀN BỘ ACC VIP LỌC ĐƯỢC */}
-          {filteredAccounts.length === 0 ? (
+          {isLoading ? (
+            <div className="w-full py-20 sm:py-24 flex flex-col items-center justify-center gap-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+              <div className="relative flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full border-[3px] border-orange-100 border-t-orange-600 animate-spin" />
+              </div>
+              <p className="text-xs sm:text-sm font-semibold text-slate-500">
+                Đang tải danh sách tài khoản VIP...
+              </p>
+            </div>
+          ) : filteredAccounts.length === 0 ? (
             <div className="p-8 sm:p-12 text-center bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3 animate-fadeIn">
               <div className="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mx-auto">
                 <Search className="w-6 h-6" />
@@ -763,14 +789,14 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                         />
 
                         {/* Top Right Code Badge */}
-                        <div className="absolute top-1.5 right-1.5 sm:top-3 sm:right-3 z-10">
+                        <div className="hidden sm:block absolute top-1.5 right-1.5 sm:top-3 sm:right-3 z-10">
                           <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-black/80 text-[9px] sm:text-[11px] font-mono font-bold text-white shadow-sm backdrop-blur-sm">
                             {account.code}
                           </span>
                         </div>
 
                         {/* Top Left Status Badge */}
-                        <div className="absolute top-1.5 left-1.5 sm:top-3 sm:left-3 z-10">
+                        <div className={`absolute top-1.5 left-1.5 sm:top-3 sm:left-3 z-10 ${account.status === "AVAILABLE" ? "hidden sm:block" : ""}`}>
                           {account.status === "AVAILABLE" ? (
                             <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-emerald-600/90 text-white text-[8px] sm:text-[10px] font-bold tracking-tight sm:tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
                               <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white animate-pulse" />
@@ -789,7 +815,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                         </div>
 
                         {/* Bottom Rank Badge */}
-                        <div className="absolute bottom-1.5 left-1.5 sm:bottom-3 sm:left-3 z-10">
+                        <div className="hidden sm:block absolute bottom-1.5 left-1.5 sm:bottom-3 sm:left-3 z-10">
                           <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded sm:rounded-md bg-white/95 text-slate-900 text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
                             {account.rank}
                           </span>
@@ -807,7 +833,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                       {/* Sân Đấu */}
                       <p
                         onClick={() => onSelectAccount(account)}
-                        className="text-[10px] sm:text-xs text-slate-500 line-clamp-1 mt-0.5 sm:mt-1 font-medium flex items-center gap-1 cursor-pointer"
+                        className="hidden sm:flex text-[10px] sm:text-xs text-slate-500 line-clamp-1 mt-0.5 sm:mt-1 font-medium items-center gap-1 cursor-pointer"
                       >
                         <span>🏟️</span>
                         <span>{account.mainArena}</span>

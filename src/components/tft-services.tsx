@@ -90,10 +90,10 @@ export const TFTServices: React.FC<TFTServicesProps> = ({ packages }) => {
   };
 
   return (
-    <section id="services" className="py-10 sm:py-16 bg-white text-slate-900 border-b border-slate-200 overflow-hidden">
+    <section id="services" className="py-6 sm:py-16 bg-white text-slate-900 border-b border-slate-200 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12 space-y-2">
+        <div className="text-center max-w-3xl mx-auto mb-4 sm:mb-12 space-y-1.5 sm:space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-50 border border-orange-200/80 text-orange-700 text-[11px] font-bold uppercase tracking-wider">
             <Flame className="w-3.5 h-3.5 text-orange-600 animate-pulse" />
             <span>Dịch Vụ Chuyên Nghiệp</span>

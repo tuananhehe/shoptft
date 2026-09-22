@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useMemo, useDeferredValue } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { TFTCloneAccount, TFT_CLONE_ACCOUNTS, PROFILE_INFO } from "@/data/tft-data";
+import { TFTCloneAccount, PROFILE_INFO } from "@/data/tft-data";
 import { getVipAndCloneAccounts, formatRentalExpiry } from "@/utils/supabase/accounts-service";
 import { getHomepageConfig } from "@/utils/homepage-service";
 import { getAccountProductUrl } from "@/utils/account-lookup";
@@ -173,10 +173,10 @@ const matchesCloneSearch = (acc: TFTCloneAccount, query: string): boolean => {
 };
 
 export const TFTCloneShop: React.FC = () => {
-  // Khởi tạo sẵn danh sách có sẵn để render tức thì 0s, sau đó fetch ngầm từ Supabase
-  const [cloneAccounts, setCloneAccounts] = useState<TFTCloneAccount[]>(TFT_CLONE_ACCOUNTS || []);
+  // Khởi tạo trạng thái đang load, fetch trực tiếp dữ liệu từ Database
+  const [cloneAccounts, setCloneAccounts] = useState<TFTCloneAccount[]>([]);
   const [globalPriceMode, setGlobalPriceMode] = useState<string>("AUTO");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedClone, setSelectedClone] = useState<TFTCloneAccount | null>(null);
   const [previewClone, setPreviewClone] = useState<TFTCloneAccount | null>(null);
   const [isAgreed, setIsAgreed] = useState(false);
@@ -222,11 +222,25 @@ export const TFTCloneShop: React.FC = () => {
   // Fetch dữ liệu mới nhất từ Supabase & cấu hình giá toàn cục chạy ngầm
   useEffect(() => {
     let isMounted = true;
-    getVipAndCloneAccounts().then(({ cloneAccounts: fetchedClone }) => {
-      if (isMounted && fetchedClone && fetchedClone.length > 0) {
-        setCloneAccounts(fetchedClone);
-      }
-    });
+    setIsLoading(true);
+    getVipAndCloneAccounts()
+      .then(({ cloneAccounts: fetchedClone }) => {
+        if (isMounted) {
+          if (fetchedClone && fetchedClone.length > 0) {
+            const sorted = [...fetchedClone].sort((a, b) => {
+              const titleA = (a.title || a.code || "").trim();
+              const titleB = (b.title || b.code || "").trim();
+              return titleA.localeCompare(titleB, "vi", { sensitivity: "base" });
+            });
+            setCloneAccounts(sorted);
+          }
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.warn("Lỗi tải clone accounts:", err);
+        if (isMounted) setIsLoading(false);
+      });
     getHomepageConfig().then((cfg) => {
       if (isMounted && cfg?.pricing?.defaultPriceDisplayMode) {
         setGlobalPriceMode(cfg.pricing.defaultPriceDisplayMode);
@@ -258,11 +272,37 @@ export const TFTCloneShop: React.FC = () => {
     setVisibleCount(12);
   }, [searchTerm, selectedStatus, selectedSort, showFullCatalog]);
 
-  // Mảng tài khoản nhân đôi cho hiệu ứng trượt vô tận mượt mà y hệt Kho VIP
-  const loopCloneAccounts =
-    cloneAccounts.length > 0 ? [...cloneAccounts, ...cloneAccounts] : [];
+  // Mảng tài khoản sắp xếp A-Z cho thanh trượt
+  const sortedCloneAccounts = useMemo(() => {
+    return [...cloneAccounts].sort((a, b) => {
+      const titleA = (a.title || a.code || "").trim();
+      const titleB = (b.title || b.code || "").trim();
+      return titleA.localeCompare(titleB, "vi", { sensitivity: "base" });
+    });
+  }, [cloneAccounts]);
 
-  // Lọc & Sắp xếp tài khoản khi mở rộng toàn bộ kho
+  // Top Featured Clone Accounts for horizontal loop (Đồng bộ số lượng và tốc độ với Kho VIP)
+  const featuredCloneAccounts = useMemo(() => {
+    return sortedCloneAccounts.slice(0, 10);
+  }, [sortedCloneAccounts]);
+
+  // Mảng tài khoản nhân đôi cho hiệu ứng trượt vô tận mượt mà y hệt Kho VIP
+  const loopCloneAccounts = useMemo(() => {
+    if (featuredCloneAccounts.length === 0) return [];
+    let base = [...featuredCloneAccounts];
+    while (base.length < 6) {
+      base = [...base, ...featuredCloneAccounts];
+    }
+    return [...base, ...base];
+  }, [featuredCloneAccounts]);
+
+  // Tốc độ đồng bộ chuẩn xác: 8 giây / 1 thẻ acc (y hệt Kho VIP)
+  const cloneScrollDuration = useMemo(() => {
+    const halfCount = loopCloneAccounts.length / 2;
+    return Math.max(halfCount * 8, 20);
+  }, [loopCloneAccounts]);
+
+  // Lọc & Sắp xếp tài khoản khi mở rộng toàn bộ kho (Mặc định A-Z)
   const filteredCloneAccounts = useMemo(() => {
     return cloneAccounts
       .filter((acc) => {
@@ -287,7 +327,10 @@ export const TFTCloneShop: React.FC = () => {
         if (selectedSort === "PRICE_DESC") {
           return priceB - priceA;
         }
-        return 0;
+        // Mặc định sắp xếp theo bảng chữ cái A-Z
+        const titleA = (a.title || a.code || "").trim();
+        const titleB = (b.title || b.code || "").trim();
+        return titleA.localeCompare(titleB, "vi", { sensitivity: "base" });
       });
   }, [cloneAccounts, selectedStatus, deferredSearchTerm, selectedSort]);
 
@@ -366,7 +409,7 @@ export const TFTCloneShop: React.FC = () => {
   };
 
   return (
-    <section id="clone-shop" className="py-12 sm:py-16 bg-white border-b border-slate-200/80 relative overflow-hidden">
+    <section id="clone-shop" className="py-6 sm:py-14 bg-white border-b border-slate-200/80 relative overflow-hidden">
       {/* Background Subtle Tech Texture */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-25 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px]" />
 
@@ -377,17 +420,17 @@ export const TFTCloneShop: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 sm:mb-8"
+          className="flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-4 mb-4 sm:mb-8"
         >
-          <div className="space-y-2">
+          <div className="space-y-1 sm:space-y-2">
             {/* Tag phụ (Badge nền cam nhạt) */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-100/80 border border-orange-200 text-orange-700 text-xs font-bold uppercase tracking-wider shadow-sm font-gaming">
-              <Sparkles className="w-3.5 h-3.5 text-orange-600 animate-pulse" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3.5 sm:py-1 rounded-full bg-orange-100/80 border border-orange-200 text-orange-700 text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-2xs font-gaming">
+              <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-600 animate-pulse" />
               <span>Sở Hữu Vô Cực • Bàn Giao Về Chính Chủ</span>
             </div>
 
             {/* Tiêu đề chính h2 font Esports Gaming */}
-            <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900 font-gaming uppercase">
+            <h2 className="text-xl sm:text-4xl font-black tracking-tight text-slate-900 font-gaming uppercase">
               KHO ACC CLONE / SMURF{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500">
                 (THUÊ LÂU DÀI ∞)
@@ -395,7 +438,7 @@ export const TFTCloneShop: React.FC = () => {
             </h2>
 
             {/* Mô tả ngắn */}
-            <p className="text-slate-600 text-sm sm:text-base max-w-2xl font-normal">
+            <p className="text-slate-600 text-xs sm:text-base max-w-2xl font-normal line-clamp-2 sm:line-clamp-none">
               Thuê lâu dài không thời hạn, bàn giao thông tin acc về chính chủ, sở hữu lâu dài. Hỗ trợ đổi mật khẩu, mail và bảo hành trọn đời uy tín.
             </p>
           </div>
@@ -423,22 +466,14 @@ export const TFTCloneShop: React.FC = () => {
       {/* 2. SEAMLESS INFINITE SLIDER / CAROUSEL AUTO-LOOP TRACK */}
       <div className="max-w-7xl mx-auto relative w-full py-3 overflow-hidden">
         {isLoading ? (
-          /* SKELETON LOADING STATE CHO KHO CLONE */
-          <div className="flex gap-3 sm:gap-5 px-3 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar py-2">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div
-                key={i}
-                className="w-[165px] sm:w-[280px] lg:w-[280px] xl:w-[290px] flex-shrink-0 bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4.5 shadow-xs animate-pulse space-y-2.5"
-              >
-                <div className="aspect-square w-full rounded-lg sm:rounded-xl bg-slate-200" />
-                <div className="h-3.5 bg-slate-200 rounded-md w-3/4" />
-                <div className="h-3 bg-slate-100 rounded-md w-1/2" />
-                <div className="pt-2 border-t border-slate-100 flex justify-between items-center gap-2">
-                  <div className="h-3.5 bg-slate-200 rounded-md w-1/3" />
-                  <div className="h-7 sm:h-8 bg-slate-200 rounded-lg sm:rounded-xl w-1/2" />
-                </div>
-              </div>
-            ))}
+          /* HIỆU ỨNG XOAY XOAY CHỜ LOAD CHO KHO CLONE */
+          <div className="w-full py-16 sm:py-20 flex flex-col items-center justify-center gap-3.5 bg-white rounded-2xl border border-slate-200/80 mx-auto px-4 shadow-xs">
+            <div className="relative flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full border-[3px] border-orange-100 border-t-orange-600 animate-spin" />
+            </div>
+            <p className="text-xs sm:text-sm font-semibold text-slate-500">
+              Đang tải danh sách tài khoản nổi bật...
+            </p>
           </div>
         ) : cloneAccounts.length === 0 ? (
           /* EMPTY STATE */
@@ -450,6 +485,7 @@ export const TFTCloneShop: React.FC = () => {
         ) : (
           <div
             ref={sliderRef}
+            style={{ animationDuration: `${cloneScrollDuration}s` }}
             className="animate-infinite-loop flex items-stretch gap-3 sm:gap-4 px-3 sm:px-6 lg:px-8 overflow-x-auto no-scrollbar scroll-smooth py-2"
           >
             {loopCloneAccounts.map((account, index) => {
@@ -474,14 +510,14 @@ export const TFTCloneShop: React.FC = () => {
                       />
 
                       {/* Top Right: Mã Acc */}
-                      <div className="absolute top-1.5 right-1.5 sm:top-2.5 sm:right-2.5">
+                      <div className="hidden sm:block absolute top-1.5 right-1.5 sm:top-2.5 sm:right-2.5">
                         <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-black/80 text-[9px] sm:text-[11px] font-mono font-bold text-white shadow-sm backdrop-blur-sm">
                           {account.code}
                         </span>
                       </div>
 
                       {/* Top Left: Trạng Thái */}
-                      <div className="absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5">
+                      <div className={`absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5 ${account.status === "AVAILABLE" ? "hidden sm:block" : ""}`}>
                         {account.status === "AVAILABLE" ? (
                           <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-emerald-600/90 text-white text-[8px] sm:text-[10px] font-bold tracking-tight sm:tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
                             <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white animate-pulse" />
@@ -500,7 +536,7 @@ export const TFTCloneShop: React.FC = () => {
                       </div>
 
                       {/* Bottom Left: Huy Hiệu Rank Clone/Unranked */}
-                      <div className="absolute bottom-1.5 left-1.5 sm:bottom-2.5 sm:left-2.5">
+                      <div className="hidden sm:block absolute bottom-1.5 left-1.5 sm:bottom-2.5 sm:left-2.5">
                         <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded sm:rounded-md bg-white/95 text-slate-900 text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
                           {account.rankBadge}
                         </span>
@@ -515,18 +551,22 @@ export const TFTCloneShop: React.FC = () => {
                       {account.title}
                     </div>
 
-                    {/* GẠCH ĐẦU DÒNG TÍNH NĂNG NGẮN GỌN - Cố định 2 dòng */}
-                    <ul
-                      onClick={() => openCloneModal(account)}
-                      className="mt-1 sm:mt-1.5 space-y-0.5 text-[10px] sm:text-xs text-slate-600 font-medium h-7 sm:h-8 overflow-hidden cursor-pointer"
-                    >
-                      {account.features.slice(0, 2).map((feature, idx) => (
-                        <li key={idx} className="flex items-center gap-1 truncate line-clamp-1">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600 flex-shrink-0" />
-                          <span className="truncate">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    {/* GẠCH ĐẦU DÒNG TÍNH NĂNG NGẮN GỌN (Nếu có) */}
+                    {account.features && account.features.length > 0 ? (
+                      <ul
+                        onClick={() => openCloneModal(account)}
+                        className="hidden sm:block mt-1 sm:mt-1.5 space-y-0.5 text-[10px] sm:text-xs text-slate-600 font-medium h-7 sm:h-8 overflow-hidden cursor-pointer"
+                      >
+                        {account.features.slice(0, 2).map((feature, idx) => (
+                          <li key={idx} className="flex items-center gap-1.5 truncate line-clamp-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0" />
+                            <span className="truncate">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="hidden sm:block h-2 sm:h-3" />
+                    )}
                   </div>
 
                   {/* ĐÁY THẺ: GIÁ THUÊ LINH HOẠT & 2 NÚT THAO TÁC */}
@@ -543,11 +583,6 @@ export const TFTCloneShop: React.FC = () => {
                               {displayInfo.unit}
                             </span>
                           </div>
-                          {displayInfo.badge && (
-                            <span className="text-[9px] sm:text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-1 sm:px-1.5 py-0.5 rounded-md whitespace-nowrap flex-shrink-0 hidden xs:inline sm:inline">
-                              {displayInfo.badge}
-                            </span>
-                          )}
                         </div>
                       );
                     })()}
@@ -758,21 +793,13 @@ export const TFTCloneShop: React.FC = () => {
 
           {/* GRID 4 CỘT HIỂN THỊ TOÀN BỘ ACC CLONE ĐƯỢC LỌC */}
           {isLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                <div
-                  key={i}
-                  className="bg-white border border-slate-200/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4.5 shadow-xs animate-pulse space-y-2.5"
-                >
-                  <div className="aspect-square w-full rounded-lg sm:rounded-xl bg-slate-200" />
-                  <div className="h-3.5 bg-slate-200 rounded-md w-3/4" />
-                  <div className="h-3 bg-slate-100 rounded-md w-1/2" />
-                  <div className="pt-2 border-t border-slate-100 flex justify-between items-center gap-2">
-                    <div className="h-3.5 bg-slate-200 rounded-md w-1/3" />
-                    <div className="h-7 sm:h-8 bg-slate-200 rounded-lg sm:rounded-xl w-1/2" />
-                  </div>
-                </div>
-              ))}
+            <div className="w-full py-20 sm:py-24 flex flex-col items-center justify-center gap-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+              <div className="relative flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full border-[3px] border-orange-100 border-t-orange-600 animate-spin" />
+              </div>
+              <p className="text-xs sm:text-sm font-semibold text-slate-500">
+                Đang tải kho tài khoản Clone...
+              </p>
             </div>
           ) : filteredCloneAccounts.length === 0 ? (
             <div className="p-8 sm:p-12 text-center bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3 animate-fadeIn">
@@ -854,14 +881,14 @@ export const TFTCloneShop: React.FC = () => {
                           />
 
                           {/* Top Right: Mã Acc */}
-                          <div className="absolute top-1.5 right-1.5 sm:top-3 sm:right-3 z-10">
+                          <div className="hidden sm:block absolute top-1.5 right-1.5 sm:top-3 sm:right-3 z-10">
                             <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-black/80 text-[9px] sm:text-[11px] font-mono font-bold text-white shadow-sm backdrop-blur-sm">
                               {account.code}
                             </span>
                           </div>
 
                           {/* Top Left: Trạng Thái */}
-                          <div className="absolute top-1.5 left-1.5 sm:top-3 sm:left-3 z-10">
+                          <div className={`absolute top-1.5 left-1.5 sm:top-3 sm:left-3 z-10 ${account.status === "AVAILABLE" ? "hidden sm:block" : ""}`}>
                             {account.status === "AVAILABLE" ? (
                               <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-emerald-600/90 text-white text-[8px] sm:text-[10px] font-bold tracking-tight sm:tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
                                 <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white animate-pulse" />
@@ -880,7 +907,7 @@ export const TFTCloneShop: React.FC = () => {
                           </div>
 
                           {/* Bottom Left: Huy Hiệu Rank */}
-                          <div className="absolute bottom-1.5 left-1.5 sm:bottom-3 sm:left-3 z-10">
+                          <div className="hidden sm:block absolute bottom-1.5 left-1.5 sm:bottom-3 sm:left-3 z-10">
                             <span className="px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded sm:rounded-md bg-white/95 text-slate-900 text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wide backdrop-blur-sm shadow-sm">
                               {account.rankBadge}
                             </span>
@@ -895,18 +922,22 @@ export const TFTCloneShop: React.FC = () => {
                           {account.title}
                         </div>
 
-                        {/* Danh sách tính năng */}
-                        <ul
-                          onClick={() => openCloneModal(account)}
-                          className="mt-1.5 sm:mt-2.5 space-y-1 sm:space-y-1.5 text-[10px] sm:text-xs text-slate-600 font-medium cursor-pointer"
-                        >
-                          {account.features.map((feature, idx) => (
-                            <li key={idx} className="flex items-start gap-1 sm:gap-1.5 line-clamp-1">
-                              <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 flex-shrink-0 mt-0.5" />
-                              <span>{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        {/* Danh sách tính năng (Nếu có) */}
+                        {account.features && account.features.length > 0 ? (
+                          <ul
+                            onClick={() => openCloneModal(account)}
+                            className="hidden sm:block mt-1.5 sm:mt-2.5 space-y-1 sm:space-y-1.5 text-[10px] sm:text-xs text-slate-600 font-medium cursor-pointer"
+                          >
+                            {account.features.map((feature, idx) => (
+                              <li key={idx} className="flex items-start gap-1.5 line-clamp-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0 mt-1" />
+                                <span>{feature}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <div className="hidden sm:block h-2 sm:h-3" />
+                        )}
                       </div>
 
                       {/* Đáy Thẻ: Giá tiền và 2 Nút Bấm */}
@@ -923,11 +954,6 @@ export const TFTCloneShop: React.FC = () => {
                                   {displayInfo.unit}
                                 </span>
                               </div>
-                              {displayInfo.badge && (
-                                <span className="text-[9px] sm:text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-1 sm:px-2 py-0.5 rounded-md hidden xs:inline sm:inline">
-                                  {displayInfo.badge}
-                                </span>
-                              )}
                             </div>
                           );
                         })()}
@@ -1096,31 +1122,33 @@ export const TFTCloneShop: React.FC = () => {
                     <Sparkles className="w-3 h-3 text-orange-600 flex-shrink-0" />
                     <span>Thuê lâu dài (Sở hữu vô cực ∞)</span>
                   </p>
-                  <p className="text-[11px] sm:text-xs text-emerald-700 font-semibold flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3 flex-shrink-0" />
+                  <p className="text-[11px] sm:text-xs text-emerald-700 font-semibold flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 flex-shrink-0" />
                     <span>Bàn giao thông tin acc về chính chủ, sở hữu lâu dài</span>
                   </p>
                 </div>
               </div>
 
-              {/* Danh sách đặc điểm nổi bật */}
-              <div className="space-y-2">
-                <div className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-orange-600" />
-                  <span>Đặc Điểm & Cam Kết Bàn Giao:</span>
+              {/* Danh sách đặc điểm nổi bật (Nếu có) */}
+              {selectedClone.features && selectedClone.features.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-orange-600" />
+                    <span>Đặc Điểm & Cam Kết Bàn Giao:</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedClone.features.map((feat, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 text-[11px] font-semibold"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0" />
+                        <span>{feat}</span>
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedClone.features.map((feat, idx) => (
-                    <span
-                      key={idx}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50/80 border border-emerald-200/80 text-emerald-900 text-[11px] font-medium"
-                    >
-                      <CheckCircle2 className="w-3 h-3 text-emerald-600 flex-shrink-0" />
-                      <span>{feat}</span>
-                    </span>
-                  ))}
-                </div>
-              </div>
+              )}
 
               {/* TRƯỜNG HỢP ACC ĐANG ĐƯỢC THUÊ */}
               {(selectedClone.status || "").toUpperCase() === "RENTED" ? (

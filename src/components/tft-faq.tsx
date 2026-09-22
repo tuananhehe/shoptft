@@ -59,10 +59,10 @@ export const TFTFaq: React.FC<TFTFaqProps> = ({ customFaqs }) => {
   };
 
   return (
-    <section id="faq" className="py-14 sm:py-20 bg-[#F8FAFC] text-slate-900 border-b border-slate-200 overflow-hidden">
+    <section id="faq" className="py-6 sm:py-20 bg-[#F8FAFC] text-slate-900 border-b border-slate-200 overflow-hidden">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-10 space-y-2.5">
+        <div className="text-center max-w-3xl mx-auto mb-4 sm:mb-10 space-y-2">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-xs font-bold uppercase tracking-wider">
             <HelpCircle className="w-3.5 h-3.5 text-orange-600" />
             <span>Trung Tâm Trợ Giúp & FAQ</span>

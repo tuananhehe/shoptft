@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { ImageOff, Sparkles } from "lucide-react";
+import { ImageOff } from "lucide-react";
 
 interface LazyAccountImageProps {
   src?: string;
@@ -35,13 +35,9 @@ export const LazyAccountImage: React.FC<LazyAccountImageProps> = ({
 
   return (
     <div className={`relative ${containerClassName}`}>
-      {/* 1. SKELETON SHIMMER PLACEHOLDER (Hiện trong khi ảnh đang load) */}
+      {/* 1. Placeholder tĩnh êm dịu khi ảnh đang giải mã - không khung xương, không giật lag */}
       {!isLoaded && !hasError && (
-        <div className="absolute inset-0 z-0 bg-slate-800 animate-pulse flex items-center justify-center">
-          <div className="w-8 h-8 rounded-full bg-slate-700/60 flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-orange-400/70 animate-spin" />
-          </div>
-        </div>
+        <div className="absolute inset-0 z-0 bg-slate-900/40" />
       )}
 
       {/* 2. THẺ ẢNH VỚI ASYNC DECODING VÀ FADE-IN NGAY KHI XONG */}

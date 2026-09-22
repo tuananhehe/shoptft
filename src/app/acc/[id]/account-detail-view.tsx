@@ -563,9 +563,9 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                     account.features.map((feat, idx) => (
                       <span
                         key={`feat-${idx}`}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 text-xs font-medium"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold"
                       >
-                        <CheckCircle2 className="w-3 h-3 text-emerald-600 flex-shrink-0" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0" />
                         <span>{feat}</span>
                       </span>
                     ))}
@@ -582,7 +582,7 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                     <Sparkles className="w-4 h-4 text-orange-600" />
                     <span>Gói Sở Hữu Vô Cực (Bàn Giao Về Chính Chủ):</span>
                   </h2>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                     Bảo hành trọn đời
                   </span>
                 </div>
@@ -603,15 +603,15 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
 
                   <div className="pt-2 border-t border-slate-200 text-xs text-slate-600 space-y-1.5">
                     <p className="flex items-center gap-1.5 text-emerald-700 font-medium">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 flex-shrink-0" />
                       <span>Bàn giao thông tin acc về chính chủ, sở hữu lâu dài</span>
                     </p>
                     <p className="flex items-center gap-1.5 text-emerald-700 font-medium">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 flex-shrink-0" />
                       <span>Đầy đủ Riot ID, Mật khẩu và hỗ trợ đổi Mail chính chủ</span>
                     </p>
                     <p className="flex items-center gap-1.5 text-slate-600">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400 flex-shrink-0" />
                       <span>Miễn phí bảo hành và hỗ trợ kỹ thuật trọn gói</span>
                     </p>
                   </div>

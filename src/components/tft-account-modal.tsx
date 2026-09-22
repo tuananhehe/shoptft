@@ -376,9 +376,9 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
               {displayChibis.map((chibi, idx) => (
                 <span
                   key={idx}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-50/80 border border-orange-200/80 text-orange-900 text-[11px] font-medium"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-50/80 border border-orange-200/80 text-orange-900 text-[11px] font-medium"
                 >
-                  <CheckCircle2 className="w-3 h-3 text-emerald-600 flex-shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0" />
                   <span className="truncate max-w-[200px]">{chibi}</span>
                 </span>
               ))}

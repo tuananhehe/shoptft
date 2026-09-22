@@ -101,10 +101,10 @@ export const TFTReviews: React.FC = () => {
   };
 
   return (
-    <section id="reviews" className="py-14 sm:py-20 bg-white text-slate-900 border-b border-slate-200 overflow-hidden">
+    <section id="reviews" className="py-6 sm:py-20 bg-white text-slate-900 border-b border-slate-200 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-8 space-y-2.5">
+        <div className="text-center max-w-3xl mx-auto mb-4 sm:mb-8 space-y-2">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-xs font-bold uppercase tracking-wider">
             <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
             <span>Đánh Giá Thực Tế Từ Khách Hàng</span>

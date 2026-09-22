@@ -62,7 +62,7 @@
 .animate-infinite-loop {
   display: flex;
   width: max-content;
-  animation: continuousLoop 28s linear infinite;
+  animation: continuousLoop 70s linear infinite;
 }
 
 .animate-infinite-loop:hover {

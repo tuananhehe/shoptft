@@ -43,7 +43,11 @@ import {
   Image as ImageIcon,
   Key,
   HelpCircle,
+  FileCode,
+  FileText,
 } from "lucide-react";
+import PetPresetSelector from "@/components/admin/pet-preset-selector";
+import { BulkCloneTxtImporter } from "@/components/admin/bulk-clone-txt-importer";
 
 export type AccountCategoryType = "VIP" | "CLONE";
 
@@ -198,11 +202,7 @@ export default function AdminAccountsPage() {
   const [formRankBadge, setFormRankBadge] = useState("UNRANKED");
   const [formWeeklyPrice, setFormWeeklyPrice] = useState<number>(50000);
   const [formMonthlyPrice, setFormMonthlyPrice] = useState<number>(150000);
-  const [formFeatures, setFormFeatures] = useState<string[]>([
-    "Tài Khoản An Toàn 100%",
-    "Hỗ Trợ Bàn Giao Thông Về Khách",
-    "Sẵn Sản Phẩm Như Mô Tả 100%",
-  ]);
+  const [formFeatures, setFormFeatures] = useState<string[]>([]);
   const [formFeatureInput, setFormFeatureInput] = useState("");
 
   // ============================================================
@@ -213,6 +213,7 @@ export default function AdminAccountsPage() {
   const [geminiApiKey, setGeminiApiKey] = useState("");
   const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
   const [tempApiKeyInput, setTempApiKeyInput] = useState("");
+  const [bulkTxtModalOpen, setBulkTxtModalOpen] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   // Thumbnail Cloud Upload State
@@ -271,8 +272,8 @@ export default function AdminAccountsPage() {
     }
   }, []);
 
-  // Helper nén ảnh nhẹ và chống tràn stack (chuyển ảnh lớn về max 1280px, định dạng JPEG)
-  const compressImage = (dataUrl: string, maxDim = 1280, quality = 0.85): Promise<string> => {
+  // Helper nén ảnh nhẹ và chống tràn stack (chuyển ảnh lớn về max 1024px, định dạng JPEG)
+  const compressImage = (dataUrl: string, maxDim = 1024, quality = 0.8): Promise<string> => {
     return new Promise((resolve) => {
       if (typeof window === "undefined") return resolve(dataUrl);
       const img = new Image();
@@ -479,6 +480,16 @@ export default function AdminAccountsPage() {
         handleAccountValueChange(Number(d.accountValue));
       }
 
+      // Populate features for Clone
+      if (Array.isArray(d.features) && d.features.length > 0) {
+        setFormFeatures(d.features);
+      } else if (formCategory === "CLONE" || d.category === "CLONE") {
+        const autoFeatures = [d.mainChibi, ...(d.allChibi || [])].filter(Boolean);
+        if (autoFeatures.length > 0) {
+          setFormFeatures(autoFeatures);
+        }
+      }
+
       // Auto assign thumbnail if empty
       if (!formThumbnail && aiImages.length > 0) {
         setFormThumbnail(aiImages[0]);
@@ -613,6 +624,12 @@ export default function AdminAccountsPage() {
         }
         if (sortFilter === "PRICE_DESC") {
           return getPrice(b) - getPrice(a);
+        }
+        // Khi ở tab CLONE, mặc định sắp xếp theo bảng chữ cái A-Z
+        if (activeTab === "CLONE") {
+          const titleA = (a.title || a.code || "").trim();
+          const titleB = (b.title || b.code || "").trim();
+          return titleA.localeCompare(titleB, "vi", { sensitivity: "base" });
         }
         return 0;
       });
@@ -863,7 +880,7 @@ export default function AdminAccountsPage() {
   const openAddDrawer = (defaultCategory: AccountCategoryType = "VIP") => {
     setEditingAccount(null);
     setFormCategory(defaultCategory);
-    setFormCode(defaultCategory === "VIP" ? "MS: " : "CLONE-");
+    setFormCode(defaultCategory === "VIP" ? `MS: ${Math.floor(1000 + Math.random() * 9000)}` : `CLONE-${Math.floor(1000 + Math.random() * 9000)}`);
     setFormTitle("");
     setFormThumbnail("");
     setFormDescription("Tài khoản chính chủ hoạt động tốt.");
@@ -895,11 +912,7 @@ export default function AdminAccountsPage() {
     setFormRankBadge("UNRANKED");
     setFormWeeklyPrice(50000);
     setFormMonthlyPrice(150000);
-    setFormFeatures([
-      "Tài Khoản An Toàn 100%",
-      "Hỗ Trợ Bàn Giao Thông Về Khách",
-      "Sẵn Sản Phẩm Như Mô Tả 100%",
-    ]);
+    setFormFeatures([]);
     setFormFeatureInput("");
     setAiImages([]);
 
@@ -925,41 +938,22 @@ export default function AdminAccountsPage() {
     setFormCustomPrice(account.customPrice || account.accountValue || account.hourlyPrice || 15000);
     setFormCustomPriceUnit(account.customPriceUnit || " / Giờ");
 
+    // VIP attributes
     if (account.category === "VIP") {
-      const accVal = account.accountValue || 850000;
-      const mainChibi = account.mainChibi || account.allChibi?.[0] || "";
-      const mainArena = account.mainArena || account.allArenas?.[0] || "";
-      const allChibi = Array.isArray(account.allChibi) && account.allChibi.length > 0
-        ? account.allChibi
-        : (mainChibi ? [mainChibi] : []);
-      const allArenas = Array.isArray(account.allArenas) && account.allArenas.length > 0
-        ? account.allArenas
-        : (mainArena ? [mainArena] : []);
-
-      setFormRank(account.rank || "THÁCH ĐẤU");
-      setFormAccountValue(accVal);
-      setFormHourlyPrice(account.hourlyPrice || calcHourlyFromValue(accVal, pricingRates.rate2Hours, pricingRates.passChangeFee));
+      setFormRank((account.rank as any) || "THÁCH ĐẤU");
+      setFormAccountValue(account.accountValue || account.price || 850000);
+      setFormHourlyPrice(account.hourlyPrice || 15000);
       setIsAutoPricing(false);
-      setFormMainChibi(mainChibi);
-      setFormMainArena(mainArena);
-      setFormAllChibi(allChibi);
-      setFormAllArenas(allArenas);
-      setExtraChibiInput("");
-      setExtraArenaInput("");
+      setFormMainChibi(account.mainChibi || "");
+      setFormMainArena(account.mainArena || "");
+      setFormAllChibi(account.allChibi || (account.mainChibi ? [account.mainChibi] : []));
+      setFormAllArenas(account.allArenas || (account.mainArena ? [account.mainArena] : []));
     } else {
-      setFormRankBadge(account.rankBadge || "UNRANKED");
+      // Clone attributes
+      setFormRankBadge(account.rank || account.rankBadge || "UNRANKED");
       setFormWeeklyPrice(account.weeklyPrice || 50000);
-      setFormMonthlyPrice(account.monthlyPrice || account.periodPrice || 150000);
-      setFormFeatures(
-        Array.isArray(account.features) && account.features.length > 0
-          ? account.features
-          : [
-              "Tài Khoản An Toàn 100%",
-              "Hỗ Trợ Bàn Giao Thông Về Khách",
-              "Sẵn Sản Phẩm Như Mô Tả 100%",
-            ]
-      );
-      setFormFeatureInput("");
+      setFormMonthlyPrice(account.monthlyPrice || account.price || 150000);
+      setFormFeatures(account.features || []);
     }
 
     setDrawerOpen(true);
@@ -976,8 +970,13 @@ export default function AdminAccountsPage() {
       return;
     }
 
+    const autoCode =
+      (formCode && formCode.trim())
+        ? formCode.trim()
+        : `${formCategory === "VIP" ? "VIP" : "CLONE"}-${Math.floor(1000 + Math.random() * 9000)}`;
+
     if (formCategory === "VIP" && !formMainChibi.trim()) {
-      toast.error("Vui lòng nhập Tướng Tí Nị / Linh Thú chính!");
+      toast.error("Vui lòng chọn hoặc nhập Tướng Tí Nị / Linh Thú chính!");
       return;
     }
 
@@ -1003,7 +1002,7 @@ export default function AdminAccountsPage() {
     const effectiveTitle =
       formCategory === "VIP"
         ? formTitle.trim() || `${formRank} - ${cleanedMainChibi || "Tí Nị VIP"}`
-        : formTitle.trim() || `Acc Clone ${formRankBadge}`;
+        : formTitle.trim() || formFeatures[0] || formRankBadge || "Tài Khoản Clone";
 
     let finalImageUrl = formThumbnail.trim();
 
@@ -1032,7 +1031,7 @@ export default function AdminAccountsPage() {
     }
 
     const payload: any = {
-      code: formCode.trim(),
+      code: autoCode,
       type: formCategory,
       title: effectiveTitle,
       rank: formCategory === "VIP" ? formRank : formRankBadge,
@@ -1254,9 +1253,20 @@ export default function AdminAccountsPage() {
             </button>
           </div>
 
-          {/* Cụm Nút Thêm Mới & Reload */}
-          <div className="flex items-center gap-2">
+          {/* Cụm Nút Thao Tác: Thêm Mới, Import TXT SLL & Reload */}
+          <div className="flex items-center gap-2 flex-wrap">
             <button
+              type="button"
+              onClick={() => setBulkTxtModalOpen(true)}
+              className="px-3.5 py-2.5 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all shadow-md shadow-sky-600/20 flex items-center gap-2 cursor-pointer hover:scale-105"
+              title="Đăng hàng loạt sản phẩm kho Clone từ File TXT hoặc Copy/Paste"
+            >
+              <FileCode className="w-4 h-4" />
+              <span>📁 Import TXT Đăng SLL</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => fetchAccounts(true)}
               className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
               title="Làm mới danh sách từ Database"
@@ -1265,6 +1275,7 @@ export default function AdminAccountsPage() {
             </button>
 
             <button
+              type="button"
               onClick={() => openAddDrawer(activeTab === "CLONE" ? "CLONE" : "VIP")}
               className="px-4 py-2.5 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-orange-700/20 flex items-center gap-2 cursor-pointer hover:scale-105"
             >
@@ -1647,9 +1658,11 @@ export default function AdminAccountsPage() {
                               {account.title}
                             </strong>
 
-                            <div className="text-[11px] text-slate-500 font-medium line-clamp-1">
-                              • {account.features?.[0] || "Tài Khoản An Toàn 100%"}
-                            </div>
+                            {account.features && account.features.length > 0 && (
+                              <div className="text-[11px] text-slate-500 font-medium line-clamp-1">
+                                • {account.features[0]}
+                              </div>
+                            )}
                           </div>
                         )}
                       </td>
@@ -2316,7 +2329,7 @@ export default function AdminAccountsPage() {
                     </div>
                   </div>
 
-                  {/* Mã Số & Tiêu Đề */}
+                  {/* Mã Số & Bậc Rank */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
                       <label className="font-bold text-slate-800 block">
@@ -2369,12 +2382,12 @@ export default function AdminAccountsPage() {
                     <div className="space-y-4 p-4 bg-orange-50/60 rounded-2xl border border-orange-200/80">
                       {/* 1. TƯỚNG TÍ NỊ / LINH THÚ CHÍNH */}
                       <div className="space-y-1.5">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between flex-wrap gap-1">
                           <label className="font-bold text-slate-800 block">
                             Tướng Tí Nị / Linh Thú Chính: <span className="text-red-500">*</span>
                           </label>
-                          <span className="text-[10px] text-orange-700 font-bold">
-                            Hiển thị chính trên thẻ
+                          <span className="text-[10px] text-amber-800 font-bold bg-amber-100/90 border border-amber-300/80 px-2 py-0.5 rounded-md flex items-center gap-1">
+                            <span>💎 Chọn ảnh Hàng Hiệu trong Kho Pet phụ trợ bên dưới</span>
                           </span>
                         </div>
                         <input
@@ -2602,6 +2615,30 @@ export default function AdminAccountsPage() {
                   {/* THUỘC TÍNH RIÊNG ACC CLONE */}
                   {formCategory === "CLONE" && (
                     <div className="space-y-3 p-3.5 bg-sky-50/60 rounded-2xl border border-sky-200/80">
+                      <div className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-sky-200 shadow-xs">
+                        <div className="flex items-center gap-2">
+                          <FileCode className="w-4 h-4 text-sky-600 flex-shrink-0" />
+                          <div>
+                            <span className="text-xs font-bold text-slate-800 block">
+                              Đăng nhanh SLL bằng File TXT / Danh sách Pet
+                            </span>
+                            <span className="text-[10px] text-slate-500">
+                              Tự động nhận diện Tướng Đột Phá, Tí Nị, Sân Đấu kèm ảnh game thật
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDrawerOpen(false);
+                            setBulkTxtModalOpen(true);
+                          }}
+                          className="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white rounded-xl text-xs font-extrabold cursor-pointer transition-all shadow-xs flex-shrink-0"
+                        >
+                          Mở Import TXT
+                        </button>
+                      </div>
+
                       <div className="space-y-1.5">
                         <label className="font-bold text-slate-800 block">Tiêu Đề Acc Clone:</label>
                         <input
@@ -2673,6 +2710,41 @@ export default function AdminAccountsPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* KHO LINH THÚ / PET / TƯỚNG TÍ NỊ CÓ SẴN (CHO CẢ VIP & CLONE - CÓ THỂ ẨN/HIỆN PHỤ TRỢ) */}
+                  <PetPresetSelector
+                    category={formCategory}
+                    defaultOpen={formCategory === "CLONE"}
+                    selectedFeatures={formFeatures}
+                    onToggleFeature={(feat) => {
+                      setFormFeatures((prev) =>
+                        prev.includes(feat)
+                          ? prev.filter((f) => f !== feat)
+                          : [...prev, feat]
+                      );
+                    }}
+                    onSetFeatures={(feats) => setFormFeatures(feats)}
+                    currentTitle={formTitle}
+                    onSetTitle={(t) => setFormTitle(t)}
+                    currentThumbnail={formThumbnail}
+                    onSetThumbnail={(thumb) => setFormThumbnail(thumb)}
+                    currentMainChibi={formMainChibi}
+                    onSetMainChibi={(chibi) => setFormMainChibi(chibi)}
+                    currentMainArena={formMainArena}
+                    onSetMainArena={(arena) => setFormMainArena(arena)}
+                    currentAllChibi={formAllChibi}
+                    onAddAllChibi={(chibi) => {
+                      if (!formAllChibi.includes(chibi)) {
+                        setFormAllChibi((prev) => [...prev, chibi]);
+                      }
+                    }}
+                    currentAllArenas={formAllArenas}
+                    onAddAllArena={(arena) => {
+                      if (!formAllArenas.includes(arena)) {
+                        setFormAllArenas((prev) => [...prev, arena]);
+                      }
+                    }}
+                  />
 
                   {/* ============================================================ */}
                   {/* CẤU HÌNH KIỂU HIỂN THỊ GIÁ THUÊ & CHỌN CHẾ ĐỘ (4-CARD SELECTOR) */}
@@ -3111,6 +3183,13 @@ export default function AdminAccountsPage() {
           </div>
         </div>
       )}
+
+      {/* MODAL IMPORT FILE TXT ĐĂNG SLL KHO CLONE */}
+      <BulkCloneTxtImporter
+        isOpen={bulkTxtModalOpen}
+        onClose={() => setBulkTxtModalOpen(false)}
+        onSuccess={() => fetchAccounts(false)}
+      />
     </div>
   );
 }

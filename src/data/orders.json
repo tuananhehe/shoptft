@@ -1,5 +1,27 @@
 [
   {
+    "id": "ORD-663",
+    "type": "VIP",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
+    "phoneZalo": "0352.867.283",
+    "accountCode": "MS: 663",
+    "accountTitle": "KHÔNG RANK - Ahri Chiêu Hồn Thiên Hồ Tí Nị - Hàng Hiệu",
+    "package": "Gói Thuê Lâu Dài (Vô Cực ∞)",
+    "durationHours": -1,
+    "amount": 3000000,
+    "paymentMethod": "TRANSFER",
+    "status": "RENTING",
+    "createdBy": "ADMIN",
+    "source": "ADMIN",
+    "createdAt": "2026-09-15T16:36:57.351617+00:00",
+    "startedAt": "2026-09-15T16:36:57.351617+00:00",
+    "expiresAt": "2026-10-22T14:43:04.958+00:00",
+    "accountLogin": "tft_ms663",
+    "accountPass": "TuanTFT@8946",
+    "notes": "Đơn tự động đồng bộ từ kho tài khoản đang cho thuê."
+  },
+  {
     "id": "ORD-743",
     "type": "VIP",
     "customer": "Khách hàng ẩn danh",
@@ -847,7 +869,7 @@
     "durationHours": -1,
     "amount": 799000,
     "paymentMethod": "TRANSFER",
-    "status": "RENTING",
+    "status": "COMPLETED",
     "createdBy": "ADMIN",
     "source": "ZALO",
     "createdAt": "2026-09-10T10:00:00.000Z",
@@ -855,7 +877,7 @@
     "expiresAt": "2029-06-09T12:58:57.903+00:00",
     "accountLogin": "tft_736",
     "accountPass": "TuanTFT@7366",
-    "notes": "Morgana Hàng Hiệu leo rank Thách Đấu."
+    "notes": "Morgana Hàng Hiệu leo rank Thách Đấu.\n[Tài khoản đã hoàn tất & thu hồi về kho]"
   },
   {
     "id": "ORD-1823",
@@ -869,7 +891,7 @@
     "durationHours": -1,
     "amount": 3600000,
     "paymentMethod": "TRANSFER",
-    "status": "RENTING",
+    "status": "COMPLETED",
     "createdBy": "ADMIN",
     "source": "ZALO",
     "createdAt": "2026-09-09T16:00:00.000Z",
@@ -877,7 +899,7 @@
     "expiresAt": "2029-06-10T11:23:41.545+00:00",
     "accountLogin": "tft_1823",
     "accountPass": "TuanTFT@1823",
-    "notes": "Acc VIP Shyvana Hàng Hiệu cao cấp."
+    "notes": "Acc VIP Shyvana Hàng Hiệu cao cấp.\n[Tài khoản đã hoàn tất & thu hồi về kho]"
   },
   {
     "id": "ORD-6431",

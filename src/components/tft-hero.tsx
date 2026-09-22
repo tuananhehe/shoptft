@@ -58,22 +58,22 @@ export const TFTHero: React.FC<TFTHeroProps> = ({ heroConfig, imagesConfig }) =>
         <div className="w-[500px] h-[500px] bg-cyan-500/10 blur-[140px] rounded-full absolute top-10 right-0" />
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12 sm:pt-12 sm:pb-16 lg:pt-16 lg:pb-18 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-0 items-center">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-6 sm:pt-12 sm:pb-16 lg:pt-16 lg:pb-18 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-0 items-center">
           
           {/* Left Column: Headline, Sub-text & Commitments (6 cols) */}
           <motion.div
             initial={false}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-            className="lg:col-span-6 space-y-5 text-center lg:text-left"
+            className="lg:col-span-6 space-y-3 sm:space-y-5 text-center lg:text-left"
           >
             {/* Tag tiêu đề nhỏ đỏ cam Esports HUD & Tags Trưng Bày / Không Mua Bán / Demo */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 sm:gap-2.5">
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-1.5 sm:gap-2.5">
               {topBadge ? (
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-orange-100/80 border border-orange-300/80 shadow-sm">
-                  <Sparkles className="w-3.5 h-3.5 text-orange-600 animate-pulse" />
-                  <span className="text-[11px] font-black text-orange-700 uppercase tracking-wider font-gaming">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-lg bg-orange-100/80 border border-orange-300/80 shadow-xs">
+                  <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-600 animate-pulse flex-shrink-0" />
+                  <span className="text-[10px] sm:text-[11px] font-black text-orange-700 uppercase tracking-wider font-gaming truncate">
                     {topBadge}
                   </span>
                 </div>
@@ -84,32 +84,32 @@ export const TFTHero: React.FC<TFTHeroProps> = ({ heroConfig, imagesConfig }) =>
                 href={PROFILE_INFO.checkscamUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-300/80 text-emerald-700 text-[11px] font-black uppercase tracking-wider transition-colors shadow-sm cursor-pointer font-gaming"
+                className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-300/80 text-emerald-700 text-[10px] sm:text-[11px] font-black uppercase tracking-wider transition-colors shadow-xs cursor-pointer font-gaming"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Bảo Hiểm 30M Checkscam</span>
-                <ExternalLink className="w-3 h-3 ml-0.5 text-emerald-600" />
+                <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>30M Checkscam</span>
+                <ExternalLink className="w-2.5 h-2.5 ml-0.5 text-emerald-600" />
               </a>
 
               {/* 🏷️ TAGS: Trưng Bày • Không Mua Bán • Demo */}
-              <div className="inline-flex items-center gap-1 p-0.5 sm:p-1 rounded-lg bg-slate-100/90 border border-slate-300/80 shadow-xs">
-                <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[10px] sm:text-[11px] font-black uppercase tracking-wide bg-blue-600 text-white shadow-xs font-gaming">
-                  <Eye className="w-3 h-3" />
+              <div className="inline-flex items-center gap-0.5 p-0.5 rounded-lg bg-slate-100/90 border border-slate-300/80 shadow-2xs">
+                <span className="inline-flex items-center gap-0.5 px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-black uppercase tracking-wide bg-blue-600 text-white shadow-2xs font-gaming">
+                  <Eye className="w-2.5 h-2.5" />
                   Trưng Bày
                 </span>
-                <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[10px] sm:text-[11px] font-black uppercase tracking-wide bg-rose-600 text-white shadow-xs font-gaming">
-                  <ShieldAlert className="w-3 h-3" />
-                  Không Mua Bán
+                <span className="inline-flex items-center gap-0.5 px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-black uppercase tracking-wide bg-rose-600 text-white shadow-2xs font-gaming">
+                  <ShieldAlert className="w-2.5 h-2.5" />
+                  Không Bán
                 </span>
-                <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[10px] sm:text-[11px] font-black uppercase tracking-wide bg-amber-500 text-white shadow-xs font-gaming">
-                  <FlaskConical className="w-3 h-3" />
+                <span className="inline-flex items-center gap-0.5 px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-black uppercase tracking-wide bg-amber-500 text-white shadow-2xs font-gaming">
+                  <FlaskConical className="w-2.5 h-2.5" />
                   Demo
                 </span>
               </div>
             </div>
 
             {/* Thẻ H1 DUY NHẤT chuẩn SEO On-page & Typography Esports */}
-            <h1 className="font-gaming text-2xl sm:text-4xl md:text-[2.75rem] lg:text-[3.15rem] font-black uppercase text-slate-900 leading-[1.12] sm:leading-[1.1] tracking-tight">
+            <h1 className="font-gaming text-xl sm:text-4xl md:text-[2.75rem] lg:text-[3.15rem] font-black uppercase text-slate-900 leading-[1.15] sm:leading-[1.1] tracking-tight">
               {title1 ? `${title1} ` : ""}
               {highlight ? (
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500">
@@ -119,61 +119,61 @@ export const TFTHero: React.FC<TFTHeroProps> = ({ heroConfig, imagesConfig }) =>
               {title2 ? `${title2}` : ""}
             </h1>
 
-            {/* Mô tả ngắn gọn chứa từ khóa SEO - Tăng tương phản & giới hạn độ rộng */}
-            <p className="text-slate-700 text-sm sm:text-base lg:text-[1.02rem] max-w-[65ch] mx-auto lg:mx-0 leading-relaxed font-medium">
+            {/* Mô tả ngắn gọn chứa từ khóa SEO - Giới hạn 2 dòng trên mobile để không chiếm màn hình */}
+            <p className="text-slate-700 text-xs sm:text-base lg:text-[1.02rem] max-w-[65ch] mx-auto lg:mx-0 leading-relaxed font-medium line-clamp-2 sm:line-clamp-none">
               {subtitle}
             </p>
 
-            {/* Nút bấm CTA Gaming Esports với hiệu ứng hover rõ ràng */}
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-2.5 sm:gap-3.5 pt-1">
+            {/* Nút bấm CTA Gaming Esports - Dàn 2 cột trên Mobile bấm cực sướng */}
+            <div className="flex flex-row items-center justify-center lg:justify-start gap-2 sm:gap-3.5 pt-1">
               <a
                 href="#shop"
-                className="w-full sm:w-auto px-5 sm:px-7 py-3 sm:py-3.5 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-700 hover:to-amber-600 active:from-orange-800 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-orange-600/25 hover:shadow-orange-600/35 border border-orange-400/50 transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.02] active:scale-95 cursor-pointer font-gaming"
+                className="flex-1 sm:flex-initial px-3 sm:px-7 py-2.5 sm:py-3.5 inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-700 hover:to-amber-600 active:from-orange-800 text-white font-black text-[11px] sm:text-sm uppercase tracking-wider shadow-md shadow-orange-600/25 border border-orange-400/50 transition-all hover:scale-[1.02] active:scale-95 cursor-pointer font-gaming whitespace-nowrap"
               >
-                <KeyRound className="w-4 h-4" />
-                <span>Thuê Acc VIP Ngay</span>
-                <ArrowRight className="w-4 h-4 ml-0.5" />
+                <KeyRound className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>Thuê Acc VIP</span>
+                <ArrowRight className="w-3 h-3 ml-0.5 hidden xs:inline" />
               </a>
 
               <a
                 href="#clone-shop"
-                className="w-full sm:w-auto px-5 sm:px-7 py-3 sm:py-3.5 inline-flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-slate-100 text-slate-800 hover:text-slate-950 border border-slate-300 hover:border-slate-400 font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5 hover:scale-[1.02] active:scale-95 cursor-pointer font-gaming"
+                className="flex-1 sm:flex-initial px-3 sm:px-7 py-2.5 sm:py-3.5 inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-white hover:bg-slate-100 text-slate-800 hover:text-slate-950 border border-slate-300 font-extrabold text-[11px] sm:text-sm uppercase tracking-wider transition-all shadow-2xs hover:scale-[1.02] active:scale-95 cursor-pointer font-gaming whitespace-nowrap"
               >
-                <span>Kho Acc Clone ∞</span>
+                <span>Kho Clone ∞</span>
               </a>
             </div>
 
-            {/* Hàng 3 tính năng/Cam kết: Tối ưu 3 cột gọn đẹp trên Mobile */}
-            <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 pt-1.5 w-full">
-              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:px-3 sm:py-2.5 rounded-xl bg-white border border-slate-200/90 shadow-xs text-[10px] sm:text-xs font-bold text-slate-800 justify-center sm:justify-start font-gaming hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors text-center sm:text-left">
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
-                  <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600" />
+            {/* Hàng 3 tính năng/Cam kết: Tối ưu 3 cột siêu gọn trên Mobile */}
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 pt-0.5 sm:pt-1.5 w-full">
+              <div className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-2 p-1.5 sm:px-3 sm:py-2.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs text-[9px] sm:text-xs font-bold text-slate-800 justify-center sm:justify-start font-gaming text-center sm:text-left">
+                <div className="w-4 h-4 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
+                  <ShieldCheck className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-emerald-600" />
                 </div>
                 <span className="leading-tight sm:whitespace-nowrap">An Toàn 100%</span>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:px-3 sm:py-2.5 rounded-xl bg-white border border-slate-200/90 shadow-xs text-[10px] sm:text-xs font-bold text-slate-800 justify-center sm:justify-start font-gaming hover:border-orange-200 hover:bg-orange-50/30 transition-colors text-center sm:text-left">
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-orange-50 border border-orange-200 flex items-center justify-center flex-shrink-0">
-                  <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-600" />
+              <div className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-2 p-1.5 sm:px-3 sm:py-2.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs text-[9px] sm:text-xs font-bold text-slate-800 justify-center sm:justify-start font-gaming text-center sm:text-left">
+                <div className="w-4 h-4 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-orange-50 border border-orange-200 flex items-center justify-center flex-shrink-0">
+                  <Zap className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-orange-600" />
                 </div>
                 <span className="leading-tight sm:whitespace-nowrap">Bàn Giao 30s</span>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 p-2 sm:px-3 sm:py-2.5 rounded-xl bg-white border border-slate-200/90 shadow-xs text-[10px] sm:text-xs font-bold text-slate-800 justify-center sm:justify-start font-gaming hover:border-sky-200 hover:bg-sky-50/30 transition-colors text-center sm:text-left">
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-sky-50 border border-sky-200 flex items-center justify-center flex-shrink-0">
-                  <PhoneCall className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-sky-600" />
+              <div className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-2 p-1.5 sm:px-3 sm:py-2.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs text-[9px] sm:text-xs font-bold text-slate-800 justify-center sm:justify-start font-gaming text-center sm:text-left">
+                <div className="w-4 h-4 sm:w-6 sm:h-6 rounded-md sm:rounded-lg bg-sky-50 border border-sky-200 flex items-center justify-center flex-shrink-0">
+                  <PhoneCall className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-sky-600" />
                 </div>
                 <span className="leading-tight sm:whitespace-nowrap">Hỗ Trợ 24/7</span>
               </div>
             </div>
           </motion.div>
 
-          {/* Right Column: KHUNG ĐỒ HỌA MOCKUP THẺ ACC VIP ESPORTS (5 cols, chừa 1 col gap) */}
+          {/* Right Column: KHUNG ĐỒ HỌA MOCKUP THẺ ACC VIP ESPORTS (Chỉ hiển thị trên màn hình Desktop lớn để không tốn màn hình Mobile) */}
           <motion.div
             initial={false}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
-            className="lg:col-span-5 lg:col-start-8 relative flex justify-center py-4 sm:py-6"
+            className="hidden lg:flex lg:col-span-5 lg:col-start-8 relative justify-center py-4 sm:py-6"
           >
             {/* Gaming Hextech / Mythic Aura Glow (Cyan & Amber/Orange) phía sau thẻ Card */}
             <div className="absolute -inset-2 bg-gradient-to-tr from-orange-500/30 via-amber-400/25 to-cyan-400/30 rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 transition-opacity duration-700 transform scale-95" />

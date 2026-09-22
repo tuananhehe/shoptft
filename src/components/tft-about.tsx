@@ -129,10 +129,10 @@ export const TFTAbout: React.FC = () => {
   ];
 
   return (
-    <section id="about" className="py-10 sm:py-16 bg-white text-slate-900 border-b border-slate-200 overflow-hidden">
+    <section id="about" className="py-6 sm:py-16 bg-white text-slate-900 border-b border-slate-200 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* 1. SECTION HEADER */}
-        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12 space-y-2.5">
+        <div className="text-center max-w-3xl mx-auto mb-4 sm:mb-12 space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-50 border border-orange-200/80 text-orange-700 text-[11px] font-bold uppercase tracking-wider">
             <UserCheck className="w-3.5 h-3.5 text-orange-600" />
             <span>Hồ Sơ & Uy Tín Thương Hiệu</span>
