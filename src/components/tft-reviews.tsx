@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { CUSTOMER_REVIEWS } from "@/data/tft-data";
 import { getReviewsApi, CustomerReviewItem } from "@/utils/reviews-service";
 import { ReviewModal } from "@/components/review-modal";
-import { useUserAuth } from "@/context/user-auth-context";
 import {
   Star,
   CheckCircle2,
@@ -40,7 +39,6 @@ const getAvatarColor = (name: string, index: number): string => {
 };
 
 export const TFTReviews: React.FC = () => {
-  const { user } = useUserAuth();
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [page, setPage] = useState(0);
   const [liveReviews, setLiveReviews] = useState<CustomerReviewItem[]>([]);

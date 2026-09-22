@@ -1,5 +1,22 @@
 [
   {
+    "id": "rev-1790088050220-594",
+    "customerName": "Nguyễn Văn Đạt",
+    "customerAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Nguy%E1%BB%85n%20V%C4%83n%20%C4%90%E1%BA%A1t",
+    "customerZalo": "0987654321",
+    "vipTier": "BRONZE",
+    "rating": 5,
+    "category": "THUE_ACC",
+    "accountBought": "Thuê Acc VIP TFT",
+    "comment": "Acc chơi rất mượt, giao nhanh chưa đầy 1 phút!",
+    "improvementSuggestion": "Shop bổ sung thêm gói thuê theo ngày nhé",
+    "verifiedTag": "Khách Đã Thuê Acc ⭐",
+    "isApproved": true,
+    "isGoogleUser": false,
+    "createdAt": "2026-09-22T14:40:50.220Z",
+    "date": "22/09/2026"
+  },
+  {
     "id": "rev-1790076190175-258",
     "customerName": "Nguyễn Văn Thử Nghiệm",
     "customerEmail": "tester.tft@gmail.com",

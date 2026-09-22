@@ -86,19 +86,15 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    if (!body.servicesUsed || !Array.isArray(body.servicesUsed) || body.servicesUsed.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "Vui lòng chọn ít nhất 1 dịch vụ bạn đã từng sử dụng!" },
-        { status: 400 }
-      );
-    }
+    const services = (Array.isArray(body.servicesUsed) && body.servicesUsed.length > 0)
+      ? body.servicesUsed
+      : ["Thuê Acc TFT"];
 
-    if (!body.improvementSuggestion || !body.improvementSuggestion.trim()) {
-      return NextResponse.json(
-        { success: false, error: "Vui lòng viết vài dòng góp ý điều Shop cần cải tiến nhé!" },
-        { status: 400 }
-      );
-    }
+    const suggestion = (body.improvementSuggestion && body.improvementSuggestion.trim())
+      ? body.improvementSuggestion.trim()
+      : (body.requestedAdditions && body.requestedAdditions.trim())
+        ? `Mong muốn bổ sung: ${body.requestedAdditions.trim()}`
+        : "Khảo sát trải nghiệm dịch vụ Shop TFT Tuấn Thái Bình";
 
     const allSurveys = readSurveysFromFile();
     const now = new Date();
@@ -120,16 +116,16 @@ export async function POST(req: NextRequest) {
     const newSurvey: SurveyResponse = {
       id: `survey-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       createdAt: now.toISOString(),
-      servicesUsed: body.servicesUsed,
+      servicesUsed: services,
       satisfactionRating: Math.max(1, Math.min(5, Math.round(Number(body.satisfactionRating) || 5))),
       deliverySpeed: body.deliverySpeed || "Siêu nhanh (< 1 phút)",
       supportAttitude: body.supportAttitude || "Rất nhiệt tình & chu đáo",
       accountQuality: body.accountQuality || "Đúng 100% như hình & mô tả",
       requestedAdditions: body.requestedAdditions ? body.requestedAdditions.trim() : undefined,
       pricingPerception: body.pricingPerception || "Hợp lý, vừa túi tiền",
-      improvementSuggestion: body.improvementSuggestion.trim(),
+      improvementSuggestion: suggestion,
       recommendScore: Math.max(1, Math.min(10, Math.round(Number(body.recommendScore) || 10))),
-      customerName: body.customerName ? body.customerName.trim() : undefined,
+      customerName: body.customerName ? body.customerName.trim() : "Khách Hàng TFT",
       customerZalo: body.customerZalo ? body.customerZalo.trim() : undefined,
       customAnswers: body.customAnswers && typeof body.customAnswers === "object" ? body.customAnswers : undefined,
     };

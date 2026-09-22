@@ -1,5 +1,44 @@
 [
   {
+    "id": "survey-1790088050765-191",
+    "createdAt": "2026-09-22T14:40:50.765Z",
+    "servicesUsed": [
+      "Thuê Acc TFT"
+    ],
+    "satisfactionRating": 5,
+    "deliverySpeed": "Siêu nhanh (< 1 phút)",
+    "supportAttitude": "Rất nhiệt tình & chu đáo",
+    "accountQuality": "Đúng 100% như hình & mô tả",
+    "pricingPerception": "Hợp lý, vừa túi tiền",
+    "improvementSuggestion": "Tuấn hỗ trợ rất nhiệt tình, 10 điểm!",
+    "recommendScore": 10,
+    "customerName": "Minh Quân",
+    "customerZalo": "0912345678"
+  },
+  {
+    "id": "survey-rev-rev-1790088050220-594",
+    "createdAt": "2026-09-22T14:40:50.220Z",
+    "servicesUsed": [
+      "Thuê Acc TFT"
+    ],
+    "satisfactionRating": 5,
+    "deliverySpeed": "⚡ Siêu nhanh (< 1 phút)",
+    "supportAttitude": "🌟 Rất nhiệt tình & chu đáo",
+    "accountQuality": "🎯 Đúng 100% như hình & mô tả",
+    "pricingPerception": "Hợp lý, vừa túi tiền",
+    "improvementSuggestion": "Acc chơi rất mượt, giao nhanh chưa đầy 1 phút! | Góp ý thêm: Shop bổ sung thêm gói thuê theo ngày nhé",
+    "recommendScore": 10,
+    "customerName": "Nguyễn Văn Đạt",
+    "customerZalo": "0987654321",
+    "giftDelivered": false,
+    "customAnswers": {
+      "isGoogleReview": true,
+      "googleAvatar": "https://api.dicebear.com/7.x/bottts/svg?seed=Nguy%E1%BB%85n%20V%C4%83n%20%C4%90%E1%BA%A1t",
+      "vipTier": "BRONZE",
+      "accountBought": "Thuê Acc VIP TFT"
+    }
+  },
+  {
     "id": "survey-rev-rev-1790076190175-258",
     "createdAt": "2026-09-22T11:23:10.175Z",
     "servicesUsed": [

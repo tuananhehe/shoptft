@@ -497,7 +497,7 @@ export default function AdminSurveysPage() {
           }`}
         >
           <Star className="w-4 h-4 text-amber-300 fill-amber-300" />
-          <span>⭐ Đánh Giá Google & Khách Hàng ({reviews.length})</span>
+          <span>⭐ Đánh Giá & Góp Ý Khách Hàng ({reviews.length})</span>
         </button>
 
         <button
@@ -529,7 +529,7 @@ export default function AdminSurveysPage() {
       </div>
 
       {/* ============================================================ */}
-      {/* TAB REVIEWS: ĐÁNH GIÁ GOOGLE & KHÁCH HÀNG                    */}
+      {/* TAB REVIEWS: ĐÁNH GIÁ & GÓP Ý KHÁCH HÀNG                    */}
       {/* ============================================================ */}
       {activeTab === "REVIEWS" && (
         <div className="space-y-6 animate-fadeIn">
@@ -559,13 +559,13 @@ export default function AdminSurveysPage() {
 
             <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
               <div className="flex items-center justify-between text-blue-700 text-xs font-bold">
-                <span>Tài Khoản Google</span>
+                <span>Có Số Zalo / SĐT</span>
                 <Sparkles className="w-4 h-4 text-blue-600" />
               </div>
               <div className="text-2xl sm:text-3xl font-black text-blue-600 font-mono">
-                {reviews.filter((r) => r.isGoogleUser).length}
+                {reviews.filter((r) => r.customerZalo && r.customerZalo.length > 0).length}
               </div>
-              <div className="text-[11px] text-blue-700 font-medium">Xác thực chính chủ</div>
+              <div className="text-[11px] text-blue-700 font-medium">Khách để lại liên hệ</div>
             </div>
 
             <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">

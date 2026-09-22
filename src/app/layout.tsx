@@ -3,8 +3,6 @@ import fs from "fs";
 import path from "path";
 import { Inter, Montserrat, Roboto_Mono } from "next/font/google";
 import { Toaster } from "react-hot-toast";
-import { UserAuthProvider } from "@/context/user-auth-context";
-import { UserProfileModal } from "@/components/user-profile-modal";
 import "./globals.css";
 
 const inter = Inter({
@@ -370,10 +368,7 @@ export default function RootLayout({
             },
           }}
         />
-        <UserAuthProvider>
-          <UserProfileModal />
-          {children}
-        </UserAuthProvider>
+        {children}
       </body>
     </html>
   );

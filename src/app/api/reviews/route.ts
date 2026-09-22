@@ -148,12 +148,9 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    if (!body.customerName || !body.customerName.trim()) {
-      return NextResponse.json(
-        { success: false, error: "Vui lòng nhập tên hoặc đăng nhập Google để đánh giá!" },
-        { status: 400 }
-      );
-    }
+    const customerName = (body.customerName && body.customerName.trim())
+      ? body.customerName.trim()
+      : "Cờ Thủ ĐTCL";
 
     if (!body.comment || !body.comment.trim()) {
       return NextResponse.json(
@@ -171,9 +168,9 @@ export async function POST(req: NextRequest) {
 
     const newReview: CustomerReviewItem = {
       id: newId,
-      customerName: body.customerName.trim(),
+      customerName: customerName,
       customerEmail: body.customerEmail ? body.customerEmail.trim() : undefined,
-      customerAvatar: body.customerAvatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(body.customerName)}`,
+      customerAvatar: body.customerAvatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(customerName)}`,
       customerZalo: body.customerZalo ? body.customerZalo.trim() : undefined,
       vipTier: body.vipTier || "BRONZE",
       rating: Math.max(1, Math.min(5, Math.round(Number(body.rating) || 5))),
