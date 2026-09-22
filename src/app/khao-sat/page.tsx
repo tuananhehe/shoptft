@@ -15,7 +15,6 @@ import toast from "react-hot-toast";
 import {
   Star,
   CheckCircle2,
-  Sparkles,
   Send,
   Loader2,
   Gift,
@@ -454,11 +453,10 @@ export default function KhaoSatPage() {
               <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-5 sm:p-7 space-y-4 animate-fadeIn">
                 {/* Hero Header */}
                 <div className="text-center space-y-1.5 pb-1">
-                  <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-orange-700 bg-orange-100 border border-orange-200 px-3 py-1 rounded-full">
-                    <Sparkles className="w-3.5 h-3.5 text-orange-600" />
+                  <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-orange-700 bg-orange-100 border border-orange-200 px-3 py-1 rounded-full">
                     <span>Khảo sát 30s • Nhận Voucher 50K & Acc Gacha</span>
                   </div>
-                  <h1 className="text-base sm:text-lg font-black text-slate-900 font-gaming leading-tight pt-1">
+                  <h1 className="text-base sm:text-lg font-bold text-slate-900 leading-tight pt-1">
                     Bạn muốn đánh giá dịch vụ nào của Tuấn?
                   </h1>
                   <p className="text-xs text-slate-500 max-w-sm mx-auto">

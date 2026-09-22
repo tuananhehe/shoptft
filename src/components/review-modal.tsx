@@ -8,7 +8,6 @@ import {
   Star,
   Send,
   MessageSquarePlus,
-  Sparkles,
   User,
   Phone,
   CheckCircle2,
@@ -72,16 +71,15 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({ isOpen, onClose, onSuc
       accountBought: categoryTitles[category] || "Dịch vụ TFT",
       comment: comment.trim(),
       improvementSuggestion: suggestion.trim() || undefined,
-      verifiedTag: "Khách Đã Thuê Acc ⭐",
+      verifiedTag: "Khách Đã Thuê Acc",
       isGoogleUser: false,
     });
 
     setSubmitting(false);
 
     if (res.success) {
-      toast.success("🎉 Cảm ơn bạn! Đánh giá đã được lưu vào hệ thống và hiển thị lên web!", {
+      toast.success("Cảm ơn bạn! Đánh giá đã được lưu vào hệ thống và hiển thị lên web!", {
         id: toastId,
-        icon: "⭐",
       });
       setComment("");
       setSuggestion("");

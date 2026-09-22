@@ -10,7 +10,6 @@ import {
   MessageCircle,
   ShieldCheck,
   Zap,
-  Sparkles,
   CheckCircle2,
   Clock,
   Lock,
@@ -199,9 +198,8 @@ export const TFTFaq: React.FC<TFTFaqProps> = ({ customFaqs }) => {
         {/* Need More Help Card (CTA) */}
         <div className="mt-12 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 text-white flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl shadow-orange-600/15 relative overflow-hidden">
           <div className="space-y-1.5 text-center sm:text-left z-10">
-            <span className="text-xs font-bold uppercase tracking-wider text-orange-200 flex items-center justify-center sm:justify-start gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Hỗ Trợ Trực Tuyến 24/7</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-orange-200">
+              Hỗ Trợ Trực Tuyến 24/7
             </span>
             <h3 className="text-lg sm:text-xl font-black">
               Bạn vẫn còn câu hỏi thắc mắc khác?

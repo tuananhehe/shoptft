@@ -1,0 +1,42 @@
+[
+  {
+    "id": "PAY-6MC8AQ",
+    "accountCode": "VIP 01",
+    "accountTitle": "KHÔNG RANK - Gwen Tiệm Trà Ngọt Ngào Tí Nị - Hàng Hiệu",
+    "accountCategory": "VIP",
+    "thumbnail": "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/loadouts/companions/tooltip_chibigwen_cafecuties_cafecuties1_tier1.png",
+    "packageName": "Gói Lâu Dài (Vô Cực ∞)",
+    "durationHours": 23976,
+    "amount": 899000,
+    "bankId": "ACB",
+    "bankName": "Ngân hàng TMCP Á Châu (ACB)",
+    "accountNumber": "11461711",
+    "accountHolder": "VU TUAN ANH",
+    "qrTemplate": "compact",
+    "transferContent": "TFT DONATE VIP 01",
+    "qrUrl": "https://img.vietqr.io/image/ACB-11461711-compact.png?amount=899000&addInfo=TFT%20DONATE%20VIP%2001&accountName=VU%20TUAN%20ANH",
+    "createdAt": 1790109358931,
+    "expiresAt": 1790109658931,
+    "status": "ACTIVE"
+  },
+  {
+    "id": "PAY-D6Q4D2",
+    "accountCode": "MS: 8899",
+    "accountTitle": "Ahri H�ng Hi?u + S�n Th?n Tho?i",
+    "accountCategory": "VIP",
+    "thumbnail": "",
+    "packageName": "G�i 24 Gi?",
+    "durationHours": 24,
+    "amount": 45000,
+    "bankId": "ACB",
+    "bankName": "Ngân hàng TMCP Á Châu (ACB)",
+    "accountNumber": "23456789",
+    "accountHolder": "TUAN THAI BINH",
+    "qrTemplate": "compact2",
+    "transferContent": "THUE ACC 8899",
+    "qrUrl": "https://img.vietqr.io/image/ACB-23456789-compact2.png?amount=45000&addInfo=THUE%20ACC%208899&accountName=TUAN%20THAI%20BINH",
+    "createdAt": 1790109286036,
+    "expiresAt": 1790109586036,
+    "status": "COMPLETED"
+  }
+]

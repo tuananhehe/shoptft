@@ -58,24 +58,6 @@ export default function HomePage() {
         <TFTHero heroConfig={config?.hero} imagesConfig={config?.images} />
       )}
 
-      {/* 2.5. Mobile Quick Inventory Switcher (1-Chạm chuyển nhanh Kho VIP & Kho Clone) */}
-      <div className="lg:hidden sticky top-[53px] z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 py-2 px-3 shadow-xs">
-        <div className="grid grid-cols-2 gap-2 max-w-md mx-auto">
-          <a
-            href="#shop"
-            className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold shadow-xs text-center active:scale-95 transition-all truncate"
-          >
-            <span>👑 Kho VIP (Theo Giờ)</span>
-          </a>
-          <a
-            href="#clone-shop"
-            className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 text-xs font-bold shadow-2xs text-center active:scale-95 transition-all truncate"
-          >
-            <span>⚡ Kho Clone (Sở Hữu)</span>
-          </a>
-        </div>
-      </div>
-
       {/* 3. Core TFT Account Rental Shop */}
       {sections.vipShop !== false && (
         <TFTShop onSelectAccount={(acc) => setSelectedAccount(acc)} />

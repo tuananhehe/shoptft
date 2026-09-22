@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   ExternalLink,
   Users,
-  Sparkles,
   Headset,
   Award,
   Lock,

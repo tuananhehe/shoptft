@@ -22,7 +22,6 @@ import {
   ChevronUp,
   ChevronLeft,
   ChevronRight,
-  Flame,
   Layers,
   Loader2,
   ArrowUpDown,
@@ -340,7 +339,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
   }, [showFullCatalog, visibleCount, filteredAccounts.length]);
 
   return (
-    <section id="shop" className="pt-6 pb-8 sm:pt-16 sm:pb-16 lg:pt-20 lg:pb-20 bg-[#F8F9FA] border-t border-slate-200/90 border-b border-slate-200/90 text-slate-900 relative overflow-hidden">
+    <section id="shop" className="scroll-mt-14 sm:scroll-mt-20 pt-6 pb-8 sm:pt-16 sm:pb-16 lg:pt-20 lg:pb-20 bg-[#F8F9FA] border-t border-slate-200/90 border-b border-slate-200/90 text-slate-900 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4 sm:mb-8">
         {/* Section Header */}
         <motion.div
@@ -351,13 +350,12 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
           className="flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-4"
         >
           <div className="space-y-1 sm:space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3.5 sm:py-1 rounded-full bg-orange-100/80 border border-orange-200 text-orange-700 text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-2xs">
-              <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-600" />
-              <span>Tài Khoản & Dịch Vụ Nổi Bật</span>
-            </div>
+            <span className="text-xs font-semibold text-orange-600 tracking-wider uppercase">
+              Tài Khoản Nổi Bật
+            </span>
 
-            <h2 className="text-xl sm:text-4xl font-black tracking-tight text-slate-900 font-gaming uppercase">
-              KHO THUÊ ACC TFT VIP
+            <h2 className="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 uppercase">
+              Kho Thuê Acc VIP
             </h2>
             <p className="text-slate-600 text-xs sm:text-base max-w-2xl font-normal line-clamp-2 sm:line-clamp-none">
               Trải nghiệm acc VIP sở hữu Tướng Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc chỉ từ 6k/giờ. Tự động nhận pass sau khi thanh toán.
@@ -438,7 +436,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                     <div className={`absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5 ${account.status === "AVAILABLE" ? "hidden sm:block" : ""}`}>
                       {account.status === "AVAILABLE" ? (
                         <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-emerald-600/90 text-white text-[8px] sm:text-[10px] font-bold tracking-tight sm:tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
-                          <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white animate-pulse" />
+                          <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white" />
                           <span>SẴN SÀNG</span>
                         </span>
                       ) : (
@@ -474,7 +472,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                     onClick={() => onSelectAccount(account)}
                     className="hidden sm:flex text-[10px] sm:text-xs text-slate-500 line-clamp-1 truncate mt-0.5 sm:mt-1 font-medium items-center gap-1 h-3.5 sm:h-4 cursor-pointer"
                   >
-                    <span>🏟️</span>
+                    <span className="text-slate-400">Sân:</span>
                     <span className="truncate">{account.mainArena}</span>
                   </p>
                 </div>
@@ -622,7 +620,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                       : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/60"
                   }`}
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                   <span>Sẵn Sàng ({statusStats.available})</span>
                 </button>
                 <button
@@ -761,8 +759,8 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                   / {filteredAccounts.length} tài khoản VIP phù hợp
                 </span>
                 {visibleCount < filteredAccounts.length && (
-                  <span className="text-[11px] text-orange-600 font-semibold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-orange-600 animate-ping" />
+                  <span className="text-[11px] text-orange-600 font-semibold flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-600" />
                     Tự động tải thêm khi cuộn
                   </span>
                 )}
@@ -799,7 +797,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                         <div className={`absolute top-1.5 left-1.5 sm:top-3 sm:left-3 z-10 ${account.status === "AVAILABLE" ? "hidden sm:block" : ""}`}>
                           {account.status === "AVAILABLE" ? (
                             <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-emerald-600/90 text-white text-[8px] sm:text-[10px] font-bold tracking-tight sm:tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
-                              <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white animate-pulse" />
+                              <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white" />
                               <span>SẴN SÀNG</span>
                             </span>
                           ) : (
@@ -835,7 +833,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                         onClick={() => onSelectAccount(account)}
                         className="hidden sm:flex text-[10px] sm:text-xs text-slate-500 line-clamp-1 mt-0.5 sm:mt-1 font-medium items-center gap-1 cursor-pointer"
                       >
-                        <span>🏟️</span>
+                        <span className="text-slate-400">Sân:</span>
                         <span>{account.mainArena}</span>
                       </p>
                     </div>

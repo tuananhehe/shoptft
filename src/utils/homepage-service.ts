@@ -3,6 +3,9 @@
  * ShopTFT Mobile - Tuấn Thái Bình
  */
 
+import { BankConfig } from "./vietqr-helper";
+export type { BankConfig };
+
 export interface HomepageSections {
   hero: boolean;
   alertBanner: boolean;
@@ -100,6 +103,7 @@ export interface HomepageConfig {
   seo?: SEOConfig;
   pricing?: PricingConfig;
   contact?: ContactConfig;
+  bank?: BankConfig;
   servicePackages: ServicePackageItem[];
   faqs: FAQConfigItem[];
 }

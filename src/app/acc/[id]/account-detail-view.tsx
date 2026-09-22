@@ -23,12 +23,10 @@ import {
   Clock,
   KeyRound,
   Zap,
-  Sparkles,
   Phone,
   MessageCircle,
   ExternalLink,
   ChevronRight,
-  Flame,
   Award,
   Layers,
   HelpCircle,
@@ -419,7 +417,7 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                 <div className="absolute top-3 left-3">
                   {!isRented ? (
                     <span className="px-2.5 py-1 rounded-lg bg-emerald-600/95 text-white text-[11px] font-bold tracking-wider uppercase backdrop-blur-md flex items-center gap-1.5 shadow-md">
-                      <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                      <span className="w-2 h-2 rounded-full bg-white" />
                       <span>SẴN SÀNG</span>
                     </span>
                   ) : (
@@ -522,29 +520,28 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                 </span>
                 {account.tag && (
                   <span className="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-orange-100 text-orange-700 border border-orange-200">
-                    🔥 {account.tag}
+                    {account.tag}
                   </span>
                 )}
               </div>
 
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 leading-tight font-gaming tracking-tight">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 leading-tight tracking-tight">
                 {account.title}
               </h1>
 
               {/* Asset Tags Cloud (Tướng Tí Nị & Sân Đấu) */}
               <div className="pt-2 border-t border-slate-100 space-y-2">
-                <div className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Tài sản & vật phẩm sở hữu:</span>
+                <div className="text-xs font-bold text-slate-700">
+                  Tài sản & vật phẩm sở hữu:
                 </div>
 
                 <div className="flex flex-wrap gap-1.5">
                   {allChibis.map((chibi, idx) => (
                     <span
                       key={`chibi-${idx}`}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold"
                     >
-                      <span>👑</span>
+                      <span className="text-amber-600 text-[10px] font-bold">Tí Nị:</span>
                       <span>{chibi}</span>
                     </span>
                   ))}
@@ -552,9 +549,9 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                   {allArenas.map((arena, idx) => (
                     <span
                       key={`arena-${idx}`}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 border border-sky-200 text-sky-900 text-xs font-semibold"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-50 border border-sky-200 text-sky-900 text-xs font-semibold"
                     >
-                      <span>🏟️</span>
+                      <span className="text-sky-600 text-[10px] font-bold">Sân:</span>
                       <span>{arena}</span>
                     </span>
                   ))}
@@ -578,9 +575,8 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
               /* CLONE ACCOUNT FULL OWNERSHIP CARD (Khớp 100% Kho Clone) */
               <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-4 sm:p-6 shadow-sm space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-orange-600" />
-                    <span>Gói Sở Hữu Vô Cực (Bàn Giao Về Chính Chủ):</span>
+                  <h2 className="text-sm sm:text-base font-bold text-slate-900">
+                    Gói Sở Hữu Lâu Dài (Bàn Giao Về Chính Chủ):
                   </h2>
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                     Bảo hành trọn đời
@@ -757,7 +753,7 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                   </div>
                   {selectedPackage === "perm" && (
                     <div className="mt-1 pt-1.5 border-t border-emerald-100 text-[11px] text-emerald-800 bg-emerald-50/70 p-2 rounded-lg flex items-start gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0 mt-0.5" />
                       <span>
                         <strong>Đặc quyền gói Lâu Dài:</strong> Bàn giao thông tin acc về chính chủ, sở hữu lâu dài.
                       </span>
@@ -765,7 +761,7 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                   )}
                   {selectedPackage === "30d" && (
                     <div className="mt-1 pt-1.5 border-t border-orange-100 text-[11px] text-orange-700 bg-orange-50/50 p-2 rounded-lg">
-                      💡 <strong>Chính sách nâng cấp:</strong> Gói 30 ngày được hoàn 70% giá trị để nâng cấp lên Thuê Lâu Dài Vô Cực bất cứ lúc nào!
+                      <strong>Chính sách nâng cấp:</strong> Gói 30 ngày được hoàn 70% giá trị để nâng cấp lên Thuê Lâu Dài bất cứ lúc nào!
                     </div>
                   )}
                 </div>

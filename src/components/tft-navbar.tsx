@@ -67,7 +67,7 @@ export const TFTNavbar: React.FC<TFTNavbarProps> = ({ sectionsConfig }) => {
                 alt="Logo Tuấn Thái Bình - Shop Thuê Acc TFT ĐTCL Uy Tín"
                 className="w-full h-full rounded-[8px] sm:rounded-[10px] object-cover"
               />
-              <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-emerald-500 border-2 border-white animate-pulse" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-500 border-2 border-white shadow-2xs" />
             </div>
 
             <div className="border-l border-slate-200/80 pl-2 sm:pl-3 min-w-0">
@@ -75,7 +75,7 @@ export const TFTNavbar: React.FC<TFTNavbarProps> = ({ sectionsConfig }) => {
                 <span className="font-extrabold text-xs sm:text-base tracking-tight text-slate-900 group-hover:text-orange-600 transition-colors truncate">
                   {PROFILE_INFO.realName}
                 </span>
-                <span className="bg-orange-100 text-orange-700 text-[8px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.2 sm:py-0.5 rounded uppercase tracking-wider border border-orange-200 flex-shrink-0">
+                <span className="bg-orange-100 text-orange-700 text-[8px] sm:text-[9px] font-bold px-1 sm:px-1.5 py-0.2 sm:py-0.5 rounded uppercase tracking-wider border border-orange-200 flex-shrink-0">
                   PRO
                 </span>
               </div>
@@ -105,9 +105,8 @@ export const TFTNavbar: React.FC<TFTNavbarProps> = ({ sectionsConfig }) => {
             {sections?.vipShop !== false && (
               <Link
                 href="/#shop"
-                className="hidden lg:inline-flex items-center gap-1.5 px-5 py-2.5 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-sm rounded-xl shadow-md shadow-orange-700/20 hover:shadow-lg transition-all hover:scale-105"
+                className="hidden lg:inline-flex items-center px-5 py-2.5 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold text-sm rounded-xl shadow-sm transition-all"
               >
-                <KeyRound className="w-4 h-4" />
                 <span>Thuê Acc Ngay</span>
               </Link>
             )}
@@ -125,27 +124,19 @@ export const TFTNavbar: React.FC<TFTNavbarProps> = ({ sectionsConfig }) => {
         </div>
       </div>
 
-      {/* Mobile Menu Drawer */}
+      {/* MOBILE FULL-WIDTH DRAWER DROPDOWN */}
       {mobileOpen && (
-        <div className="lg:hidden bg-white border-b border-slate-200 px-4 py-4 space-y-3 shadow-xl animate-fadeIn max-h-[85vh] overflow-y-auto">
-          {/* Quick Access Top Cards for Mobile */}
-          <div className="grid grid-cols-2 gap-2 pb-1">
+        <div className="lg:hidden border-t border-slate-200 bg-white/98 backdrop-blur-xl px-4 py-4 shadow-xl space-y-3 animate-fadeIn">
+          {/* 2 Nút Danh Mục Nhanh Mobile */}
+          <div className="grid grid-cols-2 gap-2">
             {sections?.vipShop !== false && (
               <Link
                 href="/#shop"
                 onClick={() => setMobileOpen(false)}
-                className="p-3 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200 flex flex-col justify-between text-left group active:scale-98 transition-all"
+                className="p-3 rounded-xl bg-orange-50/80 border border-orange-200/80 flex flex-col justify-between text-left group active:scale-98 transition-all"
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase text-orange-700 bg-orange-200/60 px-1.5 py-0.5 rounded">
-                    VIP PRO
-                  </span>
-                  <KeyRound className="w-4 h-4 text-orange-600" />
-                </div>
-                <div className="mt-2">
-                  <span className="font-bold text-xs text-slate-900 block">Kho Thuê Acc VIP</span>
-                  <span className="text-[10px] text-slate-500 font-medium">Tướng Tí Nị + Sân EDM</span>
-                </div>
+                <span className="font-bold text-xs text-slate-900 block">Kho VIP (Theo Giờ)</span>
+                <span className="text-[10px] text-slate-500 font-medium mt-0.5">Tướng Tí Nị & Sân EDM</span>
               </Link>
             )}
 
@@ -155,16 +146,8 @@ export const TFTNavbar: React.FC<TFTNavbarProps> = ({ sectionsConfig }) => {
                 onClick={() => setMobileOpen(false)}
                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between text-left group active:scale-98 transition-all"
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase text-slate-700 bg-slate-200/80 px-1.5 py-0.5 rounded">
-                    VÔ CỰC ∞
-                  </span>
-                  <MessageCircle className="w-4 h-4 text-slate-600" />
-                </div>
-                <div className="mt-2">
-                  <span className="font-bold text-xs text-slate-900 block">Kho Acc Clone</span>
-                  <span className="text-[10px] text-slate-500 font-medium">Bàn giao Full TT</span>
-                </div>
+                <span className="font-bold text-xs text-slate-900 block">Kho Clone (Sở Hữu)</span>
+                <span className="text-[10px] text-slate-500 font-medium mt-0.5">Bàn giao Full thông tin</span>
               </Link>
             )}
           </div>

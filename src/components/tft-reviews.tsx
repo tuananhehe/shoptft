@@ -10,7 +10,6 @@ import {
   ChevronLeft,
   ChevronRight,
   MessageSquarePlus,
-  Sparkles,
   MessageCircle,
 } from "lucide-react";
 
@@ -115,18 +114,17 @@ export const TFTReviews: React.FC = () => {
           </h2>
           <p className="text-slate-600 text-sm sm:text-base font-normal">
             Hơn 4,500+ lượt thuê tài khoản và {totalCount.toLocaleString("vi-VN")}+ giao dịch thành công. Điểm đánh giá trung bình:{" "}
-            <strong className="text-amber-600 font-black">{averageRating} ⭐ / 5.0</strong>.
+            <strong className="text-amber-600 font-black">{averageRating} / 5.0</strong>.
           </p>
 
           {/* Action Bar: Nút Viết Đánh Giá Mới */}
           <div className="pt-2 flex items-center justify-center gap-3">
             <button
               onClick={() => setIsReviewModalOpen(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 active:scale-95 text-white text-xs sm:text-sm font-extrabold shadow-lg shadow-orange-600/25 transition-all cursor-pointer group"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 active:scale-95 text-white text-xs sm:text-sm font-bold shadow-md shadow-orange-600/20 transition-all cursor-pointer"
             >
-              <MessageSquarePlus className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-              <span>⭐ Viết Đánh Giá / Gửi Góp Ý</span>
-              <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+              <MessageSquarePlus className="w-4 h-4" />
+              <span>Gửi Đánh Giá & Góp Ý</span>
             </button>
           </div>
         </div>

@@ -12,7 +12,6 @@ import {
   KeyRound,
   Gamepad2,
   Clock,
-  Sparkles,
   ShieldCheck,
   Gift,
   Star,
@@ -26,7 +25,6 @@ import {
   Send,
   AlertCircle,
   Phone,
-  Flame,
   Zap,
 } from "lucide-react";
 
@@ -248,8 +246,7 @@ export const UserProfileModal: React.FC = () => {
                   className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/40 font-bold text-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap"
                   title="Test nhanh tài khoản Google trên môi trường Local"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>⚡ Test Nhanh Local</span>
+                  <span>Test Nhanh Local</span>
                 </button>
               </div>
             </div>
@@ -402,7 +399,7 @@ export const UserProfileModal: React.FC = () => {
                             <div
                               className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black border ${
                                 countdown.isExpiringSoon
-                                  ? "bg-rose-50 text-rose-700 border-rose-200 animate-pulse"
+                                  ? "bg-rose-50 text-rose-700 border-rose-200"
                                   : "bg-emerald-50 text-emerald-700 border-emerald-200"
                               }`}
                             >
@@ -416,7 +413,7 @@ export const UserProfileModal: React.FC = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-white p-3.5 rounded-xl border border-slate-200/90 text-xs">
                           <div>
                             <span className="text-[11px] text-slate-400 font-bold block mb-1">
-                              👤 TÀI KHOẢN (RIOT ID / LOGIN):
+                              TÀI KHOẢN (RIOT ID / LOGIN):
                             </span>
                             <div className="flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-200 font-mono font-bold text-slate-800">
                               <span>{rental.accountLogin}</span>
@@ -436,7 +433,7 @@ export const UserProfileModal: React.FC = () => {
 
                           <div>
                             <span className="text-[11px] text-slate-400 font-bold block mb-1">
-                              🔑 MẬT KHẨU ĐĂNG NHẬP:
+                              MẬT KHẨU ĐĂNG NHẬP:
                             </span>
                             <div className="flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-200 font-mono font-bold text-orange-700">
                               <span>{rental.accountPass}</span>
@@ -554,7 +551,7 @@ export const UserProfileModal: React.FC = () => {
                           {vipInfo.nextTier.name} ({vipInfo.progressPercent}%)
                         </span>
                       ) : (
-                        <span className="font-black text-rose-400">ĐÃ ĐẠT CẤP TỐI ĐA 👑</span>
+                        <span className="font-black text-rose-400">ĐÃ ĐẠT CẤP TỐI ĐA</span>
                       )}
                     </div>
 
@@ -567,7 +564,7 @@ export const UserProfileModal: React.FC = () => {
 
                     {vipInfo.nextTier && (
                       <p className="text-[11px] text-slate-400">
-                        ⚡ Cần thêm <strong className="text-white">{vipInfo.ordersNeeded} đơn</strong> hoặc chi tiêu thêm{" "}
+                        Cần thêm <strong className="text-white">{vipInfo.ordersNeeded} đơn</strong> hoặc chi tiêu thêm{" "}
                         <strong className="text-amber-300">{vipInfo.spentNeeded.toLocaleString("vi-VN")}đ</strong> để lên{" "}
                         {vipInfo.nextTier.name}!
                       </p>
@@ -593,9 +590,8 @@ export const UserProfileModal: React.FC = () => {
 
               {/* 4 ĐẶC QUYỀN VIP LỚN */}
               <div className="space-y-3">
-                <h4 className="text-sm font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-500" />
-                  <span>4 Đặc Quyền Dành Riêng Cho Bạn ({vipInfo.currentTier.badge})</span>
+                <h4 className="text-sm font-black text-slate-900 uppercase tracking-tight">
+                  4 Đặc Quyền Dành Riêng Cho Bạn ({vipInfo.currentTier.badge})
                 </h4>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">

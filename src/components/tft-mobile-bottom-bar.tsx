@@ -95,10 +95,6 @@ export const TFTMobileBottomBar: React.FC = () => {
         >
           <div className="relative">
             <Crown className="w-5 h-5" />
-            <span className="absolute -top-1 -right-2 flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-600" />
-            </span>
             {activeTab === "shop" && !isSurveyPage && (
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-orange-600" />
             )}
@@ -122,7 +118,7 @@ export const TFTMobileBottomBar: React.FC = () => {
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-orange-600" />
             )}
           </div>
-          <span className="text-[10px] tracking-tight mt-1">Acc Clone</span>
+          <span className="text-[10px] tracking-tight mt-1">Kho Clone</span>
         </a>
 
         {/* 4. Chat Zalo (Nổi Bật) */}

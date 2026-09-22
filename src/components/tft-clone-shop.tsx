@@ -13,7 +13,6 @@ import { TFTImageLightbox } from "@/components/tft-image-lightbox";
 import { ZaloRedirectModal } from "@/components/zalo-redirect-modal";
 import { motion, Variants } from "framer-motion";
 import {
-  Sparkles,
   KeyRound,
   ShieldCheck,
   CheckCircle2,
@@ -409,7 +408,7 @@ export const TFTCloneShop: React.FC = () => {
   };
 
   return (
-    <section id="clone-shop" className="py-6 sm:py-14 bg-white border-b border-slate-200/80 relative overflow-hidden">
+    <section id="clone-shop" className="scroll-mt-14 sm:scroll-mt-20 py-6 sm:py-14 bg-white border-b border-slate-200/80 relative overflow-hidden">
       {/* Background Subtle Tech Texture */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-25 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px]" />
 
@@ -424,16 +423,15 @@ export const TFTCloneShop: React.FC = () => {
         >
           <div className="space-y-1 sm:space-y-2">
             {/* Tag phụ (Badge nền cam nhạt) */}
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3.5 sm:py-1 rounded-full bg-orange-100/80 border border-orange-200 text-orange-700 text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-2xs font-gaming">
-              <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-600 animate-pulse" />
-              <span>Sở Hữu Vô Cực • Bàn Giao Về Chính Chủ</span>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3.5 sm:py-1 rounded-full bg-orange-100/80 border border-orange-200 text-orange-700 text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-2xs">
+              <span>Sở Hữu Lâu Dài • Bàn Giao Về Chính Chủ</span>
             </div>
 
-            {/* Tiêu đề chính h2 font Esports Gaming */}
-            <h2 className="text-xl sm:text-4xl font-black tracking-tight text-slate-900 font-gaming uppercase">
-              KHO ACC CLONE / SMURF{" "}
+            {/* Tiêu đề chính */}
+            <h2 className="text-xl sm:text-4xl font-black tracking-tight text-slate-900 uppercase">
+              KHO ACC CLONE & SMURF{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500">
-                (THUÊ LÂU DÀI ∞)
+                (SỞ HỮU LÂU DÀI)
               </span>
             </h2>
 
@@ -520,7 +518,7 @@ export const TFTCloneShop: React.FC = () => {
                       <div className={`absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5 ${account.status === "AVAILABLE" ? "hidden sm:block" : ""}`}>
                         {account.status === "AVAILABLE" ? (
                           <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-emerald-600/90 text-white text-[8px] sm:text-[10px] font-bold tracking-tight sm:tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
-                            <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white animate-pulse" />
+                            <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white" />
                             <span>SẴN SÀNG</span>
                           </span>
                         ) : (
@@ -711,7 +709,7 @@ export const TFTCloneShop: React.FC = () => {
                       : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/60"
                   }`}
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                   <span>Sẵn Sàng ({cloneStatusStats.available})</span>
                 </button>
                 <button
@@ -851,7 +849,7 @@ export const TFTCloneShop: React.FC = () => {
                 </span>
                 {visibleCount < filteredCloneAccounts.length && (
                   <span className="text-[11px] text-orange-600 font-semibold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-orange-600 animate-ping" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-600" />
                     Tự động tải thêm khi cuộn
                   </span>
                 )}
@@ -891,7 +889,7 @@ export const TFTCloneShop: React.FC = () => {
                           <div className={`absolute top-1.5 left-1.5 sm:top-3 sm:left-3 z-10 ${account.status === "AVAILABLE" ? "hidden sm:block" : ""}`}>
                             {account.status === "AVAILABLE" ? (
                               <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded sm:rounded-md bg-emerald-600/90 text-white text-[8px] sm:text-[10px] font-bold tracking-tight sm:tracking-wider uppercase backdrop-blur-sm flex items-center gap-1 shadow-sm">
-                                <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white animate-pulse" />
+                                <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white" />
                                 <span>SẴN SÀNG</span>
                               </span>
                             ) : (
@@ -1057,12 +1055,12 @@ export const TFTCloneShop: React.FC = () => {
 
                 {(selectedClone.status || "").toUpperCase() !== "RENTED" ? (
                   <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[10px] sm:text-[11px] flex items-center gap-1 border border-emerald-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
                     <span>SẴN SÀNG</span>
                   </span>
                 ) : (
                   <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-bold text-[10px] sm:text-[11px] flex items-center gap-1 border border-rose-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
                     <span>ĐANG THUÊ</span>
                   </span>
                 )}
@@ -1118,9 +1116,8 @@ export const TFTCloneShop: React.FC = () => {
                   <h3 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1">
                     {selectedClone.title}
                   </h3>
-                  <p className="text-[11px] sm:text-xs text-slate-600 font-medium line-clamp-1 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-orange-600 flex-shrink-0" />
-                    <span>Thuê lâu dài (Sở hữu vô cực ∞)</span>
+                  <p className="text-[11px] sm:text-xs text-slate-600 font-medium line-clamp-1">
+                    Thuê lâu dài (Sở hữu trọn đời)
                   </p>
                   <p className="text-[11px] sm:text-xs text-emerald-700 font-semibold flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 flex-shrink-0" />
@@ -1132,9 +1129,8 @@ export const TFTCloneShop: React.FC = () => {
               {/* Danh sách đặc điểm nổi bật (Nếu có) */}
               {selectedClone.features && selectedClone.features.length > 0 && (
                 <div className="space-y-2">
-                  <div className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-orange-600" />
-                    <span>Đặc Điểm & Cam Kết Bàn Giao:</span>
+                  <div className="text-xs font-bold text-slate-700">
+                    Đặc Điểm & Cam Kết Bàn Giao:
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedClone.features.map((feat, idx) => (
@@ -1154,7 +1150,7 @@ export const TFTCloneShop: React.FC = () => {
               {(selectedClone.status || "").toUpperCase() === "RENTED" ? (
                 <div className="bg-rose-50/90 border border-rose-200 rounded-2xl p-4 text-center space-y-3">
                   <div className="flex items-center justify-center gap-1.5 text-rose-800 font-bold text-xs sm:text-sm">
-                    <Lock className="w-4 h-4 text-rose-600 animate-pulse" />
+                    <Lock className="w-4 h-4 text-rose-600" />
                     <span>TÀI KHOẢN ĐANG CÓ KHÁCH THUÊ</span>
                   </div>
 

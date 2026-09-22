@@ -18,7 +18,14 @@ import {
   HelpCircle,
   Users,
   Loader2,
+  CreditCard,
+  QrCode,
+  Copy,
+  Check,
+  ExternalLink,
 } from "lucide-react";
+import { POPULAR_VIETNAM_BANKS, DEFAULT_BANK_CONFIG, buildVietQRUrl } from "@/utils/vietqr-helper";
+import { copyToClipboard } from "@/utils/clipboard-helper";
 
 export default function AdminSettingsPage() {
   // 1. Kênh hỗ trợ & Hotline
@@ -38,10 +45,18 @@ export default function AdminSettingsPage() {
     "🎁 Ưu đãi đặc biệt: Tặng thêm 1 giờ chơi và miễn phí phí đổi pass cố định cho khách hàng thuê lần đầu qua Zalo Tuấn Thái Bình!"
   );
 
+  // 4. Cấu hình Tài khoản Ngân Hàng & VietQR (Mặc định ACB)
+  const [bankId, setBankId] = useState<string>("ACB");
+  const [bankAccountNumber, setBankAccountNumber] = useState<string>("23456789");
+  const [bankAccountHolder, setBankAccountHolder] = useState<string>("TUAN THAI BINH");
+  const [qrTemplate, setQrTemplate] = useState<"compact2" | "compact" | "qr_only" | "print">("compact2");
+  const [transferSyntax, setTransferSyntax] = useState<string>("THUE ACC {CODE}");
+  const [copiedSettingField, setCopiedSettingField] = useState<string | null>(null);
+
   const [isLoadingConfig, setIsLoadingConfig] = useState(true);
   const [isSavingConfig, setIsSavingConfig] = useState(false);
 
-  // 4. Đổi Mật Khẩu Quản Trị
+  // 5. Đổi Mật Khẩu Quản Trị
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -66,6 +81,13 @@ export default function AdminSettingsPage() {
         if (cfg.alertBanner) {
           setIsBannerActive(cfg.alertBanner.active ?? true);
           setBannerContent(cfg.alertBanner.content || "");
+        }
+        if (cfg.bank) {
+          setBankId(cfg.bank.bankId || "ACB");
+          setBankAccountNumber(cfg.bank.accountNumber || "23456789");
+          setBankAccountHolder(cfg.bank.accountHolder || "TUAN THAI BINH");
+          setQrTemplate(cfg.bank.qrTemplate || "compact2");
+          setTransferSyntax(cfg.bank.transferSyntax || "THUE ACC {CODE}");
         }
         setIsLoadingConfig(false);
       }
@@ -124,6 +146,7 @@ export default function AdminSettingsPage() {
     const toastId = toast.loading("Đang lưu cài đặt hệ thống...");
 
     try {
+      const selectedBank = POPULAR_VIETNAM_BANKS.find((b) => b.id === bankId);
       const res = await updateHomepageConfig({
         pricing: {
           passChangeFee: Number(passChangeFee) || 20000,
@@ -135,6 +158,14 @@ export default function AdminSettingsPage() {
         contact: {
           phoneZalo: phoneZalo.trim() || PROFILE_INFO.phoneZalo,
           checkscamFund: checkscamFund.trim() || "30.000.000đ",
+        },
+        bank: {
+          bankId: bankId.trim() || "ACB",
+          bankName: selectedBank?.name || "Ngân hàng TMCP Á Châu (ACB)",
+          accountNumber: bankAccountNumber.trim() || "23456789",
+          accountHolder: bankAccountHolder.trim().toUpperCase() || "TUAN THAI BINH",
+          qrTemplate,
+          transferSyntax: transferSyntax.trim() || "THUE ACC {CODE}",
         },
         alertBanner: {
           active: isBannerActive,
@@ -431,6 +462,209 @@ export default function AdminSettingsPage() {
               <div className="bg-white p-2.5 rounded-lg border border-orange-200">
                 <span className="text-slate-500 block">Gói 30 Ngày:</span>
                 <strong className="text-red-600 font-mono font-bold">{sample30d.toLocaleString("vi-VN")}đ</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ============================================================ */}
+        {/* CARD 3: CẤU HÌNH TÀI KHOẢN NGÂN HÀNG & MÃ THANH TOÁN VIETQR  */}
+        {/* ============================================================ */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                <CreditCard className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-extrabold text-slate-900">
+                    Cấu Hình Tài Khoản Ngân Hàng & VietQR
+                  </h2>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 uppercase">
+                    Mặc định: ACB
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 font-normal">
+                  Thông tin này sẽ được dùng để tự động tạo mã QR thanh toán khi gạt nút cho thuê tài khoản.
+                </p>
+              </div>
+            </div>
+            <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500">
+              <QrCode className="w-4 h-4 text-blue-600" />
+              <span>VietQR Chuẩn NAPAS 247</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Form Fields: 7 cols */}
+            <div className="lg:col-span-7 space-y-4 text-xs">
+              {/* Ngân Hàng */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-800 block">
+                  Ngân Hàng Thụ Hưởng:
+                </label>
+                <select
+                  value={bankId}
+                  onChange={(e) => setBankId(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-blue-500 cursor-pointer"
+                >
+                  {POPULAR_VIETNAM_BANKS.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name} ({b.shortName})
+                    </option>
+                  ))}
+                </select>
+                <span className="text-[10px] text-slate-500 block">
+                  Ưu tiên: Ngân hàng ACB (Á Châu) hoặc các ngân hàng trong mạng lưới VietQR Napas.
+                </span>
+              </div>
+
+              {/* Số Tài Khoản */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-800 block">
+                  Số Tài Khoản Ngân Hàng:
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={bankAccountNumber}
+                    onChange={(e) => setBankAccountNumber(e.target.value.replace(/\s+/g, ""))}
+                    placeholder="Ví dụ: 23456789"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-slate-900 text-sm focus:outline-none focus:border-blue-500 pr-20"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      copyToClipboard(bankAccountNumber);
+                      setCopiedSettingField("accNumber");
+                      setTimeout(() => setCopiedSettingField(null), 2000);
+                      toast.success("Đã chép số tài khoản!");
+                    }}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 px-2 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 hover:text-blue-600 transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    {copiedSettingField === "accNumber" ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedSettingField === "accNumber" ? "Đã chép" : "Chép"}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Tên Chủ Tài Khoản */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-800 block">
+                  Tên Chủ Tài Khoản (In Hoa Không Dấu):
+                </label>
+                <input
+                  type="text"
+                  value={bankAccountHolder}
+                  onChange={(e) => setBankAccountHolder(e.target.value.toUpperCase())}
+                  placeholder="Ví dụ: TUAN THAI BINH"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold uppercase text-slate-900 focus:outline-none focus:border-blue-500 tracking-wider"
+                />
+              </div>
+
+              {/* Cú Pháp Nội Dung Chuyển Khoản Mẫu */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-800 flex items-center justify-between">
+                  <span>Cú Pháp Nội Dung Chuyển Khoản:</span>
+                  <span className="text-[10px] text-blue-600 font-semibold">{`Dùng {CODE} làm mã acc`}</span>
+                </label>
+                <input
+                  type="text"
+                  value={transferSyntax}
+                  onChange={(e) => setTransferSyntax(e.target.value)}
+                  placeholder="Ví dụ: THUE ACC {CODE}"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-blue-500 font-mono"
+                />
+                <p className="text-[11px] text-slate-500">
+                  Khi tạo QR cho acc <code className="bg-slate-100 px-1 py-0.5 rounded text-orange-600 font-mono font-bold">MS: 8899</code>, nội dung QR sẽ tự điền thành:{" "}
+                  <strong className="text-slate-900 font-mono font-bold">
+                    {transferSyntax.replace("{CODE}", "8899").replace("{PACKAGE}", "2H")}
+                  </strong>
+                </p>
+              </div>
+
+              {/* Mẫu QR Template */}
+              <div className="space-y-1.5 pt-1">
+                <label className="font-bold text-slate-800 block">
+                  Kiểu Hiển Thị Ảnh VietQR:
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: "compact2", label: "Chuẩn (Logo & Số Tiền)", desc: "Đầy đủ thông tin" },
+                    { id: "compact", label: "Tối Giản (Compact)", desc: "Logo + Mã QR" },
+                    { id: "qr_only", label: "Chỉ Mã QR", desc: "Ảnh QR thuần túy" },
+                  ].map((tpl) => (
+                    <button
+                      key={tpl.id}
+                      type="button"
+                      onClick={() => setQrTemplate(tpl.id as any)}
+                      className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
+                        qrTemplate === tpl.id
+                          ? "bg-blue-50 border-blue-600 text-blue-900 ring-1 ring-blue-500"
+                          : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                      }`}
+                    >
+                      <div className="font-bold text-[11px]">{tpl.label}</div>
+                      <div className="text-[10px] text-slate-500 mt-0.5">{tpl.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Live QR Preview Box: 5 cols */}
+            <div className="lg:col-span-5 bg-slate-50 p-4 rounded-2xl border border-slate-200/90 text-center space-y-3">
+              <div className="flex items-center justify-between text-xs font-bold text-slate-700 pb-2 border-b border-slate-200">
+                <span className="flex items-center gap-1.5">
+                  <QrCode className="w-4 h-4 text-blue-600" />
+                  <span>Xem Trước Mã VietQR Thật:</span>
+                </span>
+                <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                  Live Preview
+                </span>
+              </div>
+
+              {/* QR Image Box */}
+              <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-xs inline-block max-w-[240px] mx-auto">
+                <img
+                  src={buildVietQRUrl({
+                    bankId: bankId || "ACB",
+                    accountNumber: bankAccountNumber || "23456789",
+                    accountHolder: bankAccountHolder || "TUAN THAI BINH",
+                    amount: 50000,
+                    description: (transferSyntax || "THUE ACC {CODE}").replace("{CODE}", "8899"),
+                    template: qrTemplate,
+                  })}
+                  alt="Mã QR VietQR ACB"
+                  className="w-full h-auto object-contain rounded-lg"
+                  loading="lazy"
+                />
+              </div>
+
+              <div className="space-y-1.5 text-left text-xs bg-white p-3 rounded-xl border border-slate-200">
+                <div className="flex justify-between">
+                  <span className="text-slate-500 text-[11px]">Ngân hàng:</span>
+                  <span className="font-bold text-slate-900">{bankId}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 text-[11px]">Số tài khoản:</span>
+                  <span className="font-mono font-bold text-blue-600">{bankAccountNumber || "---"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 text-[11px]">Chủ tài khoản:</span>
+                  <span className="font-bold text-slate-800 uppercase">{bankAccountHolder || "---"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 text-[11px]">Số tiền demo:</span>
+                  <span className="font-mono font-bold text-red-600">50.000đ</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 text-[11px]">Nội dung demo:</span>
+                  <span className="font-mono font-bold text-slate-700 truncate max-w-[150px]">
+                    {(transferSyntax || "THUE ACC {CODE}").replace("{CODE}", "8899")}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

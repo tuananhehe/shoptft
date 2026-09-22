@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { X, KeyRound, ZoomIn, Sparkles, Check, Copy, ExternalLink, Share2 } from "lucide-react";
+import { X, KeyRound, ZoomIn, Check, Copy, ExternalLink, Share2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { getAccountProductUrl } from "@/utils/account-lookup";
 

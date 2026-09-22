@@ -45,9 +45,21 @@ import {
   HelpCircle,
   FileCode,
   FileText,
+  CreditCard,
+  QrCode,
+  Download,
+  Copy,
+  ArrowRight,
+  ArrowLeft,
+  Link2,
+  MessageCircle,
 } from "lucide-react";
 import PetPresetSelector from "@/components/admin/pet-preset-selector";
 import { BulkCloneTxtImporter } from "@/components/admin/bulk-clone-txt-importer";
+import { BankConfig, DEFAULT_BANK_CONFIG, buildVietQRUrl } from "@/utils/vietqr-helper";
+import { createOrder } from "@/utils/orders-service";
+import { copyToClipboard } from "@/utils/clipboard-helper";
+import { PaymentLinkData, buildCustomerPaymentMessage } from "@/utils/payment-links-service";
 
 export type AccountCategoryType = "VIP" | "CLONE";
 
@@ -123,10 +135,38 @@ export default function AdminAccountsPage() {
   const [priceDisplayFilter, setPriceDisplayFilter] = useState<"ALL" | "HOURLY" | "DAILY" | "LONG_TERM" | "CUSTOM">("ALL");
   const [sortFilter, setSortFilter] = useState<"DEFAULT" | "PRICE_ASC" | "PRICE_DESC">("DEFAULT");
 
-  // State cho Modal "Thiết lập thời gian cho thuê đơn lẻ"
+  // State cho Modal "Thiết lập thời gian cho thuê đơn lẻ" & Xác nhận QR Ngân hàng ACB
   const [statusModalAccount, setStatusModalAccount] = useState<UnifiedAdminAccount | null>(null);
+  const [statusModalStep, setStatusModalStep] = useState<"SELECT_PACKAGE" | "CONFIRM_QR">("SELECT_PACKAGE");
   const [quickDurationHours, setQuickDurationHours] = useState<number>(2);
   const [customEndTime, setCustomEndTime] = useState<string>("");
+  const [modalRentalAmount, setModalRentalAmount] = useState<number>(35000);
+  const [modalPackageName, setModalPackageName] = useState<string>("Gói 2 Giờ");
+  const [modalTransferContent, setModalTransferContent] = useState<string>("");
+  const [modalCustomerName, setModalCustomerName] = useState<string>("");
+  const [modalCustomerPhone, setModalCustomerPhone] = useState<string>("");
+  const [bankConfig, setBankConfig] = useState<BankConfig>(DEFAULT_BANK_CONFIG);
+  const [modalCopiedField, setModalCopiedField] = useState<string | null>(null);
+
+  // State cho Link Thanh Toán Tạm Thời 5 Phút trong Bước 2
+  const [createdPaymentLink, setCreatedPaymentLink] = useState<PaymentLinkData | null>(null);
+  const [isCreatingPaymentLink, setIsCreatingPaymentLink] = useState<boolean>(false);
+  const [paymentLinkRemainingSeconds, setPaymentLinkRemainingSeconds] = useState<number>(300);
+
+  // Đồng hồ đếm ngược 5 phút trong Modal Bước 2
+  useEffect(() => {
+    if (!createdPaymentLink || paymentLinkRemainingSeconds <= 0) return;
+    const interval = setInterval(() => {
+      setPaymentLinkRemainingSeconds((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [createdPaymentLink, paymentLinkRemainingSeconds]);
 
   // State cho Modal Confirm Xóa Acc đơn lẻ
   const [deleteConfirmAccount, setDeleteConfirmAccount] = useState<UnifiedAdminAccount | null>(null);
@@ -537,6 +577,9 @@ export default function AdminAccountsPage() {
       if (cfg?.pricing) {
         setPricingRates(cfg.pricing);
       }
+      if (cfg?.bank) {
+        setBankConfig(cfg.bank);
+      }
     });
   }, []);
 
@@ -782,16 +825,92 @@ export default function AdminAccountsPage() {
     setIsBulkUpdating(false);
   };
 
+  // Helper lấy danh sách các gói thuê & tính giá tự động cho tài khoản
+  const getRentalPackagesForAccount = (account: UnifiedAdminAccount) => {
+    const isClone = account.category === "CLONE";
+    const accVal = account.accountValue || 850000;
+    const passFee = pricingRates.passChangeFee ?? 20000;
+    const rate2h = pricingRates.rate2Hours ?? 3;
+    const rate7d = pricingRates.rate7Days ?? 12;
+    const rate30d = pricingRates.rate30Days ?? 30;
+
+    if (isClone) {
+      const clonePermPrice = account.periodPrice || account.customPrice || 150000;
+      return [
+        {
+          id: "PERM",
+          label: "Sở Hữu Lâu Dài (Vô Cực ∞)",
+          hours: 23976,
+          price: clonePermPrice,
+          badge: "Bàn Giao Gốc",
+        },
+        {
+          id: "24H",
+          label: "Gói 24 Giờ (Chơi Thử)",
+          hours: 24,
+          price: account.dailyPrice || 30000,
+          badge: "1 Ngày",
+        },
+        {
+          id: "7D",
+          label: "Gói 7 Ngày (1 Tuần)",
+          hours: 168,
+          price: Math.round((clonePermPrice * 0.5) / 1000) * 1000 || 75000,
+          badge: "1 Tuần",
+        },
+      ];
+    }
+
+    const price2h = Math.round(((accVal * (rate2h / 100)) + passFee) / 1000) * 1000;
+    const price4h = Math.round((((accVal * (rate2h / 100)) / 2 * 4) + passFee) / 1000) * 1000;
+    const price12h = Math.round((((accVal * (rate2h / 100)) / 2 * 12 * 0.75) + passFee) / 1000) * 1000;
+    const price24h = account.dailyPrice || Math.round((price2h * 1.5) / 1000) * 1000 || 45000;
+    const price7d = Math.round(((accVal * (rate7d / 100)) + passFee) / 1000) * 1000;
+    const price30d = Math.round((accVal * (rate30d / 100)) / 1000) * 1000;
+    const pricePerm = account.periodPrice || account.accountValue || 150000;
+
+    return [
+      { id: "2H", label: "Gói 2 Giờ", hours: 2, price: price2h, badge: "Trải Nghiệm" },
+      { id: "4H", label: "Gói 4 Giờ", hours: 4, price: price4h, badge: "Phổ Biến" },
+      { id: "12H", label: "Gói 12 Giờ (Qua Đêm)", hours: 12, price: price12h, badge: "Tiết Kiệm" },
+      { id: "24H", label: "Gói 24 Giờ (1 Ngày)", hours: 24, price: price24h, badge: "1 Ngày" },
+      { id: "7D", label: "Gói 7 Ngày (1 Tuần)", hours: 168, price: price7d, badge: "Leo Rank Tuần" },
+      { id: "30D", label: "Gói 30 Ngày (1 Tháng)", hours: 720, price: price30d, badge: "Theo Tháng" },
+      { id: "PERM", label: "Gói Lâu Dài (Vô Cực ∞)", hours: 23976, price: pricePerm, badge: "Sở Hữu Trọn Đời" },
+    ];
+  };
+
   // ============================================================
   // 3. XỬ LÝ GẠT SWITCH TRẠNG THÁI ĐƠN LẺ
   // ============================================================
   const handleToggleChange = async (account: UnifiedAdminAccount) => {
     if (account.status === "AVAILABLE") {
       setStatusModalAccount(account);
-      const defaultDurationHours = account.category === "CLONE" ? 23976 : 24;
-      const defaultDate = new Date(Date.now() + defaultDurationHours * 60 * 60 * 1000);
+      setStatusModalStep("SELECT_PACKAGE");
+
+      // Nạp cấu hình bank mới nhất nếu có
+      getHomepageConfig().then((cfg) => {
+        if (cfg?.bank) setBankConfig(cfg.bank);
+      });
+
+      const isClone = account.category === "CLONE";
+      const pkgs = getRentalPackagesForAccount(account);
+      const defaultPkg = isClone ? pkgs[0] : (pkgs.find((p) => p.id === "2H") || pkgs[0]);
+
+      setQuickDurationHours(defaultPkg.hours);
+      const defaultDate = new Date(Date.now() + defaultPkg.hours * 60 * 60 * 1000);
       setCustomEndTime(toLocalDatetimeInputString(defaultDate));
-      setQuickDurationHours(defaultDurationHours);
+      setModalPackageName(defaultPkg.label);
+      setModalRentalAmount(defaultPkg.price);
+
+      // Cú pháp nội dung chuyển khoản: THUE ACC {CODE} hoặc MUA ACC {CODE}
+      const rawCode = (account.code || "").replace(/^MS:\s*/i, "").trim();
+      const syntax = bankConfig.transferSyntax || (isClone ? "MUA ACC {CODE}" : "THUE ACC {CODE}");
+      setModalTransferContent(syntax.replace("{CODE}", rawCode).replace("{PACKAGE}", defaultPkg.label));
+      setModalCustomerName("");
+      setModalCustomerPhone("");
+      setCreatedPaymentLink(null);
+      setPaymentLinkRemainingSeconds(300);
     } else {
       // Chuyển về AVAILABLE
       const toastId = toast.loading(`Đang cập nhật ${account.code}...`);
@@ -811,7 +930,48 @@ export default function AdminAccountsPage() {
     }
   };
 
-  const handleApplyDuration = async () => {
+  // Tạo link thanh toán tạm thời 5 phút cho khách
+  const handleCreatePaymentLink = async () => {
+    if (!statusModalAccount) return;
+    setIsCreatingPaymentLink(true);
+    try {
+      const res = await fetch("/api/pay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accountCode: statusModalAccount.code,
+          accountTitle: statusModalAccount.title,
+          accountCategory: statusModalAccount.category,
+          thumbnail: statusModalAccount.thumbnail,
+          packageName: modalPackageName,
+          durationHours: quickDurationHours,
+          amount: modalRentalAmount,
+          customerName: modalCustomerName,
+          customerPhone: modalCustomerPhone,
+          bankId: bankConfig.bankId || "ACB",
+          bankName: bankConfig.bankName || "Ngân hàng TMCP Á Châu (ACB)",
+          accountNumber: bankConfig.accountNumber || "23456789",
+          accountHolder: bankConfig.accountHolder || "TUAN THAI BINH",
+          qrTemplate: bankConfig.qrTemplate || "compact2",
+          transferContent: modalTransferContent || `THUE ACC ${statusModalAccount.code}`,
+        }),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setCreatedPaymentLink(json.data);
+        setPaymentLinkRemainingSeconds(300);
+        toast.success(`Đã tạo link thanh toán 5 phút: ${json.data.id}!`);
+      } else {
+        toast.error(`Lỗi tạo link: ${json.error || "Không thể tạo link"}`);
+      }
+    } catch (err: any) {
+      toast.error(`Lỗi kết nối: ${err.message}`);
+    } finally {
+      setIsCreatingPaymentLink(false);
+    }
+  };
+
+  const handleApplyDuration = async (skipQr: boolean = false) => {
     if (!statusModalAccount) return;
     let targetIso = "";
     if (quickDurationHours > 0) {
@@ -831,9 +991,45 @@ export default function AdminAccountsPage() {
     });
 
     if (res.success) {
-      toast.success(`Đã chuyển ${statusModalAccount.code} sang trạng thái ĐANG THUÊ!`, {
-        id: toastId,
-      });
+      // Tự động ghi nhận đơn hàng vào /api/orders
+      try {
+        await createOrder({
+          type: statusModalAccount.category === "CLONE" ? "CLONE" : "VIP",
+          customer: modalCustomerName.trim() || "Khách thuê tại shop",
+          phoneZalo: modalCustomerPhone.trim() || undefined,
+          accountCode: statusModalAccount.code,
+          accountTitle: statusModalAccount.title,
+          package: modalPackageName,
+          durationHours: quickDurationHours,
+          amount: modalRentalAmount,
+          paymentMethod: "TRANSFER",
+          status: "RENTING",
+          startedAt: new Date().toISOString(),
+          expiresAt: targetIso,
+          accountLogin: (statusModalAccount as any).account_login || (statusModalAccount as any).accountLogin || statusModalAccount.code,
+          accountPass: (statusModalAccount as any).account_pass || (statusModalAccount as any).accountPass || "Đã bàn giao",
+          notes: `Thanh toán VietQR ${bankConfig.bankId} (${bankConfig.accountNumber}) - ND: ${modalTransferContent}`,
+        });
+      } catch (err) {
+        console.warn("Lỗi tự động tạo order:", err);
+      }
+
+      // Đánh dấu hoàn tất link thanh toán nếu có
+      if (createdPaymentLink) {
+        fetch("/api/pay", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: createdPaymentLink.id, status: "COMPLETED" }),
+        }).catch((err) => console.warn("Lỗi update status link:", err));
+      }
+      setCreatedPaymentLink(null);
+
+      toast.success(
+        skipQr
+          ? `Đã chuyển ${statusModalAccount.code} sang trạng thái ĐANG THUÊ!`
+          : `Xác nhận thanh toán thành công! Đã chuyển ${statusModalAccount.code} sang trạng thái ĐANG THUÊ!`,
+        { id: toastId }
+      );
       setStatusModalAccount(null);
       await fetchAccounts(false);
     } else {
@@ -1935,100 +2131,536 @@ export default function AdminAccountsPage() {
       )}
 
       {/* ============================================================ */}
-      {/* 4.1 MODAL CHO THUÊ ĐƠN LẺ */}
+      {/* 4.1 MODAL CHO THUÊ ĐƠN LẺ & TẠO QR THANH TOÁN ACB           */}
       {/* ============================================================ */}
       {statusModalAccount && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-3xl p-5 sm:p-6 max-w-xl w-full shadow-2xl border border-slate-200 space-y-4 max-h-[92vh] overflow-y-auto">
+            {/* Header with Steps */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-700 flex items-center justify-center font-bold">
-                  <Clock className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-700 flex items-center justify-center font-bold flex-shrink-0">
+                  {statusModalStep === "SELECT_PACKAGE" ? <Clock className="w-5 h-5" /> : <QrCode className="w-5 h-5" />}
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-base text-slate-900">
-                    Thiết Lập Thời Gian Cho Thuê
-                  </h3>
-                  <span className="text-xs text-slate-500 font-medium">
-                    Tài khoản: {statusModalAccount.code} ({statusModalAccount.title})
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-extrabold text-sm sm:text-base text-slate-900">
+                      {statusModalStep === "SELECT_PACKAGE"
+                        ? "Bước 1: Chọn Gói Thuê & Xác Nhận Giá"
+                        : `Bước 2: Quét QR Thanh Toán ${bankConfig.bankId || "ACB"}`}
+                    </h3>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 uppercase">
+                      {statusModalAccount.category}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 font-medium truncate max-w-[280px] sm:max-w-md">
+                    Acc: <strong className="text-slate-800 font-mono">{statusModalAccount.code}</strong> • {statusModalAccount.title}
+                  </p>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => setStatusModalAccount(null)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100"
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 block">
-                Chọn Nhanh Gói Thuê:
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { label: "2 Giờ", hours: 2 },
-                  { label: "4 Giờ", hours: 4 },
-                  { label: "12 Giờ (Qua Đêm)", hours: 12 },
-                  { label: "24 Giờ (1 Ngày)", hours: 24 },
-                  { label: "7 Ngày (1 Tuần)", hours: 168 },
-                  { label: "30 Ngày (1 Tháng)", hours: 720 },
-                  { label: "+999 Ngày (Vô Cực ∞)", hours: 23976 },
-                ].map((item) => (
+            {/* Step 1: Chọn gói thuê & Xác nhận giá */}
+            {statusModalStep === "SELECT_PACKAGE" ? (
+              <div className="space-y-4">
+                {/* 1. Package Grid */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                    <span>Chọn Gói Cho Thuê:</span>
+                    <span className="text-[11px] text-orange-600 font-semibold">Tự động tính tiền</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {getRentalPackagesForAccount(statusModalAccount).map((pkg) => {
+                      const isSelected = modalPackageName === pkg.label;
+                      return (
+                        <button
+                          key={pkg.id}
+                          type="button"
+                          onClick={() => {
+                            setQuickDurationHours(pkg.hours);
+                            const d = new Date(Date.now() + pkg.hours * 60 * 60 * 1000);
+                            setCustomEndTime(toLocalDatetimeInputString(d));
+                            setModalPackageName(pkg.label);
+                            setModalRentalAmount(pkg.price);
+
+                            const rawCode = (statusModalAccount.code || "").replace(/^MS:\s*/i, "").trim();
+                            const syntax = bankConfig.transferSyntax || (statusModalAccount.category === "CLONE" ? "MUA ACC {CODE}" : "THUE ACC {CODE}");
+                            setModalTransferContent(syntax.replace("{CODE}", rawCode).replace("{PACKAGE}", pkg.label));
+                          }}
+                          className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                            isSelected
+                              ? "bg-orange-50 border-orange-600 ring-2 ring-orange-500/20 shadow-xs"
+                              : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-center justify-between">
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                                isSelected ? "bg-orange-600 text-white" : "bg-slate-200 text-slate-700"
+                              }`}>
+                                {pkg.badge}
+                              </span>
+                            </div>
+                            <div className={`font-bold text-xs mt-1 ${isSelected ? "text-orange-950" : "text-slate-800"}`}>
+                              {pkg.label}
+                            </div>
+                          </div>
+                          <div className="mt-1.5 font-mono font-black text-red-600 text-xs">
+                            {pkg.price.toLocaleString("vi-VN")}đ
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 2. Amount & Duration Customization */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="space-y-1">
+                    <label className="font-bold text-slate-800 flex items-center justify-between">
+                      <span>Số Tiền Cần Thu (VNĐ):</span>
+                      <span className="text-[10px] text-slate-400">Có thể chỉnh</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        step="1000"
+                        value={modalRentalAmount}
+                        onChange={(e) => setModalRentalAmount(Number(e.target.value))}
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-red-600 focus:outline-none focus:border-orange-500 pr-8"
+                      />
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">
+                        đ
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-bold text-slate-800 block">
+                      Hạn Trả Tài Khoản:
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={customEndTime}
+                      onChange={(e) => {
+                        setCustomEndTime(e.target.value);
+                        setQuickDurationHours(0);
+                      }}
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-orange-500"
+                    />
+                  </div>
+                </div>
+
+                {/* 3. Transfer Content & Customer Info */}
+                <div className="space-y-2 text-xs">
+                  <div className="space-y-1">
+                    <label className="font-bold text-slate-800 flex items-center justify-between">
+                      <span>Nội Dung Chuyển Khoản Mẫu:</span>
+                      <span className="text-[10px] text-blue-600 font-medium">Tự điền vào mã QR</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={modalTransferContent}
+                      onChange={(e) => setModalTransferContent(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                      placeholder="THUE ACC 8899"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="font-semibold text-slate-600 text-[11px] block">
+                        Tên Khách Hàng (Tùy chọn):
+                      </label>
+                      <input
+                        type="text"
+                        value={modalCustomerName}
+                        onChange={(e) => setModalCustomerName(e.target.value)}
+                        placeholder="Khách Zalo..."
+                        className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="font-semibold text-slate-600 text-[11px] block">
+                        SĐT / Zalo Khách (Tùy chọn):
+                      </label>
+                      <input
+                        type="text"
+                        value={modalCustomerPhone}
+                        onChange={(e) => setModalCustomerPhone(e.target.value)}
+                        placeholder="0987..."
+                        className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Buttons */}
+                <div className="flex flex-col sm:flex-row items-center gap-2 pt-2 border-t border-slate-100">
                   <button
-                    key={item.label}
+                    type="button"
+                    onClick={() => setStatusModalAccount(null)}
+                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
+                  >
+                    Hủy Bỏ
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleApplyDuration(true)}
+                    className="w-full sm:w-auto px-3.5 py-2.5 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                    title="Cho thuê ngay lập tức mà không cần tạo mã QR thanh toán"
+                  >
+                    Bỏ Qua QR & Thuê Luôn
+                  </button>
+
+                  <button
                     type="button"
                     onClick={() => {
-                      setQuickDurationHours(item.hours);
-                      const d = new Date(Date.now() + item.hours * 60 * 60 * 1000);
-                      setCustomEndTime(toLocalDatetimeInputString(d));
+                      setStatusModalStep("CONFIRM_QR");
+                      handleCreatePaymentLink();
                     }}
-                    className={`py-2 px-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                      quickDurationHours === item.hours
-                        ? "bg-orange-700 text-white border-orange-700 shadow-sm"
-                        : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
-                    }`}
+                    className="w-full sm:flex-1 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold uppercase tracking-wider cursor-pointer shadow-md shadow-orange-600/20 flex items-center justify-center gap-2"
                   >
-                    {item.label}
+                    <span>Tạo QR Thanh Toán ({bankConfig.bankId || "ACB"})</span>
+                    <ArrowRight className="w-4 h-4" />
                   </button>
-                ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              /* Step 2: Quét mã QR thanh toán ACB */
+              <div className="space-y-4">
+                {/* QR Display Card */}
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+                  {/* QR Image Box */}
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm flex-shrink-0">
+                    <img
+                      src={buildVietQRUrl({
+                        bankId: bankConfig.bankId || "ACB",
+                        accountNumber: bankConfig.accountNumber || "23456789",
+                        accountHolder: bankConfig.accountHolder || "TUAN THAI BINH",
+                        amount: modalRentalAmount,
+                        description: modalTransferContent,
+                        template: bankConfig.qrTemplate || "compact2",
+                      })}
+                      alt={`VietQR ${bankConfig.bankId}`}
+                      className="w-44 h-auto object-contain mx-auto rounded"
+                    />
+                    <div className="mt-2 flex items-center justify-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const url = buildVietQRUrl({
+                            bankId: bankConfig.bankId || "ACB",
+                            accountNumber: bankConfig.accountNumber || "23456789",
+                            accountHolder: bankConfig.accountHolder || "TUAN THAI BINH",
+                            amount: modalRentalAmount,
+                            description: modalTransferContent,
+                            template: bankConfig.qrTemplate || "compact2",
+                          });
+                          window.open(url, "_blank");
+                        }}
+                        className="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-[10px] font-bold text-slate-700 flex items-center gap-1 cursor-pointer"
+                        title="Mở ảnh QR cỡ lớn"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        <span>Mở Ảnh</span>
+                      </button>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 block">
-                Hoặc Chọn Hạn Trả Tùy Chỉnh:
-              </label>
-              <input
-                type="datetime-local"
-                value={customEndTime}
-                onChange={(e) => {
-                  setCustomEndTime(e.target.value);
-                  setQuickDurationHours(0);
-                }}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-orange-500"
-              />
-            </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const url = buildVietQRUrl({
+                            bankId: bankConfig.bankId || "ACB",
+                            accountNumber: bankConfig.accountNumber || "23456789",
+                            accountHolder: bankConfig.accountHolder || "TUAN THAI BINH",
+                            amount: modalRentalAmount,
+                            description: modalTransferContent,
+                            template: bankConfig.qrTemplate || "compact2",
+                          });
+                          copyToClipboard(url);
+                          setModalCopiedField("qrUrl");
+                          setTimeout(() => setModalCopiedField(null), 2000);
+                          toast.success("Đã chép link ảnh QR!");
+                        }}
+                        className="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-[10px] font-bold text-slate-700 flex items-center gap-1 cursor-pointer"
+                        title="Sao chép link ảnh QR"
+                      >
+                        {modalCopiedField === "qrUrl" ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>Chép Link</span>
+                      </button>
+                    </div>
+                  </div>
 
-            <div className="flex gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setStatusModalAccount(null)}
-                className="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
-              >
-                Hủy Bỏ
-              </button>
-              <button
-                type="button"
-                onClick={handleApplyDuration}
-                className="flex-1 py-2.5 rounded-xl bg-orange-700 hover:bg-orange-800 text-white text-xs font-bold uppercase tracking-wider cursor-pointer shadow-md shadow-orange-700/20"
-              >
-                Xác Nhận Cho Thuê
-              </button>
-            </div>
+                  {/* Transfer Details with 1-click copy */}
+                  <div className="flex-1 min-w-0 space-y-2 text-xs">
+                    <div>
+                      <span className="text-[11px] text-slate-500 block">Ngân hàng thụ hưởng:</span>
+                      <strong className="text-sm font-extrabold text-slate-900 block">
+                        {bankConfig.bankName || `${bankConfig.bankId} - Ngân hàng Á Châu`}
+                      </strong>
+                    </div>
+
+                    <div className="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 text-[11px]">Số tài khoản:</span>
+                        <div className="flex items-center gap-1">
+                          <span className="font-mono font-bold text-blue-600 text-sm">{bankConfig.accountNumber}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              copyToClipboard(bankConfig.accountNumber);
+                              setModalCopiedField("accNo");
+                              setTimeout(() => setModalCopiedField(null), 2000);
+                              toast.success("Đã chép số tài khoản!");
+                            }}
+                            className="p-1 hover:bg-slate-100 rounded text-slate-500 cursor-pointer"
+                            title="Chép số tài khoản"
+                          >
+                            {modalCopiedField === "accNo" ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 text-[11px]">Chủ tài khoản:</span>
+                        <span className="font-bold text-slate-800 uppercase">{bankConfig.accountHolder}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                        <span className="text-slate-500 text-[11px]">Số tiền cần chuyển:</span>
+                        <div className="flex items-center gap-1">
+                          <strong className="font-mono font-black text-red-600 text-base">
+                            {modalRentalAmount.toLocaleString("vi-VN")}đ
+                          </strong>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              copyToClipboard(modalRentalAmount.toString());
+                              setModalCopiedField("amount");
+                              setTimeout(() => setModalCopiedField(null), 2000);
+                              toast.success("Đã chép số tiền!");
+                            }}
+                            className="p-1 hover:bg-slate-100 rounded text-slate-500 cursor-pointer"
+                            title="Chép số tiền"
+                          >
+                            {modalCopiedField === "amount" ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Highlighted Transfer Content */}
+                    <div className="bg-orange-50 border border-orange-200 p-2.5 rounded-xl space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-orange-900">Nội Dung Chuyển Khoản:</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            copyToClipboard(modalTransferContent);
+                            setModalCopiedField("content");
+                            setTimeout(() => setModalCopiedField(null), 2000);
+                            toast.success("Đã chép nội dung chuyển khoản!");
+                          }}
+                          className="inline-flex items-center gap-1 text-[10px] font-bold text-orange-700 bg-white px-2 py-0.5 rounded border border-orange-200 hover:bg-orange-100 cursor-pointer"
+                        >
+                          {modalCopiedField === "content" ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                          <span>{modalCopiedField === "content" ? "Đã chép" : "Chép nội dung"}</span>
+                        </button>
+                      </div>
+                      <div className="font-mono font-black text-sm text-orange-950 bg-white px-2 py-1 rounded border border-orange-200/80">
+                        {modalTransferContent}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 5-MINUTE TEMPORARY PAYMENT LINK FOR CUSTOMER */}
+                <div className="p-3.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold shadow-xs">
+                        <Link2 className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-extrabold text-blue-950 flex items-center gap-1.5">
+                          <span>Link Thanh Toán Cho Khách</span>
+                          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-blue-200/80 text-blue-800 font-mono font-bold">
+                            Hạn 5 Phút
+                          </span>
+                        </h4>
+                        <span className="text-[10px] text-blue-700">
+                          Gửi link cho khách để quét QR & xem chi tiết đơn thuê trên điện thoại
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Countdown or status badge */}
+                    {createdPaymentLink && (
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-lg border flex items-center gap-1 ${
+                            paymentLinkRemainingSeconds <= 0
+                              ? "bg-rose-100 text-rose-700 border-rose-200"
+                              : paymentLinkRemainingSeconds < 60
+                              ? "bg-amber-100 text-amber-800 border-amber-300 animate-pulse"
+                              : "bg-white text-blue-700 border-blue-200 shadow-xs"
+                          }`}
+                        >
+                          <Clock className="w-3 h-3" />
+                          <span>
+                            {paymentLinkRemainingSeconds <= 0
+                              ? "Hết hạn"
+                              : `${Math.floor(paymentLinkRemainingSeconds / 60)}:${(paymentLinkRemainingSeconds % 60).toString().padStart(2, "0")}`}
+                          </span>
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {createdPaymentLink ? (
+                    <div className="space-y-2">
+                      {/* URL Box */}
+                      <div className="flex items-center gap-1.5 bg-white p-2 rounded-xl border border-blue-200 shadow-xs">
+                        <span className="font-mono text-xs text-blue-900 font-bold truncate flex-1 px-1">
+                          {typeof window !== "undefined"
+                            ? `${window.location.origin}/pay/${createdPaymentLink.id}`
+                            : `/pay/${createdPaymentLink.id}`}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const fullUrl = `${window.location.origin}/pay/${createdPaymentLink.id}`;
+                            copyToClipboard(fullUrl);
+                            setModalCopiedField("payLink");
+                            setTimeout(() => setModalCopiedField(null), 2000);
+                            toast.success("Đã chép link thanh toán 5 phút!");
+                          }}
+                          className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-xs"
+                          title="Sao chép link thanh toán"
+                        >
+                          {modalCopiedField === "payLink" ? (
+                            <>
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Đã Chép</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>Chép Link</span>
+                            </>
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const fullUrl = `${window.location.origin}/pay/${createdPaymentLink.id}`;
+                            window.open(fullUrl, "_blank");
+                          }}
+                          className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors cursor-pointer"
+                          title="Mở thử trang thanh toán của khách"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Quick Copy formatted message for Zalo */}
+                      <div className="flex items-center justify-between gap-2 pt-0.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const fullUrl = `${window.location.origin}/pay/${createdPaymentLink.id}`;
+                            const msg = buildCustomerPaymentMessage(createdPaymentLink, fullUrl);
+                            copyToClipboard(msg);
+                            setModalCopiedField("payMsg");
+                            setTimeout(() => setModalCopiedField(null), 2000);
+                            toast.success("Đã chép lời nhắn kèm link để gửi Zalo cho khách!");
+                          }}
+                          className="text-[11px] font-bold text-blue-700 hover:text-blue-900 bg-white hover:bg-blue-50/80 px-2.5 py-1.5 rounded-lg border border-blue-200 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                        >
+                          {modalCopiedField === "payMsg" ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              <span className="text-emerald-700">Đã chép lời nhắn Zalo</span>
+                            </>
+                          ) : (
+                            <>
+                              <MessageCircle className="w-3.5 h-3.5 text-sky-600" />
+                              <span>Sao chép lời nhắn Zalo khách</span>
+                            </>
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={isCreatingPaymentLink}
+                          onClick={handleCreatePaymentLink}
+                          className="text-[11px] font-bold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 px-2 py-1.5 rounded-lg border border-slate-200 transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                          title="Tạo link mới nếu link cũ đã hết hạn hoặc khách đổi ý"
+                        >
+                          <RefreshCw className={`w-3 h-3 ${isCreatingPaymentLink ? "animate-spin" : ""}`} />
+                          <span>Tạo Link Mới</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={isCreatingPaymentLink}
+                      onClick={handleCreatePaymentLink}
+                      className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-colors disabled:opacity-50"
+                    >
+                      {isCreatingPaymentLink ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Link2 className="w-4 h-4" />
+                      )}
+                      <span>Tạo Link Thanh Toán 5 Phút Cho Khách</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Notice */}
+                <div className="p-3 bg-emerald-50 border border-emerald-200/80 rounded-xl text-[11px] text-emerald-900 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <span>
+                    Sau khi kiểm tra app ngân hàng đã nhận đủ <strong>{modalRentalAmount.toLocaleString("vi-VN")}đ</strong>, bấm nút bên dưới để hoàn tất giao dịch và chuyển trạng thái acc sang Đang Thuê.
+                  </span>
+                </div>
+
+                {/* Footer Buttons */}
+                <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setStatusModalStep("SELECT_PACKAGE")}
+                    className="px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>Đổi Gói</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleApplyDuration(false)}
+                    className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold uppercase tracking-wider shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Xác Nhận Đã Nhận Tiền ➔ Cho Thuê</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

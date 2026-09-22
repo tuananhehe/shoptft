@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { MessageCircle, Check, Copy, Sparkles, X, ArrowRight } from "lucide-react";
+import { MessageCircle, Check, Copy, CheckCircle2, X, ArrowRight } from "lucide-react";
 import { copyToClipboard, buildZaloOrderUrl } from "@/utils/clipboard-helper";
 import toast from "react-hot-toast";
 
@@ -80,14 +80,14 @@ export const ZaloRedirectModal: React.FC<ZaloRedirectModalProps> = ({
 
         <div className="p-5 sm:p-7 space-y-4 sm:space-y-5 text-center">
           {/* Icon Header */}
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-orange-100/90 text-orange-600 border border-orange-200/80 flex items-center justify-center mx-auto shadow-sm">
-            <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-orange-600 animate-pulse" />
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto shadow-sm">
+            <CheckCircle2 className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600" />
           </div>
 
           {/* Headline */}
           <div className="space-y-1.5 sm:space-y-2">
-            <h3 className="text-base sm:text-lg font-black text-slate-900 font-gaming uppercase tracking-tight">
-              ⚡ Đã tự động sao chép tin nhắn đơn hàng!
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-tight">
+              Đã tự động sao chép tin nhắn đơn hàng!
             </h3>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xs mx-auto font-medium">
               Nhớ <strong className="text-orange-700">&quot;Dán&quot;</strong> sẵn đoạn copy rồi gửi.

@@ -11,12 +11,10 @@ import {
   MessageCircle,
   Zap,
   ShieldCheck,
-  Sparkles,
   Trophy,
   Headphones,
   ChevronLeft,
   ChevronRight,
-  Flame,
   UserCheck,
 } from "lucide-react";
 
@@ -95,11 +93,10 @@ export const TFTServices: React.FC<TFTServicesProps> = ({ packages }) => {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-4 sm:mb-12 space-y-1.5 sm:space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-50 border border-orange-200/80 text-orange-700 text-[11px] font-bold uppercase tracking-wider">
-            <Flame className="w-3.5 h-3.5 text-orange-600 animate-pulse" />
             <span>Dịch Vụ Chuyên Nghiệp</span>
           </div>
 
-          <h2 className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-900 font-gaming uppercase">
+          <h2 className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight text-slate-900 uppercase">
             CÀY THUÊ RANK & COACHING 1-1 ĐTCL
           </h2>
           <p className="text-slate-600 text-xs sm:text-sm md:text-base font-normal max-w-xl mx-auto leading-relaxed">
@@ -155,19 +152,18 @@ export const TFTServices: React.FC<TFTServicesProps> = ({ packages }) => {
               {/* Header Badge */}
               <div className="flex items-center justify-between gap-2 mb-3">
                 <span
-                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
                     activePackage.popular
                       ? "bg-orange-100 text-orange-700 border border-orange-200"
                       : "bg-slate-100 text-slate-700 border border-slate-200"
                   }`}
                 >
-                  <Sparkles className="w-3 h-3 text-orange-600" />
                   {activePackage.badge}
                 </span>
 
                 {activePackage.popular && (
-                  <span className="text-[10px] font-extrabold text-red-600 uppercase flex items-center gap-1">
-                    <Flame className="w-3 h-3" /> Đặt Nhiều Nhất
+                  <span className="text-[10px] font-extrabold text-orange-700 bg-orange-50 px-2 py-0.5 rounded border border-orange-200 uppercase">
+                    Được Chọn Nhiều Nhất
                   </span>
                 )}
               </div>
@@ -278,8 +274,8 @@ export const TFTServices: React.FC<TFTServicesProps> = ({ packages }) => {
               }`}
             >
               {srv.popular && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-orange-600 to-amber-600 text-white text-[10px] font-black tracking-wider uppercase shadow-md flex items-center gap-1">
-                  <Flame className="w-3 h-3" /> GÓI ĐƯỢC ĐẶT NHIỀU NHẤT
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-slate-900 text-white text-[10px] font-extrabold tracking-wider uppercase shadow-sm">
+                  ĐƯỢC CHỌN NHIỀU NHẤT
                 </div>
               )}
 

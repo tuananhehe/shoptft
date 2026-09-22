@@ -73,6 +73,14 @@ const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
     phoneZalo: "0352.867.283",
     checkscamFund: "30.000.000đ",
   },
+  bank: {
+    bankId: "ACB",
+    bankName: "Ngân hàng TMCP Á Châu (ACB)",
+    accountNumber: "23456789",
+    accountHolder: "TUAN THAI BINH",
+    qrTemplate: "compact2",
+    transferSyntax: "THUE ACC {CODE}",
+  },
   servicePackages: [
     {
       id: "srv-01",
@@ -282,6 +290,10 @@ export async function PUT(req: NextRequest) {
       contact: {
         ...(current.contact || DEFAULT_HOMEPAGE_CONFIG.contact!),
         ...(body.contact || {}),
+      },
+      bank: {
+        ...(current.bank || DEFAULT_HOMEPAGE_CONFIG.bank!),
+        ...(body.bank || {}),
       },
       servicePackages: body.servicePackages || current.servicePackages,
       faqs: body.faqs || current.faqs,

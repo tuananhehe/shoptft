@@ -77,6 +77,14 @@
     "phoneZalo": "0352.867.283",
     "checkscamFund": "30.000.000đ"
   },
+  "bank": {
+    "bankId": "ACB",
+    "bankName": "Ngân hàng TMCP Á Châu (ACB)",
+    "accountNumber": "11461711",
+    "accountHolder": "VU TUAN ANH",
+    "qrTemplate": "compact",
+    "transferSyntax": "TFT DONATE {CODE}"
+  },
   "servicePackages": [
     {
       "id": "srv-01",

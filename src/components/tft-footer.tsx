@@ -129,8 +129,8 @@ export const TFTFooter: React.FC = () => {
 
             {/* Dòng trạng thái Online */}
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>🟢 Đang Online Sẵn Sàng Bàn Giao Acc</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span>Đang Online Sẵn Sàng Bàn Giao Acc</span>
             </div>
 
             <div className="space-y-2 pt-1">
