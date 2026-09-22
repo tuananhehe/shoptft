@@ -224,7 +224,7 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const loginWithGoogle = async () => {
     const toastId = toast.loading("Đang mở kết nối đăng nhập Google...");
     try {
-      const redirectUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : "";
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -238,8 +238,14 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       if (error) {
         console.warn("Supabase Google OAuth Redirect:", error.message);
-        // Fallback popup/fast Google login nếu cần
-        toast.error("Không thể chuyển hướng đăng nhập Google: " + error.message, { id: toastId });
+        if (error.message.includes("provider is not enabled") || error.message.includes("Unsupported provider")) {
+          toast.error(
+            "⚠️ Google Provider chưa được BẬT trên Supabase!\n👉 Hãy vào: Supabase Dashboard > Authentication > Providers > Google > Bật Enable.",
+            { id: toastId, duration: 7000 }
+          );
+        } else {
+          toast.error("Lỗi đăng nhập Google: " + error.message, { id: toastId });
+        }
       } else if (data?.url) {
         toast.success("Đang chuyển hướng sang Google...", { id: toastId });
         window.location.href = data.url;
