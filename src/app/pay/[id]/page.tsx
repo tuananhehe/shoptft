@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useState, use } from "react";
+import React, { useEffect, useState, use, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Clock,
   CheckCircle2,
@@ -17,32 +18,44 @@ import {
   Sparkles,
   Zap,
 } from "lucide-react";
-import { PaymentLinkData } from "@/utils/payment-links-service";
+import { PaymentLinkData, decodePaymentToken } from "@/utils/payment-links-service";
 
 interface PayPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function CustomerPaymentPage({ params }: PayPageProps) {
-  const resolvedParams = use(params);
-  const paymentId = resolvedParams.id;
+function PaymentContent({ paymentId }: { paymentId: string }) {
+  const searchParams = useSearchParams();
+  const tokenParam = searchParams.get("d");
 
-  const [linkData, setLinkData] = useState<PaymentLinkData | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Thử giải mã token ngay từ URL để hiển thị tức thì 0ms không phụ thuộc server
+  const initialData = tokenParam ? decodePaymentToken(tokenParam) : null;
+  const initialExpired = initialData ? Date.now() > initialData.expiresAt : false;
+  const initialSeconds = initialData
+    ? initialExpired
+      ? 0
+      : Math.max(0, Math.floor((initialData.expiresAt - Date.now()) / 1000))
+    : 300;
+
+  const [linkData, setLinkData] = useState<PaymentLinkData | null>(initialData);
+  const [loading, setLoading] = useState<boolean>(!initialData);
   const [error, setError] = useState<string | null>(null);
-  const [isExpired, setIsExpired] = useState(false);
-  const [secondsRemaining, setSecondsRemaining] = useState<number>(300);
+  const [isExpired, setIsExpired] = useState<boolean>(initialExpired);
+  const [secondsRemaining, setSecondsRemaining] = useState<number>(initialSeconds);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [showDoneModal, setShowDoneModal] = useState(false);
 
-  // Fetch dữ liệu thanh toán từ API
+  // Fetch dữ liệu thanh toán từ API để cập nhật trạng thái mới nhất
   useEffect(() => {
     let isMounted = true;
 
     async function fetchPaySession() {
       try {
-        setLoading(true);
-        const res = await fetch(`/api/pay?id=${encodeURIComponent(paymentId)}`, {
+        const queryParams = new URLSearchParams();
+        if (paymentId) queryParams.set("id", paymentId);
+        if (tokenParam) queryParams.set("d", tokenParam);
+
+        const res = await fetch(`/api/pay?${queryParams.toString()}`, {
           cache: "no-store",
         });
         const json = await res.json();
@@ -53,25 +66,26 @@ export default function CustomerPaymentPage({ params }: PayPageProps) {
           setLinkData(json.data);
           setIsExpired(json.isExpired || json.data.status === "EXPIRED");
           setSecondsRemaining(json.remainingSeconds || 0);
-        } else {
+          setError(null);
+        } else if (!initialData) {
           setError(json.error || "Không tìm thấy mã link thanh toán này");
         }
       } catch (err: any) {
         if (!isMounted) return;
-        setError(err.message || "Lỗi tải thông tin thanh toán");
+        if (!initialData) {
+          setError(err.message || "Lỗi tải thông tin thanh toán");
+        }
       } finally {
         if (isMounted) setLoading(false);
       }
     }
 
-    if (paymentId) {
-      fetchPaySession();
-    }
+    fetchPaySession();
 
     return () => {
       isMounted = false;
     };
-  }, [paymentId]);
+  }, [paymentId, tokenParam]);
 
   // Bộ đếm ngược thời gian thực (5:00 -> 0:00)
   useEffect(() => {
@@ -118,7 +132,7 @@ export default function CustomerPaymentPage({ params }: PayPageProps) {
 
   // Tin nhắn soạn sẵn gửi Zalo khi khách thanh toán xong
   const zaloPreMessage = encodeURIComponent(
-    `Chào Tuấn Thái Bình! Mình vừa chuyển khoản ${linkData?.amount.toLocaleString("vi-VN")}đ thuê acc ${linkData?.accountCode} (${linkData?.packageName}) theo đơn ${paymentId}. Shop kiểm tra bàn giao acc giúp mình với nhé!`
+    `Chào Tuấn Thái Bình! Mình vừa chuyển khoản ${linkData?.amount?.toLocaleString("vi-VN") || "0"}đ thuê acc ${linkData?.accountCode || paymentId} (${linkData?.packageName || "Gói thuê"}) theo đơn ${paymentId}. Shop kiểm tra bàn giao acc giúp mình với nhé!`
   );
 
   return (
@@ -568,5 +582,23 @@ export default function CustomerPaymentPage({ params }: PayPageProps) {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CustomerPaymentPage({ params }: PayPageProps) {
+  const resolvedParams = use(params);
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center">
+          <div className="p-8 text-center space-y-3">
+            <div className="w-10 h-10 border-3 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-sm font-bold text-slate-300">Đang tải thông tin thanh toán...</p>
+          </div>
+        </div>
+      }
+    >
+      <PaymentContent paymentId={resolvedParams.id} />
+    </Suspense>
   );
 }

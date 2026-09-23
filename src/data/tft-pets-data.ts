@@ -192,7 +192,7 @@ export const TFT_PETS_DATABASE: TFTPetPreset[] = [
     "category": "CHIBI",
     "categoryLabel": "Tí Nị Thần Thoại",
     "badge": "THẦN THOẠI",
-    "thumbnail": "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/loadouts/companions/tooltip_chibiannie_cafecuties_cafecuties_tier1.chibi_annie_cafecuties.png"
+    "thumbnail": "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/loadouts/companions/tooltip_chibiannie_cafecuties_cafecuties_tier1.png"
   },
   {
     "id": "cd-54001",
@@ -904,7 +904,7 @@ export const TFT_PETS_DATABASE: TFTPetPreset[] = [
     "category": "CHIBI",
     "categoryLabel": "Tí Nị Thần Thoại",
     "badge": "THẦN THOẠI",
-    "thumbnail": "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/loadouts/companions/tooltip_chibivex_cafecuties_cafecuties1_tier1.chibi_vex_cafecuties.png"
+    "thumbnail": "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/loadouts/companions/tooltip_chibivex_cafecuties_cafecuties1_tier1.png"
   },
   {
     "id": "cd-151001",
@@ -912,7 +912,7 @@ export const TFT_PETS_DATABASE: TFTPetPreset[] = [
     "category": "CHIBI",
     "categoryLabel": "Tướng Tí Nị",
     "badge": "TÍ NỊ",
-    "thumbnail": "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/loadouts/companions/tooltip_chibivex_base_classic_tier1.chibi_vex_base.png"
+    "thumbnail": "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/loadouts/companions/tooltip_chibivex_base_classic_tier1.png"
   },
   {
     "id": "cd-37002",
@@ -1112,7 +1112,7 @@ export const TFT_PETS_DATABASE: TFTPetPreset[] = [
     "category": "UNBOUND",
     "categoryLabel": "Tướng Đột Phá",
     "badge": "ĐỘT PHÁ",
-    "thumbnail": "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/loadouts/companions/tooltip_styletwodarius_base_classic_tier1.tft_style2_darius_base.png"
+    "thumbnail": "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/loadouts/companions/tooltip_styletwodarius_base_classic_tier1.png"
   },
   {
     "id": "cd-129002",

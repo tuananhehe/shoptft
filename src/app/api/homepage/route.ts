@@ -3,8 +3,11 @@ import fs from "fs";
 import path from "path";
 import { verifyAdminSessionToken, ADMIN_COOKIE_NAME } from "@/utils/admin-auth";
 import { HomepageConfig } from "@/utils/homepage-service";
+import { getCloudJson, saveCloudJson } from "@/utils/cloud-config-store";
 
+const STORAGE_KEY = "system/homepage-config.json";
 const CONFIG_FILE_PATH = path.join(process.cwd(), "src", "data", "homepage-config.json");
+
 
 const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
   sections: {
@@ -170,46 +173,31 @@ const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
 
 let memoryConfig: HomepageConfig = { ...DEFAULT_HOMEPAGE_CONFIG };
 
-function readConfigFromFile(): HomepageConfig {
-  try {
-    if (fs.existsSync(CONFIG_FILE_PATH)) {
-      const content = fs.readFileSync(CONFIG_FILE_PATH, "utf-8");
-      const parsed = JSON.parse(content);
-      if (parsed && typeof parsed === "object") {
-        memoryConfig = {
-          ...DEFAULT_HOMEPAGE_CONFIG,
-          ...parsed,
-          sections: { ...DEFAULT_HOMEPAGE_CONFIG.sections, ...(parsed.sections || {}) },
-          hero: { ...DEFAULT_HOMEPAGE_CONFIG.hero, ...(parsed.hero || {}) },
-          images: { ...DEFAULT_HOMEPAGE_CONFIG.images, ...(parsed.images || {}) },
-          alertBanner: { ...DEFAULT_HOMEPAGE_CONFIG.alertBanner, ...(parsed.alertBanner || {}) },
-          pricing: { ...DEFAULT_HOMEPAGE_CONFIG.pricing, ...(parsed.pricing || {}) },
-          contact: { ...DEFAULT_HOMEPAGE_CONFIG.contact, ...(parsed.contact || {}) },
-        };
-        return memoryConfig;
-      }
-    }
-  } catch (err) {
-    console.error("Lỗi đọc homepage-config.json:", err);
+async function readConfig(): Promise<HomepageConfig> {
+  const loaded = await getCloudJson<HomepageConfig>(
+    STORAGE_KEY,
+    CONFIG_FILE_PATH,
+    DEFAULT_HOMEPAGE_CONFIG
+  );
+  if (loaded && typeof loaded === "object") {
+    memoryConfig = {
+      ...DEFAULT_HOMEPAGE_CONFIG,
+      ...loaded,
+      sections: { ...DEFAULT_HOMEPAGE_CONFIG.sections, ...(loaded.sections || {}) },
+      hero: { ...DEFAULT_HOMEPAGE_CONFIG.hero, ...(loaded.hero || {}) },
+      images: { ...DEFAULT_HOMEPAGE_CONFIG.images, ...(loaded.images || {}) },
+      alertBanner: { ...DEFAULT_HOMEPAGE_CONFIG.alertBanner, ...(loaded.alertBanner || {}) },
+      pricing: { ...DEFAULT_HOMEPAGE_CONFIG.pricing, ...(loaded.pricing || {}) } as any,
+      contact: { ...DEFAULT_HOMEPAGE_CONFIG.contact, ...(loaded.contact || {}) } as any,
+    };
   }
   return memoryConfig;
 }
 
-function writeConfigToFile(cfg: HomepageConfig): void {
+async function writeConfig(cfg: HomepageConfig): Promise<boolean> {
   memoryConfig = cfg;
-  try {
-    const dir = path.dirname(CONFIG_FILE_PATH);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(CONFIG_FILE_PATH, JSON.stringify(cfg, null, 2), "utf-8");
-  } catch (err) {
-    console.error("Lỗi ghi homepage-config.json:", err);
-  }
+  return await saveCloudJson(STORAGE_KEY, cfg, CONFIG_FILE_PATH);
 }
-
-// Nạp khởi tạo ban đầu
-readConfigFromFile();
 
 function isAuthorizedAdmin(req: NextRequest): boolean {
   const cookieVal = req.cookies.get(ADMIN_COOKIE_NAME)?.value;
@@ -226,7 +214,7 @@ function isAuthorizedAdmin(req: NextRequest): boolean {
  */
 export async function GET() {
   try {
-    const config = readConfigFromFile();
+    const config = await readConfig();
     return NextResponse.json({ success: true, data: config });
   } catch (err: any) {
     return NextResponse.json(
@@ -252,7 +240,7 @@ export async function PUT(req: NextRequest) {
     const { searchParams } = new URL(req.url);
 
     if (searchParams.get("action") === "reset") {
-      writeConfigToFile(DEFAULT_HOMEPAGE_CONFIG);
+      await writeConfig(DEFAULT_HOMEPAGE_CONFIG);
       return NextResponse.json({
         success: true,
         message: "Đã khôi phục cấu hình trang chủ về mặc định!",
@@ -261,7 +249,7 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
-    const current = readConfigFromFile();
+    const current = await readConfig();
 
     const updatedConfig: HomepageConfig = {
       ...current,
@@ -299,7 +287,7 @@ export async function PUT(req: NextRequest) {
       faqs: body.faqs || current.faqs,
     };
 
-    writeConfigToFile(updatedConfig);
+    await writeConfig(updatedConfig);
 
     return NextResponse.json({
       success: true,
@@ -313,3 +301,4 @@ export async function PUT(req: NextRequest) {
     );
   }
 }
+

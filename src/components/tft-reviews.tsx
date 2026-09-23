@@ -82,7 +82,6 @@ export const TFTReviews: React.FC = () => {
     { id: "ALL", label: "Tất Cả Đánh Giá" },
     { id: "THUE_ACC", label: "Thuê Acc TFT" },
     { id: "CAY_THUE", label: "Cày Thuê Rank" },
-    { id: "COACHING", label: "Coaching 1-1" },
     { id: "GDTG", label: "GDTG Trung Gian" },
   ];
 

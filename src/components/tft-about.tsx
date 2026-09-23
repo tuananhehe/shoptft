@@ -28,7 +28,7 @@ const DEFAULT_COMMUNITY_CHANNELS: CommunityChannelItem[] = [
     subtitle: "Xem highlight & test acc VIP",
     badge: "45K+ Followers",
     link: PROFILE_INFO.tiktokUrl,
-    buttonText: "Xem TikTok ➔",
+    buttonText: "Xem TikTok",
     isActive: true,
     order: 1,
   },
@@ -39,7 +39,7 @@ const DEFAULT_COMMUNITY_CHANNELS: CommunityChannelItem[] = [
     subtitle: "Giao lưu, mua bán & hỗ trợ 24/7",
     badge: "1,000+ Thành viên",
     link: PROFILE_INFO.zaloGroupUrl,
-    buttonText: "Tham Gia Zalo ➔",
+    buttonText: "Tham Gia Zalo",
     isActive: true,
     order: 2,
   },
@@ -50,7 +50,7 @@ const DEFAULT_COMMUNITY_CHANNELS: CommunityChannelItem[] = [
     subtitle: "Voice chat, tìm đồng đội leo rank",
     badge: "850+ Online",
     link: PROFILE_INFO.discordUrl,
-    buttonText: "Vào Discord ➔",
+    buttonText: "Vào Discord",
     isActive: true,
     order: 3,
   },
@@ -61,7 +61,7 @@ const DEFAULT_COMMUNITY_CHANNELS: CommunityChannelItem[] = [
     subtitle: "Chia sẻ giáo án meta, chia sẻ kinh nghiệm",
     badge: "12K+ Cờ thủ",
     link: PROFILE_INFO.facebookGroupUrl,
-    buttonText: "Gia Nhập Nhóm ➔",
+    buttonText: "Gia Nhập Nhóm",
     isActive: true,
     order: 4,
   },
@@ -337,7 +337,8 @@ export const TFTAbout: React.FC = () => {
                 className="w-full py-2.5 bg-emerald-50/80 hover:bg-emerald-100 text-emerald-700 border border-emerald-400/80 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-xs hover:shadow-sm font-gaming"
               >
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>Xem Hồ Sơ Bảo Hiểm Checkscam.vn ↗</span>
+                <span>Xem Hồ Sơ Bảo Hiểm Checkscam.vn</span>
+                <ExternalLink className="w-3.5 h-3.5 text-emerald-600" />
               </a>
             </div>
           </div>
@@ -388,9 +389,10 @@ export const TFTAbout: React.FC = () => {
                     href={item.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`w-full py-2 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-wider flex items-center justify-center gap-1 border transition-all active:scale-95 font-gaming ${meta.buttonStyle}`}
+                    className={`w-full py-2 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 border transition-all active:scale-95 font-gaming ${meta.buttonStyle}`}
                   >
                     <span>{item.buttonText}</span>
+                    <ExternalLink className="w-3 h-3 opacity-75" />
                   </a>
                 </div>
               );

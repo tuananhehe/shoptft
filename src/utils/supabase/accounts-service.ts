@@ -1,5 +1,15 @@
 import { TFTRentalAccount, TFTCloneAccount } from "@/data/tft-data";
 
+export function cleanTftImageUrl(url?: string): string {
+  if (!url || typeof url !== "string") return "";
+  let cleaned = url.trim();
+  cleaned = cleaned.replace(/\.chibi_annie_cafecuties\.png$/i, ".png");
+  cleaned = cleaned.replace(/\.chibi_vex_base\.png$/i, ".png");
+  cleaned = cleaned.replace(/\.chibi_vex_cafecuties\.png$/i, ".png");
+  cleaned = cleaned.replace(/\.tft_style2_darius_base\.png$/i, ".png");
+  return cleaned;
+}
+
 export interface AccountDbRow {
   id: string;
   code: string;
@@ -248,7 +258,7 @@ export async function getVipAndCloneAccounts(): Promise<{
         totalArenas: arenas.length || 1,
         totalBooms: 5,
         thumbnail:
-          row.image_url ||
+          cleanTftImageUrl(row.image_url) ||
           "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop",
         description: row.description || "Tài khoản VIP chính chủ.",
       };
@@ -274,7 +284,7 @@ export async function getVipAndCloneAccounts(): Promise<{
         status: String(row.status || "").toUpperCase() === "RENTED" ? "RENTED" : "AVAILABLE",
         rentedUntil: row.rented_until || null,
         thumbnail:
-          row.image_url ||
+          cleanTftImageUrl(row.image_url) ||
           "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop",
         features,
         price,

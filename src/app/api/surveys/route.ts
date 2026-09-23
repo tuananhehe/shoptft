@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
 import path from "path";
-import { SurveyResponse, calculateSurveySummary } from "@/utils/surveys-service";
+import { SurveyResponse, SurveyConfig, calculateSurveySummary } from "@/utils/surveys-service";
 import { verifyAdminSessionToken, ADMIN_COOKIE_NAME } from "@/utils/admin-auth";
+import { getCloudJson, saveCloudJson } from "@/utils/cloud-config-store";
 
+const SURVEYS_STORAGE_KEY = "system/surveys.json";
+const SURVEY_CONFIG_STORAGE_KEY = "system/survey-config.json";
 const SURVEYS_FILE_PATH = path.join(process.cwd(), "src/data/surveys.json");
+const CONFIG_FILE_PATH = path.join(process.cwd(), "src/data/survey-config.json");
 
 function isAuthorizedAdmin(req: NextRequest): boolean {
   const cookieVal = req.cookies.get(ADMIN_COOKIE_NAME)?.value;
@@ -13,31 +16,15 @@ function isAuthorizedAdmin(req: NextRequest): boolean {
   return !!session;
 }
 
-function readSurveysFromFile(): SurveyResponse[] {
-  try {
-    if (fs.existsSync(SURVEYS_FILE_PATH)) {
-      const data = fs.readFileSync(SURVEYS_FILE_PATH, "utf8");
-      return JSON.parse(data) as SurveyResponse[];
-    }
-  } catch (err) {
-    console.error("Lỗi đọc file surveys.json:", err);
-  }
-  return [];
+async function readSurveys(): Promise<SurveyResponse[]> {
+  const data = await getCloudJson<SurveyResponse[]>(SURVEYS_STORAGE_KEY, SURVEYS_FILE_PATH, []);
+  return Array.isArray(data) ? data : [];
 }
 
-function writeSurveysToFile(surveys: SurveyResponse[]): boolean {
-  try {
-    const dir = path.dirname(SURVEYS_FILE_PATH);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(SURVEYS_FILE_PATH, JSON.stringify(surveys, null, 2), "utf8");
-    return true;
-  } catch (err) {
-    console.error("Lỗi ghi file surveys.json:", err);
-    return false;
-  }
+async function writeSurveys(surveys: SurveyResponse[]): Promise<boolean> {
+  return await saveCloudJson(SURVEYS_STORAGE_KEY, surveys, SURVEYS_FILE_PATH);
 }
+
 
 /**
  * GET /api/surveys
@@ -52,7 +39,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const allSurveys = readSurveysFromFile();
+    const allSurveys = await readSurveys();
 
     // Sắp xếp khảo sát mới nhất lên đầu
     allSurveys.sort((a, b) => {
@@ -96,20 +83,27 @@ export async function POST(req: NextRequest) {
         ? `Mong muốn bổ sung: ${body.requestedAdditions.trim()}`
         : "Khảo sát trải nghiệm dịch vụ Shop TFT Tuấn Thái Bình";
 
-    const allSurveys = readSurveysFromFile();
+    const allSurveys = await readSurveys();
     const now = new Date();
 
-    // Đọc cấu hình reward mới nhất từ survey-config.json nếu có
-    let activeVoucherCode = "TRIAN-TFT20";
+    // Xác định nhánh khảo sát (THUE_ACC, GDTG, WEBSITE)
+    const branchKey = (
+      body.branch ||
+      body.customAnswers?.selectedBranch ||
+      (services[0]?.includes("GDTG") ? "GDTG" : services[0]?.includes("Website") || services[0]?.includes("Báo Lỗi") ? "WEBSITE" : "THUE_ACC")
+    ) as string;
+
+    // Đọc cấu hình reward theo nhánh từ cloud store / local
+    let activeVoucherCode = "TRIAN-THUE50";
     let activeReward = undefined;
-    const configPath = path.join(process.cwd(), "src/data/survey-config.json");
     try {
-      if (fs.existsSync(configPath)) {
-        const cfg = JSON.parse(fs.readFileSync(configPath, "utf8"));
-        if (cfg?.reward?.voucherCode) {
-          activeVoucherCode = cfg.reward.voucherCode;
-          activeReward = cfg.reward;
-        }
+      const cfg = await getCloudJson<SurveyConfig>(SURVEY_CONFIG_STORAGE_KEY, CONFIG_FILE_PATH);
+      if (cfg?.branchRewards && cfg.branchRewards[branchKey]) {
+        activeReward = cfg.branchRewards[branchKey];
+        activeVoucherCode = activeReward.voucherCode;
+      } else if (cfg?.reward?.voucherCode) {
+        activeVoucherCode = cfg.reward.voucherCode;
+        activeReward = cfg.reward;
       }
     } catch {}
 
@@ -128,10 +122,13 @@ export async function POST(req: NextRequest) {
       customerName: body.customerName ? body.customerName.trim() : "Khách Hàng TFT",
       customerZalo: body.customerZalo ? body.customerZalo.trim() : undefined,
       customAnswers: body.customAnswers && typeof body.customAnswers === "object" ? body.customAnswers : undefined,
+      rewardCode: activeVoucherCode,
+      rewardTitle: activeReward?.rewardTitle,
+      branch: branchKey,
     };
 
     allSurveys.unshift(newSurvey);
-    writeSurveysToFile(allSurveys);
+    await writeSurveys(allSurveys);
 
     return NextResponse.json({
       success: true,
@@ -172,7 +169,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const allSurveys = readSurveysFromFile();
+    const allSurveys = await readSurveys();
     const filtered = allSurveys.filter((s) => s.id !== id);
 
     if (filtered.length === allSurveys.length) {
@@ -182,7 +179,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    writeSurveysToFile(filtered);
+    await writeSurveys(filtered);
 
     return NextResponse.json({
       success: true,
@@ -220,7 +217,7 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const allSurveys = readSurveysFromFile();
+    const allSurveys = await readSurveys();
     const index = allSurveys.findIndex((s) => s.id === id);
 
     if (index === -1) {
@@ -238,7 +235,7 @@ export async function PATCH(req: NextRequest) {
       giftDeliveredNote: note !== undefined ? note : allSurveys[index].giftDeliveredNote,
     };
 
-    writeSurveysToFile(allSurveys);
+    await writeSurveys(allSurveys);
 
     return NextResponse.json({
       success: true,
@@ -253,4 +250,5 @@ export async function PATCH(req: NextRequest) {
     );
   }
 }
+
 

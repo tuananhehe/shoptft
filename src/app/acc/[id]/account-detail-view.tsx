@@ -35,6 +35,7 @@ import {
   CheckCircle2,
   Crown,
   ArrowRight,
+  ZoomIn,
 } from "lucide-react";
 
 interface AccountDetailViewProps {
@@ -438,7 +439,8 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                 {/* Hover hint */}
                 <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold pointer-events-none">
                   <span className="px-3.5 py-1.5 rounded-full bg-black/75 backdrop-blur-md flex items-center gap-1.5">
-                    🔍 Chạm để phóng to ảnh
+                    <ZoomIn className="w-3.5 h-3.5 text-white" />
+                    <span>Chạm để phóng to ảnh</span>
                   </span>
                 </div>
               </div>

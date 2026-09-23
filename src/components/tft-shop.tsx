@@ -501,17 +501,17 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                   <div className="grid grid-cols-2 gap-1 sm:gap-2 pt-0.5">
                     <button
                       onClick={() => setPreviewAccount(account)}
-                      className="h-7 sm:h-8.5 px-1 sm:px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg sm:rounded-xl font-semibold text-[10px] sm:text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                      className="h-8 sm:h-8.5 px-1 sm:px-2 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 rounded-lg sm:rounded-xl font-semibold text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1 cursor-pointer"
                     >
-                      <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                      <Eye className="w-3.5 h-3.5 flex-shrink-0" />
                       <span>Chi Tiết</span>
                     </button>
 
                     <button
                       onClick={() => onSelectAccount(account)}
-                      className="h-7 sm:h-8.5 px-1 sm:px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-[10px] sm:text-xs uppercase tracking-wider rounded-lg sm:rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 hover:scale-105 cursor-pointer"
+                      className="h-8 sm:h-8.5 px-1 sm:px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 active:scale-95 text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider rounded-lg sm:rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 cursor-pointer"
                     >
-                      <KeyRound className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                      <KeyRound className="w-3.5 h-3.5 flex-shrink-0" />
                       <span>Thuê Ngay</span>
                     </button>
                   </div>
@@ -573,7 +573,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="🔍 Tìm kiếm Tướng Tí Nị, Sân Đấu, Mã số (MS: 8899), Rank..."
+                placeholder="Tìm kiếm Tướng Tí Nị, Sân Đấu, Mã số (MS: 8899), Rank..."
                 className="w-full h-11 sm:h-12 pl-11 sm:pl-12 pr-11 sm:pr-12 bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 focus:border-orange-500 rounded-xl text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all shadow-2xs"
               />
 
@@ -866,17 +866,17 @@ export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
                       <div className="grid grid-cols-2 gap-1 sm:gap-2">
                         <button
                           onClick={() => setPreviewAccount(account)}
-                          className="h-7 sm:h-9 px-1 sm:px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg sm:rounded-xl font-semibold text-[10px] sm:text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                          className="h-8 sm:h-9 px-1 sm:px-2 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 rounded-lg sm:rounded-xl font-semibold text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1 cursor-pointer"
                         >
-                          <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                          <Eye className="w-3.5 h-3.5 flex-shrink-0" />
                           <span>Chi Tiết</span>
                         </button>
 
                         <button
                           onClick={() => onSelectAccount(account)}
-                          className="h-7 sm:h-9 px-1 sm:px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white font-bold text-[10px] sm:text-xs uppercase tracking-wider rounded-lg sm:rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 hover:scale-105 cursor-pointer"
+                          className="h-8 sm:h-9 px-1 sm:px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 active:scale-95 text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider rounded-lg sm:rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 cursor-pointer"
                         >
-                          <KeyRound className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                          <KeyRound className="w-3.5 h-3.5 flex-shrink-0" />
                           <span>Thuê Ngay</span>
                         </button>
                       </div>

@@ -1,45 +1,68 @@
 {
   "header": {
-    "title": "Khảo Sát Ý Kiến & Đóng Góp Cải Tiến",
-    "subtitle": "Shop TFT Tuấn Thái Bình • TFT MOBILE - ĐTCL",
-    "description": "Nhằm nâng cao chất lượng dịch vụ Thuê Acc, GDTG và Cày Thuê ngày càng chu đáo, Tuấn rất mong nhận được những góp ý thẳng thắn từ bạn. Hoàn thành khảo sát để nhận ngay Mã giảm giá tri ân 50.000đ và 1 Acc Gacha 400-2000 Kỉ Vật nhé!"
+    "title": "Khảo Sát Chất Lượng Dịch Vụ & Đóng Góp Ý Kiến",
+    "subtitle": "Shop TFT Tuấn Thái Bình • TFT MOBILE & ĐTCL PC",
+    "description": "Nhằm nâng cao chất lượng dịch vụ Thuê Acc, GDTG và Website ngày càng chuyên nghiệp, Tuấn rất mong nhận được những đánh giá khách quan từ bạn. Hoàn thành khảo sát để nhận ngay phần quà tri ân độc quyền cho từng dịch vụ."
   },
   "reward": {
     "enabled": true,
-    "voucherCode": "TRIAN-TFT50",
-    "rewardTitle": "Mã Ưu Đãi Tri Ân Dành Riêng Cho Bạn",
-    "rewardDescription": "⚡ Giảm ngay 50.000đ khi gửi mã này qua Zalo Tuấn Thái Bình + Tặng 1 Acc Gacha 400-2000 Kỉ Vật cho khách hàng từng giao dịch! (áp dụng các đơn hàng từ 19/9, kho VIP)",
+    "voucherCode": "TRIAN-THUE50",
+    "rewardTitle": "Voucher Giảm 50.000đ Thuê Acc VIP",
+    "rewardDescription": "Giảm ngay 50.000đ khi thuê acc VIP qua Zalo Tuấn Thái Bình + Tặng kèm 1 Acc Gacha 400 - 2000 Kỉ Vật.",
     "discountValue": 50000
+  },
+  "branchRewards": {
+    "THUE_ACC": {
+      "enabled": true,
+      "voucherCode": "TRIAN-THUE50",
+      "rewardTitle": "Voucher Giảm 50.000đ Thuê Acc VIP",
+      "rewardDescription": "Giảm ngay 50.000đ khi gửi mã này qua Zalo Tuấn Thái Bình + Tặng 1 Acc Gacha 400 - 2000 Kỉ Vật (áp dụng cho đơn thuê acc VIP).",
+      "discountValue": 50000
+    },
+    "GDTG": {
+      "enabled": true,
+      "voucherCode": "FREE-GDTG1M",
+      "rewardTitle": "Miễn Phí 1 Lần GDTG (Dưới 1.000.000đ)",
+      "rewardDescription": "Miễn phí 100% phí Giao Dịch Trung Gian cho đơn hàng dưới 1.000.000đ khi gửi mã này qua Zalo Tuấn Thái Bình.",
+      "discountValue": 0
+    },
+    "WEBSITE": {
+      "enabled": true,
+      "voucherCode": "WEB-TRIAN30",
+      "rewardTitle": "Voucher Tri Ân Cải Thiện Website 30.000đ",
+      "rewardDescription": "Voucher tri ân 30.000đ cho đơn hàng tiếp theo qua Zalo Tuấn Thái Bình nhằm cảm ơn sự đóng góp cải thiện hệ thống của bạn.",
+      "discountValue": 30000
+    }
   },
   "questions": [
     {
       "id": "q_branch",
       "section": "Bước 1: Chọn Dịch Vụ Khảo Sát",
       "branch": "ALL",
-      "title": "Bạn quan tâm hoặc đã từng sử dụng dịch vụ nào của Shop nhất?",
-      "subtitle": "(Chọn 1 nhánh dịch vụ để trả lời các câu hỏi phù hợp nhất với bạn)",
+      "title": "Bạn quan tâm hoặc muốn đóng góp ý kiến cho dịch vụ nào nhất?",
+      "subtitle": "(Chọn 1 dịch vụ để trả lời các câu hỏi chuyên sâu và nhận quà tương ứng)",
       "type": "SINGLE_CHOICE",
       "required": true,
       "enabled": true,
       "options": [
-        "🎮 Thuê Acc TFT (Thuê tài khoản ĐTCL VIP / Clone / Sân đấu)",
-        "🛡️ GDTG TFT (Giao dịch trung gian mua bán tài khoản an toàn)",
-        "⚔️ Cày Thuê TFT (Dịch vụ cày Rank Thách Đấu / Cao Thủ)"
+        "Thuê Tài Khoản ĐTCL (TFT Mobile & PC VIP / Clone / Sân Đấu)",
+        "Giao Dịch Trung Gian (GDTG Mua Bán Acc ĐTCL An Toàn)",
+        "Góp Ý Trải Nghiệm & Báo Lỗi Website (Tối Ưu Giao Diện, Báo Lỗi Kỹ Thuật)"
       ]
     },
     {
       "id": "q_thue_duration",
       "section": "Khảo Sát: Thuê Acc TFT",
       "branch": "THUE_ACC",
-      "title": "1. Bạn thường thuê acc TFT theo hình thức / gói thời gian nào?",
+      "title": "1. Bạn thường thuê acc TFT theo gói thời gian nào?",
       "type": "SINGLE_CHOICE",
       "required": true,
       "enabled": true,
       "options": [
-        "⚡ Gói 2h - 4h (Chơi nhanh giải trí theo ca)",
-        "🌙 Gói cày đêm (Thuê từ tối đến sáng hôm sau)",
-        "📅 Gói 24h (Thuê cả ngày theo ngày)",
-        "👑 Thuê tuần / tháng (Dài hạn cày rank / đấu giải)"
+        "Gói 2h - 4h (Chơi nhanh giải trí theo ca)",
+        "Gói Cày Đêm (22h - 8h sáng hôm sau)",
+        "Gói 24h (Thuê trọn gói theo ngày)",
+        "Gói Thuê Tuần / Tháng (Cày rank dài hạn, luyện meta)"
       ]
     },
     {
@@ -52,11 +75,11 @@
       "required": true,
       "enabled": true,
       "options": [
-        "✨ Có sẵn Linh Thú / Tí Nị yêu thích (Ahri, Kai'Sa, Yone, Aatrox...)",
-        "🏟️ Sân đấu Thần Thoại đẹp mắt (Tiệm Trà, EDM, Lễ Hội...)",
-        "🏆 Bậc Rank cao (Thách Đấu / Cao Thủ / Kim Cương)",
-        "💰 Giá thuê rẻ, vừa túi tiền học sinh sinh viên",
-        "⚡ Tốc độ bàn giao acc & đổi mật khẩu siêu tốc"
+        "Có sẵn Tí Nị Thần Thoại mong muốn (Ahri Chiêu Hồn, Yasuo, Kai'Sa, Yone, Aatrox...)",
+        "Sân đấu Thần Thoại đổi nhạc EDM độc quyền (Tiệm Trà Gwen, Quán Bar EDM...)",
+        "Bậc Rank cao sẵn sàng thi đấu (Thách Đấu / Đại Cao Thủ / Cao Thủ)",
+        "Mức giá thuê cạnh tranh, chiết khấu giờ chơi hợp lý",
+        "Bàn giao ID/Pass siêu tốc (dưới 30 giây), bảo mật mật khẩu tự động"
       ]
     },
     {
@@ -68,10 +91,10 @@
       "required": true,
       "enabled": true,
       "options": [
-        "⚡ Siêu nhanh (< 1 phút sau khi nhắn)",
-        "⏱️ Nhanh & đúng hẹn (1 - 3 phút)",
-        "⏳ Hơi lâu (> 5 phút)",
-        "❌ Rất chậm / Cần cải thiện"
+        "Siêu nhanh (Dưới 1 phút sau khi chốt gói)",
+        "Nhanh chóng & đúng hẹn (1 - 3 phút)",
+        "Chưa nhanh (Trên 5 phút)",
+        "Chậm / Cần cải thiện quy trình bàn giao"
       ]
     },
     {
@@ -79,9 +102,9 @@
       "section": "Khảo Sát: Thuê Acc TFT",
       "branch": "THUE_ACC",
       "title": "4. Bạn muốn Shop bổ sung thêm Tướng Tí Nị, Sân Đấu hoặc Bậc Rank nào?",
-      "subtitle": "(Ví dụ: Tí Nị Akali K/DA, Sân đấu Tiệm Trà EDM, Rank Thách Đấu 1000+ LP...)",
+      "subtitle": "(Ví dụ: Tí Nị Akali K/DA, Sân đấu Tiệm Trà Gwen, Rank Thách Đấu 1000+ LP...)",
       "type": "TEXT",
-      "placeholder": "Gõ tên Tướng tí nị, Sân đấu hoặc Rank bạn muốn có thêm...",
+      "placeholder": "Nhập tên Tí Nị, Sân đấu hoặc Bậc rank bạn muốn Shop cập nhật thêm...",
       "required": false,
       "enabled": true
     },
@@ -94,41 +117,41 @@
       "required": true,
       "enabled": true,
       "options": [
-        "🛒 Người Mua tài khoản ĐTCL",
-        "🏷️ Người Bán tài khoản ĐTCL",
-        "🔄 Đổi acc / Giao lưu tài khoản"
+        "Người Mua tài khoản ĐTCL",
+        "Người Bán tài khoản ĐTCL",
+        "Giao lưu / Trao đổi tài khoản tương đương"
       ]
     },
     {
       "id": "q_gdtg_reason",
       "section": "Khảo Sát: GDTG TFT",
       "branch": "GDTG",
-      "title": "2. Điều gì khiến bạn tin tưởng chọn Tuấn Thái Bình làm trung gian?",
+      "title": "2. Yếu tố cốt lõi khiến bạn tin tưởng chọn Tuấn Thái Bình làm trung gian?",
       "subtitle": "(Có thể chọn nhiều mục)",
       "type": "MULTIPLE_CHOICE",
       "required": true,
       "enabled": true,
       "options": [
-        "🛡️ Uy tín lâu năm, thương hiệu minh bạch, có bảo hiểm",
-        "🔍 Kiểm tra thông tin sạch 100% (Check mail ẩn, Riot ID, cccd...)",
-        "💵 Giữ tiền an toàn, giải ngân tiền sòng phẳng ngay khi xong",
-        "🏷️ Phí trung gian (Phí GDTG) hợp lý",
-        "🤝 Thái độ tư vấn nhiệt tình, xử lý tranh chấp công tâm"
+        "Uy tín thương hiệu Tuấn Thái Bình (Quỹ bảo hiểm Checkscam 30.000.000đ)",
+        "Quy trình check Mail Ẩn, Riot ID và CCCD chính chủ nghiêm ngặt",
+        "Cơ chế giữ tiền an toàn, giải ngân sòng phẳng ngay sau bàn giao",
+        "Biểu phí trung gian hợp lý, minh bạch rõ ràng",
+        "Tư vấn nhiệt tình, hỗ trợ giải quyết tranh chấp công tâm 24/7"
       ]
     },
     {
       "id": "q_gdtg_speed",
       "section": "Khảo Sát: GDTG TFT",
       "branch": "GDTG",
-      "title": "3. Đánh giá tốc độ check thông tin và hoàn tất phiên GDTG:",
+      "title": "3. Đánh giá tốc độ kiểm tra tài khoản và hoàn tất phiên GDTG:",
       "type": "SINGLE_CHOICE",
       "required": true,
       "enabled": true,
       "options": [
-        "⚡ Siêu tốc & an toàn (< 5 phút)",
-        "👍 Đúng hẹn, check rất cẩn thận",
-        "⏳ Hơi lâu (Cần rút ngắn thời gian đổi mail)",
-        "❌ Chưa hài lòng"
+        "Siêu tốc & chuyên nghiệp (Dưới 5 phút)",
+        "Đúng hẹn, kiểm tra kỹ lưỡng từng bước",
+        "Hơi lâu (Cần tối ưu thời gian đổi thông tin Riot)",
+        "Chưa hài lòng về tốc độ phản hồi"
       ]
     },
     {
@@ -136,69 +159,69 @@
       "section": "Khảo Sát: GDTG TFT",
       "branch": "GDTG",
       "title": "4. Bạn có đề xuất gì để quy trình GDTG tại Shop trở nên an toàn & tiện lợi hơn?",
-      "subtitle": "(Góp ý về hợp đồng cam kết, hệ thống phòng chat GDTG, chính sách bảo hiểm...)",
+      "subtitle": "(Góp ý về hợp đồng cam kết, kiểm tra tài khoản, xác minh danh tính...)",
       "type": "TEXTAREA",
-      "placeholder": "Chia sẻ đề xuất hoặc tính năng bạn muốn có trong dịch vụ GDTG...",
+      "placeholder": "Chia sẻ ý kiến giúp Tuấn nâng cao an toàn cho các giao dịch ĐTCL...",
       "required": false,
       "enabled": true
     },
     {
-      "id": "q_cay_target",
-      "section": "Khảo Sát: Cày Thuê TFT",
-      "branch": "CAY_THUE",
-      "title": "1. Bạn thường có nhu cầu cày thuê lên mốc Rank nào?",
+      "id": "q_web_experience",
+      "section": "Khảo Sát: Báo Lỗi & Cải Thiện Website",
+      "branch": "WEBSITE",
+      "title": "1. Đánh giá trải nghiệm lướt web, tìm kiếm acc và tốc độ tải trang:",
       "type": "SINGLE_CHOICE",
       "required": true,
       "enabled": true,
       "options": [
-        "💎 Lên Kim Cương / Lục Bảo",
-        "🔮 Lên Cao Thủ (Master)",
-        "🏆 Lên Đại Cao Thủ / Thách Đấu (Challenger)",
-        "⭐ Cày chuỗi phân hạng 5 trận đầu mùa",
-        "🛡️ Cày giữ Rank chống tụt điểm cuối mùa"
+        "Mượt mà, tốc độ tải trang nhanh, hiển thị rõ ràng",
+        "Ổn định, đáp ứng tốt nhu cầu tra cứu",
+        "Đôi lúc phản hồi chậm khi tải danh sách tài khoản",
+        "Khó thao tác hoặc giật lag trên thiết bị di động"
       ]
     },
     {
-      "id": "q_cay_priority",
-      "section": "Khảo Sát: Cày Thuê TFT",
-      "branch": "CAY_THUE",
-      "title": "2. Yêu cầu quan trọng nhất của bạn đối với Booster cày thuê?",
+      "id": "q_web_bug_type",
+      "section": "Khảo Sát: Báo Lỗi & Cải Thiện Website",
+      "branch": "WEBSITE",
+      "title": "2. Bạn có từng gặp lỗi kỹ thuật hoặc sự cố nào trên website không?",
       "subtitle": "(Có thể chọn nhiều mục)",
       "type": "MULTIPLE_CHOICE",
       "required": true,
       "enabled": true,
       "options": [
-        "🔒 Bảo mật tài khoản 100%, tuyệt đối không chat trong game",
-        "📈 Tỉ lệ thắng cao (Top 1-2 liên tục), MMR tài khoản đẹp",
-        "⏱️ Hoàn thành đúng hoặc trước thời hạn cam kết",
-        "💰 Mức giá cày hợp lý, có bảo hành tụt rank",
-        "📱 Cập nhật tiến độ điểm số thường xuyên qua Zalo"
+        "Website hoạt động ổn định, chưa từng gặp lỗi",
+        "Lỗi vỡ layout hoặc tràn khung viền trên điện thoại",
+        "Lỗi ảnh tài khoản / Tí Nị tải chậm hoặc không hiển thị",
+        "Lỗi tạo link thanh toán tạm thời hoặc mã QR ngân hàng",
+        "Bộ lọc Tí Nị / Sân đấu / Giá tiền hoạt động chưa chính xác"
       ]
     },
     {
-      "id": "q_cay_coaching",
-      "section": "Khảo Sát: Cày Thuê TFT",
-      "branch": "CAY_THUE",
-      "title": "3. Bạn có quan tâm đến dịch vụ Hướng dẫn leo rank 1-1 (Coaching ĐTCL) cùng Thách Đấu không?",
+      "id": "q_web_bug_detail",
+      "section": "Khảo Sát: Báo Lỗi & Cải Thiện Website",
+      "branch": "WEBSITE",
+      "title": "3. Bạn gặp sự cố ở trang nào hoặc muốn cải thiện điểm gì trên Website?",
+      "subtitle": "(Ví dụ: Trang chi tiết acc, popup thuê acc, bộ lọc tìm kiếm trên mobile...)",
+      "type": "TEXTAREA",
+      "placeholder": "Mô tả chi tiết lỗi bạn gặp hoặc điểm cần cải thiện trên website...",
+      "required": false,
+      "enabled": true
+    },
+    {
+      "id": "q_web_feature_wish",
+      "section": "Khảo Sát: Báo Lỗi & Cải Thiện Website",
+      "branch": "WEBSITE",
+      "title": "4. Tính năng mới nào bạn mong muốn Shop ra mắt nhất trên Website?",
       "type": "SINGLE_CHOICE",
       "required": true,
       "enabled": true,
       "options": [
-        "🔥 Rất quan tâm! Muốn học cách xoay bài, def máu và xếp cờ chuẩn",
-        "💡 Muốn có giáo án độc quyền & danh sách bài dị leo rank",
-        "👌 Hiện tại mình chỉ cần dịch vụ cày thuê"
+        "Tự động nhận thông tin đăng nhập và thông báo hết giờ qua Zalo",
+        "Nhận thông báo khi có Acc Tí Nị mới cập nhật hoặc Flash Sale",
+        "Tích hợp đa dạng phương thức thanh toán tự động",
+        "Tính năng đánh dấu (Bookmark) Acc yêu thích để thuê nhanh"
       ]
-    },
-    {
-      "id": "q_cay_suggestion",
-      "section": "Khảo Sát: Cày Thuê TFT",
-      "branch": "CAY_THUE",
-      "title": "4. Đóng góp ý kiến để dịch vụ Cày Thuê của Tuấn ngày càng chuyên nghiệp hơn:",
-      "subtitle": "(Ví dụ: Livestream kín cho khách xem, tư vấn lối chơi miễn phí sau khi cày...)",
-      "type": "TEXTAREA",
-      "placeholder": "Gõ ý kiến đóng góp của bạn về dịch vụ Cày Thuê...",
-      "required": false,
-      "enabled": true
     },
     {
       "id": "q_satisfaction",

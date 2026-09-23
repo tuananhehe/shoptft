@@ -5,6 +5,7 @@ import {
   SurveyResponse,
   SurveySummary,
   SurveyConfig,
+  SurveyRewardConfig,
   SurveyQuestion,
   SurveyQuestionType,
   getSurveysApi,
@@ -12,6 +13,7 @@ import {
   getSurveyConfigApi,
   updateSurveyConfigApi,
   updateSurveyGiftStatusApi,
+
 } from "@/utils/surveys-service";
 import {
   getReviewsApi,
@@ -89,6 +91,8 @@ export default function AdminSurveysPage() {
   const [config, setConfig] = useState<SurveyConfig | null>(null);
   const [loadingConfig, setLoadingConfig] = useState<boolean>(true);
   const [savingConfig, setSavingConfig] = useState<boolean>(false);
+  const [activeRewardBranch, setActiveRewardBranch] = useState<"THUE_ACC" | "GDTG" | "WEBSITE">("THUE_ACC");
+
 
   // Question Modal state
   const [editingQuestion, setEditingQuestion] = useState<SurveyQuestion | null>(null);
@@ -497,7 +501,7 @@ export default function AdminSurveysPage() {
           }`}
         >
           <Star className="w-4 h-4 text-amber-300 fill-amber-300" />
-          <span>⭐ Đánh Giá & Góp Ý Khách Hàng ({reviews.length})</span>
+          <span>Đánh Giá Khách Hàng ({reviews.length})</span>
         </button>
 
         <button
@@ -509,7 +513,7 @@ export default function AdminSurveysPage() {
           }`}
         >
           <Users className="w-4 h-4" />
-          <span>📊 Khảo Sát Chi Tiết ({surveys.length})</span>
+          <span>Khảo Sát Chi Tiết ({surveys.length})</span>
         </button>
 
         <button
@@ -521,7 +525,7 @@ export default function AdminSurveysPage() {
           }`}
         >
           <Settings className="w-4 h-4" />
-          <span>⚙️ Cài Đặt Câu Hỏi & Phần Quà</span>
+          <span>Cài Đặt Câu Hỏi & Phần Quà</span>
           {config?.reward?.enabled && (
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           )}
@@ -1137,7 +1141,7 @@ export default function AdminSurveysPage() {
                         <Gift className="w-4 h-4" />
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span
                             className={`text-xs font-black uppercase ${
                               survey.giftDelivered ? "text-emerald-800" : "text-amber-900"
@@ -1145,6 +1149,20 @@ export default function AdminSurveysPage() {
                           >
                             {survey.giftDelivered ? "ĐÃ TRAO QUÀ CHO KHÁCH" : "CHƯA TRAO QUÀ TRI ÂN"}
                           </span>
+                          {survey.branch && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-orange-800 border border-orange-200">
+                              {survey.branch === "GDTG"
+                                ? "🛡️ GDTG (Free < 1M)"
+                                : survey.branch === "WEBSITE"
+                                ? "💡 Báo Lỗi Web"
+                                : "🎮 Thuê Acc"}
+                            </span>
+                          )}
+                          {survey.rewardCode && (
+                            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-white text-orange-600 border border-orange-300">
+                              Mã: {survey.rewardCode}
+                            </span>
+                          )}
                           {survey.giftDelivered && survey.giftDeliveredAt && (
                             <span className="text-[10px] text-emerald-600 font-medium">
                               (Lúc {new Date(survey.giftDeliveredAt).toLocaleString("vi-VN")})
@@ -1164,7 +1182,9 @@ export default function AdminSurveysPage() {
                     <div className="flex items-center gap-2">
                       {survey.customerZalo && (
                         <a
-                          href={`https://zalo.me/${survey.customerZalo.replace(/[^0-9]/g, "")}`}
+                          href={`https://zalo.me/${survey.customerZalo.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
+                            `Chào bạn, Shop TFT Tuấn Thái Bình đã nhận được khảo sát ý kiến của bạn! Phần quà tri ân của bạn là: ${survey.rewardCode || "Voucher"} (${survey.rewardTitle || "Ưu Đãi"}). Cảm ơn bạn đã đồng hành cùng Shop!`
+                          )}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
@@ -1173,6 +1193,7 @@ export default function AdminSurveysPage() {
                           <span>Nhắn Zalo Gửi Quà</span>
                         </a>
                       )}
+
 
                       <button
                         type="button"
@@ -1281,100 +1302,177 @@ export default function AdminSurveysPage() {
             </div>
           </div>
 
-          {/* 1. Reward & Voucher Settings Card */}
+          {/* 1. Reward & Voucher Settings Card (Mỗi nhánh 1 phần quà riêng) */}
           <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <Gift className="w-5 h-5 text-orange-600" />
-                <h3 className="font-bold text-sm sm:text-base text-slate-900">
-                  Thiết Lập Quà Tặng / Mã Voucher Tri Ân
-                </h3>
+                <div>
+                  <h3 className="font-bold text-sm sm:text-base text-slate-900">
+                    Thiết Lập Quà Tặng / Voucher Theo Từng Nhánh Dịch Vụ
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Khách hàng hoàn thành khảo sát ở nhánh nào sẽ nhận được phần quà riêng của nhánh đó.
+                  </p>
+                </div>
               </div>
 
-              <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 self-start sm:self-center">
                 <input
                   type="checkbox"
-                  checked={config.reward.enabled}
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      reward: { ...config.reward, enabled: e.target.checked },
-                    })
+                  checked={
+                    config.branchRewards?.[activeRewardBranch]?.enabled ?? config.reward?.enabled ?? true
                   }
+                  onChange={(e) => {
+                    const currentReward = config.branchRewards?.[activeRewardBranch] || { ...config.reward };
+                    const updated = {
+                      ...config,
+                      branchRewards: {
+                        ...(config.branchRewards || {}),
+                        [activeRewardBranch]: { ...currentReward, enabled: e.target.checked },
+                      },
+                      ...(activeRewardBranch === "THUE_ACC" ? { reward: { ...config.reward, enabled: e.target.checked } } : {}),
+                    };
+                    setConfig(updated);
+                  }}
                   className="w-4 h-4 text-orange-600 rounded border-slate-300 focus:ring-orange-500 cursor-pointer accent-orange-600"
                 />
-                <span>Bật tính năng tặng voucher</span>
+                <span>Bật tặng quà cho nhánh này</span>
               </label>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-800">
-                  Mã Voucher Giảm Giá:
-                </label>
-                <input
-                  type="text"
-                  value={config.reward.voucherCode}
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      reward: { ...config.reward, voucherCode: e.target.value.toUpperCase() },
-                    })
-                  }
-                  placeholder="VD: TRIAN-TFT20"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono font-bold text-sm text-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                />
-              </div>
+            {/* Branch Selector Tabs */}
+            <div className="flex flex-wrap gap-2 p-1.5 bg-slate-100/80 rounded-2xl border border-slate-200/70">
+              <button
+                type="button"
+                onClick={() => setActiveRewardBranch("THUE_ACC")}
+                className={`flex-1 min-w-[130px] py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  activeRewardBranch === "THUE_ACC"
+                    ? "bg-white text-orange-600 shadow-sm border border-slate-200/80"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <span>Thuê Acc TFT</span>
+              </button>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-800">
-                  Tiêu Đề Quà Tặng:
-                </label>
-                <input
-                  type="text"
-                  value={config.reward.rewardTitle}
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      reward: { ...config.reward, rewardTitle: e.target.value },
-                    })
-                  }
-                  placeholder="VD: Mã Ưu Đãi Tri Ân Dành Riêng Cho Bạn"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                />
-              </div>
+              <button
+                type="button"
+                onClick={() => setActiveRewardBranch("GDTG")}
+                className={`flex-1 min-w-[130px] py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  activeRewardBranch === "GDTG"
+                    ? "bg-white text-blue-600 shadow-sm border border-slate-200/80"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <span>GDTG TFT (Free &lt; 1M)</span>
+              </button>
 
-              <div className="sm:col-span-2 space-y-1.5">
-                <label className="text-xs font-bold text-slate-800">
-                  Mô Tả / Quyền Lợi Sử Dụng Voucher:
-                </label>
-                <input
-                  type="text"
-                  value={config.reward.rewardDescription}
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      reward: { ...config.reward, rewardDescription: e.target.value },
-                    })
-                  }
-                  placeholder="VD: ⚡ Giảm ngay 20.000đ khi gửi mã này kèm đơn thuê acc qua Zalo Tuấn Thái Bình!"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                />
-              </div>
-
-              <div className="sm:col-span-2 pt-2 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => handleSaveConfig()}
-                  disabled={savingConfig}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>Lưu Thiết Lập Quà Tặng</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setActiveRewardBranch("WEBSITE")}
+                className={`flex-1 min-w-[130px] py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  activeRewardBranch === "WEBSITE"
+                    ? "bg-white text-emerald-600 shadow-sm border border-slate-200/80"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <span>Báo Lỗi &amp; Cải Thiện Web</span>
+              </button>
             </div>
+
+            {/* Active Branch Reward Form */}
+            {(() => {
+              const bReward = config.branchRewards?.[activeRewardBranch] || {
+                enabled: true,
+                voucherCode: activeRewardBranch === "THUE_ACC" ? "TRIAN-THUE50" : activeRewardBranch === "GDTG" ? "FREE-GDTG1M" : "WEB-TRIAN30",
+                rewardTitle: activeRewardBranch === "THUE_ACC" ? "Voucher Giảm 50.000đ Thuê Acc VIP" : activeRewardBranch === "GDTG" ? "Miễn Phí 1 Lần GDTG (Dưới 1.000.000đ)" : "Voucher Tri Ân Cải Thiện Website 30.000đ",
+                rewardDescription: activeRewardBranch === "THUE_ACC" ? "Giảm ngay 50.000đ khi gửi mã này qua Zalo Tuấn Thái Bình + Tặng 1 Acc Gacha 400 - 2000 Kỉ Vật (áp dụng cho đơn thuê acc VIP)." : activeRewardBranch === "GDTG" ? "Miễn phí 100% phí Giao Dịch Trung Gian cho đơn hàng dưới 1.000.000đ khi gửi mã này qua Zalo Tuấn Thái Bình." : "Voucher tri ân 30.000đ cho đơn hàng tiếp theo qua Zalo Tuấn Thái Bình nhằm cảm ơn sự đóng góp cải thiện hệ thống của bạn.",
+                discountValue: activeRewardBranch === "THUE_ACC" ? 50000 : activeRewardBranch === "GDTG" ? 0 : 30000,
+              };
+
+              const updateField = (field: keyof SurveyRewardConfig, val: any) => {
+                const currentReward = config.branchRewards?.[activeRewardBranch] || { ...bReward };
+                const updated = {
+                  ...config,
+                  branchRewards: {
+                    ...(config.branchRewards || {}),
+                    [activeRewardBranch]: { ...currentReward, [field]: val },
+                  },
+                  ...(activeRewardBranch === "THUE_ACC" ? { reward: { ...config.reward, [field]: val } } : {}),
+                };
+                setConfig(updated);
+              };
+
+              return (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-800">
+                      Mã Voucher / Mã Ưu Đãi:
+                    </label>
+                    <input
+                      type="text"
+                      value={bReward.voucherCode}
+                      onChange={(e) => updateField("voucherCode", e.target.value.toUpperCase())}
+                      placeholder={activeRewardBranch === "GDTG" ? "VD: FREE-GDTG1M" : "VD: TRIAN-THUE50"}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono font-bold text-sm text-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-800">
+                      Tiêu Đề Phần Quà:
+                    </label>
+                    <input
+                      type="text"
+                      value={bReward.rewardTitle}
+                      onChange={(e) => updateField("rewardTitle", e.target.value)}
+                      placeholder="VD: Miễn Phí 1 Lần GDTG (Dưới 1.000.000đ)"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2 space-y-1.5">
+                    <label className="text-xs font-bold text-slate-800">
+                      Mô Tả / Quyền Lợi Sử Dụng:
+                    </label>
+                    <input
+                      type="text"
+                      value={bReward.rewardDescription}
+                      onChange={(e) => updateField("rewardDescription", e.target.value)}
+                      placeholder="VD: 🛡️ Miễn phí 100% phí Giao Dịch Trung Gian..."
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-800">
+                      Giá Trị Giảm Giá (VNĐ):
+                    </label>
+                    <input
+                      type="number"
+                      value={bReward.discountValue || 0}
+                      onChange={(e) => updateField("discountValue", Number(e.target.value) || 0)}
+                      placeholder="VD: 50000 hoặc 0 (nếu là voucher free dịch vụ)"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-medium"
+                    />
+                  </div>
+
+                  <div className="flex items-end justify-end">
+                    <button
+                      type="button"
+                      onClick={() => handleSaveConfig()}
+                      disabled={savingConfig}
+                      className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Lưu Cấu Hình Quà Tặng ({activeRewardBranch === "GDTG" ? "GDTG" : activeRewardBranch === "WEBSITE" ? "Website" : "Thuê Acc"})</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
+
 
           {/* 2. Header & Introduction Text Card */}
           <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4">
@@ -1496,11 +1594,14 @@ export default function AdminSurveysPage() {
                                 ? "🎮 Thuê Acc"
                                 : q.branch === "GDTG"
                                 ? "🛡️ GDTG"
+                                : q.branch === "WEBSITE"
+                                ? "💡 Báo Lỗi & Web"
                                 : q.branch === "CAY_THUE"
                                 ? "⚔️ Cày Thuê"
                                 : q.branch}
                             </span>
                           )}
+
                           {q.required ? (
                             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-700 border border-red-200">
                               Bắt buộc *
@@ -1665,7 +1766,9 @@ export default function AdminSurveysPage() {
                   <option value="ALL">🌐 Tất cả các nhánh (Câu hỏi chung / Đánh giá cuối)</option>
                   <option value="THUE_ACC">🎮 Nhánh: Thuê Acc TFT (Tí Nị, Sân Đấu, Thời Gian)</option>
                   <option value="GDTG">🛡️ Nhánh: GDTG TFT (An Toàn, Check Mail, Phí TG)</option>
-                  <option value="CAY_THUE">⚔️ Nhánh: Cày Thuê TFT & Coaching (Mục Tiêu, Rank)</option>
+                  <option value="WEBSITE">💡 Nhánh: Báo Lỗi & Cải Thiện Website (Góp ý, giật lag, giao diện)</option>
+                  <option value="CAY_THUE">⚔️ Nhánh: Cày Thuê TFT (Lưu trữ / Tùy chọn)</option>
+
                 </select>
               </div>
 

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
 import path from "path";
 import { SurveyConfig } from "@/utils/surveys-service";
 import { verifyAdminSessionToken, ADMIN_COOKIE_NAME } from "@/utils/admin-auth";
+import { getCloudJson, saveCloudJson } from "@/utils/cloud-config-store";
 
+const STORAGE_KEY = "system/survey-config.json";
 const CONFIG_FILE_PATH = path.join(process.cwd(), "src", "data", "survey-config.json");
 
 function isAuthorizedAdmin(req: NextRequest): boolean {
@@ -24,39 +25,13 @@ function isAuthorizedAdmin(req: NextRequest): boolean {
   return false;
 }
 
-function readSurveyConfig(): SurveyConfig | null {
-  try {
-    if (fs.existsSync(CONFIG_FILE_PATH)) {
-      const data = fs.readFileSync(CONFIG_FILE_PATH, "utf8");
-      return JSON.parse(data) as SurveyConfig;
-    }
-  } catch (err) {
-    console.error("Lỗi đọc file survey-config.json:", err);
-  }
-  return null;
-}
-
-function writeSurveyConfig(config: SurveyConfig): boolean {
-  try {
-    const dir = path.dirname(CONFIG_FILE_PATH);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(CONFIG_FILE_PATH, JSON.stringify(config, null, 2), "utf8");
-    return true;
-  } catch (err) {
-    console.error("Lỗi ghi file survey-config.json:", err);
-    return false;
-  }
-}
-
 /**
  * GET /api/surveys/config
  * Công khai cho client /khao-sat và Admin
  */
 export async function GET() {
   try {
-    const config = readSurveyConfig();
+    const config = await getCloudJson<SurveyConfig>(STORAGE_KEY, CONFIG_FILE_PATH);
     if (!config) {
       return NextResponse.json(
         { success: false, error: "Chưa có cấu hình khảo sát" },
@@ -106,7 +81,7 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const success = writeSurveyConfig(body);
+    const success = await saveCloudJson(STORAGE_KEY, body, CONFIG_FILE_PATH);
     if (!success) {
       return NextResponse.json(
         { success: false, error: "Không thể lưu tệp cấu hình khảo sát!" },
@@ -127,3 +102,4 @@ export async function PUT(req: NextRequest) {
     );
   }
 }
+

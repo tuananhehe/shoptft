@@ -5,53 +5,111 @@ import {
   PaymentLinkData,
   PAYMENT_LINK_DURATION_MS,
   generatePaymentLinkId,
+  encodePaymentToken,
+  decodePaymentToken,
 } from "@/utils/payment-links-service";
-import { buildVietQRUrl } from "@/utils/vietqr-helper";
+import { buildVietQRUrl, DEFAULT_BANK_CONFIG } from "@/utils/vietqr-helper";
+import { supabase } from "@/utils/supabase/client";
 
-const PAYMENT_LINKS_FILE = path.join(process.cwd(), "src", "data", "payment-links.json");
+const PRIMARY_PAYMENT_LINKS_FILE = path.join(process.cwd(), "src", "data", "payment-links.json");
+const TMP_PAYMENT_LINKS_FILE = path.join("/tmp", "payment-links.json");
 
 let memoryPaymentLinks: PaymentLinkData[] = [];
 
 function readPaymentLinks(): PaymentLinkData[] {
+  // 1. Thử đọc từ src/data
   try {
-    if (fs.existsSync(PAYMENT_LINKS_FILE)) {
-      const content = fs.readFileSync(PAYMENT_LINKS_FILE, "utf-8");
+    if (fs.existsSync(PRIMARY_PAYMENT_LINKS_FILE)) {
+      const content = fs.readFileSync(PRIMARY_PAYMENT_LINKS_FILE, "utf-8");
       const parsed = JSON.parse(content);
-      if (Array.isArray(parsed)) {
+      if (Array.isArray(parsed) && parsed.length > 0) {
         memoryPaymentLinks = parsed;
         return memoryPaymentLinks;
       }
     }
-  } catch (err) {
-    console.error("Lỗi đọc file payment-links.json:", err);
+  } catch {
+    // Bỏ qua lỗi read-only
   }
+
+  // 2. Thử đọc từ /tmp (Vercel serverless writable storage)
+  try {
+    if (fs.existsSync(TMP_PAYMENT_LINKS_FILE)) {
+      const content = fs.readFileSync(TMP_PAYMENT_LINKS_FILE, "utf-8");
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        memoryPaymentLinks = parsed;
+        return memoryPaymentLinks;
+      }
+    }
+  } catch {
+    // Bỏ qua
+  }
+
   return memoryPaymentLinks;
 }
 
 function writePaymentLinks(links: PaymentLinkData[]) {
+  memoryPaymentLinks = links;
+
+  // Thử ghi vào src/data
+  let primarySuccess = false;
   try {
-    memoryPaymentLinks = links;
-    const dir = path.dirname(PAYMENT_LINKS_FILE);
+    const dir = path.dirname(PRIMARY_PAYMENT_LINKS_FILE);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    fs.writeFileSync(PAYMENT_LINKS_FILE, JSON.stringify(links, null, 2), "utf-8");
-  } catch (err) {
-    console.error("Lỗi ghi file payment-links.json:", err);
+    fs.writeFileSync(PRIMARY_PAYMENT_LINKS_FILE, JSON.stringify(links, null, 2), "utf-8");
+    primarySuccess = true;
+  } catch {
+    // Môi trường read-only như Vercel
+  }
+
+  // Nếu không ghi được vào src/data, ghi vào /tmp
+  if (!primarySuccess) {
+    try {
+      fs.writeFileSync(TMP_PAYMENT_LINKS_FILE, JSON.stringify(links, null, 2), "utf-8");
+    } catch {
+      // Bỏ qua
+    }
   }
 }
 
-// Khởi tạo nạp dữ liệu ban đầu
+// Nạp sẵn cache
 readPaymentLinks();
 
 /**
- * GET /api/pay?id=PAY-XXXXXX
+ * GET /api/pay?id=PAY-XXXXXX&d=...
  * Lấy chi tiết link thanh toán và tự động tính toán thời hạn 5 phút
  */
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
+    const token = searchParams.get("d");
+
+    // 1. Ưu tiên giải mã token tự thân 'd' nếu có trong URL (Hoạt động 100% trên Vercel/Web Thật)
+    if (token) {
+      const decoded = decodePaymentToken(token);
+      if (decoded) {
+        const now = Date.now();
+        const isExpired = now > decoded.expiresAt;
+        const remainingSeconds = isExpired ? 0 : Math.max(0, Math.floor((decoded.expiresAt - now) / 1000));
+
+        // Lưu vào memory cache
+        const links = readPaymentLinks();
+        if (!links.some((l) => l.id.toUpperCase() === decoded.id.toUpperCase())) {
+          writePaymentLinks([decoded, ...links.slice(0, 499)]);
+        }
+
+        return NextResponse.json({
+          success: true,
+          data: decoded,
+          isExpired,
+          remainingSeconds,
+          token,
+        });
+      }
+    }
 
     if (!id) {
       return NextResponse.json(
@@ -60,8 +118,58 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // 2. Tra cứu trong bộ nhớ và file JSON
     const links = readPaymentLinks();
-    const item = links.find((l) => l.id.toUpperCase() === id.trim().toUpperCase());
+    let item = links.find((l) => l.id.toUpperCase() === id.trim().toUpperCase());
+
+    // 3. Fallback: Nếu không thấy, tra cứu mã tài khoản trong Supabase (phòng trường hợp khách vào trực tiếp qua mã acc)
+    if (!item) {
+      const cleanCode = id.trim().replace(/^PAY-/i, "").replace(/^MS-?/i, "").trim();
+      const { data: dbAccs } = await supabase
+        .from("accounts")
+        .select("*")
+        .or(`code.ilike.%${cleanCode}%,id.eq.${id}`)
+        .limit(1);
+
+      if (dbAccs && dbAccs.length > 0) {
+        const acc = dbAccs[0];
+        const now = Date.now();
+        const amount = Number(acc.daily_price) || Number(acc.price) || 35000;
+        const accCode = acc.code || `MS: ${cleanCode}`;
+        const transferContent = `THUE ACC ${accCode.replace(/^MS:\s*/i, "")}`;
+
+        const fallbackItem: PaymentLinkData = {
+          id: id.toUpperCase().startsWith("PAY-") ? id.toUpperCase() : `PAY-${id.toUpperCase()}`,
+          accountCode: accCode,
+          accountTitle: acc.title || accCode,
+          accountCategory: acc.type === "CLONE" ? "CLONE" : "VIP",
+          thumbnail: acc.image_url || "",
+          packageName: "Gói Thuê 24 Giờ",
+          durationHours: 24,
+          amount,
+          bankId: DEFAULT_BANK_CONFIG.bankId,
+          bankName: DEFAULT_BANK_CONFIG.bankName,
+          accountNumber: DEFAULT_BANK_CONFIG.accountNumber,
+          accountHolder: DEFAULT_BANK_CONFIG.accountHolder,
+          qrTemplate: DEFAULT_BANK_CONFIG.qrTemplate,
+          transferContent,
+          qrUrl: buildVietQRUrl({
+            bankId: DEFAULT_BANK_CONFIG.bankId,
+            accountNumber: DEFAULT_BANK_CONFIG.accountNumber,
+            accountHolder: DEFAULT_BANK_CONFIG.accountHolder,
+            amount,
+            description: transferContent,
+            template: DEFAULT_BANK_CONFIG.qrTemplate,
+          }),
+          createdAt: now,
+          expiresAt: now + PAYMENT_LINK_DURATION_MS,
+          status: "ACTIVE",
+        };
+
+        item = fallbackItem;
+        writePaymentLinks([fallbackItem, ...links.slice(0, 499)]);
+      }
+    }
 
     if (!item) {
       return NextResponse.json(
@@ -85,11 +193,14 @@ export async function GET(req: NextRequest) {
       ? 0
       : Math.max(0, Math.floor((item.expiresAt - now) / 1000));
 
+    const tokenGenerated = encodePaymentToken(item);
+
     return NextResponse.json({
       success: true,
       data: item,
       isExpired,
       remainingSeconds,
+      token: tokenGenerated,
     });
   } catch (err: any) {
     console.error("Lỗi GET /api/pay:", err);
@@ -171,14 +282,18 @@ export async function POST(req: NextRequest) {
       status: "ACTIVE",
     };
 
-    // Giữ tối đa 500 link gần nhất trong file
+    // Tạo token URL an toàn chứa toàn bộ dữ liệu phiên thanh toán
+    const token = encodePaymentToken(newLink);
+
+    // Giữ tối đa 500 link gần nhất
     const updatedLinks = [newLink, ...links.slice(0, 499)];
     writePaymentLinks(updatedLinks);
 
     return NextResponse.json({
       success: true,
       data: newLink,
-      payUrl: `/pay/${newId}`,
+      token,
+      payUrl: `/pay/${newId}?d=${token}`,
     });
   } catch (err: any) {
     console.error("Lỗi POST /api/pay:", err);
@@ -208,19 +323,18 @@ export async function PUT(req: NextRequest) {
     const links = readPaymentLinks();
     const index = links.findIndex((l) => l.id.toUpperCase() === id.trim().toUpperCase());
 
-    if (index === -1) {
-      return NextResponse.json(
-        { success: false, error: "Không tìm thấy link thanh toán" },
-        { status: 404 }
-      );
+    if (index !== -1) {
+      links[index].status = status;
+      writePaymentLinks(links);
+      return NextResponse.json({
+        success: true,
+        data: links[index],
+      });
     }
-
-    links[index].status = status;
-    writePaymentLinks(links);
 
     return NextResponse.json({
       success: true,
-      data: links[index],
+      message: "Đã cập nhật trạng thái",
     });
   } catch (err: any) {
     console.error("Lỗi PUT /api/pay:", err);

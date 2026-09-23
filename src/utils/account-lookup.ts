@@ -5,7 +5,7 @@ import {
   TFT_RENTAL_ACCOUNTS,
   TFT_CLONE_ACCOUNTS,
 } from "@/data/tft-data";
-import { AccountDbRow } from "@/utils/supabase/accounts-service";
+import { AccountDbRow, cleanTftImageUrl } from "@/utils/supabase/accounts-service";
 
 export interface UnifiedProductAccount {
   id: string;
@@ -210,7 +210,7 @@ export function transformDbRowToUnified(row: AccountDbRow, index = 0): UnifiedPr
     status: String(row.status || "").toUpperCase() === "RENTED" ? "RENTED" : "AVAILABLE",
     rentedUntil: row.rented_until || null,
     thumbnail:
-      row.image_url ||
+      cleanTftImageUrl(row.image_url) ||
       "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&auto=format&fit=crop",
     description,
     price: accountValue,

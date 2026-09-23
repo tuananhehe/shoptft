@@ -6,10 +6,12 @@ export type SurveyQuestionType =
   | 'TEXT'
   | 'TEXTAREA';
 
+export type SurveyBranchKey = "THUE_ACC" | "GDTG" | "WEBSITE" | "CAY_THUE";
+
 export interface SurveyQuestion {
   id: string;
   section?: string;
-  branch?: "ALL" | "THUE_ACC" | "GDTG" | "CAY_THUE";
+  branch?: "ALL" | SurveyBranchKey;
   title: string;
   subtitle?: string;
   placeholder?: string;
@@ -36,6 +38,7 @@ export interface SurveyHeaderConfig {
 export interface SurveyConfig {
   header: SurveyHeaderConfig;
   reward: SurveyRewardConfig;
+  branchRewards?: Record<string, SurveyRewardConfig>;
   questions: SurveyQuestion[];
 }
 
@@ -57,7 +60,11 @@ export interface SurveyResponse {
   giftDelivered?: boolean;
   giftDeliveredAt?: string;
   giftDeliveredNote?: string;
+  rewardCode?: string;
+  rewardTitle?: string;
+  branch?: string;
 }
+
 
 export interface SurveySummary {
   total: number;

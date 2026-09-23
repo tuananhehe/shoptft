@@ -18,6 +18,18 @@ interface TFTImageLightboxProps {
   onRentNow?: () => void;
 }
 
+function cleanTftImageUrl(url?: string): string {
+  if (!url || typeof url !== "string") return "";
+  let cleaned = url.trim();
+  cleaned = cleaned.replace(/\.chibi_annie_cafecuties\.png$/i, ".png");
+  cleaned = cleaned.replace(/\.chibi_vex_base\.png$/i, ".png");
+  cleaned = cleaned.replace(/\.chibi_vex_cafecuties\.png$/i, ".png");
+  cleaned = cleaned.replace(/\.tft_style2_darius_base\.png$/i, ".png");
+  return cleaned;
+}
+
+const LIGHTBOX_FALLBACK = "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop";
+
 export const TFTImageLightbox: React.FC<TFTImageLightboxProps> = ({
   isOpen,
   imageUrl,
@@ -30,6 +42,11 @@ export const TFTImageLightbox: React.FC<TFTImageLightboxProps> = ({
   onRentNow,
 }) => {
   const [copiedLink, setCopiedLink] = useState(false);
+  const [currentImg, setCurrentImg] = useState<string>("");
+
+  useEffect(() => {
+    setCurrentImg(cleanTftImageUrl(imageUrl) || LIGHTBOX_FALLBACK);
+  }, [imageUrl]);
 
   // Đóng bằng phím ESC
   useEffect(() => {
@@ -155,8 +172,13 @@ export const TFTImageLightbox: React.FC<TFTImageLightboxProps> = ({
       >
         <div className="relative max-w-4xl max-h-[75vh] w-auto h-auto rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] bg-slate-900">
           <img
-            src={imageUrl || "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop"}
+            src={currentImg}
             alt={title}
+            onError={() => {
+              if (currentImg !== LIGHTBOX_FALLBACK) {
+                setCurrentImg(LIGHTBOX_FALLBACK);
+              }
+            }}
             className="w-full h-full object-contain max-h-[72vh] sm:max-h-[76vh] animate-scaleIn"
           />
         </div>

@@ -31,9 +31,10 @@ import {
   Phone,
   Clock,
   ThumbsUp,
+  Bug,
 } from "lucide-react";
 
-type BranchType = "THUE_ACC" | "GDTG" | "CAY_THUE";
+type BranchType = "THUE_ACC" | "GDTG" | "WEBSITE";
 
 const BRANCH_CONFIG: Record<
   BranchType,
@@ -41,6 +42,7 @@ const BRANCH_CONFIG: Record<
     title: string;
     shortTitle: string;
     subtitle: string;
+    rewardBadge: string;
     icon: any;
     color: string;
     badgeBg: string;
@@ -49,43 +51,46 @@ const BRANCH_CONFIG: Record<
   }
 > = {
   THUE_ACC: {
-    title: "Thuê Acc TFT",
+    title: "Thuê Acc TFT (TFT Mobile & PC)",
     shortTitle: "Thuê Acc",
-    subtitle: "Tướng Tí Nị, Sân đấu Thần Thoại, gói cày đêm...",
-    tag: "⚡ Thuê nhanh",
+    subtitle: "Tí Nị Thần Thoại, Sân đấu EDM độc quyền, Gói cày đêm...",
+    rewardBadge: "Voucher 50K + Acc Gacha",
+    tag: "Thuê VIP & Cày Đêm",
     icon: Gamepad2,
     color: "from-orange-500 to-amber-500",
-    badgeBg: "bg-orange-100 text-orange-700 border-orange-200",
+    badgeBg: "bg-orange-50 text-orange-700 border-orange-200",
     borderHover: "hover:border-orange-500 hover:ring-2 hover:ring-orange-400/20",
   },
   GDTG: {
-    title: "GDTG TFT (Giao Dịch Trung Gian)",
+    title: "Giao Dịch Trung Gian (GDTG ĐTCL)",
     shortTitle: "GDTG",
-    subtitle: "Check mail ẩn, Riot ID, giải ngân an toàn...",
-    tag: "🛡️ An toàn 100%",
+    subtitle: "Check Mail Ẩn, Riot ID sạch, Quỹ bảo hiểm 30M...",
+    rewardBadge: "Miễn Phí GDTG < 1M",
+    tag: "Bảo Hiểm Checkscam 30M",
     icon: ShieldCheck,
     color: "from-blue-600 to-cyan-500",
-    badgeBg: "bg-blue-100 text-blue-700 border-blue-200",
+    badgeBg: "bg-blue-50 text-blue-700 border-blue-200",
     borderHover: "hover:border-blue-500 hover:ring-2 hover:ring-blue-400/20",
   },
-  CAY_THUE: {
-    title: "Cày Thuê TFT & Coaching",
-    shortTitle: "Cày Thuê",
-    subtitle: "Rank Cao Thủ / Thách Đấu, Coaching 1-1...",
-    tag: "⚔️ Thách Đấu",
-    icon: Zap,
-    color: "from-purple-600 to-pink-500",
-    badgeBg: "bg-purple-100 text-purple-700 border-purple-200",
-    borderHover: "hover:border-purple-500 hover:ring-2 hover:ring-purple-400/20",
+  WEBSITE: {
+    title: "Báo Lỗi & Cải Thiện Website",
+    shortTitle: "Website",
+    subtitle: "Tối ưu giao diện mobile, link QR thanh toán, bộ lọc...",
+    rewardBadge: "Voucher Tri Ân 30K",
+    tag: "Đóng Góp Ý Kiến",
+    icon: Bug,
+    color: "from-emerald-600 to-teal-500",
+    badgeBg: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    borderHover: "hover:border-emerald-500 hover:ring-2 hover:ring-emerald-400/20",
   },
 };
 
 const STAR_LABELS: Record<number, string> = {
-  1: "1 Sao: Rất không hài lòng 🙁",
-  2: "2 Sao: Chưa hài lòng 😐",
-  3: "3 Sao: Bình thường / Tạm ổn 🙂",
-  4: "4 Sao: Rất hài lòng & Chu đáo 😊",
-  5: "5 Sao: Cực kỳ tuyệt vời! 🌟",
+  1: "1 Sao - Cần cải thiện rất nhiều",
+  2: "2 Sao - Chưa thực sự hài lòng",
+  3: "3 Sao - Đạt mức tiêu chuẩn",
+  4: "4 Sao - Rất hài lòng, phục vụ chu đáo",
+  5: "5 Sao - Xuất sắc, dịch vụ vượt mong đợi",
 };
 
 export default function KhaoSatPage() {
@@ -157,6 +162,11 @@ export default function KhaoSatPage() {
   // Handle Branch Selection
   const handleSelectBranch = (branch: BranchType) => {
     setSelectedBranch(branch);
+    const bReward = config?.branchRewards?.[branch] || config?.reward;
+    if (bReward?.voucherCode) setRewardCode(bReward.voucherCode);
+    if (bReward?.rewardTitle) setRewardTitle(bReward.rewardTitle);
+    if (bReward?.rewardDescription) setRewardDescription(bReward.rewardDescription);
+
     setAnswers((prev) => ({
       ...prev,
       q_branch: BRANCH_CONFIG[branch].title,
@@ -165,6 +175,7 @@ export default function KhaoSatPage() {
     setCurrentStep(1);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
 
   // Multiple choice toggle
   const handleMultipleChoiceToggle = (questionId: string, option: string) => {
@@ -273,14 +284,19 @@ export default function KhaoSatPage() {
     try {
       const branchTitle = selectedBranch ? BRANCH_CONFIG[selectedBranch].title : "Thuê Acc TFT";
       const payload = {
+        branch: selectedBranch || "THUE_ACC",
         servicesUsed: [branchTitle],
         satisfactionRating: Number(answers.q_satisfaction) || 5,
-        deliverySpeed: answers.q_thue_speed || answers.q_gdtg_speed || "Siêu nhanh (< 1 phút)",
+        deliverySpeed: answers.q_thue_speed || answers.q_gdtg_speed || answers.q_web_experience || "Siêu nhanh (< 1 phút)",
         supportAttitude: answers.q_attitude || "Rất nhiệt tình & chu đáo",
-        accountQuality: answers.q_quality || "Đúng 100% như mô tả",
-        requestedAdditions: answers.q_thue_additions || undefined,
+        accountQuality:
+          answers.q_quality ||
+          (Array.isArray(answers.q_web_bug_type) ? answers.q_web_bug_type.join(", ") : answers.q_web_bug_type) ||
+          "Đúng 100% như mô tả",
+        requestedAdditions: answers.q_thue_additions || answers.q_web_feature_wish || undefined,
         pricingPerception: answers.q_pricing || "Hợp lý, vừa túi tiền",
         improvementSuggestion:
+          answers.q_web_bug_detail ||
           answers.q_gdtg_suggestion ||
           answers.q_cay_suggestion ||
           answers.q_suggestion ||
@@ -294,6 +310,7 @@ export default function KhaoSatPage() {
           branchName: branchTitle,
         },
       };
+
 
       const res = await submitSurveyApi(payload);
 
@@ -358,7 +375,7 @@ export default function KhaoSatPage() {
                     {BRANCH_CONFIG[selectedBranch].shortTitle}
                   </span>
                   <span className="text-slate-800 text-[11px] font-bold">
-                    {isFinalStep ? "🎁 Bước cuối: Nhận Quà" : `Câu ${currentStep} / ${totalQuestions}`}
+                    {isFinalStep ? "Bước cuối: Nhận Quà Tri Ân" : `Câu ${currentStep} / ${totalQuestions}`}
                   </span>
                 </div>
                 <span className="font-mono text-orange-600 text-[11px]">{progressPercent}%</span>
@@ -380,7 +397,7 @@ export default function KhaoSatPage() {
         {/* ============================================================ */}
         {isSubmitted ? (
           <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden p-6 sm:p-8 text-center space-y-5 animate-scaleUp">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20 animate-bounce">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
               <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10" />
             </div>
 
@@ -424,13 +441,25 @@ export default function KhaoSatPage() {
             {/* Quick CTAs */}
             <div className="flex flex-col gap-2.5 pt-2">
               <a
-                href={PROFILE_INFO.zaloUrl}
+                href={`https://zalo.me/0352867283?text=${encodeURIComponent(
+                  selectedBranch === "GDTG"
+                    ? `Chào Tuấn, mình vừa hoàn thành khảo sát GDTG trên web! Mã ưu đãi của mình là: ${rewardCode} (${rewardTitle}). Mình muốn nhận ưu đãi free phí GDTG nhé!`
+                    : selectedBranch === "WEBSITE"
+                    ? `Chào Tuấn, mình vừa hoàn thành đóng góp ý kiến & báo lỗi website! Mã ưu đãi của mình là: ${rewardCode} (${rewardTitle}). Gửi mình voucher giảm giá nhé!`
+                    : `Chào Tuấn, mình vừa hoàn thành khảo sát Thuê Acc trên web! Mã ưu đãi của mình là: ${rewardCode} (${rewardTitle}). Gửi mình voucher và acc gacha nhé!`
+                )}`}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-orange-600/20 active:scale-98"
               >
                 <MessageCircle className="w-4 h-4" />
-                <span>Nhắn Zalo Nhận Acc Gacha</span>
+                <span>
+                  {selectedBranch === "GDTG"
+                    ? "Nhắn Zalo Nhận Free GDTG"
+                    : selectedBranch === "WEBSITE"
+                    ? "Nhắn Zalo Nhận Voucher Web"
+                    : "Nhắn Zalo Nhận Quà & Acc Gacha"}
+                </span>
               </a>
 
               <Link
@@ -454,13 +483,13 @@ export default function KhaoSatPage() {
                 {/* Hero Header */}
                 <div className="text-center space-y-1.5 pb-1">
                   <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-orange-700 bg-orange-100 border border-orange-200 px-3 py-1 rounded-full">
-                    <span>Khảo sát 30s • Nhận Voucher 50K & Acc Gacha</span>
+                    <span>Mỗi dịch vụ 1 phần quà riêng biệt • Khảo sát 30s</span>
                   </div>
                   <h1 className="text-base sm:text-lg font-bold text-slate-900 leading-tight pt-1">
                     Bạn muốn đánh giá dịch vụ nào của Tuấn?
                   </h1>
                   <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                    Chọn đúng dịch vụ bạn quan tâm để trả lời nhanh và nhận quà tri ân nhé!
+                    Chọn đúng dịch vụ bạn quan tâm để trả lời nhanh và nhận phần quà tương ứng nhé!
                   </p>
                 </div>
 
@@ -493,12 +522,19 @@ export default function KhaoSatPage() {
                           <p className="text-[11px] text-slate-500 font-medium mt-0.5 truncate">
                             {item.subtitle}
                           </p>
+                          <div className="mt-1.5">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/90 px-2 py-0.5 rounded-md">
+                              <Gift className="w-3 h-3 text-emerald-600" />
+                              <span>{item.rewardBadge}</span>
+                            </span>
+                          </div>
                         </div>
                         <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-orange-600 group-hover:translate-x-1 transition-all flex-shrink-0" />
                       </button>
                     );
                   })}
                 </div>
+
 
                 {/* Trust badge */}
                 <div className="pt-2 text-center text-[11px] text-slate-400 font-medium flex items-center justify-center gap-1.5">
@@ -599,12 +635,12 @@ export default function KhaoSatPage() {
                         );
                       })}
                     </div>
-                    <div className="flex justify-between text-[10px] font-bold text-slate-500 px-1">
-                      <span>1: Không giới thiệu</span>
-                      <span className="text-orange-600">
-                        {answers[currentQuestion.id] ? `Đã chọn: ${answers[currentQuestion.id]} Điểm` : ""}
+                    <div className="flex justify-between text-[11px] font-semibold text-slate-500 px-1 pt-1">
+                      <span>1: Rất khó giới thiệu</span>
+                      <span className="text-orange-600 font-bold">
+                        {answers[currentQuestion.id] ? `Đã chọn: ${answers[currentQuestion.id]} / 10 Điểm` : ""}
                       </span>
-                      <span>10: Chắc chắn 🎉</span>
+                      <span>10: Chắc chắn giới thiệu</span>
                     </div>
                   </div>
                 )}
@@ -739,8 +775,15 @@ export default function KhaoSatPage() {
                     Bước Cuối: Thông Tin Nhận Quà
                   </h2>
                   <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                    Nhập số Zalo để Shop gửi tặng Voucher <strong>50.000đ</strong> và phần quà <strong>Acc Gacha</strong> nhé!
+                    {selectedBranch === "GDTG" ? (
+                      <>Nhập số Zalo để Shop gửi mã ưu đãi <strong>Miễn phí 1 lần GDTG (dưới 1 triệu)</strong> nhé!</>
+                    ) : selectedBranch === "WEBSITE" ? (
+                      <>Nhập số Zalo để Shop gửi tặng <strong>Voucher tri ân 30.000đ</strong> vì đã đóng góp ý kiến cải thiện website nhé!</>
+                    ) : (
+                      <>Nhập số Zalo để Shop gửi tặng Voucher <strong>50.000đ</strong> thuê acc và phần quà <strong>Acc Gacha</strong> nhé!</>
+                    )}
                   </p>
+
                 </div>
 
                 <div className="space-y-3 pt-1">

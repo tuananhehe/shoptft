@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { PROFILE_INFO } from "@/data/tft-data";
-import { KeyRound, MessageCircle, Menu, X } from "lucide-react";
+import { KeyRound, MessageCircle, Menu, X, ChevronRight, Phone } from "lucide-react";
 import { HomepageConfig, getHomepageConfig } from "@/utils/homepage-service";
 import defaultConfig from "@/data/homepage-config.json";
 
@@ -161,7 +161,7 @@ export const TFTNavbar: React.FC<TFTNavbarProps> = ({ sectionsConfig }) => {
                 className="text-xs font-bold text-slate-700 hover:text-orange-600 py-2.5 px-2 rounded-lg hover:bg-slate-50 transition-colors flex items-center justify-between"
               >
                 <span>{link.label}</span>
-                <span className="text-slate-400 text-xs">➔</span>
+                <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
               </Link>
             ))}
           </div>
@@ -181,7 +181,8 @@ export const TFTNavbar: React.FC<TFTNavbarProps> = ({ sectionsConfig }) => {
               href={`tel:${PROFILE_INFO.phoneZalo.replace(/[^0-9]/g, "")}`}
               className="h-10 px-3 flex items-center justify-center gap-1.5 border border-slate-200 bg-slate-50 text-slate-700 font-bold text-xs rounded-xl shadow-xs active:scale-95"
             >
-              <span>📞 Gọi Shop</span>
+              <Phone className="w-3.5 h-3.5 text-slate-600" />
+              <span>Hotline</span>
             </a>
           </div>
         </div>
