@@ -81,7 +81,12 @@ export function toBase64Url(str: string): string {
         .replace(/\//g, "_")
         .replace(/=+$/, "");
     }
-    return btoa(unescape(encodeURIComponent(str)))
+    const bytes = new TextEncoder().encode(str);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary)
       .replace(/\+/g, "-")
       .replace(/\//g, "_")
       .replace(/=+$/, "");
@@ -103,7 +108,12 @@ export function fromBase64Url(base64url: string): string {
     if (typeof Buffer !== "undefined") {
       return Buffer.from(base64, "base64").toString("utf8");
     }
-    return decodeURIComponent(escape(atob(base64)));
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return new TextDecoder().decode(bytes);
   } catch (err) {
     console.error("Lỗi fromBase64Url:", err);
     return "";

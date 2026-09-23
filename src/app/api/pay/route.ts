@@ -10,9 +10,11 @@ import {
 } from "@/utils/payment-links-service";
 import { buildVietQRUrl, DEFAULT_BANK_CONFIG } from "@/utils/vietqr-helper";
 import { supabase } from "@/utils/supabase/client";
+import { getCloudJson, saveCloudJson } from "@/utils/cloud-config-store";
 
 const PRIMARY_PAYMENT_LINKS_FILE = path.join(process.cwd(), "src", "data", "payment-links.json");
 const TMP_PAYMENT_LINKS_FILE = path.join("/tmp", "payment-links.json");
+const CLOUD_PAYMENT_LINKS_KEY = "config/payment-links.json";
 
 let memoryPaymentLinks: PaymentLinkData[] = [];
 
@@ -77,6 +79,33 @@ function writePaymentLinks(links: PaymentLinkData[]) {
 // Nạp sẵn cache
 readPaymentLinks();
 
+async function getPaymentLinksAsync(forceRefresh: boolean = false): Promise<PaymentLinkData[]> {
+  try {
+    const cloudLinks = await getCloudJson<PaymentLinkData[]>(
+      CLOUD_PAYMENT_LINKS_KEY,
+      PRIMARY_PAYMENT_LINKS_FILE,
+      [],
+      forceRefresh
+    );
+    if (Array.isArray(cloudLinks) && cloudLinks.length > 0) {
+      memoryPaymentLinks = cloudLinks;
+      return cloudLinks;
+    }
+  } catch (err) {
+    console.warn("Lỗi đọc cloud payment links:", err);
+  }
+  return readPaymentLinks();
+}
+
+async function savePaymentLinksAsync(links: PaymentLinkData[]) {
+  writePaymentLinks(links);
+  try {
+    await saveCloudJson(CLOUD_PAYMENT_LINKS_KEY, links, PRIMARY_PAYMENT_LINKS_FILE);
+  } catch (err) {
+    console.warn("Lỗi lưu cloud payment links:", err);
+  }
+}
+
 /**
  * GET /api/pay?id=PAY-XXXXXX&d=...
  * Lấy chi tiết link thanh toán và tự động tính toán thời hạn 5 phút
@@ -118,8 +147,8 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // 2. Tra cứu trong bộ nhớ và file JSON
-    const links = readPaymentLinks();
+    // 2. Tra cứu trong Supabase Cloud Storage và bộ nhớ
+    const links = await getPaymentLinksAsync(true);
     let item = links.find((l) => l.id.toUpperCase() === id.trim().toUpperCase());
 
     // 3. Fallback: Nếu không thấy, tra cứu mã tài khoản trong Supabase (phòng trường hợp khách vào trực tiếp qua mã acc)
@@ -167,7 +196,7 @@ export async function GET(req: NextRequest) {
         };
 
         item = fallbackItem;
-        writePaymentLinks([fallbackItem, ...links.slice(0, 499)]);
+        await savePaymentLinksAsync([fallbackItem, ...links.filter(l => l.id !== fallbackItem.id).slice(0, 499)]);
       }
     }
 
@@ -184,7 +213,7 @@ export async function GET(req: NextRequest) {
     if (item.status === "ACTIVE" && now > item.expiresAt) {
       item.status = "EXPIRED";
       isExpired = true;
-      writePaymentLinks(links);
+      await savePaymentLinksAsync(links);
     } else if (item.status === "EXPIRED") {
       isExpired = true;
     }
@@ -244,7 +273,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const links = readPaymentLinks();
+    const links = await getPaymentLinksAsync();
     const now = Date.now();
     const expiresAt = now + PAYMENT_LINK_DURATION_MS; // Đúng 5 phút
 
@@ -285,9 +314,9 @@ export async function POST(req: NextRequest) {
     // Tạo token URL an toàn chứa toàn bộ dữ liệu phiên thanh toán
     const token = encodePaymentToken(newLink);
 
-    // Giữ tối đa 500 link gần nhất
-    const updatedLinks = [newLink, ...links.slice(0, 499)];
-    writePaymentLinks(updatedLinks);
+    // Giữ tối đa 500 link gần nhất trong Supabase Cloud Storage
+    const updatedLinks = [newLink, ...links.filter(l => l.id !== newId).slice(0, 499)];
+    await savePaymentLinksAsync(updatedLinks);
 
     return NextResponse.json({
       success: true,
@@ -320,12 +349,12 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const links = readPaymentLinks();
+    const links = await getPaymentLinksAsync();
     const index = links.findIndex((l) => l.id.toUpperCase() === id.trim().toUpperCase());
 
     if (index !== -1) {
       links[index].status = status;
-      writePaymentLinks(links);
+      await savePaymentLinksAsync(links);
       return NextResponse.json({
         success: true,
         data: links[index],
