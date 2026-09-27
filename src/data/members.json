@@ -1,0 +1,30 @@
+[
+  {
+    "id": "mem_1790514735553_7lku3",
+    "username": "vtanhne",
+    "passwordHash": "ac88488f4545d2257fe5e2b1147813320b8ffce7edb9d32c8a5ac371baa583c769cab0e6612d77eba8d631aaf91264fc1125a8610bf30bdc4577e158297cb5a1",
+    "salt": "a930efa754585d518496bacfa4624890",
+    "full_name": "Tuấn Anh",
+    "zalo": "0352867283",
+    "status": "ACTIVE",
+    "role": "MEMBER",
+    "notes": "",
+    "createdAt": "2026-09-27T13:12:15.553Z",
+    "updatedAt": "2026-09-27T13:12:52.547Z",
+    "lastLoginAt": "2026-09-27T13:12:30.479Z"
+  },
+  {
+    "id": "mem_1790514681198_z26gh",
+    "username": "test_user_01",
+    "passwordHash": "580db528840d7716422dbf417f88e500ecdfd7a066809024da537d6e7db857d1afdd446bf96b8b3d2cf1cb82baf1d9e8cad4a7b745b098b8ef0b625e85d80996",
+    "salt": "a585b59d4feecf45f53b5227bc95bc5c",
+    "full_name": "Trần Anh Tuấn",
+    "zalo": "0352867283",
+    "status": "ACTIVE",
+    "role": "MEMBER",
+    "notes": "Khách test hệ thống",
+    "createdAt": "2026-09-27T13:11:21.198Z",
+    "updatedAt": "2026-09-27T13:11:27.740Z",
+    "lastLoginAt": "2026-09-27T13:11:28.028Z"
+  }
+]
