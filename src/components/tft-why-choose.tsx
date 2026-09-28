@@ -2,9 +2,9 @@ import React from "react";
 
 const stats = [
   { value: "30M", label: "Bảo hiểm giao dịch" },
-  { value: "5+ năm", label: "Đồng hành cùng TFT" },
-  { value: "1.850+", label: "Khách hàng đã sử dụng" },
-  { value: "Hỗ trợ trực tiếp", label: "Qua Zalo" },
+  { value: "5+ năm", label: "Đồng hành cùng ĐTCL" },
+  { value: "100%", label: "Bàn giao qua Zalo" },
+  { value: "Trực tiếp", label: "Hỗ trợ 1-1 chủ shop" },
 ];
 
 export const TFTWhyChoose = () => (

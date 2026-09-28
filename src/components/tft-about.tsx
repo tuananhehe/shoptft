@@ -96,11 +96,11 @@ export const TFTAbout: React.FC = () => {
     },
     {
       season: "MÙA 9 - 11",
-      achievement: "Đạt mốc 1,000+ giao dịch thành công, phân phối tài khoản Tướng Tí Nị & Sân Đấu Thần Thoại uy tín hàng đầu.",
+      achievement: "Phát triển hệ thống phân phối tài khoản Tướng Tí Nị & Sân Đấu Thần Thoại uy tín hàng đầu.",
     },
     {
       season: "MÙA 12 - 13 (HIỆN TẠI)",
-      achievement: "Duy trì vị thế Cựu Thách Đấu 1.134 ĐNG, ký Quỹ Bảo Hiểm 30M Checkscam.vn, phục vụ hơn 1,850+ cờ thủ.",
+      achievement: "Duy trì vị thế Cựu Thách Đấu 1.134 ĐNG, ký Quỹ Bảo Hiểm 30M Checkscam.vn, hỗ trợ cờ thủ trực tiếp qua Zalo.",
     },
   ];
 
@@ -159,8 +159,8 @@ export const TFTAbout: React.FC = () => {
               <strong className="text-xs sm:text-sm font-black text-emerald-600 font-mono">30.000.000đ</strong>
             </div>
             <div className="p-2 sm:p-2.5 rounded-xl bg-sky-50/70 border border-sky-200/70 text-center">
-              <span className="text-[10px] text-sky-700 font-bold block uppercase font-gaming">Cờ Thủ Phục Vụ</span>
-              <strong className="text-xs sm:text-sm font-black text-sky-600 font-mono">1,850+ Khách</strong>
+              <span className="text-[10px] text-sky-700 font-bold block uppercase font-gaming">Kênh Bàn Giao</span>
+              <strong className="text-xs sm:text-sm font-black text-sky-600 font-mono">Zalo Trực Tiếp</strong>
             </div>
           </div>
         </div>
