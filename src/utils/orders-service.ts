@@ -11,6 +11,7 @@ export interface OrderItem {
   id: string; // "ORD-9821"
   type: OrderType;
   customer: string; // Mặc định: "Khách hàng ẩn danh"
+  memberId?: string; // ID của tài khoản Member nếu có liên kết
   deliveredBy?: string; // Mặc định: "Admin"
   phoneZalo?: string;
   accountCode: string;
@@ -25,6 +26,7 @@ export interface OrderItem {
   createdAt: string; // ISO string
   startedAt?: string; // ISO string ("Ngày cho thuê")
   expiresAt?: string | null; // ISO string ("Ngày kết thúc")
+  completedAt?: string | null; // ISO string ("Ngày kết thúc thực tế")
   accountLogin: string;
   accountPass: string;
   notes?: string;
@@ -34,6 +36,8 @@ export interface OrdersStats {
   totalRevenue: number;
   totalOrders: number;
   rentingOrders: number;
+  expiringOrders?: number;
+  overdueOrders?: number;
   completedOrders: number;
   expiredOrders: number;
 }
@@ -222,19 +226,22 @@ export function getRentalTimeRemaining(expiresAt?: string | null): {
 
   if (diffMs <= 0) {
     const overdueMinutes = Math.floor(Math.abs(diffMs) / (1000 * 60));
-    if (overdueMinutes < 60) {
-      return {
-        isExpired: true,
-        isExpiringSoon: false,
-        formatted: `Quá hạn ${overdueMinutes}p`,
-        hoursLeft: 0,
-      };
-    }
     const overdueHours = Math.floor(overdueMinutes / 60);
+    const overdueDays = Math.floor(overdueHours / 24);
+
+    let formatted = "";
+    if (overdueDays > 0) {
+      formatted = `Quá hạn ${overdueDays} ngày ${overdueHours % 24}h`;
+    } else if (overdueHours > 0) {
+      formatted = `Quá hạn ${overdueHours}h ${overdueMinutes % 60}p`;
+    } else {
+      formatted = `Quá hạn ${Math.max(1, overdueMinutes)} phút`;
+    }
+
     return {
       isExpired: true,
       isExpiringSoon: false,
-      formatted: `Quá hạn ${overdueHours}h`,
+      formatted,
       hoursLeft: 0,
     };
   }
@@ -244,15 +251,16 @@ export function getRentalTimeRemaining(expiresAt?: string | null): {
   const minutes = totalMinutes % 60;
   const days = Math.floor(hours / 24);
 
-  const isExpiringSoon = diffMs <= 60 * 60 * 1000; // Còn dưới 1 tiếng
+  // Sắp hết hạn khi thời gian còn lại <= 24 giờ
+  const isExpiringSoon = diffMs <= 24 * 60 * 60 * 1000;
 
   let formatted = "";
   if (days > 0) {
-    formatted = `Còn ${days} ngày ${hours % 24}h`;
+    formatted = `${days} ngày ${hours % 24 > 0 ? `${hours % 24}h` : ""}`.trim();
   } else if (hours > 0) {
-    formatted = `Còn ${hours}h ${minutes}p`;
+    formatted = `${hours} giờ ${minutes > 0 ? `${minutes} phút` : ""}`.trim();
   } else {
-    formatted = `Còn ${minutes} phút`;
+    formatted = `${Math.max(1, minutes)} phút`;
   }
 
   return {

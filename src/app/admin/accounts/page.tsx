@@ -53,6 +53,7 @@ import {
   ArrowLeft,
   Link2,
   MessageCircle,
+  CalendarDays,
 } from "lucide-react";
 import PetPresetSelector from "@/components/admin/pet-preset-selector";
 import { BulkCloneTxtImporter } from "@/components/admin/bulk-clone-txt-importer";
@@ -1970,7 +1971,28 @@ export default function AdminAccountsPage() {
 
                       {/* Cột 6: Thao Tác Chỉnh Sửa & Xóa */}
                       <td className="py-4 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                          {/* Quick action: Lượt Thuê */}
+                          {isRented ? (
+                            <Link
+                              href={`/admin/rentals?search=${encodeURIComponent(account.code)}`}
+                              className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+                              title="Xem chi tiết lượt thuê đang hoạt động"
+                            >
+                              <CalendarDays className="w-3 h-3 text-amber-600" />
+                              <span>Lượt thuê</span>
+                            </Link>
+                          ) : (
+                            <Link
+                              href={`/admin/rentals?action=create&accountCode=${encodeURIComponent(account.code)}`}
+                              className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+                              title="Ghi nhận lượt thuê cho tài khoản này"
+                            >
+                              <CalendarDays className="w-3 h-3 text-slate-600" />
+                              <span>Cho thuê</span>
+                            </Link>
+                          )}
+
                           <Link
                             href={getAccountProductUrl(account)}
                             target="_blank"

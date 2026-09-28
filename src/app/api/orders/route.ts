@@ -57,6 +57,8 @@ function calculateStats(orders: OrderItem[]): OrdersStats {
   const now = Date.now();
   let totalRevenue = 0;
   let rentingOrders = 0;
+  let expiringOrders = 0;
+  let overdueOrders = 0;
   let completedOrders = 0;
   let expiredOrders = 0;
 
@@ -66,8 +68,14 @@ function calculateStats(orders: OrderItem[]): OrdersStats {
       completedOrders++;
     } else if (o.status === "RENTING") {
       rentingOrders++;
-      if (o.expiresAt && new Date(o.expiresAt).getTime() < now) {
-        expiredOrders++;
+      if (o.expiresAt) {
+        const expTime = new Date(o.expiresAt).getTime();
+        if (expTime < now) {
+          overdueOrders++;
+          expiredOrders++;
+        } else if (expTime - now <= 24 * 60 * 60 * 1000) {
+          expiringOrders++;
+        }
       }
     }
   });
@@ -76,6 +84,8 @@ function calculateStats(orders: OrderItem[]): OrdersStats {
     totalRevenue,
     totalOrders: orders.length,
     rentingOrders,
+    expiringOrders,
+    overdueOrders,
     completedOrders,
     expiredOrders,
   };
@@ -223,9 +233,29 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     const currentOrders = readOrdersFromFile();
+    const orderStatus = body.status || "RENTING";
+    const accountCode = body.accountCode?.trim() || "";
+
+    // Ngăn chặn trùng lặp lượt thuê (Double Rental Prevention)
+    if (orderStatus === "RENTING" && accountCode) {
+      const codeKey = accountCode.toLowerCase().trim();
+      const hasActive = currentOrders.some(
+        (o) => o.status === "RENTING" && o.accountCode?.toLowerCase().trim() === codeKey
+      );
+      if (hasActive) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Tài khoản này hiện đang có lượt thuê hoạt động.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     const newId = body.id || `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    const durationHours = Number(body.durationHours) || 2;
+    const durationHours = Number(body.durationHours);
     const now = new Date();
     let expiresAt: string | null = null;
 
@@ -234,29 +264,32 @@ export async function POST(req: NextRequest) {
     } else if (durationHours > 0) {
       const expDate = new Date(now.getTime() + durationHours * 60 * 60 * 1000);
       expiresAt = expDate.toISOString();
+    } else if (durationHours === -1) {
+      expiresAt = null; // Thuê Lâu dài (Vô cực ∞)
     }
 
     const newOrder: OrderItem = {
       id: newId,
       type: body.type || "VIP",
       customer: body.customer?.trim() || "Khách hàng ẩn danh",
+      memberId: body.memberId?.trim() || undefined,
       deliveredBy: body.deliveredBy?.trim() || "Admin",
       phoneZalo: body.phoneZalo?.trim() || "09xx.xxx.xxx",
-      accountCode: body.accountCode?.trim() || "MS: 8899",
+      accountCode: accountCode || "MS: 8899",
       accountTitle: body.accountTitle?.trim() || "Tài khoản TFT VIP",
       package: body.package?.trim() || "2 Giờ Trải Nghiệm",
-      durationHours: durationHours,
-      amount: Number(body.amount) || 30000,
+      durationHours: isNaN(durationHours) ? 2 : durationHours,
+      amount: Number(body.amount) || 0,
       paymentMethod: body.paymentMethod || "TRANSFER",
-      status: body.status || "RENTING",
+      status: orderStatus,
       createdBy: body.createdBy || "ADMIN",
       source: body.source || "ADMIN",
       createdAt: now.toISOString(),
       startedAt: body.startedAt || now.toISOString(),
       expiresAt,
-      accountLogin: body.accountLogin?.trim() || `tft_${body.accountCode?.toLowerCase().replace(/[^a-z0-9]/g, "") || "vip"}`,
+      accountLogin: body.accountLogin?.trim() || `tft_${accountCode.toLowerCase().replace(/[^a-z0-9]/g, "") || "vip"}`,
       accountPass: body.accountPass?.trim() || `TuanTFT@${Math.floor(1000 + Math.random() * 9000)}`,
-      notes: body.notes?.trim() || "Đơn hàng tạo từ hệ thống quản trị (Admin).",
+      notes: body.notes?.trim() || "Lượt thuê tạo từ hệ thống quản trị.",
     };
 
     const updatedOrders = [newOrder, ...currentOrders];
@@ -279,12 +312,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Đã tạo đơn hàng ${newId} thành công!`,
+      message: `Đã tạo lượt thuê ${newId} thành công!`,
       data: newOrder,
     });
   } catch (err: any) {
     return NextResponse.json(
-      { success: false, error: err.message || "Lỗi khi tạo đơn hàng" },
+      { success: false, error: err.message || "Lỗi khi tạo lượt thuê" },
       { status: 500 }
     );
   }
@@ -292,7 +325,7 @@ export async function POST(req: NextRequest) {
 
 /**
  * PUT /api/orders?id=ORD-xxxx
- * Cập nhật, gia hạn hoặc đổi trạng thái đơn hàng (đồng bộ Supabase)
+ * Cập nhật, gia hạn hoặc đổi trạng thái lượt thuê (đồng bộ Supabase)
  */
 export async function PUT(req: NextRequest) {
   if (!isAuthorizedAdmin(req)) {
@@ -309,7 +342,7 @@ export async function PUT(req: NextRequest) {
 
     if (!id) {
       return NextResponse.json(
-        { success: false, error: "Thiếu mã đơn hàng (id)!" },
+        { success: false, error: "Thiếu mã lượt thuê (id)!" },
         { status: 400 }
       );
     }
@@ -319,7 +352,7 @@ export async function PUT(req: NextRequest) {
 
     if (orderIndex === -1) {
       return NextResponse.json(
-        { success: false, error: `Không tìm thấy đơn hàng ${id}!` },
+        { success: false, error: `Không tìm thấy lượt thuê ${id}!` },
         { status: 404 }
       );
     }
@@ -365,15 +398,19 @@ export async function PUT(req: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: `Đã gia hạn đơn hàng ${id} thêm ${extraHours} giờ!`,
+        message: `Đã gia hạn lượt thuê ${id} thêm ${extraHours} giờ!`,
         data: updatedOrder,
       });
     }
 
-    // Action 2: Cập nhật thông thường (ví dụ: Chốt hoàn thành đơn)
+    // Action 2: Cập nhật thông thường (ví dụ: Chốt hoàn thành đơn hoặc Hủy đơn)
+    const isEnding = body.status === "COMPLETED" || body.status === "CANCELLED";
+    const completedAt = body.status === "COMPLETED" ? (body.completedAt || new Date().toISOString()) : currentOrder.completedAt;
+
     const updatedOrder: OrderItem = {
       ...currentOrder,
       ...body,
+      completedAt: completedAt ?? undefined,
       id: currentOrder.id, // giữ nguyên ID gốc
       createdAt: currentOrder.createdAt, // giữ nguyên ngày tạo gốc
     };
@@ -381,21 +418,36 @@ export async function PUT(req: NextRequest) {
     currentOrders[orderIndex] = updatedOrder;
     writeOrdersToFile(currentOrders);
 
-    // Nếu đơn hàng chuyển sang COMPLETED => Trả acc về AVAILABLE trong Supabase
-    if (body.status === "COMPLETED" && currentOrder.accountCode) {
-      try {
-        await supabase
-          .from("accounts")
-          .update({
-            status: "AVAILABLE",
-            rented_until: null,
-          })
-          .ilike("code", currentOrder.accountCode);
-      } catch (dbErr) {
-        console.warn("Lỗi đồng bộ hoàn thành Supabase:", dbErr);
+    // Đồng bộ trạng thái kho tài khoản Supabase an toàn
+    if (isEnding && currentOrder.accountCode) {
+      const codeKey = currentOrder.accountCode.toLowerCase().trim();
+      const otherActive = currentOrders.some(
+        (o) => o.id !== id && o.status === "RENTING" && o.accountCode?.toLowerCase().trim() === codeKey
+      );
+
+      if (!otherActive) {
+        try {
+          const { data: dbAcc } = await supabase
+            .from("accounts")
+            .select("status")
+            .ilike("code", currentOrder.accountCode)
+            .single();
+
+          // Không ghi đè nếu tài khoản đang được Admin đánh dấu Bảo Trì hoặc Ẩn
+          if (dbAcc && dbAcc.status !== "MAINTENANCE" && dbAcc.status !== "HIDDEN") {
+            await supabase
+              .from("accounts")
+              .update({
+                status: "AVAILABLE",
+                rented_until: null,
+              })
+              .ilike("code", currentOrder.accountCode);
+          }
+        } catch (dbErr) {
+          console.warn("Lỗi đồng bộ hoàn thành Supabase:", dbErr);
+        }
       }
     } else if (body.status === "RENTING" && currentOrder.accountCode) {
-      // Nếu đơn chuyển sang RENTING => Đặt RENTED trong Supabase
       try {
         await supabase
           .from("accounts")
