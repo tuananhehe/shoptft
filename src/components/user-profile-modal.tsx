@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useUserAuth, UserRentalItem } from "@/context/user-auth-context";
 import { VIP_TIERS, VipTierId } from "@/utils/vip-system";
 import { submitReviewApi } from "@/utils/reviews-service";
+import { PROFILE_INFO } from "@/data/tft-data";
 import toast from "react-hot-toast";
 import {
   X,
@@ -473,7 +474,7 @@ export const UserProfileModal: React.FC = () => {
 
                             {/* Gia hạn Zalo */}
                             <a
-                              href={`https://zalo.me/0352867283?text=${encodeURIComponent(
+                              href={`${PROFILE_INFO.zaloUrl}?text=${encodeURIComponent(
                                 `Chào Tuấn, mình muốn gia hạn thêm giờ cho tài khoản [${rental.accountCode} - Đơn ${rental.orderId}]!`
                               )}`}
                               target="_blank"
@@ -926,18 +927,18 @@ export const UserProfileModal: React.FC = () => {
               <span>Đăng xuất</span>
             </button>
           ) : (
-            <span className="text-slate-500 text-[11px]">Đăng nhập Google để đồng bộ dữ liệu</span>
+            <span className="text-slate-500 text-[11px]">Đăng nhập để đồng bộ dữ liệu</span>
           )}
 
           <div className="flex items-center gap-2">
             <a
-              href="https://zalo.me/0352867283"
+              href={PROFILE_INFO.zaloUrl}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1 text-orange-700 font-bold hover:underline"
             >
               <MessageCircle className="w-3.5 h-3.5" />
-              <span>Hotline Zalo: 0352.867.283</span>
+              <span>Hotline Zalo: {PROFILE_INFO.phoneZalo}</span>
             </a>
           </div>
         </div>

@@ -441,7 +441,7 @@ export default function KhaoSatPage() {
             {/* Quick CTAs */}
             <div className="flex flex-col gap-2.5 pt-2">
               <a
-                href={`https://zalo.me/0352867283?text=${encodeURIComponent(
+                href={`${PROFILE_INFO.zaloUrl}?text=${encodeURIComponent(
                   selectedBranch === "GDTG"
                     ? `Chào Tuấn, mình vừa hoàn thành khảo sát GDTG trên web! Mã ưu đãi của mình là: ${rewardCode} (${rewardTitle}). Mình muốn nhận ưu đãi free phí GDTG nhé!`
                     : selectedBranch === "WEBSITE"

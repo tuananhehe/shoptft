@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { calculateVipTier, VipTier, VIP_TIERS } from "@/utils/vip-system";
+import { PROFILE_INFO } from "@/data/tft-data";
 import toast from "react-hot-toast";
 
 export interface UserRentalItem {
@@ -516,7 +517,7 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     toast.loading("Đang gửi yêu cầu đổi tài khoản tới Tuấn Thái Bình...");
     // Gửi webhook / notification hoặc mở Zalo
     const zaloMsg = `Chào Tuấn, mình là ${user?.name || "Khách VIP"} (${user?.phoneZalo || user?.email}). Mình muốn kích hoạt đặc quyền VIP đổi tài khoản cho đơn hàng [${orderId}]. Lý do: ${reason}`;
-    const zaloUrl = `https://zalo.me/0352867283?text=${encodeURIComponent(zaloMsg)}`;
+    const zaloUrl = `${PROFILE_INFO.zaloUrl}?text=${encodeURIComponent(zaloMsg)}`;
     setTimeout(() => {
       toast.dismiss();
       toast.success("Đã kích hoạt đặc quyền đổi acc! Đang kết nối Zalo Tuấn Thái Bình...");

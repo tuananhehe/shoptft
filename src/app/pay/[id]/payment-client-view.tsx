@@ -19,6 +19,7 @@ import {
   Zap,
 } from "lucide-react";
 import { PaymentLinkData, decodePaymentToken } from "@/utils/payment-links-service";
+import { PROFILE_INFO } from "@/data/tft-data";
 
 interface PaymentClientViewProps {
   paymentId: string;
@@ -157,7 +158,7 @@ export function PaymentClientView({ paymentId, initialToken }: PaymentClientView
           </Link>
 
           <a
-            href="https://zalo.me/0352867283"
+            href={PROFILE_INFO.zaloUrl}
             target="_blank"
             rel="noreferrer"
             className="flex items-center gap-1 text-[11px] font-bold text-sky-400 hover:text-sky-300 bg-sky-950/60 px-2.5 py-1.5 rounded-lg border border-sky-800/60 transition-colors"
@@ -192,7 +193,7 @@ export function PaymentClientView({ paymentId, initialToken }: PaymentClientView
                 Về Trang Chủ
               </Link>
               <a
-                href="https://zalo.me/0352867283"
+                href={PROFILE_INFO.zaloUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
@@ -216,7 +217,7 @@ export function PaymentClientView({ paymentId, initialToken }: PaymentClientView
             </div>
             <div className="pt-2 flex justify-center gap-3">
               <a
-                href="https://zalo.me/0352867283"
+                href={PROFILE_INFO.zaloUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="px-5 py-2.5 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-md shadow-orange-600/30"
@@ -411,7 +412,7 @@ export function PaymentClientView({ paymentId, initialToken }: PaymentClientView
 
               <div className="flex gap-2">
                 <a
-                  href={`https://zalo.me/0352867283?text=${zaloPreMessage}`}
+                  href={`${PROFILE_INFO.zaloUrl}?text=${zaloPreMessage}`}
                   target="_blank"
                   rel="noreferrer"
                   className="flex-1 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 border border-slate-800 transition-colors"
@@ -455,7 +456,7 @@ export function PaymentClientView({ paymentId, initialToken }: PaymentClientView
 
             <div className="space-y-2 pt-2">
               <a
-                href={`https://zalo.me/0352867283?text=${zaloPreMessage}`}
+                href={`${PROFILE_INFO.zaloUrl}?text=${zaloPreMessage}`}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full py-3 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-orange-600/30 transition-all cursor-pointer"
