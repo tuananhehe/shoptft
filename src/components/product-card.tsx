@@ -5,7 +5,6 @@ import { Eye, KeyRound, Search, Heart } from "lucide-react";
 import { LazyAccountImage } from "@/components/lazy-account-image";
 import { TFTRentalAccount, TFTCloneAccount } from "@/data/tft-data";
 import { getAccountProductUrl } from "@/utils/account-lookup";
-import { analytics } from "@/utils/analytics";
 import { isFavorite, toggleFavorite } from "@/utils/product-discovery";
 
 /**
@@ -186,20 +185,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const handlePrimaryAction = () => {
     if (isVip) {
       if (onSelectAccount && item.rawVip) {
-        analytics.trackOpenRentalModal({
-          product_id: item.code || item.id,
-          product_type: "VIP",
-        });
         onSelectAccount(item.rawVip);
       } else {
         handleViewDetail();
       }
     } else {
       if (onSelectClone && item.rawClone) {
-        analytics.trackOpenRentalModal({
-          product_id: item.code || item.id,
-          product_type: "CLONE",
-        });
         onSelectClone(item.rawClone);
       } else {
         window.location.href = getAccountProductUrl(item);

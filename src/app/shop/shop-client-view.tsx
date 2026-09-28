@@ -86,6 +86,15 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
   });
 
   const focusParam = searchParams.get("focus");
+  const hasTrackedViewShop = useRef(false);
+
+  useEffect(() => {
+    if (!hasTrackedViewShop.current) {
+      hasTrackedViewShop.current = true;
+      const initialTotal = (initialVip?.length || 0) + (initialClone?.length || 0);
+      analytics.trackViewShop(initialTotal);
+    }
+  }, [initialVip?.length, initialClone?.length]);
 
   // Load remaining/fresh Accounts from database in background
   useEffect(() => {
@@ -100,8 +109,6 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
           if (cloneAccounts && cloneAccounts.length > 0) {
             setCloneRaw(cloneAccounts);
           }
-          const total = (vipAccounts?.length || 0) + (cloneAccounts?.length || 0);
-          analytics.trackViewShop(total);
         }
       } catch (err) {
         console.warn("Lỗi tải danh sách tài khoản:", err);
@@ -213,46 +220,75 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
     []
   );
 
+  // Convert raw accounts to unified ProductCardData
+  const allNormalizedAccounts = useMemo<ProductCardData[]>(() => {
+    const vips = vipRaw.map((v) => normalizeVipAccount(v));
+    const clones = cloneRaw.map((c) => normalizeCloneAccount(c));
+    return [...vips, ...clones].sort((a, b) => {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return timeB - timeA;
+    });
+  }, [vipRaw, cloneRaw]);
+
+  const filtersRef = useRef(filters);
+  filtersRef.current = filters;
+
   const handleFilterChange = useCallback(
     (updates: Partial<FilterState>) => {
-      if (updates.search !== undefined && updates.search.trim().length > 0) {
-        analytics.trackSearchProduct({ query: updates.search });
+      const prev = filtersRef.current;
+
+      // 1. Search tracking (only when query actually changed & non-empty)
+      if (updates.search !== undefined) {
+        const query = updates.search.trim();
+        if (query.length > 0 && query !== prev.search.trim()) {
+          const queryNorm = removeAccents(query);
+          const resultsCount = allNormalizedAccounts.filter((acc) => {
+            const textNorm = removeAccents(
+              `${acc.title} ${acc.code} ${acc.mainPet || ""} ${(acc.rawVip?.allChibi || []).join(" ")} ${acc.arena || ""}`
+            );
+            return textNorm.includes(queryNorm);
+          }).length;
+          analytics.trackSearchProduct({ query, results_count: resultsCount });
+        }
       }
-      if (updates.type !== undefined) {
-        analytics.trackApplyFilter({ filter_type: "type", filter_value: updates.type });
+
+      // 2. Filter tracking (only fire when user actually changes filter)
+      if (updates.type !== undefined && updates.type !== prev.type) {
+        analytics.trackApplyFilter({ filter_type: "type", filter_value: updates.type.toLowerCase() });
       }
-      if (updates.pet !== undefined && updates.pet) {
+      if (updates.pet !== undefined && updates.pet !== prev.pet && updates.pet) {
         analytics.trackApplyFilter({ filter_type: "pet", filter_value: updates.pet });
       }
-      if (updates.arena !== undefined && updates.arena) {
+      if (updates.arena !== undefined && updates.arena !== prev.arena && updates.arena) {
         analytics.trackApplyFilter({ filter_type: "arena", filter_value: updates.arena });
       }
-      if (updates.price !== undefined && updates.price !== "ALL") {
+      if (updates.price !== undefined && updates.price !== prev.price && updates.price !== "ALL") {
         analytics.trackApplyFilter({ filter_type: "price", filter_value: updates.price });
       }
-      if (updates.status !== undefined && updates.status !== "ALL") {
-        analytics.trackApplyFilter({ filter_type: "status", filter_value: updates.status });
+      if (updates.status !== undefined && updates.status !== prev.status && updates.status !== "ALL") {
+        analytics.trackApplyFilter({ filter_type: "status", filter_value: updates.status.toLowerCase() });
       }
-      if (updates.sort !== undefined) {
-        analytics.trackApplyFilter({ filter_type: "sort", filter_value: updates.sort });
+      if (updates.sort !== undefined && updates.sort !== prev.sort) {
+        analytics.trackApplyFilter({ filter_type: "sort", filter_value: updates.sort.toLowerCase() });
       }
 
-      setFilters((prev) => {
-        let nextType = updates.type !== undefined ? updates.type : prev.type;
-        let nextSort = updates.sort !== undefined ? updates.sort : prev.sort;
+      setFilters((prevFilters) => {
+        let nextType = updates.type !== undefined ? updates.type : prevFilters.type;
+        let nextSort = updates.sort !== undefined ? updates.sort : prevFilters.sort;
 
-        if (updates.type === "VIP" && updates.sort === undefined && prev.type !== "VIP") {
+        if (updates.type === "VIP" && updates.sort === undefined && prevFilters.type !== "VIP") {
           nextSort = "PRICE_DESC";
-        } else if (updates.type && updates.type !== "VIP" && updates.sort === undefined && prev.type === "VIP") {
+        } else if (updates.type && updates.type !== "VIP" && updates.sort === undefined && prevFilters.type === "VIP") {
           nextSort = "NEWEST";
         }
 
-        const next = { ...prev, ...updates, type: nextType, sort: nextSort };
+        const next = { ...prevFilters, ...updates, type: nextType, sort: nextSort };
         updateUrlParams(next);
         return next;
       });
     },
-    [updateUrlParams]
+    [allNormalizedAccounts, updateUrlParams]
   );
 
   const handleResetAll = () => {
@@ -269,17 +305,6 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
     setFilters(resetState);
     updateUrlParams(resetState);
   };
-
-  // Convert raw accounts to unified ProductCardData
-  const allNormalizedAccounts = useMemo<ProductCardData[]>(() => {
-    const vips = vipRaw.map((v) => normalizeVipAccount(v));
-    const clones = cloneRaw.map((c) => normalizeCloneAccount(c));
-    return [...vips, ...clones].sort((a, b) => {
-      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return timeB - timeA;
-    });
-  }, [vipRaw, cloneRaw]);
 
   // Compute Filter Options data for dropdown lists
   const filterOptions = useMemo(() => {

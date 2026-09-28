@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { TFTRentalAccount, PROFILE_INFO } from "@/data/tft-data";
@@ -82,16 +82,33 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
     });
   }, []);
 
+  const lastTrackedAccountRef = useRef<string | null>(null);
+
   useEffect(() => {
     setSelectedPackage("perm");
     setIsAgreed(true);
     setShowAllChibis(false);
 
     if (account) {
-      analytics.trackOpenRentalModal({
-        product_id: account.code || account.id,
-        product_type: "VIP",
-      });
+      const productId = account.code || account.id;
+      if (lastTrackedAccountRef.current !== productId) {
+        lastTrackedAccountRef.current = productId;
+        // Track product view in modal
+        analytics.trackViewProduct({
+          product_id: productId,
+          product_type: "VIP",
+          availability: account.status === "RENTED" ? "RENTED" : "AVAILABLE",
+          display_price: account.hourlyPrice || account.accountValue || 0,
+        });
+
+        // Track rental modal opened
+        analytics.trackOpenRentalModal({
+          product_id: productId,
+          product_type: "VIP",
+        });
+      }
+    } else {
+      lastTrackedAccountRef.current = null;
     }
 
     if (account?.status === "RENTED") {
@@ -470,13 +487,15 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
                       key={key}
                       type="button"
                       onClick={() => {
-                        setSelectedPackage(key);
-                        analytics.trackSelectRentalPackage({
-                          product_id: account.code || account.id,
-                          package_name: pkg.name,
-                          duration_hours: key === "2h" ? 2 : key === "7d" ? 168 : 720,
-                          price: pkg.totalPrice,
-                        });
+                        if (selectedPackage !== key) {
+                          setSelectedPackage(key);
+                          analytics.trackSelectRentalPackage({
+                            product_id: account.code || account.id,
+                            package_name: pkg.name,
+                            duration_hours: key === "2h" ? 2 : key === "7d" ? 168 : 720,
+                            price: pkg.totalPrice,
+                          });
+                        }
                       }}
                       className={`p-2.5 sm:p-3 rounded-xl border text-left transition-all relative cursor-pointer ${
                         isSelected

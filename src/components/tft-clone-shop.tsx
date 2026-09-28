@@ -11,6 +11,7 @@ import { copyToClipboard, buildZaloOrderUrl } from "@/utils/clipboard-helper";
 import { LazyAccountImage } from "@/components/lazy-account-image";
 import { TFTImageLightbox } from "@/components/tft-image-lightbox";
 import { ZaloRedirectModal } from "@/components/zalo-redirect-modal";
+import { analytics } from "@/utils/analytics";
 import { motion, Variants } from "framer-motion";
 import {
   KeyRound,
@@ -371,6 +372,18 @@ export const TFTCloneShop: React.FC = () => {
     setSelectedClone(account);
     setIsAgreed(false);
     setCopiedCode(false);
+
+    analytics.trackViewProduct({
+      product_id: account.code || account.id,
+      product_type: "CLONE",
+      availability: account.status === "RENTED" ? "RENTED" : "AVAILABLE",
+      display_price: getAccountPrice(account),
+    });
+
+    analytics.trackOpenRentalModal({
+      product_id: account.code || account.id,
+      product_type: "CLONE",
+    });
   };
 
   const copyAccCode = (code: string) => {
@@ -401,6 +414,13 @@ export const TFTCloneShop: React.FC = () => {
       toast.error("Vui lòng tích đồng ý với cam kết bàn giao trước khi tiếp tục!");
       return;
     }
+
+    analytics.trackClickZalo({
+      source: "rental_modal",
+      product_id: account.code || account.id,
+      product_type: "CLONE",
+      rental_package: "clone_permanent",
+    });
 
     const msg = getZaloMessage(account);
     await copyToClipboard(msg);

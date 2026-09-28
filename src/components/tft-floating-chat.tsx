@@ -3,6 +3,7 @@
 import React from "react";
 import { PROFILE_INFO } from "@/data/tft-data";
 import { MessageCircle } from "lucide-react";
+import { analytics } from "@/utils/analytics";
 
 export const TFTFloatingChat: React.FC = () => {
   return (
@@ -18,6 +19,7 @@ export const TFTFloatingChat: React.FC = () => {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Nhắn tin Zalo với Tuấn Thái Bình"
+        onClick={() => analytics.trackClickZalo({ source: "floating_chat" })}
         className="group relative w-14 h-14 sm:w-15 sm:h-15 rounded-full bg-gradient-to-tr from-sky-500 via-blue-600 to-blue-500 hover:from-sky-600 hover:to-blue-700 text-white shadow-xl shadow-blue-600/35 hover:shadow-2xl hover:shadow-blue-600/50 flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer"
       >
         {/* Chấm Xanh Trạng Thái Online */}

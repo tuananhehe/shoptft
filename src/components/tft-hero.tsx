@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, ShieldCheck, ArrowRight, Sparkles } from "lucide-react";
 import { PROFILE_INFO } from "@/data/tft-data";
+import { analytics } from "@/utils/analytics";
 
 interface TFTHeroProps {
   heroConfig?: any;
@@ -18,6 +19,7 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
   const executeSearch = () => {
     const query = searchTerm.trim();
     if (query) {
+      analytics.trackSearchProduct({ query });
       router.push(`/shop?search=${encodeURIComponent(query)}`);
     } else {
       router.push("/shop");
@@ -96,6 +98,11 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
             <Link
               key={item.label}
               href={item.href}
+              onClick={() => {
+                if (item.href.includes("search=")) {
+                  analytics.trackSearchProduct({ query: item.label });
+                }
+              }}
               className="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/20 text-zinc-300 hover:text-white transition-all"
             >
               {item.label}

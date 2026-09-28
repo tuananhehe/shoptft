@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { UnifiedProductAccount, getAccountProductUrl } from "@/utils/account-lookup";
 import { PROFILE_INFO } from "@/data/tft-data";
@@ -92,16 +92,22 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
     setIsFav(nextState);
   };
 
+  const hasTrackedViewProduct = useRef<string | null>(null);
+
   useEffect(() => {
     setSelectedPackage("perm");
     addRecentlyViewed(account);
-    analytics.trackViewProduct({
-      product_id: account.code || account.id,
-      product_type: isClone ? "CLONE" : "VIP",
-      availability: isRented ? "RENTED" : "AVAILABLE",
-      display_price: isClone ? clonePrice : baseAccountValue,
-    });
-  }, [account, isClone, isRented, clonePrice, baseAccountValue]);
+    const productId = account.code || account.id;
+    if (hasTrackedViewProduct.current !== productId) {
+      hasTrackedViewProduct.current = productId;
+      analytics.trackViewProduct({
+        product_id: productId,
+        product_type: isClone ? "CLONE" : "VIP",
+        availability: isRented ? "RENTED" : "AVAILABLE",
+        display_price: isClone ? clonePrice : baseAccountValue,
+      });
+    }
+  }, [account.id, account.code, isClone, isRented, clonePrice, baseAccountValue]);
 
   useEffect(() => {
     if (account.status === "RENTED") {
@@ -545,13 +551,15 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                         <button
                           key={pkgKey}
                           onClick={() => {
-                            setSelectedPackage(pkgKey);
-                            analytics.trackSelectRentalPackage({
-                              product_id: account.code || account.id,
-                              package_name: pkg.name,
-                              duration_hours: pkgKey === "2h" ? 2 : pkgKey === "7d" ? 168 : 720,
-                              price: pkg.totalPrice,
-                            });
+                            if (selectedPackage !== pkgKey) {
+                              setSelectedPackage(pkgKey);
+                              analytics.trackSelectRentalPackage({
+                                product_id: account.code || account.id,
+                                package_name: pkg.name,
+                                duration_hours: pkgKey === "2h" ? 2 : pkgKey === "7d" ? 168 : 720,
+                                price: pkg.totalPrice,
+                              });
+                            }
                           }}
                           className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between min-h-[85px] ${
                             isSelected
