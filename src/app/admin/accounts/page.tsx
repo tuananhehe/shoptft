@@ -1329,7 +1329,7 @@ export default function AdminAccountsPage() {
               👑 {stats.vipCount} VIP • 🎮 {stats.cloneCount} Clone
             </span>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-orange-100/70 text-orange-700 flex items-center justify-center flex-shrink-0">
+          <div className="w-11 h-11 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
             <Gamepad2 className="w-5 h-5" />
           </div>
         </div>
@@ -1358,32 +1358,32 @@ export default function AdminAccountsPage() {
             <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider block">
               Đang Cho Thuê
             </span>
-            <span className="text-2xl sm:text-3xl font-black text-rose-600 font-mono mt-1 block">
+            <span className="text-2xl sm:text-3xl font-black text-amber-700 font-mono mt-1 block">
               {stats.rented}
             </span>
-            <span className="text-[11px] text-rose-600 font-medium block mt-1">
+            <span className="text-[11px] text-amber-700 font-medium block mt-1">
               Khách đang trải nghiệm
             </span>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-rose-100/70 text-rose-700 flex items-center justify-center flex-shrink-0">
+          <div className="w-11 h-11 rounded-2xl bg-amber-100/70 text-amber-700 flex items-center justify-center flex-shrink-0">
             <Clock className="w-5 h-5" />
           </div>
         </div>
 
         {/* Card 4: Vốn acc còn trong kho (Sẵn sàng chưa cho thuê) */}
-        <div className="bg-gradient-to-br from-emerald-50/70 via-white to-teal-50/40 p-4.5 rounded-2xl border-2 border-emerald-500/30 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] text-emerald-800 font-extrabold uppercase tracking-wider block">
+            <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider block">
               Vốn Acc Trong Kho
             </span>
-            <span className="text-lg sm:text-xl font-black text-emerald-700 font-mono mt-1 block">
+            <span className="text-lg sm:text-xl font-black text-slate-900 font-mono mt-1 block">
               {stats.availableValue.toLocaleString("vi-VN")}đ
             </span>
-            <span className="text-[11px] text-emerald-600 font-bold block mt-1">
-              Tổng tiền {stats.available} acc sẵn sàng
+            <span className="text-[11px] text-slate-500 font-medium block mt-1">
+              Tổng giá trị {stats.available} acc sẵn sàng
             </span>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center flex-shrink-0 shadow-xs">
+          <div className="w-11 h-11 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
             <Wallet className="w-5 h-5" />
           </div>
         </div>
@@ -1416,7 +1416,7 @@ export default function AdminAccountsPage() {
               onClick={() => setActiveTab("ALL")}
               className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeTab === "ALL"
-                  ? "bg-white text-slate-900 shadow-sm"
+                  ? "bg-[#111111] text-white shadow-sm"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -1428,8 +1428,8 @@ export default function AdminAccountsPage() {
               onClick={() => setActiveTab("VIP")}
               className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeTab === "VIP"
-                  ? "bg-orange-700 text-white shadow-sm"
-                  : "text-slate-600 hover:text-orange-700"
+                  ? "bg-[#111111] text-white shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               <Crown className="w-3.5 h-3.5" />
@@ -1440,8 +1440,8 @@ export default function AdminAccountsPage() {
               onClick={() => setActiveTab("CLONE")}
               className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeTab === "CLONE"
-                  ? "bg-sky-700 text-white shadow-sm"
-                  : "text-slate-600 hover:text-sky-700"
+                  ? "bg-[#111111] text-white shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               <Gamepad2 className="w-3.5 h-3.5" />
@@ -1454,29 +1454,29 @@ export default function AdminAccountsPage() {
             <button
               type="button"
               onClick={() => setBulkTxtModalOpen(true)}
-              className="px-3.5 py-2.5 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all shadow-md shadow-sky-600/20 flex items-center gap-2 cursor-pointer hover:scale-105"
+              className="px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold transition-colors flex items-center gap-2 cursor-pointer shadow-xs"
               title="Đăng hàng loạt sản phẩm kho Clone từ File TXT hoặc Copy/Paste"
             >
-              <FileCode className="w-4 h-4" />
-              <span>📁 Import TXT Đăng SLL</span>
+              <FileCode className="w-4 h-4 text-slate-600" />
+              <span>Import TXT</span>
             </button>
 
             <button
               type="button"
               onClick={() => fetchAccounts(true)}
-              className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+              className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
               title="Làm mới danh sách từ Database"
             >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin text-orange-600" : ""}`} />
+              <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin text-slate-900" : ""}`} />
             </button>
 
             <button
               type="button"
               onClick={() => openAddDrawer(activeTab === "CLONE" ? "CLONE" : "VIP")}
-              className="px-4 py-2.5 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-orange-700/20 flex items-center gap-2 cursor-pointer hover:scale-105"
+              className="px-4 py-2 bg-[#111111] hover:bg-[#222222] active:bg-black text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>+ Thêm Tài Khoản Mới</span>
+              <span>Thêm Tài Khoản</span>
             </button>
           </div>
         </div>
@@ -1488,8 +1488,8 @@ export default function AdminAccountsPage() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Tìm kiếm mã số (MS: 8899, CLONE-01), Tướng Tí Nị, Sân Đấu, Rank..."
-              className="w-full h-10 pl-9 pr-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 transition-colors"
+              placeholder="Tìm kiếm mã số, Chibi, Sân Đấu, Rank..."
+              className="w-full h-10 pl-9 pr-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-colors"
             />
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
           </div>
@@ -1498,11 +1498,11 @@ export default function AdminAccountsPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500 cursor-pointer"
+              className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 cursor-pointer"
             >
               <option value="ALL">Tất Cả Trạng Thái</option>
               <option value="AVAILABLE">🟢 Sẵn Sàng ({stats.available})</option>
-              <option value="RENTED">🔴 Đang Cho Thuê ({stats.rented})</option>
+              <option value="RENTED">🟡 Đang Cho Thuê ({stats.rented})</option>
             </select>
           </div>
 
@@ -1510,7 +1510,7 @@ export default function AdminAccountsPage() {
             <select
               value={rankFilter}
               onChange={(e) => setRankFilter(e.target.value)}
-              className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500 cursor-pointer"
+              className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 cursor-pointer"
             >
               <option value="ALL">Tất Cả Bậc Rank</option>
               <option value="THÁCH ĐẤU">Thách Đấu</option>
@@ -1529,7 +1529,7 @@ export default function AdminAccountsPage() {
             <select
               value={priceDisplayFilter}
               onChange={(e) => setPriceDisplayFilter(e.target.value as any)}
-              className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500 cursor-pointer"
+              className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 cursor-pointer"
             >
               <option value="ALL">Tất Cả Kiểu Giá</option>
               <option value="HOURLY">⚡ Thuê Theo Giờ</option>
@@ -1543,7 +1543,7 @@ export default function AdminAccountsPage() {
             <select
               value={sortFilter}
               onChange={(e) => setSortFilter(e.target.value as any)}
-              className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-orange-500 cursor-pointer"
+              className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 cursor-pointer"
             >
               <option value="DEFAULT">Sắp Xếp Giá</option>
               <option value="PRICE_ASC">Giá: Thấp ↗ Cao</option>
@@ -1599,20 +1599,20 @@ export default function AdminAccountsPage() {
 
       {/* 2.5 THANH THAO TÁC HÀNG LOẠT NỔI BẬT (BULK ACTION FLOATING TOOLBAR) */}
       {selectedIds.length > 0 && (
-        <div className="bg-slate-900 text-white p-4 rounded-2xl shadow-xl border border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4 animate-fadeIn sticky top-4 z-30">
+        <div className="bg-[#111111] text-white p-4 rounded-2xl shadow-xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 animate-fadeIn sticky top-4 z-30">
           <div className="flex items-center gap-3 w-full md:w-auto">
-            <span className="w-9 h-9 rounded-xl bg-orange-600 text-white flex items-center justify-center font-black text-sm shadow-md">
+            <span className="w-8 h-8 rounded-lg bg-white text-[#111111] flex items-center justify-center font-bold text-xs shadow-xs">
               {selectedIds.length}
             </span>
             <div>
-              <h4 className="font-extrabold text-sm text-white flex items-center gap-2">
+              <h4 className="font-bold text-sm text-white flex items-center gap-2">
                 <span>Đã chọn {selectedIds.length} tài khoản</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/40">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
                   Hàng loạt
                 </span>
               </h4>
               <span className="text-[11px] text-slate-400">
-                Thực hiện thao tác đồng thời 1 lần giúp tiết kiệm tối đa thời gian
+                Thao tác đồng thời giúp tiết kiệm thời gian vận hành
               </span>
             </div>
           </div>
@@ -1620,13 +1620,13 @@ export default function AdminAccountsPage() {
           {/* Cụm nút thao tác hàng loạt */}
           <div className="flex items-center gap-2 flex-wrap w-full md:w-auto justify-end">
             {/* Đổi Hiển Thị Giá Hàng Loạt */}
-            <div className="flex items-center gap-1 bg-slate-800 p-1 rounded-xl border border-slate-700">
+            <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
               <span className="text-[10px] text-slate-400 font-bold px-1.5 hidden sm:inline">Kiểu Giá:</span>
               <button
                 type="button"
                 disabled={isBulkUpdating}
                 onClick={() => handleBulkSwitchPriceDisplay("HOURLY")}
-                className="px-2 py-1 bg-orange-600/80 hover:bg-orange-600 active:bg-orange-700 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-all disabled:opacity-50"
+                className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-all disabled:opacity-50"
                 title="Đổi tất cả acc đã chọn sang hiển thị giá Theo Giờ"
               >
                 ⚡ Giờ
@@ -1635,7 +1635,7 @@ export default function AdminAccountsPage() {
                 type="button"
                 disabled={isBulkUpdating}
                 onClick={() => handleBulkSwitchPriceDisplay("LONG_TERM")}
-                className="px-2 py-1 bg-purple-600/80 hover:bg-purple-600 active:bg-purple-700 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-all disabled:opacity-50"
+                className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-all disabled:opacity-50"
                 title="Đổi tất cả acc đã chọn sang hiển thị giá Lâu Dài"
               >
                 👑 Lâu Dài
@@ -1644,7 +1644,7 @@ export default function AdminAccountsPage() {
                 type="button"
                 disabled={isBulkUpdating}
                 onClick={() => handleBulkSwitchPriceDisplay("DAILY")}
-                className="px-2 py-1 bg-emerald-600/80 hover:bg-emerald-600 active:bg-emerald-700 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-all disabled:opacity-50"
+                className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-all disabled:opacity-50"
                 title="Đổi tất cả acc đã chọn sang hiển thị giá Theo Ngày"
               >
                 📅 Ngày
@@ -1656,7 +1656,7 @@ export default function AdminAccountsPage() {
               type="button"
               disabled={isBulkUpdating}
               onClick={handleBulkMarkAvailable}
-              className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
+              className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition-all disabled:opacity-50"
               title="Chuyển tất cả acc đã chọn sang trạng thái SẴN SÀNG"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -1668,7 +1668,7 @@ export default function AdminAccountsPage() {
               type="button"
               disabled={isBulkUpdating}
               onClick={handleBulkOpenRentalModal}
-              className="px-3 py-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
+              className="px-3 py-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition-all disabled:opacity-50"
               title="Đặt thời gian cho thuê đồng loạt cho các acc đã chọn"
             >
               <Clock className="w-3.5 h-3.5" />
@@ -1680,7 +1680,7 @@ export default function AdminAccountsPage() {
               type="button"
               disabled={isBulkUpdating}
               onClick={() => handleBulkSwitchCategory("VIP")}
-              className="px-3 py-2 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
+              className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition-all disabled:opacity-50"
               title="Chuyển sang kho Acc VIP"
             >
               <Crown className="w-3.5 h-3.5" />
@@ -1692,7 +1692,7 @@ export default function AdminAccountsPage() {
               type="button"
               disabled={isBulkUpdating}
               onClick={() => handleBulkSwitchCategory("CLONE")}
-              className="px-3 py-2 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
+              className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition-all disabled:opacity-50"
               title="Chuyển sang kho Acc Clone"
             >
               <Gamepad2 className="w-3.5 h-3.5" />
@@ -1704,7 +1704,7 @@ export default function AdminAccountsPage() {
               type="button"
               disabled={isBulkUpdating}
               onClick={() => setBulkDeleteModalOpen(true)}
-              className="px-3 py-2 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all disabled:opacity-50"
+              className="px-3 py-2 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition-all disabled:opacity-50"
               title="Xóa tất cả tài khoản đã chọn"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -1736,7 +1736,7 @@ export default function AdminAccountsPage() {
                     type="checkbox"
                     checked={isAllVisibleSelected}
                     onChange={handleSelectAll}
-                    className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 accent-orange-600 cursor-pointer"
+                    className="w-4 h-4 rounded text-black focus:ring-black accent-black cursor-pointer"
                     title="Chọn / Bỏ chọn tất cả"
                   />
                 </th>
@@ -1754,7 +1754,7 @@ export default function AdminAccountsPage() {
                 <tr>
                   <td colSpan={7} className="py-16 text-center text-slate-500">
                     <div className="flex flex-col items-center justify-center gap-2.5">
-                      <div className="w-6 h-6 border-2 border-orange-600 border-t-transparent rounded-full animate-spin" />
+                      <div className="w-6 h-6 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
                       <span className="font-semibold text-slate-700 text-xs">
                         Đang tải danh sách tài khoản từ Database...
                       </span>
@@ -1772,7 +1772,7 @@ export default function AdminAccountsPage() {
                       key={account.id}
                       className={`transition-colors group ${
                         isSelected
-                          ? "bg-orange-50/70 hover:bg-orange-50"
+                          ? "bg-slate-100/70 hover:bg-slate-100"
                           : "hover:bg-slate-50/80"
                       }`}
                     >
@@ -1782,7 +1782,7 @@ export default function AdminAccountsPage() {
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => handleToggleSelect(account.id)}
-                          className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 accent-orange-600 cursor-pointer"
+                          className="w-4 h-4 rounded text-black focus:ring-black accent-black cursor-pointer"
                         />
                       </td>
 
@@ -1790,23 +1790,36 @@ export default function AdminAccountsPage() {
                       <td className="py-4 px-4 font-mono font-bold text-slate-900">
                         <div className="space-y-1">
                           <span
-                            className={`inline-block px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
+                            className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
                               isVip
-                                ? "bg-orange-100 text-orange-800 border border-orange-200"
-                                : "bg-sky-100 text-sky-800 border border-sky-200"
+                                ? "bg-[#111111] text-white"
+                                : "bg-slate-100 text-slate-700 border border-slate-200"
                             }`}
                           >
-                            {isVip ? "👑 VIP" : "🎮 CLONE"}
+                            {isVip ? "VIP" : "CLONE"}
                           </span>
-                          <div className="font-bold text-xs text-slate-800 font-mono">
-                            {account.code}
+                          <div className="flex items-center gap-1 font-bold text-xs text-slate-900 font-mono">
+                            <span>{account.code}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (navigator.clipboard) {
+                                  navigator.clipboard.writeText(account.code);
+                                  toast.success(`Đã sao chép mã ${account.code}!`);
+                                }
+                              }}
+                              className="text-slate-400 hover:text-slate-700 p-0.5 rounded"
+                              title="Sao chép mã tài khoản"
+                            >
+                              <Copy className="w-3 h-3" />
+                            </button>
                           </div>
                         </div>
                       </td>
 
                       {/* Cột 2: Hình Ảnh Vuông */}
                       <td className="py-4 px-4">
-                        <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-slate-900 border border-slate-200 flex-shrink-0 shadow-sm">
+                        <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 flex-shrink-0 shadow-2xs">
                           <img
                             src={account.thumbnail}
                             alt={account.title}
@@ -1820,18 +1833,18 @@ export default function AdminAccountsPage() {
                         {isVip ? (
                           <div className="space-y-1.5">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-orange-100 text-orange-700 border border-orange-200">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-100 text-slate-800 border border-slate-200">
                                 {account.rank}
                               </span>
                               {account.allChibi && account.allChibi.length > 1 && (
-                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
                                   +{account.allChibi.length} Tí Nị
                                 </span>
                               )}
                             </div>
 
-                            <strong className="text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-orange-700 transition-colors block">
-                              {account.mainChibi}
+                            <strong className="text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-black transition-colors block">
+                              {account.mainChibi || account.title}
                             </strong>
 
                             <p className="text-xs text-slate-500 line-clamp-1 font-medium flex items-center gap-1">
@@ -1842,15 +1855,15 @@ export default function AdminAccountsPage() {
                         ) : (
                           <div className="space-y-1.5">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-sky-100 text-sky-700 border border-sky-200">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200">
                                 {account.rankBadge}
                               </span>
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
                                 Dài Hạn
                               </span>
                             </div>
 
-                            <strong className="text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-sky-700 transition-colors block">
+                            <strong className="text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-black transition-colors block">
                               {account.title}
                             </strong>
 
@@ -1869,31 +1882,31 @@ export default function AdminAccountsPage() {
                           const mode = account.priceDisplayType || (isVip ? "HOURLY" : "LONG_TERM");
                           let priceText = "";
                           let unitText = "";
-                          let badgeBg = "bg-orange-100 text-orange-800 border-orange-200";
+                          let badgeBg = "bg-slate-100 text-slate-800 border-slate-200";
                           let badgeLabel = "⚡ Theo Giờ";
 
                           if (mode === "HOURLY") {
                             priceText = (account.hourlyPrice || (isVip ? 15000 : 10000)).toLocaleString("vi-VN") + "đ";
                             unitText = "/h";
-                            badgeBg = "bg-amber-100 text-amber-800 border-amber-200";
+                            badgeBg = "bg-slate-100 text-slate-800 border-slate-200";
                             badgeLabel = "⚡ Theo Giờ";
                           } else if (mode === "DAILY") {
                             const daily = account.dailyPrice || (account.hourlyPrice ? account.hourlyPrice * 3 : 45000);
                             priceText = daily.toLocaleString("vi-VN") + "đ";
                             unitText = "/ngày";
-                            badgeBg = "bg-emerald-100 text-emerald-800 border-emerald-200";
+                            badgeBg = "bg-emerald-50 text-emerald-800 border-emerald-200";
                             badgeLabel = "📅 Theo Ngày";
                           } else if (mode === "LONG_TERM") {
                             const period = account.periodPrice || account.monthlyPrice || account.accountValue || 150000;
                             priceText = period.toLocaleString("vi-VN") + "đ";
                             unitText = account.periodUnit || " / ∞";
-                            badgeBg = "bg-purple-100 text-purple-800 border-purple-200";
+                            badgeBg = "bg-purple-50 text-purple-800 border-purple-200";
                             badgeLabel = "👑 Lâu Dài";
                           } else if (mode === "CUSTOM") {
                             const custom = account.customPrice || account.hourlyPrice || 15000;
                             priceText = custom.toLocaleString("vi-VN") + "đ";
                             unitText = account.customPriceUnit ? ` ${account.customPriceUnit}` : "";
-                            badgeBg = "bg-blue-100 text-blue-800 border-blue-200";
+                            badgeBg = "bg-blue-50 text-blue-800 border-blue-200";
                             badgeLabel = "✏️ Tùy Chỉnh";
                           }
 
@@ -1924,7 +1937,7 @@ export default function AdminAccountsPage() {
                               type="button"
                               onClick={() => handleToggleChange(account)}
                               className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                                isRented ? "bg-rose-500" : "bg-emerald-500"
+                                isRented ? "bg-amber-500" : "bg-emerald-500"
                               }`}
                             >
                               <span
@@ -1935,18 +1948,20 @@ export default function AdminAccountsPage() {
                             </button>
 
                             <span
-                              className={`font-bold text-xs ${
-                                isRented ? "text-rose-600" : "text-emerald-700"
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                                isRented
+                                  ? "bg-amber-50 text-amber-800 border border-amber-200"
+                                  : "bg-emerald-50 text-emerald-700 border border-emerald-200"
                               }`}
                             >
-                              {isRented ? "Đang Cho Thuê" : "Sẵn Sàng"}
+                              {isRented ? "Đang Thuê" : "Sẵn Sàng"}
                             </span>
                           </div>
 
                           {/* Hiển thị thời gian hết hạn */}
                           {isRented && account.rentedUntil && (
-                            <div className="text-[11px] font-mono text-slate-500 flex items-center gap-1 bg-slate-100 px-2 py-1 rounded-md max-w-fit">
-                              <Clock className="w-3 h-3 text-rose-500 flex-shrink-0" />
+                            <div className="text-[11px] font-mono text-slate-600 flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-md border border-slate-200 max-w-fit">
+                              <Clock className="w-3 h-3 text-amber-600 flex-shrink-0" />
                               <span>Đến: {formatRentedUntil(account.rentedUntil)}</span>
                             </div>
                           )}
@@ -1955,11 +1970,11 @@ export default function AdminAccountsPage() {
 
                       {/* Cột 6: Thao Tác Chỉnh Sửa & Xóa */}
                       <td className="py-4 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
+                        <div className="flex items-center justify-end gap-1">
                           <Link
                             href={getAccountProductUrl(account)}
                             target="_blank"
-                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                             title="Xem trang web riêng của acc này"
                           >
                             <ExternalLink className="w-4 h-4" />
@@ -1974,7 +1989,7 @@ export default function AdminAccountsPage() {
                                 toast.success(`Đã sao chép link acc ${account.code}!`, { icon: "🔗" });
                               }
                             }}
-                            className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                             title="Sao chép link web gửi khách"
                           >
                             <Share2 className="w-4 h-4" />
@@ -1983,7 +1998,7 @@ export default function AdminAccountsPage() {
                           <button
                             type="button"
                             onClick={() => openEditDrawer(account)}
-                            className="p-2 text-slate-400 hover:text-orange-700 hover:bg-orange-50 rounded-xl transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                             title="Chỉnh sửa tài khoản"
                           >
                             <Edit2 className="w-4 h-4" />
@@ -1992,7 +2007,7 @@ export default function AdminAccountsPage() {
                           <button
                             type="button"
                             onClick={() => setDeleteConfirmAccount(account)}
-                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                             title="Xóa tài khoản khỏi Database"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -2017,7 +2032,7 @@ export default function AdminAccountsPage() {
                         setRankFilter("ALL");
                         setPriceDisplayFilter("ALL");
                       }}
-                      className="mt-2 text-xs font-bold text-orange-700 hover:underline cursor-pointer"
+                      className="mt-2 text-xs font-bold text-slate-900 hover:underline cursor-pointer"
                     >
                       Đặt lại bộ lọc tìm kiếm
                     </button>
@@ -2104,7 +2119,7 @@ export default function AdminAccountsPage() {
                   setBulkCustomEndTime(e.target.value);
                   setBulkQuickHours(0);
                 }}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-orange-500"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
               />
             </div>
 
@@ -2120,7 +2135,7 @@ export default function AdminAccountsPage() {
                 type="button"
                 disabled={isBulkUpdating}
                 onClick={handleBulkApplyRentalDuration}
-                className="flex-1 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold uppercase tracking-wider cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center gap-1.5"
+                className="flex-1 py-2.5 rounded-xl bg-[#111111] hover:bg-[#222222] text-white text-xs font-bold uppercase tracking-wider cursor-pointer shadow-sm disabled:opacity-50 flex items-center justify-center gap-1.5"
               >
                 {isBulkUpdating && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 <span>Áp Dụng Cho {selectedIds.length} Acc</span>
@@ -2139,12 +2154,12 @@ export default function AdminAccountsPage() {
             {/* Header with Steps */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-700 flex items-center justify-center font-bold flex-shrink-0">
+                <div className="w-10 h-10 rounded-2xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold flex-shrink-0">
                   {statusModalStep === "SELECT_PACKAGE" ? <Clock className="w-5 h-5" /> : <QrCode className="w-5 h-5" />}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-extrabold text-sm sm:text-base text-slate-900">
+                    <h3 className="font-bold text-sm sm:text-base text-slate-900">
                       {statusModalStep === "SELECT_PACKAGE"
                         ? "Bước 1: Chọn Gói Thuê & Xác Nhận Giá"
                         : `Bước 2: Quét QR Thanh Toán ${bankConfig.bankId || "ACB"}`}
@@ -2175,7 +2190,7 @@ export default function AdminAccountsPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs font-bold text-slate-700">
                     <span>Chọn Gói Cho Thuê:</span>
-                    <span className="text-[11px] text-orange-600 font-semibold">Tự động tính tiền</span>
+                    <span className="text-[11px] text-slate-500 font-medium">Tự động tính tiền</span>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -2198,23 +2213,23 @@ export default function AdminAccountsPage() {
                           }}
                           className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                             isSelected
-                              ? "bg-orange-50 border-orange-600 ring-2 ring-orange-500/20 shadow-xs"
+                              ? "bg-slate-900 text-white border-slate-900 shadow-sm"
                               : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
                           }`}
                         >
                           <div>
                             <div className="flex items-center justify-between">
                               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                                isSelected ? "bg-orange-600 text-white" : "bg-slate-200 text-slate-700"
+                                isSelected ? "bg-white text-slate-900" : "bg-slate-200 text-slate-700"
                               }`}>
                                 {pkg.badge}
                               </span>
                             </div>
-                            <div className={`font-bold text-xs mt-1 ${isSelected ? "text-orange-950" : "text-slate-800"}`}>
+                            <div className={`font-bold text-xs mt-1 ${isSelected ? "text-white" : "text-slate-800"}`}>
                               {pkg.label}
                             </div>
                           </div>
-                          <div className="mt-1.5 font-mono font-black text-red-600 text-xs">
+                          <div className={`mt-1.5 font-mono font-bold text-xs ${isSelected ? "text-emerald-300" : "text-slate-900"}`}>
                             {pkg.price.toLocaleString("vi-VN")}đ
                           </div>
                         </button>
@@ -2236,7 +2251,7 @@ export default function AdminAccountsPage() {
                         step="1000"
                         value={modalRentalAmount}
                         onChange={(e) => setModalRentalAmount(Number(e.target.value))}
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-red-600 focus:outline-none focus:border-orange-500 pr-8"
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-slate-900 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 pr-8"
                       />
                       <span className="absolute right-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">
                         đ
@@ -2255,7 +2270,7 @@ export default function AdminAccountsPage() {
                         setCustomEndTime(e.target.value);
                         setQuickDurationHours(0);
                       }}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-orange-500"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                     />
                   </div>
                 </div>
@@ -2265,13 +2280,13 @@ export default function AdminAccountsPage() {
                   <div className="space-y-1">
                     <label className="font-bold text-slate-800 flex items-center justify-between">
                       <span>Nội Dung Chuyển Khoản Mẫu:</span>
-                      <span className="text-[10px] text-blue-600 font-medium">Tự điền vào mã QR</span>
+                      <span className="text-[10px] text-slate-500 font-medium">Tự điền vào mã QR</span>
                     </label>
                     <input
                       type="text"
                       value={modalTransferContent}
                       onChange={(e) => setModalTransferContent(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-slate-900 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                       placeholder="THUE ACC 8899"
                     />
                   </div>
@@ -2329,7 +2344,7 @@ export default function AdminAccountsPage() {
                       setStatusModalStep("CONFIRM_QR");
                       handleCreatePaymentLink();
                     }}
-                    className="w-full sm:flex-1 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold uppercase tracking-wider cursor-pointer shadow-md shadow-orange-600/20 flex items-center justify-center gap-2"
+                    className="w-full sm:flex-1 py-2.5 rounded-xl bg-[#111111] hover:bg-[#222222] text-white text-xs font-bold uppercase tracking-wider cursor-pointer shadow-sm flex items-center justify-center gap-2"
                   >
                     <span>Tạo QR Thanh Toán ({bankConfig.bankId || "ACB"})</span>
                     <ArrowRight className="w-4 h-4" />
@@ -2414,7 +2429,7 @@ export default function AdminAccountsPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-slate-500 text-[11px]">Số tài khoản:</span>
                         <div className="flex items-center gap-1">
-                          <span className="font-mono font-bold text-blue-600 text-sm">{bankConfig.accountNumber}</span>
+                          <span className="font-mono font-bold text-slate-900 text-sm">{bankConfig.accountNumber}</span>
                           <button
                             type="button"
                             onClick={() => {
@@ -2439,7 +2454,7 @@ export default function AdminAccountsPage() {
                       <div className="flex items-center justify-between pt-1 border-t border-slate-100">
                         <span className="text-slate-500 text-[11px]">Số tiền cần chuyển:</span>
                         <div className="flex items-center gap-1">
-                          <strong className="font-mono font-black text-red-600 text-base">
+                          <strong className="font-mono font-black text-slate-900 text-base">
                             {modalRentalAmount.toLocaleString("vi-VN")}đ
                           </strong>
                           <button
@@ -2460,9 +2475,9 @@ export default function AdminAccountsPage() {
                     </div>
 
                     {/* Highlighted Transfer Content */}
-                    <div className="bg-orange-50 border border-orange-200 p-2.5 rounded-xl space-y-1">
+                    <div className="bg-slate-100 border border-slate-200 p-2.5 rounded-xl space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-orange-900">Nội Dung Chuyển Khoản:</span>
+                        <span className="text-[11px] font-bold text-slate-800">Nội Dung Chuyển Khoản:</span>
                         <button
                           type="button"
                           onClick={() => {
@@ -2471,13 +2486,13 @@ export default function AdminAccountsPage() {
                             setTimeout(() => setModalCopiedField(null), 2000);
                             toast.success("Đã chép nội dung chuyển khoản!");
                           }}
-                          className="inline-flex items-center gap-1 text-[10px] font-bold text-orange-700 bg-white px-2 py-0.5 rounded border border-orange-200 hover:bg-orange-100 cursor-pointer"
+                          className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200 hover:bg-slate-50 cursor-pointer"
                         >
                           {modalCopiedField === "content" ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                           <span>{modalCopiedField === "content" ? "Đã chép" : "Chép nội dung"}</span>
                         </button>
                       </div>
-                      <div className="font-mono font-black text-sm text-orange-950 bg-white px-2 py-1 rounded border border-orange-200/80">
+                      <div className="font-mono font-black text-sm text-slate-900 bg-white px-2 py-1 rounded border border-slate-200">
                         {modalTransferContent}
                       </div>
                     </div>
@@ -2771,17 +2786,17 @@ export default function AdminAccountsPage() {
             <div className="w-screen max-w-md bg-white shadow-2xl border-l border-slate-200 flex flex-col">
               <form onSubmit={handleSaveAccount} className="flex flex-col h-full">
                 {/* Header Drawer */}
-                <div className="p-5 sm:p-6 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                <div className="p-5 sm:p-6 bg-white border-b border-slate-200 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-700 flex items-center justify-center font-bold">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
                       <Sparkles className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="font-extrabold text-slate-900 text-base">
+                      <h3 className="font-bold text-slate-900 text-base">
                         {editingAccount ? "Chỉnh Sửa Tài Khoản" : "Thêm Tài Khoản Mới"}
                       </h3>
                       <span className="text-xs text-slate-500 font-medium">
-                        Lưu trực tiếp vào Database Supabase
+                        Lưu trực tiếp vào Database
                       </span>
                     </div>
                   </div>
@@ -2790,7 +2805,7 @@ export default function AdminAccountsPage() {
                     type="button"
                     disabled={isSubmitting}
                     onClick={() => setDrawerOpen(false)}
-                    className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-200 disabled:opacity-50 cursor-pointer"
+                    className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 disabled:opacity-50 cursor-pointer"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -2801,18 +2816,18 @@ export default function AdminAccountsPage() {
                   {/* ============================================================ */}
                   {/* 0. TRỢ LÝ AI VISION - QUÉT ẢNH TỰ ĐỘNG ĐIỀN ACC */}
                   {/* ============================================================ */}
-                  <div className="p-4 bg-gradient-to-br from-orange-500/10 via-amber-500/5 to-purple-500/10 rounded-2xl border-2 border-orange-500/30 space-y-3 relative overflow-hidden">
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 relative overflow-hidden">
                     {/* Header AI Scanner */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-orange-600 to-amber-500 text-white flex items-center justify-center shadow-xs">
-                          <Wand2 className="w-4 h-4 animate-pulse" />
+                        <div className="w-7 h-7 rounded-lg bg-[#111111] text-white flex items-center justify-center shadow-xs">
+                          <Wand2 className="w-4 h-4" />
                         </div>
                         <div>
-                          <h4 className="font-extrabold text-xs text-slate-900 flex items-center gap-1.5">
-                            <span>Trợ Lý AI Quét Ảnh Game</span>
-                            <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-orange-600 text-white uppercase tracking-wider">
-                              VISION AI
+                          <h4 className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
+                            <span>Trợ Lý AI Quét Ảnh</span>
+                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-[#111111] text-white uppercase tracking-wider">
+                              AI VISION
                             </span>
                           </h4>
                           <span className="text-[10px] text-slate-500 font-medium">
@@ -2831,7 +2846,7 @@ export default function AdminAccountsPage() {
                         className="p-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
                         title="Cài đặt Google Gemini API Key"
                       >
-                        <Key className="w-3.5 h-3.5 text-amber-600" />
+                        <Key className="w-3.5 h-3.5 text-slate-700" />
                         <span className="hidden sm:inline">Cài Key</span>
                       </button>
                     </div>
@@ -2840,7 +2855,7 @@ export default function AdminAccountsPage() {
                     <div
                       onPaste={handlePasteImage}
                       tabIndex={0}
-                      className="border-2 border-dashed border-orange-300/80 hover:border-orange-500 bg-white/80 hover:bg-white rounded-xl p-3.5 text-center transition-all focus:outline-none focus:ring-2 focus:ring-orange-400/40 cursor-pointer group"
+                      className="border-2 border-dashed border-slate-300 hover:border-slate-500 bg-white rounded-xl p-3.5 text-center transition-all focus:outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer group"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <input
@@ -2851,9 +2866,9 @@ export default function AdminAccountsPage() {
                         accept="image/*"
                         className="hidden"
                       />
-                      <UploadCloud className="w-6 h-6 text-orange-500 mx-auto group-hover:scale-110 transition-transform mb-1" />
+                      <UploadCloud className="w-6 h-6 text-slate-400 mx-auto group-hover:scale-110 transition-transform mb-1" />
                       <p className="text-xs font-bold text-slate-800">
-                        Kéo thả, Chọn ảnh hoặc bấm <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono text-[10px] text-orange-700 font-black">Ctrl + V</kbd> để dán ảnh
+                        Kéo thả, Chọn ảnh hoặc bấm <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded font-mono text-[10px] text-slate-800 font-bold">Ctrl + V</kbd> để dán ảnh
                       </p>
                       <p className="text-[10px] text-slate-400 font-medium mt-0.5">
                         Hỗ trợ ảnh chụp màn hình điện thoại / PC kho Tí Nị, Sân Đấu, Bậc Rank
@@ -2901,17 +2916,17 @@ export default function AdminAccountsPage() {
                           type="button"
                           disabled={isScanningWithAi}
                           onClick={handleScanWithAi}
-                          className="w-full py-2.5 px-4 bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 hover:from-orange-700 hover:to-amber-700 active:from-orange-800 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-orange-600/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                          className="w-full py-2.5 px-4 bg-[#111111] hover:bg-[#222222] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                         >
                           {isScanningWithAi ? (
                             <>
                               <Loader2 className="w-4 h-4 animate-spin" />
-                              <span>AI Đang Phân Tích & Bóc Tách...</span>
+                              <span>AI Đang Phân Tích...</span>
                             </>
                           ) : (
                             <>
                               <Sparkles className="w-4 h-4" />
-                              <span>⚡ AI Quét & Tự Điền Dữ Liệu</span>
+                              <span>AI Quét & Tự Điền Dữ Liệu</span>
                             </>
                           )}
                         </button>
@@ -2935,14 +2950,14 @@ export default function AdminAccountsPage() {
                         }}
                         className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                           formCategory === "VIP"
-                            ? "bg-orange-50 border-orange-600 text-orange-950 font-bold shadow-sm"
+                            ? "bg-[#111111] text-white border-[#111111] shadow-sm"
                             : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 font-medium"
                         }`}
                       >
-                        <Crown className="w-4 h-4 text-orange-600 mb-1" />
-                        <div>Acc VIP (Theo Giờ)</div>
-                        <span className="text-[10px] text-slate-500 font-normal">
-                          Tướng Tí Nị + Sân Đấu Thần Thoại
+                        <Crown className="w-4 h-4 mb-1" />
+                        <div className="font-bold">Acc VIP (Theo Giờ)</div>
+                        <span className={`text-[10px] font-normal ${formCategory === "VIP" ? "text-slate-300" : "text-slate-500"}`}>
+                          Tướng Tí Nị + Sân Đấu
                         </span>
                       </button>
 
@@ -2956,14 +2971,14 @@ export default function AdminAccountsPage() {
                         }}
                         className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                           formCategory === "CLONE"
-                            ? "bg-sky-50 border-sky-600 text-sky-950 font-bold shadow-sm"
+                            ? "bg-[#111111] text-white border-[#111111] shadow-sm"
                             : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 font-medium"
                         }`}
                       >
-                        <Gamepad2 className="w-4 h-4 text-sky-600 mb-1" />
-                        <div>Acc Clone / Smurf</div>
-                        <span className="text-[10px] text-slate-500 font-normal">
-                          Thuê Dài Hạn Full Info
+                        <Gamepad2 className="w-4 h-4 mb-1" />
+                        <div className="font-bold">Acc Clone / Smurf</div>
+                        <span className={`text-[10px] font-normal ${formCategory === "CLONE" ? "text-slate-300" : "text-slate-500"}`}>
+                          Thuê Dài Hạn
                         </span>
                       </button>
                     </div>
@@ -2981,7 +2996,7 @@ export default function AdminAccountsPage() {
                         value={formCode}
                         onChange={(e) => setFormCode(e.target.value)}
                         placeholder={formCategory === "VIP" ? "MS: 8899" : "CLONE-01"}
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold font-mono text-slate-900 focus:outline-none focus:border-orange-500"
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold font-mono text-slate-900 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                       />
                     </div>
 
@@ -2993,7 +3008,7 @@ export default function AdminAccountsPage() {
                         <select
                           value={formRank}
                           onChange={(e) => setFormRank(e.target.value as any)}
-                          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-orange-500"
+                          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                         >
                           <option value="THÁCH ĐẤU">Thách Đấu</option>
                           <option value="ĐẠI CAO THỦ">Đại Cao Thủ</option>
@@ -3011,7 +3026,7 @@ export default function AdminAccountsPage() {
                           value={formRankBadge}
                           onChange={(e) => setFormRankBadge(e.target.value)}
                           placeholder="UNRANKED / RANK ĐỒNG"
-                          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                          className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                         />
                       )}
                     </div>
@@ -3019,15 +3034,15 @@ export default function AdminAccountsPage() {
 
                   {/* THUỘC TÍNH RIÊNG ACC VIP */}
                   {formCategory === "VIP" && (
-                    <div className="space-y-4 p-4 bg-orange-50/60 rounded-2xl border border-orange-200/80">
+                    <div className="space-y-4 p-4 bg-slate-50/80 rounded-2xl border border-slate-200">
                       {/* 1. TƯỚNG TÍ NỊ / LINH THÚ CHÍNH */}
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between flex-wrap gap-1">
                           <label className="font-bold text-slate-800 block">
                             Tướng Tí Nị / Linh Thú Chính: <span className="text-red-500">*</span>
                           </label>
-                          <span className="text-[10px] text-amber-800 font-bold bg-amber-100/90 border border-amber-300/80 px-2 py-0.5 rounded-md flex items-center gap-1">
-                            <span>💎 Chọn ảnh Hàng Hiệu trong Kho Pet phụ trợ bên dưới</span>
+                          <span className="text-[10px] text-slate-700 font-medium bg-white border border-slate-200 px-2 py-0.5 rounded-md flex items-center gap-1">
+                            <span>💎 Chọn ảnh trong Kho Pet phụ trợ bên dưới</span>
                           </span>
                         </div>
                         <input
@@ -3036,7 +3051,7 @@ export default function AdminAccountsPage() {
                           value={formMainChibi}
                           onChange={(e) => setFormMainChibi(e.target.value)}
                           placeholder="vd: Tí Nị Ahri Chiêu Hồn, Tí Nị Yasuo..."
-                          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                         />
                       </div>
 
@@ -3060,7 +3075,7 @@ export default function AdminAccountsPage() {
                               }
                             }}
                             placeholder="Nhập tên Linh Thú rồi bấm Enter hoặc Thêm..."
-                            className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                            className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                           />
                           <button
                             type="button"
@@ -3070,7 +3085,7 @@ export default function AdminAccountsPage() {
                                 setExtraChibiInput("");
                               }
                             }}
-                            className="px-3 py-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs"
+                            className="px-3 py-2 bg-[#111111] hover:bg-[#222222] text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs"
                           >
                             + Thêm
                           </button>
@@ -3083,7 +3098,7 @@ export default function AdminAccountsPage() {
                               .map((chibi, idx) => (
                                 <span
                                   key={idx}
-                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-100 text-orange-900 text-[11px] font-bold border border-orange-200"
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 text-[11px] font-bold border border-slate-200"
                                 >
                                   <span>{chibi}</span>
                                   <button
@@ -3093,7 +3108,7 @@ export default function AdminAccountsPage() {
                                         prev.filter((_, i) => i !== idx)
                                       )
                                     }
-                                    className="text-orange-600 hover:text-red-700 font-black cursor-pointer ml-1"
+                                    className="text-slate-500 hover:text-red-700 font-bold cursor-pointer ml-1"
                                     title="Xóa linh thú này"
                                   >
                                     ×
@@ -3105,7 +3120,7 @@ export default function AdminAccountsPage() {
                       </div>
 
                       {/* 2. SÂN ĐẤU THẦN THOẠI CHÍNH */}
-                      <div className="space-y-1.5 pt-1 border-t border-orange-200/50">
+                      <div className="space-y-1.5 pt-1 border-t border-slate-200">
                         <label className="font-bold text-slate-800 block">
                           Sân Đấu Thần Thoại Chính:
                         </label>
@@ -3113,8 +3128,8 @@ export default function AdminAccountsPage() {
                           type="text"
                           value={formMainArena}
                           onChange={(e) => setFormMainArena(e.target.value)}
-                          placeholder="vd: Sân Đấu Tiệm Trà Tâm Linh (Đổi Nhạc EDM)..."
-                          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-orange-500"
+                          placeholder="vd: Sân Đấu Tiệm Trà Tâm Linh..."
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                         />
                       </div>
 
@@ -3138,7 +3153,7 @@ export default function AdminAccountsPage() {
                               }
                             }}
                             placeholder="Nhập tên Sân Đấu rồi bấm Enter hoặc Thêm..."
-                            className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                            className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                           />
                           <button
                             type="button"
@@ -3148,7 +3163,7 @@ export default function AdminAccountsPage() {
                                 setExtraArenaInput("");
                               }
                             }}
-                            className="px-3 py-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs"
+                            className="px-3 py-2 bg-[#111111] hover:bg-[#222222] text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs"
                           >
                             + Thêm
                           </button>
@@ -3171,7 +3186,7 @@ export default function AdminAccountsPage() {
                                         prev.filter((_, i) => i !== idx)
                                       )
                                     }
-                                    className="text-slate-500 hover:text-red-700 font-black cursor-pointer ml-1"
+                                    className="text-slate-500 hover:text-red-700 font-bold cursor-pointer ml-1"
                                     title="Xóa sân đấu này"
                                   >
                                     ×
@@ -3183,10 +3198,10 @@ export default function AdminAccountsPage() {
                       </div>
 
                       {/* 3. ĐỊNH GIÁ ACC & TỰ ĐỘNG TÍNH GIÁ */}
-                      <div className="space-y-3 pt-2 border-t border-orange-200/60">
+                      <div className="space-y-3 pt-2 border-t border-slate-200">
                         <div className="flex items-center justify-between">
-                          <span className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
-                            <Zap className="w-3.5 h-3.5 text-orange-600" />
+                          <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                            <Zap className="w-3.5 h-3.5 text-slate-700" />
                             <span>Định Giá Gốc Tài Khoản</span>
                           </span>
 
@@ -3210,7 +3225,7 @@ export default function AdminAccountsPage() {
                             }}
                             className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
                               isAutoPricing
-                                ? "bg-orange-600 text-white shadow-xs"
+                                ? "bg-[#111111] text-white shadow-xs"
                                 : "bg-slate-200 text-slate-700 hover:bg-slate-300"
                             }`}
                           >
@@ -3223,7 +3238,7 @@ export default function AdminAccountsPage() {
                             <label className="font-bold text-slate-800 block">
                               Định Giá Acc (VNĐ): <span className="text-red-500">*</span>
                             </label>
-                            <span className="text-xs font-mono font-bold text-orange-700">
+                            <span className="text-xs font-mono font-bold text-slate-900">
                               {(Number(formAccountValue) || 0).toLocaleString("vi-VN")} đ
                             </span>
                           </div>
@@ -3233,13 +3248,13 @@ export default function AdminAccountsPage() {
                             value={formAccountValue}
                             onChange={(e) => handleAccountValueChange(Number(e.target.value))}
                             placeholder="vd: 799000"
-                            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold font-mono text-slate-900 focus:outline-none focus:border-orange-500"
+                            className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold font-mono text-slate-900 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                           />
                           {formAccountValue > 0 && formAccountValue < 1000 && (
                             <button
                               type="button"
                               onClick={() => handleAccountValueChange(formAccountValue * 1000)}
-                              className="text-[10px] text-orange-600 hover:text-orange-800 font-bold bg-orange-50 border border-orange-200 px-2 py-1 rounded-lg cursor-pointer flex items-center gap-1 mt-1"
+                              className="text-[10px] text-slate-800 font-bold bg-slate-100 border border-slate-200 px-2 py-1 rounded-lg cursor-pointer flex items-center gap-1 mt-1"
                             >
                               <span>💡 Bạn đang nhập {formAccountValue}đ. Bấm vào đây để đổi thành <strong>{(formAccountValue * 1000).toLocaleString("vi-VN")}đ</strong> ({formAccountValue}k)</span>
                             </button>
@@ -3254,10 +3269,10 @@ export default function AdminAccountsPage() {
 
                   {/* THUỘC TÍNH RIÊNG ACC CLONE */}
                   {formCategory === "CLONE" && (
-                    <div className="space-y-3 p-3.5 bg-sky-50/60 rounded-2xl border border-sky-200/80">
-                      <div className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-sky-200 shadow-xs">
+                    <div className="space-y-3 p-3.5 bg-slate-50/80 rounded-2xl border border-slate-200">
+                      <div className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
                         <div className="flex items-center gap-2">
-                          <FileCode className="w-4 h-4 text-sky-600 flex-shrink-0" />
+                          <FileCode className="w-4 h-4 text-slate-700 flex-shrink-0" />
                           <div>
                             <span className="text-xs font-bold text-slate-800 block">
                               Đăng nhanh SLL bằng File TXT / Danh sách Pet
@@ -3273,7 +3288,7 @@ export default function AdminAccountsPage() {
                             setDrawerOpen(false);
                             setBulkTxtModalOpen(true);
                           }}
-                          className="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white rounded-xl text-xs font-extrabold cursor-pointer transition-all shadow-xs flex-shrink-0"
+                          className="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold cursor-pointer transition-all shadow-xs flex-shrink-0"
                         >
                           Mở Import TXT
                         </button>
@@ -3286,11 +3301,11 @@ export default function AdminAccountsPage() {
                           value={formTitle}
                           onChange={(e) => setFormTitle(e.target.value)}
                           placeholder="Acc Unranked Trắng Thông Tin"
-                          className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                          className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                         />
                       </div>
 
-                      <div className="space-y-1.5 pt-1 border-t border-sky-200/60">
+                      <div className="space-y-1.5 pt-1 border-t border-slate-200">
                         <label className="font-bold text-slate-800 block">
                           Đặc Điểm & Tính Năng Tài Khoản:
                         </label>
@@ -3309,7 +3324,7 @@ export default function AdminAccountsPage() {
                               }
                             }}
                             placeholder="vd: Tài Khoản An Toàn 100%..."
-                            className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                            className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                           />
                           <button
                             type="button"
@@ -3319,7 +3334,7 @@ export default function AdminAccountsPage() {
                                 setFormFeatureInput("");
                               }
                             }}
-                            className="px-3 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs"
+                            className="px-3 py-2 bg-[#111111] hover:bg-[#222222] text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs"
                           >
                             + Thêm
                           </button>
@@ -3330,7 +3345,7 @@ export default function AdminAccountsPage() {
                             {formFeatures.map((feat, idx) => (
                               <span
                                 key={idx}
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-100 text-sky-900 text-[11px] font-bold border border-sky-200"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 text-[11px] font-bold border border-slate-200"
                               >
                                 <span>{feat}</span>
                                 <button
@@ -3338,7 +3353,7 @@ export default function AdminAccountsPage() {
                                   onClick={() =>
                                     setFormFeatures((prev) => prev.filter((_, i) => i !== idx))
                                   }
-                                  className="text-sky-600 hover:text-red-700 font-black cursor-pointer ml-1"
+                                  className="text-slate-500 hover:text-red-700 font-bold cursor-pointer ml-1"
                                   title="Xóa đặc điểm này"
                                 >
                                   ×
@@ -3399,7 +3414,7 @@ export default function AdminAccountsPage() {
                           Tùy biến cách khách hàng nhìn thấy mức giá của tài khoản này
                         </span>
                       </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 border border-orange-200 font-bold">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200 font-bold">
                         Đang chọn: {formPriceDisplayType}
                       </span>
                     </div>
@@ -3590,11 +3605,11 @@ export default function AdminAccountsPage() {
                     </div>
 
                     {/* LIVE CARD PREVIEW (MÔ PHỎNG TRỰC TIẾP THẺ SHOP) */}
-                    <div className="p-3 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border border-slate-700 text-white space-y-2">
+                    <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 text-white space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400 flex items-center gap-1">
-                          <Sparkles className="w-3 h-3" />
-                          <span>Xem Trước Thẻ Shop (Live Card Preview)</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-slate-400" />
+                          <span>Xem Trước Thẻ Shop</span>
                         </span>
                         <span className="text-[9px] font-mono px-2 py-0.5 rounded-md bg-white/10 text-slate-300">
                           {formCode || "MS: 0000"}
@@ -3602,17 +3617,17 @@ export default function AdminAccountsPage() {
                       </div>
 
                       <div className="flex items-center gap-3 bg-black/40 p-2.5 rounded-lg border border-white/10">
-                        <div className="w-12 h-12 rounded-lg bg-slate-700 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-lg bg-slate-800 overflow-hidden flex-shrink-0 flex items-center justify-center">
                           {formThumbnail ? (
                             <img src={formThumbnail} alt="Preview" className="w-full h-full object-cover" />
                           ) : (
-                            <Crown className="w-6 h-6 text-orange-400 opacity-60" />
+                            <Crown className="w-6 h-6 text-slate-400 opacity-60" />
                           )}
                         </div>
 
                         <div className="flex-1 min-w-0 space-y-0.5">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-orange-600 text-white uppercase">
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#111111] text-white border border-slate-700 uppercase">
                               {formCategory === "VIP" ? (formRank || "THÁCH ĐẤU") : (formRankBadge || "UNRANKED")}
                             </span>
                             <span className="text-[10px] font-bold text-slate-300 truncate">
@@ -3622,18 +3637,18 @@ export default function AdminAccountsPage() {
 
                           <div className="flex items-center justify-between pt-1">
                             <span className="text-[10px] text-slate-400 font-medium">Giá hiển thị khách:</span>
-                            <div className="font-mono font-black text-xs text-amber-400">
+                            <div className="font-mono font-bold text-xs text-white">
                               {formPriceDisplayType === "HOURLY" && (
-                                <span>{(Number(formHourlyPrice) || 0).toLocaleString("vi-VN")}đ<span className="text-[9px] font-normal text-slate-300">/h</span></span>
+                                <span>{(Number(formHourlyPrice) || 0).toLocaleString("vi-VN")}đ<span className="text-[9px] font-normal text-slate-400">/h</span></span>
                               )}
                               {formPriceDisplayType === "DAILY" && (
-                                <span>{(Number(formDailyPrice) || 0).toLocaleString("vi-VN")}đ<span className="text-[9px] font-normal text-slate-300">/ngày</span></span>
+                                <span>{(Number(formDailyPrice) || 0).toLocaleString("vi-VN")}đ<span className="text-[9px] font-normal text-slate-400">/ngày</span></span>
                               )}
                               {formPriceDisplayType === "LONG_TERM" && (
-                                <span>{(Number(formPeriodPrice) || 0).toLocaleString("vi-VN")}đ<span className="text-[9px] font-normal text-slate-300"> {formPeriodUnit || "/ ∞"}</span></span>
+                                <span>{(Number(formPeriodPrice) || 0).toLocaleString("vi-VN")}đ<span className="text-[9px] font-normal text-slate-400"> {formPeriodUnit || "/ ∞"}</span></span>
                               )}
                               {formPriceDisplayType === "CUSTOM" && (
-                                <span>{(Number(formCustomPrice) || 0).toLocaleString("vi-VN")}đ<span className="text-[9px] font-normal text-slate-300"> {formCustomPriceUnit || ""}</span></span>
+                                <span>{(Number(formCustomPrice) || 0).toLocaleString("vi-VN")}đ<span className="text-[9px] font-normal text-slate-400"> {formCustomPriceUnit || ""}</span></span>
                               )}
                             </div>
                           </div>
@@ -3646,11 +3661,11 @@ export default function AdminAccountsPage() {
                   <div className="space-y-2 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
                     <div className="flex items-center justify-between">
                       <label className="font-bold text-slate-800 text-xs flex items-center gap-1.5">
-                        <ImageIcon className="w-3.5 h-3.5 text-orange-600" />
+                        <ImageIcon className="w-3.5 h-3.5 text-slate-700" />
                         <span>Ảnh Đại Diện / Thumbnail:</span>
                       </label>
                       <span className="text-[10px] text-slate-400 font-medium">
-                        Lưu trên Supabase Cloud
+                        Lưu trên Cloud Storage
                       </span>
                     </div>
 
@@ -3660,7 +3675,7 @@ export default function AdminAccountsPage() {
                         value={formThumbnail}
                         onChange={(e) => setFormThumbnail(e.target.value)}
                         placeholder="Dán link ảnh (https://...) hoặc tải ảnh lên..."
-                        className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-800 font-mono focus:outline-none focus:border-orange-500 text-[11px]"
+                        className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-800 font-mono focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 text-[11px]"
                       />
 
                       <input
@@ -3675,8 +3690,8 @@ export default function AdminAccountsPage() {
                         type="button"
                         disabled={isUploadingThumbnail}
                         onClick={() => thumbnailFileInputRef.current?.click()}
-                        className="px-3 py-2 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50 transition-all"
-                        title="Tải ảnh trực tiếp lên Supabase Cloud Storage"
+                        className="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50 transition-all"
+                        title="Tải ảnh trực tiếp lên Cloud Storage"
                       >
                         {isUploadingThumbnail ? (
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -3711,18 +3726,18 @@ export default function AdminAccountsPage() {
                       value={formDescription}
                       onChange={(e) => setFormDescription(e.target.value)}
                       placeholder="Nhập ghi chú hoặc mô tả nổi bật..."
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-orange-500 leading-relaxed text-xs"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 leading-relaxed text-xs"
                     />
                   </div>
                 </div>
 
                 {/* Footer Drawer */}
-                <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2">
+                <div className="p-4 bg-white border-t border-slate-200 flex items-center justify-end gap-2">
                   <button
                     type="button"
                     disabled={isSubmitting}
                     onClick={() => setDrawerOpen(false)}
-                    className="px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors disabled:opacity-50 cursor-pointer"
+                    className="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors disabled:opacity-50 cursor-pointer"
                   >
                     Hủy Bỏ
                   </button>
@@ -3730,10 +3745,10 @@ export default function AdminAccountsPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-6 py-2.5 rounded-xl bg-orange-700 hover:bg-orange-800 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-orange-700/20 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                    className="px-5 py-2 rounded-xl bg-[#111111] hover:bg-[#222222] text-white text-xs font-bold uppercase tracking-wider transition-all shadow-sm disabled:opacity-50 flex items-center gap-2 cursor-pointer"
                   >
                     {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                    <span>{editingAccount ? "Lưu Cập Nhật" : "Thêm Vào Database"}</span>
+                    <span>{editingAccount ? "Lưu Cập Nhật" : "Thêm Tài Khoản"}</span>
                   </button>
                 </div>
               </form>
@@ -3750,11 +3765,11 @@ export default function AdminAccountsPage() {
           <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-2xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
                   <Key className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-base text-slate-900">
+                  <h3 className="font-bold text-base text-slate-900">
                     Cài Đặt AI API Key
                   </h3>
                   <span className="text-xs text-slate-500 font-medium">
@@ -3772,18 +3787,18 @@ export default function AdminAccountsPage() {
               </button>
             </div>
 
-            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 space-y-2">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-800 space-y-2">
               <p className="font-bold flex items-center gap-1">
                 <span>💡 Cách lấy API Key miễn phí (Chọn 1 trong 2):</span>
               </p>
-              <div className="space-y-1.5 text-[11px] text-amber-800">
-                <div className="p-2 bg-white rounded-lg border border-amber-200">
-                  <span className="font-bold text-amber-950 block">Cách 1: Google Gemini (Khuyên dùng)</span>
-                  <span>Truy cập <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="underline font-bold text-orange-700">Google AI Studio</a> ➔ Bấm <strong>&quot;Create API key&quot;</strong> ➔ Dán mã <code className="font-mono bg-amber-100 px-1 rounded">AIzaSy...</code></span>
+              <div className="space-y-1.5 text-[11px] text-slate-600">
+                <div className="p-2 bg-white rounded-lg border border-slate-200">
+                  <span className="font-bold text-slate-900 block">Cách 1: Google Gemini (Khuyên dùng)</span>
+                  <span>Truy cập <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="underline font-bold text-slate-900">Google AI Studio</a> ➔ Bấm <strong>&quot;Create API key&quot;</strong> ➔ Dán mã <code className="font-mono bg-slate-100 px-1 rounded">AIzaSy...</code></span>
                 </div>
-                <div className="p-2 bg-white rounded-lg border border-amber-200">
-                  <span className="font-bold text-amber-950 block">Cách 2: OpenRouter (Không giới hạn vùng, 100% Free)</span>
-                  <span>Truy cập <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer" className="underline font-bold text-orange-700">OpenRouter Keys</a> ➔ Bấm <strong>&quot;Create Key&quot;</strong> ➔ Dán mã <code className="font-mono bg-amber-100 px-1 rounded">sk-or-v1-...</code></span>
+                <div className="p-2 bg-white rounded-lg border border-slate-200">
+                  <span className="font-bold text-slate-900 block">Cách 2: OpenRouter (Không giới hạn vùng, 100% Free)</span>
+                  <span>Truy cập <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer" className="underline font-bold text-slate-900">OpenRouter Keys</a> ➔ Bấm <strong>&quot;Create Key&quot;</strong> ➔ Dán mã <code className="font-mono bg-slate-100 px-1 rounded">sk-or-v1-...</code></span>
                 </div>
               </div>
             </div>
@@ -3797,7 +3812,7 @@ export default function AdminAccountsPage() {
                 value={tempApiKeyInput}
                 onChange={(e) => setTempApiKeyInput(e.target.value)}
                 placeholder="Dán AIzaSy... hoặc sk-or-... vào đây"
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-orange-500"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
               />
               <span className="text-[10px] text-slate-400 block">
                 API Key được lưu trực tiếp và an toàn trên trình duyệt của bạn.
@@ -3815,7 +3830,7 @@ export default function AdminAccountsPage() {
               <button
                 type="button"
                 onClick={handleSaveApiKey}
-                className="flex-1 py-2.5 rounded-xl bg-orange-700 hover:bg-orange-800 text-white text-xs font-bold uppercase tracking-wider cursor-pointer shadow-md shadow-orange-700/20"
+                className="flex-1 py-2.5 rounded-xl bg-[#111111] hover:bg-[#222222] text-white text-xs font-bold uppercase tracking-wider cursor-pointer shadow-sm"
               >
                 Lưu API Key
               </button>

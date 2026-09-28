@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Receipt,
   Search,
@@ -58,7 +59,10 @@ import {
 } from "@/utils/orders-service";
 import toast from "react-hot-toast";
 
-export default function AdminOrdersPage() {
+function AdminOrdersContent() {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+
   const [orders, setOrders] = useState<OrderItem[]>([]);
   const [stats, setStats] = useState<OrdersStats>({
     totalRevenue: 0,
@@ -77,8 +81,16 @@ export default function AdminOrdersPage() {
   // Filters & Search
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<"ALL" | OrderType>("ALL");
-  const [statusFilter, setStatusFilter] = useState<"ALL" | OrderStatus | "EXPIRING">("ALL");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | OrderStatus | "EXPIRING">(
+    tabParam === "rentals" ? "RENTING" : "ALL"
+  );
   const [sortBy, setSortBy] = useState<"NEWEST" | "OLDEST" | "AMOUNT_DESC" | "EXPIRY">("NEWEST");
+
+  useEffect(() => {
+    if (tabParam === "rentals") {
+      setStatusFilter("RENTING");
+    }
+  }, [tabParam]);
 
   // Selected Order for Detail Modal
   const [selectedOrder, setSelectedOrder] = useState<OrderItem | null>(null);
@@ -443,89 +455,89 @@ export default function AdminOrdersPage() {
       {/* 1. TOP STATS CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Doanh thu */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block font-gaming">
+            <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider block">
               Tổng Doanh Thu
             </span>
-            <strong className="text-2xl font-black text-slate-900 font-mono mt-1 block">
+            <strong className="text-2xl font-bold text-slate-900 font-mono mt-1 block">
               {stats.totalRevenue.toLocaleString("vi-VN")}đ
             </strong>
-            <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 mt-1">
-              <TrendingUp className="w-3.5 h-3.5" /> 100% Lợi Nhuận Cho Thuê
+            <span className="text-[11px] text-emerald-600 font-medium flex items-center gap-1 mt-1">
+              <TrendingUp className="w-3.5 h-3.5" /> Lợi nhuận cho thuê
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold shadow-xs">
-            <DollarSign className="w-6 h-6" />
+          <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold">
+            <DollarSign className="w-5 h-5" />
           </div>
         </div>
 
         {/* Đơn đang thuê active */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block font-gaming">
+            <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider block">
               Đang Cho Thuê (Active)
             </span>
-            <strong className="text-2xl font-black text-orange-600 font-mono mt-1 block">
+            <strong className="text-2xl font-bold text-slate-900 font-mono mt-1 block">
               {stats.rentingOrders} Đơn
             </strong>
-            <span className="text-[11px] text-orange-600 font-semibold flex items-center gap-1 mt-1">
+            <span className="text-[11px] text-emerald-600 font-medium flex items-center gap-1 mt-1">
               <Clock className="w-3.5 h-3.5 animate-pulse" /> Đang phục vụ khách
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold shadow-xs">
-            <Clock className="w-6 h-6" />
+          <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+            <Clock className="w-5 h-5" />
           </div>
         </div>
 
         {/* Đơn đã hoàn tất */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block font-gaming">
+            <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider block">
               Đã Hoàn Tất
             </span>
-            <strong className="text-2xl font-black text-slate-900 font-mono mt-1 block">
+            <strong className="text-2xl font-bold text-slate-900 font-mono mt-1 block">
               {stats.completedOrders} Đơn
             </strong>
-            <span className="text-[11px] text-emerald-600 font-semibold mt-1 block">
-              ✓ Đã thu hồi & bàn giao
+            <span className="text-[11px] text-slate-500 font-medium mt-1 block">
+              Đã thu hồi & nghiệm thu
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold shadow-xs">
-            <CheckCircle2 className="w-6 h-6" />
+          <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold">
+            <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
 
         {/* Tổng số giao dịch */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block font-gaming">
+            <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider block">
               Tổng Giao Dịch
             </span>
-            <strong className="text-2xl font-black text-slate-900 font-mono mt-1 block">
+            <strong className="text-2xl font-bold text-slate-900 font-mono mt-1 block">
               {stats.totalOrders} Đơn
             </strong>
             <span className="text-[11px] text-slate-400 font-medium mt-1 block">
-              Acc VIP + Clone + Cày Rank
+              Acc VIP + Clone TFT
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center font-bold shadow-xs">
-            <Receipt className="w-6 h-6" />
+          <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold">
+            <Receipt className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* 2. THANH CÔNG CỤ: TÌM KIẾM, BỘ LỌC TABS & NÚT TẠO ĐƠN */}
-      <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+      <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
         {/* Header row */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-2 border-b border-slate-100">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-3 border-b border-slate-100">
           <div>
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 flex items-center gap-2 font-gaming uppercase">
-              <Receipt className="w-5 h-5 text-orange-600" />
-              <span>Quản Lý Đơn Hàng & Tài Khoản Cho Thuê</span>
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Receipt className="w-5 h-5 text-slate-800" />
+              <span>{tabParam === "rentals" ? "Quản Lý Tài Khoản Đang Cho Thuê" : "Quản Lý Đơn Hàng & Giao Dịch Cho Thuê"}</span>
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Danh sách tài khoản đã cho thuê: Người nhận mặc định là <strong>Khách hàng ẩn danh</strong>, Người giao mặc định là <strong>Admin</strong>, đầy đủ Ngày cho thuê và Ngày kết thúc.
+              Tài khoản bàn giao trực tiếp qua Zalo • Bắt đầu, hạn trả, gia hạn và thu hồi tài khoản.
             </p>
           </div>
 
@@ -533,10 +545,10 @@ export default function AdminOrdersPage() {
             <button
               type="button"
               onClick={() => loadOrdersData(true)}
-              className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+              className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
               title="Làm mới danh sách"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-orange-600" : ""}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-slate-900" : ""}`} />
               <span className="hidden sm:inline">Làm Mới</span>
             </button>
 
@@ -548,7 +560,7 @@ export default function AdminOrdersPage() {
                 setNewDeliveredBy("Admin");
                 setCreateModalOpen(true);
               }}
-              className="flex-1 sm:flex-initial px-4 py-2.5 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-orange-600/25 transition-all hover:scale-105 cursor-pointer font-gaming"
+              className="flex-1 sm:flex-initial px-4 py-2 bg-[#111111] hover:bg-[#222222] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Tạo Đơn Cho Thuê Nhanh</span>
@@ -563,9 +575,9 @@ export default function AdminOrdersPage() {
             <button
               type="button"
               onClick={() => setTypeFilter("ALL")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 typeFilter === "ALL"
-                  ? "bg-slate-900 text-white shadow-xs"
+                  ? "bg-[#111111] text-white shadow-xs"
                   : "bg-slate-100 hover:bg-slate-200 text-slate-700"
               }`}
             >
@@ -575,40 +587,27 @@ export default function AdminOrdersPage() {
             <button
               type="button"
               onClick={() => setTypeFilter("VIP")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1 ${
                 typeFilter === "VIP"
-                  ? "bg-orange-600 text-white shadow-xs"
-                  : "bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200/60"
+                  ? "bg-[#111111] text-white shadow-xs"
+                  : "bg-slate-100 hover:bg-slate-200 text-slate-700"
               }`}
             >
-              <Sparkles className="w-3 h-3" />
-              <span>Thuê Acc VIP ({orders.filter((o) => o.type === "VIP").length})</span>
+              <Sparkles className="w-3 h-3 text-slate-400" />
+              <span>Thuê VIP ({orders.filter((o) => o.type === "VIP").length})</span>
             </button>
 
             <button
               type="button"
               onClick={() => setTypeFilter("CLONE")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1 ${
                 typeFilter === "CLONE"
-                  ? "bg-amber-600 text-white shadow-xs"
-                  : "bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200/60"
+                  ? "bg-[#111111] text-white shadow-xs"
+                  : "bg-slate-100 hover:bg-slate-200 text-slate-700"
               }`}
             >
-              <Flame className="w-3 h-3" />
-              <span>Acc Clone ∞ ({orders.filter((o) => o.type === "CLONE").length})</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setTypeFilter("COACHING")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1 ${
-                typeFilter === "COACHING" || typeFilter === "SERVICE"
-                  ? "bg-purple-600 text-white shadow-xs"
-                  : "bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200/60"
-              }`}
-            >
-              <Award className="w-3 h-3" />
-              <span>Cày Rank & Coaching</span>
+              <Flame className="w-3 h-3 text-slate-400" />
+              <span>Acc Clone ({orders.filter((o) => o.type === "CLONE").length})</span>
             </button>
           </div>
 
@@ -620,8 +619,8 @@ export default function AdminOrdersPage() {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Tìm mã đơn, khách, người giao, mã acc..."
-                className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 focus:border-orange-500 rounded-xl text-xs text-slate-900 focus:outline-none transition-colors"
+                placeholder="Tìm mã đơn, khách, mã acc..."
+                className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 focus:border-slate-900 focus:bg-white rounded-xl text-xs text-slate-900 focus:outline-none transition-colors"
               />
               {searchTerm && (
                 <button
@@ -638,19 +637,19 @@ export default function AdminOrdersPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-orange-500 cursor-pointer"
+              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-slate-900 cursor-pointer"
             >
               <option value="ALL">Tất cả trạng thái</option>
-              <option value="RENTING">🟢 Đang Thuê ({stats.rentingOrders})</option>
-              <option value="EXPIRING">⏰ Sắp Hết Hạn (&lt;1h)</option>
-              <option value="COMPLETED">✅ Đã Hoàn Thành ({stats.completedOrders})</option>
+              <option value="RENTING">🟢 Đang thuê ({stats.rentingOrders})</option>
+              <option value="EXPIRING">⏰ Sắp hết hạn (&lt;24h)</option>
+              <option value="COMPLETED">✓ Đã hoàn tất ({stats.completedOrders})</option>
             </select>
 
             {/* Sắp xếp */}
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-orange-500 cursor-pointer hidden sm:block"
+              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-slate-900 cursor-pointer hidden sm:block"
             >
               <option value="NEWEST">Mới nhất trước</option>
               <option value="EXPIRY">Hạn thuê gần nhất</option>
@@ -662,19 +661,19 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* 3. BẢNG ĐƠN HÀNG (DESKTOP & MOBILE RESPONSIVE) */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
         {loading ? (
           <div className="py-16 text-center space-y-3">
-            <Loader2 className="w-8 h-8 text-orange-600 animate-spin mx-auto" />
+            <Loader2 className="w-7 h-7 text-slate-900 animate-spin mx-auto" />
             <p className="text-xs text-slate-500 font-mono">Đang tải dữ liệu đơn hàng...</p>
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="py-16 px-4 text-center text-slate-400 space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center mx-auto shadow-xs">
-              <Receipt className="w-7 h-7" />
+            <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center mx-auto">
+              <Receipt className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-base font-bold text-slate-800">
+              <h3 className="text-sm font-semibold text-slate-800">
                 {searchTerm || typeFilter !== "ALL" || statusFilter !== "ALL"
                   ? "Không tìm thấy đơn hàng nào phù hợp bộ lọc"
                   : "Chưa có đơn hàng nào trong hệ thống"}
@@ -682,7 +681,7 @@ export default function AdminOrdersPage() {
               <p className="text-xs text-slate-500 max-w-md mx-auto">
                 {searchTerm || typeFilter !== "ALL" || statusFilter !== "ALL"
                   ? "Bạn có thể thử tìm kiếm với từ khóa khác hoặc đặt lại bộ lọc để xem toàn bộ danh sách."
-                  : "Hệ thống quản lý toàn bộ các đơn tài khoản cho thuê với đầy đủ ngày bắt đầu, ngày kết thúc, người nhận ẩn danh và người giao Admin."}
+                  : "Quản lý toàn bộ danh sách tài khoản cho thuê, ngày giao, hạn trả và gia hạn."}
               </p>
             </div>
             <button
@@ -693,7 +692,7 @@ export default function AdminOrdersPage() {
                 setNewDeliveredBy("Admin");
                 setCreateModalOpen(true);
               }}
-              className="px-5 py-2.5 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl text-xs font-black uppercase tracking-wider inline-flex items-center gap-1.5 shadow-md shadow-orange-600/25 transition-all hover:scale-105 cursor-pointer font-gaming"
+              className="px-4 py-2 bg-[#111111] hover:bg-[#222222] text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Tạo Đơn Hàng Mới</span>
@@ -702,16 +701,16 @@ export default function AdminOrdersPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-slate-700">
-              <thead className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider font-gaming">
+              <thead className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                 <tr>
-                  <th className="py-3.5 px-4">Mã Đơn & Người Giao</th>
-                  <th className="py-3.5 px-4">Người Nhận</th>
-                  <th className="py-3.5 px-4">Tài Khoản Cho Thuê</th>
-                  <th className="py-3.5 px-4">Ngày Cho Thuê</th>
-                  <th className="py-3.5 px-4">Ngày Kết Thúc (Hạn Trả)</th>
-                  <th className="py-3.5 px-4">Gói & Doanh Thu</th>
-                  <th className="py-3.5 px-4">Trạng Thái</th>
-                  <th className="py-3.5 px-4 text-right">Thao Tác</th>
+                  <th className="py-3 px-4">Mã Đơn & Người Giao</th>
+                  <th className="py-3 px-4">Người Nhận</th>
+                  <th className="py-3 px-4">Tài Khoản Cho Thuê</th>
+                  <th className="py-3 px-4">Ngày Cho Thuê</th>
+                  <th className="py-3 px-4">Hạn Trả</th>
+                  <th className="py-3 px-4">Gói & Doanh Thu</th>
+                  <th className="py-3 px-4">Trạng Thái</th>
+                  <th className="py-3 px-4 text-right">Thao Tác</th>
                 </tr>
               </thead>
 
@@ -732,24 +731,24 @@ export default function AdminOrdersPage() {
                       className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
                     >
                       {/* 1. Mã Đơn & Người Giao Badge */}
-                      <td className="py-4 px-4 align-top">
+                      <td className="py-3.5 px-4 align-top">
                         <div className="space-y-1">
-                          <span className="px-2.5 py-1 rounded-lg bg-slate-900 text-white font-mono font-bold text-xs shadow-2xs block w-fit">
+                          <span className="px-2.5 py-0.5 rounded-md bg-slate-900 text-white font-mono font-bold text-xs block w-fit">
                             {ord.id}
                           </span>
                           <div className="flex items-center gap-1 flex-wrap">
                             <span
-                              className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded block w-fit font-gaming ${
+                              className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded block w-fit ${
                                 ord.type === "VIP"
-                                  ? "bg-orange-100 text-orange-700"
+                                  ? "bg-slate-900 text-white"
                                   : ord.type === "CLONE"
-                                  ? "bg-amber-100 text-amber-800"
-                                  : "bg-purple-100 text-purple-700"
+                                  ? "bg-slate-100 text-slate-700 border border-slate-200"
+                                  : "bg-slate-100 text-slate-700 border border-slate-200"
                               }`}
                             >
                               {ord.type === "VIP" ? "VIP" : ord.type === "CLONE" ? "CLONE" : "DỊCH VỤ"}
                             </span>
-                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1 py-0.5 rounded">
+                            <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-1 py-0.5 rounded">
                               <ShieldCheck className="w-2.5 h-2.5 text-emerald-600" />
                               <span>Giao: {ord.deliveredBy || "Admin"}</span>
                             </span>
@@ -758,11 +757,11 @@ export default function AdminOrdersPage() {
                       </td>
 
                       {/* 2. Người Nhận (Khách hàng ẩn danh) */}
-                      <td className="py-4 px-4 align-top">
+                      <td className="py-3.5 px-4 align-top">
                         <div className="space-y-1">
                           <div className="flex items-center gap-1">
                             <User className="w-3.5 h-3.5 text-slate-400" />
-                            <strong className="text-slate-900 font-bold block text-xs group-hover:text-orange-600 transition-colors bg-slate-100 px-1.5 py-0.5 rounded">
+                            <strong className="text-slate-900 font-semibold block text-xs bg-slate-100 px-1.5 py-0.5 rounded">
                               {ord.customer || "Khách hàng ẩn danh"}
                             </strong>
                           </div>
@@ -776,7 +775,7 @@ export default function AdminOrdersPage() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={(e) => e.stopPropagation()}
-                                className="text-blue-600 hover:text-blue-800 font-bold ml-1 text-[10px] underline flex items-center gap-0.5"
+                                className="text-blue-600 hover:text-blue-800 font-medium ml-1 text-[10px] underline flex items-center gap-0.5"
                                 title="Chat Zalo ngay"
                               >
                                 <span>Zalo</span>
@@ -788,13 +787,13 @@ export default function AdminOrdersPage() {
                       </td>
 
                       {/* 3. Tài Khoản Cho Thuê */}
-                      <td className="py-4 px-4 align-top">
+                      <td className="py-3.5 px-4 align-top">
                         <div className="space-y-0.5 max-w-xs">
                           <div className="flex items-center gap-1.5">
-                            <span className="px-2 py-0.5 rounded bg-orange-100 text-orange-700 font-mono font-bold text-[11px]">
+                            <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 font-mono font-semibold text-[11px] border border-slate-200">
                               {ord.accountCode}
                             </span>
-                            <span className="text-slate-800 font-bold truncate">{ord.accountTitle}</span>
+                            <span className="text-slate-800 font-medium truncate">{ord.accountTitle}</span>
                           </div>
                           <div className="text-[11px] text-slate-500 font-mono truncate">
                             ID: <code className="text-slate-700 font-semibold">{ord.accountLogin}</code> • Pass:{" "}
@@ -804,7 +803,7 @@ export default function AdminOrdersPage() {
                       </td>
 
                       {/* 4. Ngày Cho Thuê */}
-                      <td className="py-4 px-4 align-top">
+                      <td className="py-3.5 px-4 align-top">
                         <div className="flex items-center gap-1 text-slate-700 font-mono font-medium text-xs">
                           <CalendarDays className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
                           <span>{formatOrderDateTime(ord.startedAt || ord.createdAt)}</span>
@@ -812,19 +811,19 @@ export default function AdminOrdersPage() {
                       </td>
 
                       {/* 5. Ngày Kết Thúc (Hạn Trả) */}
-                      <td className="py-4 px-4 align-top">
+                      <td className="py-3.5 px-4 align-top">
                         {ord.expiresAt ? (
                           <div className="space-y-1">
-                            <span className="text-slate-900 font-mono font-bold block text-xs">
+                            <span className="text-slate-900 font-mono font-semibold block text-xs">
                               {formatOrderDateTime(ord.expiresAt)}
                             </span>
                             {isRenting && (
                               <span
-                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded block w-fit font-mono ${
+                                className={`text-[10px] font-semibold px-1.5 py-0.5 rounded block w-fit font-mono ${
                                   timeInfo.isExpired
-                                    ? "bg-rose-100 text-rose-700 animate-pulse border border-rose-200"
+                                    ? "bg-rose-50 text-rose-700 border border-rose-200"
                                     : timeInfo.isExpiringSoon
-                                    ? "bg-amber-100 text-amber-800 animate-pulse border border-amber-200"
+                                    ? "bg-amber-50 text-amber-800 border border-amber-200"
                                     : "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                 }`}
                               >
@@ -833,51 +832,51 @@ export default function AdminOrdersPage() {
                             )}
                           </div>
                         ) : (
-                          <span className="text-purple-700 bg-purple-50 px-2 py-0.5 rounded font-bold text-[11px]">
-                            Vô Cực ∞
+                          <span className="text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded font-medium text-[11px]">
+                            Lâu dài ∞
                           </span>
                         )}
                       </td>
 
                       {/* 6. Gói & Doanh Thu */}
-                      <td className="py-4 px-4 align-top">
+                      <td className="py-3.5 px-4 align-top">
                         <div className="space-y-0.5">
-                          <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-800 font-semibold border border-slate-200 text-[11px] inline-block">
+                          <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium border border-slate-200 text-[11px] inline-block">
                             {ord.package}
                           </span>
-                          <span className="font-mono font-bold text-red-600 text-xs block">
+                          <span className="font-mono font-bold text-slate-900 text-xs block">
                             {ord.amount.toLocaleString("vi-VN")}đ
                           </span>
                         </div>
                       </td>
 
                       {/* 7. Trạng Thái */}
-                      <td className="py-4 px-4 align-top">
+                      <td className="py-3.5 px-4 align-top">
                         {ord.status === "RENTING" ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-700 text-xs font-bold">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                             <span>Đang Thuê</span>
                           </span>
                         ) : ord.status === "COMPLETED" ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
                             <CheckCircle2 className="w-3.5 h-3.5 text-slate-500" />
                             <span>Đã Hoàn Tất</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 text-xs font-semibold">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 text-xs font-medium">
                             <span>Đã Hủy</span>
                           </span>
                         )}
                       </td>
 
                       {/* 8. Thao Tác Nhanh */}
-                      <td className="py-4 px-4 text-right align-top">
+                      <td className="py-3.5 px-4 text-right align-top">
                         <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                           {/* Nút Copy Delivery Message */}
                           <button
                             type="button"
                             onClick={() => handleCopyDelivery(ord)}
-                            className="p-1.5 rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-600 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
                             title="Sao chép tin nhắn bàn giao Riot ID & Pass"
                           >
                             <Copy className="w-3.5 h-3.5" />
@@ -890,7 +889,7 @@ export default function AdminOrdersPage() {
                               setSelectedOrder(ord);
                               setNoteText(ord.notes || "");
                             }}
-                            className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-black text-white font-bold text-xs transition-colors cursor-pointer flex items-center gap-1"
+                            className="px-2.5 py-1 rounded-lg bg-[#111111] hover:bg-[#222222] text-white font-semibold text-xs transition-colors cursor-pointer flex items-center gap-1"
                           >
                             <Eye className="w-3 h-3" />
                             <span>Chi Tiết</span>
@@ -909,23 +908,21 @@ export default function AdminOrdersPage() {
       {/* 4. MODAL CHI TIẾT ĐƠN HÀNG & BÀN GIAO THÔNG TIN */}
       {selectedOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto border border-slate-200 shadow-2xl p-5 sm:p-7 space-y-5">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto border border-slate-200 shadow-2xl p-5 sm:p-6 space-y-5">
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
                   <Receipt className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-black text-lg text-slate-900 font-gaming">{selectedOrder.id}</h3>
+                    <h3 className="font-bold text-base text-slate-900 font-mono">{selectedOrder.id}</h3>
                     <span
-                      className={`text-[10px] font-black uppercase px-2 py-0.5 rounded font-gaming ${
+                      className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded ${
                         selectedOrder.type === "VIP"
-                          ? "bg-orange-100 text-orange-700"
-                          : selectedOrder.type === "CLONE"
-                          ? "bg-amber-100 text-amber-800"
-                          : "bg-purple-100 text-purple-700"
+                          ? "bg-slate-900 text-white"
+                          : "bg-slate-100 text-slate-700 border border-slate-200"
                       }`}
                     >
                       {selectedOrder.type}
@@ -950,33 +947,33 @@ export default function AdminOrdersPage() {
             <div className="space-y-4 text-xs">
               {/* Deliverer & Recipient Banner */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <div className="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-200/80 rounded-2xl text-[11px] text-emerald-900 font-semibold">
+                <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-[11px] text-slate-800 font-medium">
                   <div className="flex items-center gap-1.5">
                     <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    <span>Người Giao: <strong>{selectedOrder.deliveredBy || "Admin (Tuấn Thái Bình)"}</strong></span>
+                    <span>Người Giao: <strong>{selectedOrder.deliveredBy || "Admin"}</strong></span>
                   </div>
-                  <span className="text-[10px] font-mono text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-200 font-bold">
-                    🛡️ Admin
+                  <span className="text-[10px] font-mono text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200 font-bold">
+                    Admin
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200/80 rounded-2xl text-[11px] text-blue-900 font-semibold">
+                <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-[11px] text-slate-800 font-medium">
                   <div className="flex items-center gap-1.5">
-                    <User className="w-4 h-4 text-blue-600" />
+                    <User className="w-4 h-4 text-slate-600" />
                     <span>Người Nhận: <strong>{selectedOrder.customer || "Khách hàng ẩn danh"}</strong></span>
                   </div>
-                  <span className="text-[10px] font-mono text-blue-700 bg-white px-2 py-0.5 rounded border border-blue-200 font-bold">
-                    👤 Khách Hàng
+                  <span className="text-[10px] font-mono text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200 font-bold">
+                    Khách Hàng
                   </span>
                 </div>
               </div>
 
               {/* Box 1: Thông tin khách hàng & Tài khoản bàn giao */}
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <span className="text-slate-400 font-medium block text-[11px]">Thông tin liên hệ Zalo:</span>
-                    <strong className="text-slate-900 text-sm font-bold block">{selectedOrder.customer || "Khách hàng ẩn danh"}</strong>
+                    <span className="text-slate-400 font-medium block text-[11px]">Thông tin liên hệ:</span>
+                    <strong className="text-slate-900 text-sm font-semibold block">{selectedOrder.customer || "Khách hàng ẩn danh"}</strong>
                     {selectedOrder.phoneZalo && (
                       <div className="flex items-center gap-2 mt-1">
                         <span className="font-mono text-slate-600">{selectedOrder.phoneZalo}</span>
@@ -984,7 +981,7 @@ export default function AdminOrdersPage() {
                           href={`https://zalo.me/${selectedOrder.phoneZalo.replace(/[^0-9]/g, "")}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-2 py-0.5 bg-blue-600 text-white rounded text-[10px] font-bold flex items-center gap-1 hover:bg-blue-700"
+                          className="px-2 py-0.5 bg-blue-600 text-white rounded text-[10px] font-medium flex items-center gap-1 hover:bg-blue-700"
                         >
                           <MessageCircle className="w-3 h-3" />
                           <span>Mở Zalo</span>
@@ -995,12 +992,12 @@ export default function AdminOrdersPage() {
 
                   <div>
                     <span className="text-slate-400 font-medium block text-[11px]">Tài khoản & Gói thuê:</span>
-                    <strong className="text-orange-700 font-bold block">
+                    <strong className="text-slate-900 font-semibold block">
                       [{selectedOrder.accountCode}] {selectedOrder.accountTitle}
                     </strong>
                     <span className="text-slate-600 block mt-0.5">
                       Gói: <strong>{selectedOrder.package}</strong> • Giá:{" "}
-                      <strong className="text-red-600 font-mono">
+                      <strong className="text-slate-900 font-mono font-bold">
                         {selectedOrder.amount.toLocaleString("vi-VN")}đ
                       </strong>
                     </span>
@@ -1009,7 +1006,7 @@ export default function AdminOrdersPage() {
 
                 {/* Riot ID & Pass Credentials Box */}
                 <div className="pt-2 border-t border-slate-200/70 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <div className="p-2.5 bg-white rounded-xl border border-slate-200 flex items-center justify-between">
+                  <div className="p-2.5 bg-white rounded-lg border border-slate-200 flex items-center justify-between">
                     <div>
                       <span className="text-[10px] text-slate-400 font-mono block">Riot ID / Login:</span>
                       <strong className="text-slate-900 font-mono text-xs">{selectedOrder.accountLogin}</strong>
@@ -1027,10 +1024,10 @@ export default function AdminOrdersPage() {
                     </button>
                   </div>
 
-                  <div className="p-2.5 bg-white rounded-xl border border-slate-200 flex items-center justify-between">
+                  <div className="p-2.5 bg-white rounded-lg border border-slate-200 flex items-center justify-between">
                     <div>
                       <span className="text-[10px] text-slate-400 font-mono block">Mật Khẩu Hiện Tại:</span>
-                      <strong className="text-red-600 font-mono text-xs">{selectedOrder.accountPass}</strong>
+                      <strong className="text-slate-900 font-mono text-xs">{selectedOrder.accountPass}</strong>
                     </div>
                     <div className="flex items-center gap-1">
                       <button
@@ -1047,7 +1044,7 @@ export default function AdminOrdersPage() {
                       <button
                         type="button"
                         onClick={() => handleResetPassword(selectedOrder)}
-                        className="p-1.5 text-orange-600 hover:text-orange-800 rounded bg-orange-50 cursor-pointer"
+                        className="p-1.5 text-slate-600 hover:text-slate-900 rounded bg-slate-100 cursor-pointer"
                         title="Tạo Mật khẩu Mới Ngẫu Nhiên"
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
@@ -1058,12 +1055,12 @@ export default function AdminOrdersPage() {
               </div>
 
               {/* Box 2: Ngày Cho Thuê & Ngày Kết Thúc */}
-              <div className="p-4 bg-orange-50/60 rounded-2xl border border-orange-200/80 space-y-3">
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
-                      <CalendarDays className="w-3.5 h-3.5 text-slate-500" />
-                      <span>Ngày Cho Thuê (Bắt Đầu):</span>
+                    <span className="text-[11px] font-medium text-slate-500 flex items-center gap-1">
+                      <CalendarDays className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Ngày Bắt Đầu Thuê:</span>
                     </span>
                     <strong className="text-slate-900 font-mono text-sm block mt-0.5">
                       {formatOrderDateTime(selectedOrder.startedAt || selectedOrder.createdAt)}
@@ -1071,23 +1068,23 @@ export default function AdminOrdersPage() {
                   </div>
 
                   <div>
-                    <span className="text-[11px] font-bold text-orange-800 flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5 text-orange-600" />
-                      <span>Ngày Kết Thúc (Hạn Trả):</span>
+                    <span className="text-[11px] font-medium text-slate-500 flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Hạn Trả (Ngày Kết Thúc):</span>
                     </span>
                     <strong className="text-slate-900 font-mono text-sm block mt-0.5">
-                      {selectedOrder.expiresAt ? formatOrderDateTime(selectedOrder.expiresAt) : "Full Sở Hữu Vô Cực ∞"}
+                      {selectedOrder.expiresAt ? formatOrderDateTime(selectedOrder.expiresAt) : "Sở Hữu Lâu Dài ∞"}
                     </strong>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-orange-200/60 flex-wrap gap-2">
+                <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 flex-wrap gap-2">
                   <div className="flex items-center gap-2">
                     {selectedOrder.status === "RENTING" && (
                       <button
                         type="button"
                         onClick={() => setShowExtendBox(!showExtendBox)}
-                        className="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors"
+                        className="px-3 py-1.5 bg-[#111111] hover:bg-[#222222] text-white rounded-lg font-medium text-xs flex items-center gap-1 cursor-pointer transition-colors"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Gia Hạn Thuê</span>
@@ -1097,9 +1094,9 @@ export default function AdminOrdersPage() {
                     <button
                       type="button"
                       onClick={() => handleToggleStatus(selectedOrder)}
-                      className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors ${
+                      className={`px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1 cursor-pointer transition-colors ${
                         selectedOrder.status === "RENTING"
-                          ? "bg-slate-900 hover:bg-black text-white"
+                          ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200"
                           : "bg-emerald-600 hover:bg-emerald-700 text-white"
                       }`}
                     >
@@ -1111,40 +1108,40 @@ export default function AdminOrdersPage() {
 
                 {/* Hộp gia hạn mở rộng */}
                 {showExtendBox && (
-                  <div className="p-3 bg-white rounded-xl border border-orange-300 space-y-2.5 animate-fadeIn">
-                    <span className="font-bold text-slate-800 block text-xs">Chọn gói gia hạn nhanh cho khách:</span>
+                  <div className="p-3 bg-white rounded-lg border border-slate-300 space-y-2.5 animate-fadeIn">
+                    <span className="font-semibold text-slate-800 block text-xs">Chọn gói gia hạn nhanh cho khách:</span>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       <button
                         type="button"
                         onClick={() => handleQuickExtend(selectedOrder, 2, 30000)}
-                        className="p-2 bg-slate-50 hover:bg-orange-100 border border-slate-200 rounded-lg text-center cursor-pointer"
+                        className="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-center cursor-pointer transition-colors"
                       >
                         <strong className="block text-slate-900 text-xs">+2 Giờ</strong>
-                        <span className="text-[10px] text-orange-600 font-mono">+30.000đ</span>
+                        <span className="text-[10px] text-slate-600 font-mono">+30.000đ</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => handleQuickExtend(selectedOrder, 24, 60000)}
-                        className="p-2 bg-slate-50 hover:bg-orange-100 border border-slate-200 rounded-lg text-center cursor-pointer"
+                        className="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-center cursor-pointer transition-colors"
                       >
                         <strong className="block text-slate-900 text-xs">+1 Ngày (24h)</strong>
-                        <span className="text-[10px] text-orange-600 font-mono">+60.000đ</span>
+                        <span className="text-[10px] text-slate-600 font-mono">+60.000đ</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => handleQuickExtend(selectedOrder, 168, 240000)}
-                        className="p-2 bg-slate-50 hover:bg-orange-100 border border-slate-200 rounded-lg text-center cursor-pointer"
+                        className="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-center cursor-pointer transition-colors"
                       >
-                        <strong className="block text-slate-900 text-xs">+7 Ngày (1 Tuần)</strong>
-                        <span className="text-[10px] text-orange-600 font-mono">+240.000đ</span>
+                        <strong className="block text-slate-900 text-xs">+7 Ngày</strong>
+                        <span className="text-[10px] text-slate-600 font-mono">+240.000đ</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => handleQuickExtend(selectedOrder, 720, 799000)}
-                        className="p-2 bg-slate-50 hover:bg-orange-100 border border-slate-200 rounded-lg text-center cursor-pointer"
+                        className="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-center cursor-pointer transition-colors"
                       >
-                        <strong className="block text-slate-900 text-xs">+30 Ngày (1 Tháng)</strong>
-                        <span className="text-[10px] text-orange-600 font-mono">+799.000đ</span>
+                        <strong className="block text-slate-900 text-xs">+30 Ngày</strong>
+                        <span className="text-[10px] text-slate-600 font-mono">+799.000đ</span>
                       </button>
                     </div>
                   </div>
@@ -1152,9 +1149,9 @@ export default function AdminOrdersPage() {
               </div>
 
               {/* Box 3: Ghi chú đơn hàng */}
-              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-700 flex items-center gap-1">
+                  <span className="font-semibold text-slate-700 flex items-center gap-1">
                     <Edit3 className="w-3.5 h-3.5 text-slate-500" />
                     <span>Ghi chú nội bộ:</span>
                   </span>
@@ -1162,7 +1159,7 @@ export default function AdminOrdersPage() {
                     <button
                       type="button"
                       onClick={() => setEditingNotes(true)}
-                      className="text-[11px] font-bold text-orange-600 hover:underline cursor-pointer"
+                      className="text-[11px] font-semibold text-slate-700 hover:text-black hover:underline cursor-pointer"
                     >
                       Sửa ghi chú
                     </button>
@@ -1171,7 +1168,7 @@ export default function AdminOrdersPage() {
                       <button
                         type="button"
                         onClick={handleSaveNotes}
-                        className="px-2 py-0.5 bg-emerald-600 text-white rounded font-bold text-[10px] cursor-pointer"
+                        className="px-2.5 py-0.5 bg-[#111111] text-white rounded font-medium text-[10px] cursor-pointer"
                       >
                         Lưu
                       </button>
@@ -1206,7 +1203,7 @@ export default function AdminOrdersPage() {
               <button
                 type="button"
                 onClick={() => handleDeleteOrder(selectedOrder.id)}
-                className="text-rose-600 hover:text-rose-700 text-xs font-bold flex items-center gap-1 cursor-pointer self-start sm:self-auto"
+                className="text-rose-600 hover:text-rose-700 text-xs font-semibold flex items-center gap-1 cursor-pointer self-start sm:self-auto"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>Xóa Đơn Này</span>
@@ -1216,7 +1213,7 @@ export default function AdminOrdersPage() {
                 <button
                   type="button"
                   onClick={() => handleCopyDelivery(selectedOrder)}
-                  className="flex-1 sm:flex-initial px-5 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-orange-600/25 cursor-pointer font-gaming"
+                  className="flex-1 sm:flex-initial px-4 py-2 bg-[#111111] hover:bg-[#222222] text-white rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer transition-colors"
                 >
                   {copiedDelivery ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   <span>{copiedDelivery ? "Đã Sao Chép!" : "Copy Tin Nhắn Bàn Giao Zalo"}</span>
@@ -1230,16 +1227,16 @@ export default function AdminOrdersPage() {
       {/* 5. MODAL TẠO ĐƠN HÀNG MỚI (CREATE ORDER) */}
       {createModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-xl w-full max-h-[92vh] overflow-y-auto border border-slate-200 shadow-2xl p-5 sm:p-7 space-y-5">
+          <div className="bg-white rounded-2xl max-w-xl w-full max-h-[92vh] overflow-y-auto border border-slate-200 shadow-2xl p-5 sm:p-6 space-y-5">
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
                   <Plus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-black text-lg text-slate-900 font-gaming uppercase">Tạo Đơn Cho Thuê Mới</h3>
-                  <span className="text-xs text-slate-500">Khởi tạo đơn thuê tài khoản & bàn giao tức thì</span>
+                  <h3 className="font-bold text-base text-slate-900">Tạo Đơn Cho Thuê Mới</h3>
+                  <span className="text-xs text-slate-500">Khởi tạo đơn thuê tài khoản & bàn giao thông tin</span>
                 </div>
               </div>
 
@@ -1254,18 +1251,18 @@ export default function AdminOrdersPage() {
 
             {/* Admin & Recipient Indicator */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200/80 rounded-2xl text-xs">
+              <div className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 <div>
-                  <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider block font-gaming">Người Giao</span>
-                  <strong className="text-slate-900">Admin (Tuấn Thái Bình)</strong>
+                  <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">Người Giao</span>
+                  <strong className="text-slate-900">Admin</strong>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200/80 rounded-2xl text-xs">
-                <User className="w-4 h-4 text-blue-600" />
+              <div className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs">
+                <User className="w-4 h-4 text-slate-600" />
                 <div>
-                  <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider block font-gaming">Người Nhận Mặc Định</span>
+                  <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">Người Nhận Mặc Định</span>
                   <strong className="text-slate-900">Khách Hàng Ẩn Danh</strong>
                 </div>
               </div>
@@ -1275,14 +1272,14 @@ export default function AdminOrdersPage() {
             <form onSubmit={handleCreateOrder} className="space-y-4 text-xs">
               {/* 1. Chọn loại đơn */}
               <div className="space-y-1.5">
-                <label className="font-bold text-slate-800 block">1. Loại Đơn Hàng:</label>
-                <div className="grid grid-cols-3 gap-2">
+                <label className="font-semibold text-slate-800 block">1. Loại Đơn Hàng:</label>
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setCreateType("VIP")}
-                    className={`py-2 px-3 rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    className={`py-2 px-3 rounded-xl font-semibold text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                       createType === "VIP"
-                        ? "bg-orange-600 text-white shadow-xs"
+                        ? "bg-[#111111] text-white shadow-xs"
                         : "bg-slate-100 hover:bg-slate-200 text-slate-700"
                     }`}
                   >
@@ -1293,39 +1290,26 @@ export default function AdminOrdersPage() {
                   <button
                     type="button"
                     onClick={() => setCreateType("CLONE")}
-                    className={`py-2 px-3 rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    className={`py-2 px-3 rounded-xl font-semibold text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                       createType === "CLONE"
-                        ? "bg-amber-600 text-white shadow-xs"
+                        ? "bg-[#111111] text-white shadow-xs"
                         : "bg-slate-100 hover:bg-slate-200 text-slate-700"
                     }`}
                   >
                     <Flame className="w-3.5 h-3.5" />
-                    <span>Acc Clone ∞</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setCreateType("COACHING")}
-                    className={`py-2 px-3 rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                      createType === "COACHING"
-                        ? "bg-purple-600 text-white shadow-xs"
-                        : "bg-slate-100 hover:bg-slate-200 text-slate-700"
-                    }`}
-                  >
-                    <Award className="w-3.5 h-3.5" />
-                    <span>Cày Rank / Duo</span>
+                    <span>Acc Clone</span>
                   </button>
                 </div>
               </div>
 
-              {/* 2. Chọn Tài Khoản / Dịch Vụ */}
+              {/* 2. Chọn Tài Khoản */}
               {createType === "VIP" && (
                 <div className="space-y-1.5">
-                  <label className="font-bold text-slate-800 block">2. Chọn Tài Khoản VIP Trong Kho:</label>
+                  <label className="font-semibold text-slate-800 block">2. Chọn Tài Khoản VIP Trong Kho:</label>
                   <select
                     value={newAccountCode}
                     onChange={(e) => setNewAccountCode(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-900 focus:outline-none focus:border-orange-500 cursor-pointer"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-slate-900 cursor-pointer"
                   >
                     {vipAccounts.map((a) => (
                       <option key={a.id || a.code} value={a.code}>
@@ -1338,11 +1322,11 @@ export default function AdminOrdersPage() {
 
               {createType === "CLONE" && (
                 <div className="space-y-1.5">
-                  <label className="font-bold text-slate-800 block">2. Chọn Tài Khoản Clone Trong Kho:</label>
+                  <label className="font-semibold text-slate-800 block">2. Chọn Tài Khoản Clone Trong Kho:</label>
                   <select
                     value={newAccountCode}
                     onChange={(e) => setNewAccountCode(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-900 focus:outline-none focus:border-orange-500 cursor-pointer"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-slate-900 cursor-pointer"
                   >
                     {cloneAccounts.map((a) => (
                       <option key={a.id || a.code} value={a.code}>
@@ -1356,52 +1340,52 @@ export default function AdminOrdersPage() {
               {/* 3. Gói thời gian thuê */}
               {createType === "VIP" && (
                 <div className="space-y-1.5">
-                  <label className="font-bold text-slate-800 block">3. Chọn Gói Thời Gian Thuê:</label>
+                  <label className="font-semibold text-slate-800 block">3. Chọn Gói Thời Gian Thuê:</label>
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                     <button
                       type="button"
                       onClick={() => handleSelectDurationPreset(2, "Gói 2 Giờ (Trải Nghiệm Nhanh)")}
                       className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
-                        newDurationHours === 2 ? "bg-orange-50 border-orange-500 font-bold" : "bg-slate-50 border-slate-200"
+                        newDurationHours === 2 ? "bg-[#111111] text-white border-transparent font-semibold shadow-xs" : "bg-slate-50 border-slate-200 text-slate-700"
                       }`}
                     >
-                      <span className="block text-slate-900 text-xs">2 Giờ</span>
+                      <span className="block text-xs">2 Giờ</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleSelectDurationPreset(24, "Gói 24 Giờ (1 Ngày VIP)")}
                       className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
-                        newDurationHours === 24 ? "bg-orange-50 border-orange-500 font-bold" : "bg-slate-50 border-slate-200"
+                        newDurationHours === 24 ? "bg-[#111111] text-white border-transparent font-semibold shadow-xs" : "bg-slate-50 border-slate-200 text-slate-700"
                       }`}
                     >
-                      <span className="block text-slate-900 text-xs">1 Ngày (24h)</span>
+                      <span className="block text-xs">1 Ngày (24h)</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleSelectDurationPreset(168, "Gói 7 Ngày (Tiết Kiệm VIP)")}
                       className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
-                        newDurationHours === 168 ? "bg-orange-50 border-orange-500 font-bold" : "bg-slate-50 border-slate-200"
+                        newDurationHours === 168 ? "bg-[#111111] text-white border-transparent font-semibold shadow-xs" : "bg-slate-50 border-slate-200 text-slate-700"
                       }`}
                     >
-                      <span className="block text-slate-900 text-xs">7 Ngày</span>
+                      <span className="block text-xs">7 Ngày</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleSelectDurationPreset(720, "Gói 30 Ngày (1 Tháng VIP)")}
                       className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
-                        newDurationHours === 720 ? "bg-orange-50 border-orange-500 font-bold" : "bg-slate-50 border-slate-200"
+                        newDurationHours === 720 ? "bg-[#111111] text-white border-transparent font-semibold shadow-xs" : "bg-slate-50 border-slate-200 text-slate-700"
                       }`}
                     >
-                      <span className="block text-slate-900 text-xs">30 Ngày</span>
+                      <span className="block text-xs">30 Ngày</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleSelectDurationPreset(-1, "Gói Thuê Lâu Dài (Vô Cực ∞)")}
                       className={`p-2 rounded-xl border text-center transition-all cursor-pointer col-span-2 sm:col-span-1 ${
-                        newDurationHours === -1 ? "bg-orange-50 border-orange-500 font-bold" : "bg-slate-50 border-slate-200"
+                        newDurationHours === -1 ? "bg-[#111111] text-white border-transparent font-semibold shadow-xs" : "bg-slate-50 border-slate-200 text-slate-700"
                       }`}
                     >
-                      <span className="block text-slate-900 text-xs">Lâu Dài (∞)</span>
+                      <span className="block text-xs">Lâu Dài (∞)</span>
                     </button>
                   </div>
                 </div>
@@ -1410,24 +1394,24 @@ export default function AdminOrdersPage() {
               {/* 4. Khách hàng (Người nhận) & Người Giao */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-800 block">Tên Người Nhận (Khách Hàng):</label>
+                  <label className="font-semibold text-slate-800 block">Tên Người Nhận (Khách Hàng):</label>
                   <input
                     type="text"
                     value={newCustomer}
                     onChange={(e) => setNewCustomer(e.target.value)}
                     placeholder="Khách hàng ẩn danh"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-900 focus:outline-none focus:border-orange-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-slate-900"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-800 block">Số Điện Thoại / Zalo:</label>
+                  <label className="font-semibold text-slate-800 block">Số Điện Thoại / Zalo:</label>
                   <input
                     type="text"
                     value={newPhone}
                     onChange={(e) => setNewPhone(e.target.value)}
                     placeholder="0352.867.283"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-slate-900"
                   />
                 </div>
               </div>
@@ -1435,21 +1419,21 @@ export default function AdminOrdersPage() {
               {/* 5. Giá tiền & Thanh toán */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-800 block">Số Tiền Thu (VNĐ):</label>
+                  <label className="font-semibold text-slate-800 block">Số Tiền Thu (VNĐ):</label>
                   <input
                     type="number"
                     value={newAmount}
                     onChange={(e) => setNewAmount(Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-red-600 focus:outline-none focus:border-orange-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-800 block">Phương Thức Thanh Toán:</label>
+                  <label className="font-semibold text-slate-800 block">Phương Thức Thanh Toán:</label>
                   <select
                     value={newPaymentMethod}
                     onChange={(e) => setNewPaymentMethod(e.target.value as any)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-900 focus:outline-none focus:border-orange-500 cursor-pointer"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-slate-900 cursor-pointer"
                   >
                     <option value="TRANSFER">Chuyển Khoản Ngân Hàng (STK)</option>
                     <option value="MOMO">Ví MoMo</option>
@@ -1462,22 +1446,22 @@ export default function AdminOrdersPage() {
               {/* 6. Riot ID & Password */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-800 block">Riot ID / Login Bàn Giao:</label>
+                  <label className="font-semibold text-slate-800 block">Riot ID / Login Bàn Giao:</label>
                   <input
                     type="text"
                     value={newLogin}
                     onChange={(e) => setNewLogin(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                   />
                 </div>
 
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="font-bold text-slate-800 block">Mật Khẩu Bàn Giao:</label>
+                    <label className="font-semibold text-slate-800 block">Mật Khẩu Bàn Giao:</label>
                     <button
                       type="button"
                       onClick={() => setNewPass(generateRandomPassword())}
-                      className="text-[10px] text-orange-600 font-bold hover:underline"
+                      className="text-[10px] text-slate-600 hover:text-black font-semibold hover:underline"
                     >
                       Sinh pass mới
                     </button>
@@ -1486,20 +1470,20 @@ export default function AdminOrdersPage() {
                     type="text"
                     value={newPass}
                     onChange={(e) => setNewPass(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-red-600 focus:outline-none focus:border-orange-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                   />
                 </div>
               </div>
 
               {/* 7. Ghi chú */}
               <div className="space-y-1">
-                <label className="font-bold text-slate-800 block">Ghi Chú Đơn Hàng:</label>
+                <label className="font-semibold text-slate-800 block">Ghi Chú Đơn Hàng:</label>
                 <input
                   type="text"
                   value={newNotes}
                   onChange={(e) => setNewNotes(e.target.value)}
                   placeholder="Khách quen, thanh toán đủ, hẹn giờ..."
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-orange-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-slate-900"
                 />
               </div>
 
@@ -1508,7 +1492,7 @@ export default function AdminOrdersPage() {
                 <button
                   type="button"
                   onClick={() => setCreateModalOpen(false)}
-                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold cursor-pointer transition-colors"
                 >
                   Hủy Bỏ
                 </button>
@@ -1516,7 +1500,7 @@ export default function AdminOrdersPage() {
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md shadow-orange-600/25 transition-all hover:scale-105 cursor-pointer font-gaming disabled:opacity-50"
+                  className="px-5 py-2 bg-[#111111] hover:bg-[#222222] text-white rounded-xl font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                   <span>Tạo Đơn Cho Thuê</span>
@@ -1527,5 +1511,20 @@ export default function AdminOrdersPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminOrdersPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="py-24 text-center space-y-3">
+          <Loader2 className="w-7 h-7 text-slate-900 animate-spin mx-auto" />
+          <p className="text-xs text-slate-500 font-mono">Đang tải quản lý đơn hàng...</p>
+        </div>
+      }
+    >
+      <AdminOrdersContent />
+    </Suspense>
   );
 }
