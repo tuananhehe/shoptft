@@ -1,175 +1,137 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { PROFILE_INFO } from "@/data/tft-data";
-import {
-  ShieldCheck,
-  Phone,
-  MessageCircle,
-  ExternalLink,
-  ArrowUp,
-  Clock,
-  CheckCircle2,
-  Zap,
-  ClipboardCheck,
-} from "lucide-react";
+import { ShieldCheck, MessageCircle, ArrowUp } from "lucide-react";
 
 export const TFTFooter: React.FC = () => {
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   return (
-    <footer className="bg-slate-900 text-slate-300 relative border-t border-slate-800 overflow-hidden">
-      {/* Top Accent Gradient */}
-      <div className="h-[2px] bg-gradient-to-r from-orange-500 via-amber-400 to-emerald-500 w-full" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-28 lg:py-14">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-slate-800">
-          {/* Col 1 & 2: Brand Info */}
-          <div className="space-y-4 lg:col-span-2">
+    <footer className="bg-[#09090b] text-zinc-400 border-t border-white/[0.08] relative">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-24 lg:pb-12">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 pb-10 border-b border-white/[0.06]">
+          {/* Col 1: Brand Info (2 cols on md) */}
+          <div className="col-span-2 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl p-[2px] bg-gradient-to-tr from-orange-500 to-amber-500 shadow-md flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/10 flex-shrink-0">
                 <img
                   src={PROFILE_INFO.avatarUrl}
-                  alt="Tuấn Thái Bình - Admin Shop Thuê Acc TFT ĐTCL"
-                  className="w-full h-full rounded-[14px] object-cover"
+                  alt={PROFILE_INFO.realName}
+                  className="w-full h-full object-cover"
                 />
               </div>
               <div>
-                <h4 className="font-extrabold text-white text-base">
-                  {PROFILE_INFO.realName} ({PROFILE_INFO.brandName})
+                <h4 className="font-heading font-bold text-white text-sm">
+                  {PROFILE_INFO.realName}
                 </h4>
-                <span className="text-xs text-orange-400 font-semibold">{PROFILE_INFO.role}</span>
+                <p className="text-xs text-zinc-400">ShopTFTMobile</p>
               </div>
             </div>
 
-            <p className="text-slate-400 font-normal leading-relaxed max-w-md text-xs sm:text-sm">
-              Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7. Cung cấp Tướng Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc EDM và Dịch vụ Cày Rank ĐTCL uy tín bởi Cựu Thách Đấu Tuấn Thái Bình.
+            <p className="text-xs text-zinc-400 font-normal leading-relaxed max-w-sm">
+              Hệ thống duyệt và thuê tài khoản ĐTCL uy tín. Bàn giao và hỗ trợ trực tiếp qua Zalo bởi cựu Thách Đấu Tuấn Thái Bình.
             </p>
 
-            {/* Checkscam badge & Tags in footer */}
-            <div className="pt-1 flex flex-wrap items-center gap-2">
+            <div className="pt-1 flex items-center gap-2">
               <a
                 href={PROFILE_INFO.checkscamUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold hover:bg-emerald-500/25 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-emerald-400 text-xs font-medium hover:border-emerald-500/40 transition-colors"
               >
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>Bảo Hiểm 30M Checkscam</span>
-                <ExternalLink className="w-3.5 h-3.5 ml-0.5" />
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Bảo hiểm 30M Checkscam</span>
               </a>
+            </div>
+          </div>
 
-              <div className="inline-flex items-center gap-1.5 flex-wrap">
+          {/* Col 2: SHOP */}
+          <div className="space-y-3">
+            <h5 className="font-mono text-xs font-semibold text-white uppercase tracking-wider">
+              SHOP
+            </h5>
+            <ul className="space-y-2 text-xs">
+              <li>
+                <Link href="/ve-shop" className="hover:text-white transition-colors">
+                  Về ShopTFTMobile
+                </Link>
+              </li>
+              <li>
+                <Link href="/#faq" className="hover:text-white transition-colors">
+                  Câu hỏi thường gặp (FAQ)
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 3: DỊCH VỤ */}
+          <div className="space-y-3">
+            <h5 className="font-mono text-xs font-semibold text-white uppercase tracking-wider">
+              DỊCH VỤ
+            </h5>
+            <ul className="space-y-2 text-xs">
+              <li>
+                <Link href="/shop" className="hover:text-white transition-colors">
+                  Kho Acc
+                </Link>
+              </li>
+              <li>
+                <Link href="/shop?sort=newest" className="hover:text-white transition-colors">
+                  Acc Mới
+                </Link>
+              </li>
+              <li>
+                <Link href="/#services" className="hover:text-white transition-colors">
+                  Cày Rank
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 4: HỖ TRỢ & THÀNH VIÊN */}
+          <div className="space-y-3">
+            <h5 className="font-mono text-xs font-semibold text-white uppercase tracking-wider">
+              HỖ TRỢ
+            </h5>
+            <ul className="space-y-2 text-xs">
+              <li>
                 <a
-                  href="/khao-sat"
-                  className="px-2.5 py-1 rounded-lg bg-orange-500/20 border border-orange-400/40 text-orange-300 font-bold text-xs hover:bg-orange-500/30 transition-colors inline-flex items-center gap-1.5"
+                  href={PROFILE_INFO.zaloUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors flex items-center gap-1"
                 >
-                  <ClipboardCheck className="w-3.5 h-3.5 text-orange-400" />
-                  <span>Khảo Sát & Nhận Quà</span>
+                  <MessageCircle className="w-3 h-3 text-emerald-400" />
+                  <span>Zalo ({PROFILE_INFO.phoneZalo})</span>
                 </a>
-                <span className="px-2 py-0.5 rounded bg-blue-500/20 border border-blue-400/30 text-blue-300 font-bold text-[11px]">
-                  Trưng Bày
-                </span>
-                <span className="px-2 py-0.5 rounded bg-rose-500/20 border border-rose-400/30 text-rose-300 font-bold text-[11px]">
-                  Không Mua Bán
-                </span>
-                <span className="px-2 py-0.5 rounded bg-amber-500/20 border border-amber-400/30 text-amber-300 font-bold text-[11px]">
-                  Demo
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Col 3: Quy Trình Thuê Nhanh (Thay thế Khung chuyển khoản) */}
-          <div className="space-y-3.5">
-            <h5 className="font-bold text-slate-200 text-xs uppercase tracking-wider flex items-center gap-1.5">
-              <Zap className="w-3.5 h-3.5 text-orange-400" />
-              <span>QUY TRÌNH THUÊ NHANH</span>
-            </h5>
-
-            <div className="space-y-3 text-xs">
-              <div className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 space-y-1">
-                <div className="font-bold text-white flex items-center gap-1.5">
-                  <span className="w-4 h-4 rounded-full bg-orange-500 text-slate-900 font-black text-[10px] flex items-center justify-center">1</span>
-                  <span>Chọn acc & gói thuê</span>
-                </div>
-                <p className="text-slate-400 text-[11px] leading-relaxed pl-5.5">
-                  Tự do chọn thời gian chơi theo nhu cầu (2h, 7 ngày, 30 ngày, thuê lâu dài).
-                </p>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 space-y-1">
-                <div className="font-bold text-white flex items-center gap-1.5">
-                  <span className="w-4 h-4 rounded-full bg-orange-500 text-slate-900 font-black text-[10px] flex items-center justify-center">2</span>
-                  <span>Gửi đơn qua Zalo</span>
-                </div>
-                <p className="text-slate-400 text-[11px] leading-relaxed pl-5.5">
-                  Hệ thống tự động sao chép mã đơn và mở khung chat Zalo với shop.
-                </p>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 space-y-1">
-                <div className="font-bold text-white flex items-center gap-1.5">
-                  <span className="w-4 h-4 rounded-full bg-emerald-500 text-slate-900 font-black text-[10px] flex items-center justify-center">3</span>
-                  <span>Nhận acc & Pass 30s</span>
-                </div>
-                <p className="text-slate-400 text-[11px] leading-relaxed pl-5.5">
-                  Shop gửi STK riêng và bàn giao tài khoản ngay lập tức.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Col 4: Kênh Hỗ Trợ 24/7 */}
-          <div className="space-y-3.5">
-            <h5 className="font-bold text-slate-200 text-xs uppercase tracking-wider flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-orange-400" />
-              <span>KÊNH HỖ TRỢ 24/7</span>
-            </h5>
-
-            {/* Dòng trạng thái Online */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>Đang Online Sẵn Sàng Bàn Giao Acc</span>
-            </div>
-
-            <div className="space-y-2 pt-1">
-              <a
-                href={PROFILE_INFO.zaloUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-800/80 hover:bg-slate-750 border border-slate-700 hover:border-sky-500/40 text-slate-200 transition-colors text-xs shadow-sm group"
-              >
-                <div className="flex items-center gap-2.5">
-                  <MessageCircle className="w-4 h-4 text-sky-400 group-hover:scale-110 transition-transform" />
-                  <span>Zalo: <strong>{PROFILE_INFO.phoneZalo}</strong></span>
-                </div>
-                <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-white" />
-              </a>
-
-              <a
-                href={`tel:${PROFILE_INFO.phoneZalo.replace(/\./g, "")}`}
-                className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-800/80 hover:bg-slate-750 border border-slate-700 hover:border-orange-500/40 text-slate-200 transition-colors text-xs shadow-sm group"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Phone className="w-4 h-4 text-orange-400 group-hover:scale-110 transition-transform" />
-                  <span>Hotline: <strong>{PROFILE_INFO.phoneZalo}</strong></span>
-                </div>
-                <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-white" />
-              </a>
-            </div>
+              </li>
+              <li>
+                <Link href="/#faq" className="hover:text-white transition-colors">
+                  Hướng Dẫn
+                </Link>
+              </li>
+              <li className="pt-2 border-t border-white/[0.04]">
+                <Link href="/login" className="text-zinc-300 hover:text-white font-medium">
+                  Đăng nhập thành viên →
+                </Link>
+              </li>
+            </ul>
           </div>
         </div>
 
-        {/* Bottom Bar: Có padding đáy an toàn tránh che khuất bởi nút floating */}
-        <div className="pt-8 pb-10 sm:pb-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-          <p>© 2026 {PROFILE_INFO.brandName} - Tuấn Thái Bình TFT. All rights reserved.</p>
+        {/* Bottom Bar */}
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
+          <p>© {new Date().getFullYear()} ShopTFTMobile • Vận hành bởi Tuấn Thái Bình</p>
 
           <button
             onClick={scrollToTop}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer border border-slate-700 shadow-sm"
+            className="inline-flex items-center gap-1 text-zinc-400 hover:text-white transition-colors cursor-pointer text-xs"
           >
             <span>Lên đầu trang</span>
             <ArrowUp className="w-3.5 h-3.5" />
