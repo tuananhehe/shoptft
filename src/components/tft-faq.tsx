@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { ChevronDown, HelpCircle, MessageCircle } from "lucide-react";
 import { PROFILE_INFO } from "@/utils/profile-info";
 import { analytics } from "@/utils/analytics";
+import { Reveal } from "@/components/reveal";
 
 interface FAQItem {
   q: string;
@@ -50,14 +51,19 @@ export const TFTFaq: React.FC<TFTFaqProps> = ({ customFaqs }) => {
   };
 
   return (
-    <section id="faq" className="py-12 sm:py-16 bg-[#09090b] text-white border-b border-white/[0.08]">
+    <section
+      id="faq"
+      style={{ contentVisibility: "auto", containIntrinsicSize: "400px" }}
+      className="py-12 sm:py-16 bg-[#09090b] text-white border-b border-white/[0.08]"
+    >
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center mb-8 sm:mb-10">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-zinc-300 text-xs font-semibold uppercase tracking-[0.08em] mb-2">
-            <HelpCircle className="w-3.5 h-3.5 text-zinc-400" />
-            <span>HỎI ĐÁP</span>
-          </div>
+        <Reveal>
+          {/* Section Header */}
+          <div className="text-center mb-8 sm:mb-10">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-zinc-300 text-xs font-semibold uppercase tracking-[0.08em] mb-2">
+              <HelpCircle className="w-3.5 h-3.5 text-zinc-400" />
+              <span>HỎI ĐÁP</span>
+            </div>
 
           <h2 className="font-heading text-2xl sm:text-3xl lg:text-[34px] font-bold tracking-[-0.02em] text-white leading-tight">
             Câu Hỏi Thường Gặp
@@ -66,8 +72,10 @@ export const TFTFaq: React.FC<TFTFaqProps> = ({ customFaqs }) => {
             Giải đáp các thắc mắc phổ biến về quy trình thuê, bàn giao và tài khoản thành viên.
           </p>
         </div>
+        </Reveal>
 
         {/* FAQ Accordion List */}
+        <Reveal delay={80}>
         <div className="space-y-3">
           {faqs.map((faq, idx) => {
             const isOpen = openIndex === idx;
@@ -114,6 +122,7 @@ export const TFTFaq: React.FC<TFTFaqProps> = ({ customFaqs }) => {
             <span>Chưa tìm thấy câu trả lời? Nhắn tin qua Zalo cho shop →</span>
           </a>
         </div>
+        </Reveal>
       </div>
     </section>
   );

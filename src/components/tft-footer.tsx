@@ -14,7 +14,10 @@ export const TFTFooter: React.FC = () => {
   };
 
   return (
-    <footer className="bg-[#09090b] text-zinc-400 border-t border-white/[0.08] relative">
+    <footer
+      style={{ contentVisibility: "auto", containIntrinsicSize: "280px" }}
+      className="bg-[#09090b] text-zinc-400 border-t border-white/[0.08] relative"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-24 lg:pb-12">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 pb-10 border-b border-white/[0.06]">
           {/* Col 1: Brand Info (2 cols on md) */}

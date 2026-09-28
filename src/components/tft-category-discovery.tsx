@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { Sparkles, Gamepad2, Crown, Layers, Clock, ArrowRight } from "lucide-react";
+import { Reveal } from "@/components/reveal";
 
 const categories = [
   {
@@ -36,27 +37,32 @@ const categories = [
 ];
 
 export const TFTCategoryDiscovery = () => (
-  <section className="bg-[#090909] py-8 sm:py-12 lg:py-14 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08]">
+  <section
+    style={{ contentVisibility: "auto", containIntrinsicSize: "360px" }}
+    className="bg-[#090909] py-8 sm:py-12 lg:py-14 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08]"
+  >
     <div className="max-w-7xl mx-auto">
-      <div className="mb-6 sm:mb-8 text-center sm:text-left">
-        <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.08em] text-zinc-400">
-          DANH MỤC
-        </span>
-        <h2 className="font-heading text-2xl sm:text-3xl lg:text-[34px] font-bold tracking-[-0.02em] text-white leading-tight mt-1.5">
-          Khám Phá Theo Nhu Cầu
-        </h2>
-        <p className="text-zinc-400 text-sm mt-1 max-w-xl font-normal leading-relaxed">
-          Lọc nhanh tài khoản phù hợp với sở thích và phong cách chơi của bạn.
-        </p>
-      </div>
+      <Reveal>
+        <div className="mb-6 sm:mb-8 text-center sm:text-left">
+          <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.08em] text-zinc-400">
+            DANH MỤC
+          </span>
+          <h2 className="font-heading text-2xl sm:text-3xl lg:text-[34px] font-bold tracking-[-0.02em] text-white leading-tight mt-1.5">
+            Khám Phá Theo Nhu Cầu
+          </h2>
+          <p className="text-zinc-400 text-sm mt-1 max-w-xl font-normal leading-relaxed">
+            Lọc nhanh tài khoản phù hợp với sở thích và phong cách chơi của bạn.
+          </p>
+        </div>
+      </Reveal>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-        {categories.map((cat) => (
-          <Link
-            key={cat.title}
-            href={cat.href}
-            className="group flex flex-col justify-between p-4 rounded-xl bg-[#141414] hover:bg-[#1a1a1d] border border-white/[0.08] hover:border-white/[0.2] transition-all cursor-pointer"
-          >
+        {categories.map((cat, idx) => (
+          <Reveal key={cat.title} delay={idx * 40}>
+            <Link
+              href={cat.href}
+              className="group flex flex-col justify-between p-4 rounded-xl bg-[#141414] hover:bg-[#1a1a1d] border border-white/[0.08] hover:border-white/[0.2] transition-all cursor-pointer h-full"
+            >
             <div>
               <div className="w-8 h-8 rounded-lg bg-white/[0.06] border border-white/10 flex items-center justify-center text-zinc-300 group-hover:text-white group-hover:scale-105 transition-all mb-3">
                 <cat.Icon className="w-4 h-4" />
@@ -74,6 +80,7 @@ export const TFTCategoryDiscovery = () => (
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
+          </Reveal>
         ))}
       </div>
     </div>

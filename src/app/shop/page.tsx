@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { TFTNavbar } from "@/components/tft-navbar";
@@ -45,6 +45,12 @@ function ShopPageContent() {
   const [cloneRaw, setCloneRaw] = useState<TFTCloneAccount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVipAccount, setSelectedVipAccount] = useState<TFTRentalAccount | null>(null);
+
+  // Progressive Scroll Loading State
+  const PAGE_SIZE = 12;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   // Parse initial filters from URL
   const initialType = (searchParams.get("type") || "").toUpperCase();
@@ -386,6 +392,46 @@ function ShopPageContent() {
       });
   }, [allNormalizedAccounts, filters]);
 
+  // Reset pagination when filters change
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [filters]);
+
+  const hasMore = visibleCount < filteredAccounts.length;
+  const visibleAccounts = useMemo(
+    () => filteredAccounts.slice(0, visibleCount),
+    [filteredAccounts, visibleCount]
+  );
+
+  // IntersectionObserver for incremental loading (load-ahead with 600px rootMargin)
+  useEffect(() => {
+    if (!hasMore || isLoading) return;
+
+    const node = sentinelRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isLoadingMore) {
+          setIsLoadingMore(true);
+          setTimeout(() => {
+            setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, filteredAccounts.length));
+            setIsLoadingMore(false);
+          }, 80);
+        }
+      },
+      {
+        rootMargin: "600px 0px",
+      }
+    );
+
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasMore, isLoading, isLoadingMore, filteredAccounts.length]);
+
   return (
     <div className="min-h-screen bg-[#09090b] text-white flex flex-col justify-between selection:bg-white selection:text-black">
       {/* Header */}
@@ -468,16 +514,38 @@ function ShopPageContent() {
             totalCount={allNormalizedAccounts.length}
           />
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-            {filteredAccounts.map((item, idx) => (
-              <ProductCard
-                key={item.id}
-                item={item}
-                priority={idx < 4}
-                onSelectAccount={(vip) => setSelectedVipAccount(vip)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              {visibleAccounts.map((item, idx) => (
+                <div key={item.id} className="h-full">
+                  <ProductCard
+                    item={item}
+                    priority={idx < 4}
+                    onSelectAccount={(vip) => setSelectedVipAccount(vip)}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Incremental Loading Sentinel & Skeletons */}
+            {hasMore && (
+              <div ref={sentinelRef} className="mt-4 pt-2">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 opacity-70">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <ProductCardSkeleton key={i} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!hasMore && filteredAccounts.length > PAGE_SIZE && (
+              <div className="text-center py-8">
+                <p className="text-xs text-zinc-500 font-normal">
+                  Đã hiển thị toàn bộ {filteredAccounts.length} tài khoản phù hợp.
+                </p>
+              </div>
+            )}
+          </>
         )}
       </main>
 

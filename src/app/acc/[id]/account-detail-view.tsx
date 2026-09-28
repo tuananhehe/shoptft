@@ -13,6 +13,7 @@ import { TFTFooter } from "@/components/tft-footer";
 import { LazyAccountImage } from "@/components/lazy-account-image";
 import { TFTImageLightbox } from "@/components/tft-image-lightbox";
 import { ZaloRedirectModal } from "@/components/zalo-redirect-modal";
+import { Reveal } from "@/components/reveal";
 import toast from "react-hot-toast";
 import {
   ArrowLeft,
@@ -574,7 +575,7 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                 )}
 
                 <div className="flex items-center justify-between text-xs text-zinc-500 pt-1">
-                  <span>Hỗ trợ trực tiếp 24/7</span>
+                  <span>Hỗ trợ trực tiếp qua Zalo</span>
                   <a
                     href={`tel:${PROFILE_INFO.phoneZalo.replace(/\./g, "")}`}
                     className="text-zinc-400 hover:text-white flex items-center gap-1 transition-colors"
@@ -590,7 +591,11 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
 
         {/* Similar Accounts Section */}
         {relatedAccounts && relatedAccounts.length > 0 && (
-          <div className="mt-12 pt-8 border-t border-white/[0.08] space-y-4">
+          <Reveal>
+            <div
+              style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}
+              className="mt-12 pt-8 border-t border-white/[0.08] space-y-4"
+            >
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg sm:text-xl font-heading font-bold text-white">
@@ -666,6 +671,7 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
               })}
             </div>
           </div>
+          </Reveal>
         )}
       </main>
 

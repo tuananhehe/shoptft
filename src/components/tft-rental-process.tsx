@@ -4,6 +4,7 @@ import React from "react";
 import { MessageCircle } from "lucide-react";
 import { PROFILE_INFO } from "@/utils/profile-info";
 import { analytics } from "@/utils/analytics";
+import { Reveal } from "@/components/reveal";
 
 const steps = [
   {
@@ -31,20 +32,23 @@ const steps = [
 export const TFTRentalProcess = () => (
   <section
     id="huong-dan"
+    style={{ contentVisibility: "auto", containIntrinsicSize: "360px" }}
     className="scroll-mt-14 sm:scroll-mt-20 bg-[#090909] py-8 sm:py-12 lg:py-14 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08]"
   >
     <div className="max-w-5xl mx-auto">
-      <div className="mb-8 sm:mb-12 text-center">
-        <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.08em] text-zinc-400">
-          HƯỚNG DẪN
-        </span>
-        <h2 className="font-heading text-2xl sm:text-3xl lg:text-[34px] font-bold tracking-[-0.02em] text-white leading-tight mt-1.5">
-          Quy Trình Thuê Acc
-        </h2>
-        <p className="text-zinc-400 text-sm mt-1 max-w-lg mx-auto font-normal leading-relaxed">
-          Quy trình đơn giản, bảo mật và hỗ trợ trực tiếp từ chủ shop.
-        </p>
-      </div>
+      <Reveal>
+        <div className="mb-8 sm:mb-12 text-center">
+          <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.08em] text-zinc-400">
+            HƯỚNG DẪN
+          </span>
+          <h2 className="font-heading text-2xl sm:text-3xl lg:text-[34px] font-bold tracking-[-0.02em] text-white leading-tight mt-1.5">
+            Quy Trình Thuê Acc
+          </h2>
+          <p className="text-zinc-400 text-sm mt-1 max-w-lg mx-auto font-normal leading-relaxed">
+            Quy trình đơn giản, bảo mật và hỗ trợ trực tiếp từ chủ shop.
+          </p>
+        </div>
+      </Reveal>
 
       {/* Desktop Process line 01 -------- 02 -------- 03 -------- 04 */}
       <div className="hidden md:grid md:grid-cols-4 gap-6 relative">
