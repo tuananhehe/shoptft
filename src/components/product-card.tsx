@@ -419,18 +419,32 @@ export const ProductCardSkeleton: React.FC = () => {
   return (
     <div className="flex flex-col h-full justify-between bg-[#141414] border border-white/[0.08] rounded-2xl p-2.5 sm:p-4 animate-pulse">
       <div>
-        <div className="relative aspect-[4/3] w-full rounded-xl bg-zinc-800/60 mb-3" />
-        <div className="space-y-1.5 mt-2">
-          <div className="h-4 bg-zinc-800/60 rounded w-4/5" />
-          <div className="h-4 bg-zinc-800/60 rounded w-3/5" />
+        {/* Image thumbnail placeholder with exact 4/3 aspect ratio */}
+        <div className="relative aspect-[4/3] w-full rounded-xl bg-zinc-800/60 mb-2.5 sm:mb-3.5 border border-white/[0.06] overflow-hidden">
+          <div className="absolute top-2 left-2 w-8 h-4 rounded bg-zinc-700/60" />
+          <div className="absolute top-2 right-2 w-16 h-4 rounded bg-zinc-700/60" />
+          <div className="absolute bottom-2 left-2 w-12 h-3.5 rounded bg-zinc-700/60" />
         </div>
-        <div className="mt-2.5 space-y-1">
-          <div className="h-3 bg-zinc-800/40 rounded w-1/2" />
-          <div className="h-3 bg-zinc-800/40 rounded w-2/3" />
+
+        {/* Title & subtitle skeleton */}
+        <div className="space-y-2 mt-1">
+          <div className="h-4 sm:h-4.5 bg-zinc-800/70 rounded w-4/5" />
+          <div className="h-3 sm:h-3.5 bg-zinc-800/50 rounded w-3/5" />
+        </div>
+
+        {/* Metadata chip badges skeleton */}
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          <div className="h-4.5 bg-zinc-800/40 rounded-md w-20" />
+          <div className="h-4.5 bg-zinc-800/40 rounded-md w-16" />
         </div>
       </div>
-      <div className="mt-auto pt-3 border-t border-white/[0.06] space-y-2">
-        <div className="h-4 bg-zinc-800/60 rounded w-1/3" />
+
+      {/* Price & action buttons skeleton */}
+      <div className="mt-auto pt-2.5 sm:pt-3.5 border-t border-white/[0.08] space-y-2.5">
+        <div className="flex items-baseline justify-between">
+          <div className="h-5 sm:h-5.5 bg-zinc-800/70 rounded w-24 sm:w-28" />
+          <div className="h-4 bg-zinc-800/40 rounded w-12" />
+        </div>
         <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
           <div className="h-8 sm:h-9 bg-zinc-800/40 rounded-xl" />
           <div className="h-8 sm:h-9 bg-zinc-800/60 rounded-xl" />

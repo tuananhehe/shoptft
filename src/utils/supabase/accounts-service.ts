@@ -1,4 +1,5 @@
-import { TFTRentalAccount, TFTCloneAccount } from "@/data/tft-data";
+import { TFTRentalAccount, TFTCloneAccount, TFT_RENTAL_ACCOUNTS } from "@/data/tft-data";
+import { supabase } from "./client";
 
 export function cleanTftImageUrl(url?: string): string {
   if (!url || typeof url !== "string") return "";
@@ -191,6 +192,112 @@ export const formatRentalExpiry = (rentedUntil?: string | null) => {
   }
 };
 
+export function mapRowToVipAccount(row: AccountDbRow, idx: number): TFTRentalAccount {
+  const { rankColor, rankBadgeBg } = getRankColors(row.rank || "THÁCH ĐẤU");
+  const champions = Array.isArray(row.champions) ? row.champions.filter(Boolean) : [];
+  const arenas = Array.isArray(row.arenas) ? row.arenas.filter(Boolean) : [];
+  const accountValue = Number(row.price) || 850000;
+  const hourly = Number(row.hourly_price) > 0
+    ? Number(row.hourly_price)
+    : Math.round((((accountValue * 0.03) + 20000) / 2) / 1000) * 1000;
+  const daily = Math.round((((accountValue * 0.12) + 20000) / 2) / 1000) * 1000;
+  const mainChibi = champions[0] || "Tí Nị Thần Thoại";
+  const mainArena = arenas[0] || "Sân Đấu Thần Thoại";
+
+  return {
+    id: String(row.id || `vip-${idx}`),
+    code: row.code || `MS: ${8800 + idx}`,
+    title: row.title || `${row.rank || "VIP"} - ${mainChibi}`,
+    mainChibi,
+    allChibi: champions.length > 0 ? champions : [mainChibi],
+    mainArena,
+    allArenas: arenas.length > 0 ? arenas : [mainArena],
+    rank: (row.rank as any) || "THÁCH ĐẤU",
+    rankColor,
+    rankBadgeBg,
+    hourlyPrice: hourly,
+    dailyPrice: Number(row.daily_price) || daily,
+    nightPrice: Math.round(hourly * 2.5),
+    accountValue,
+    periodPrice: Number(row.period_price) || accountValue,
+    periodUnit: row.period_unit || " / ∞",
+    priceDisplayType: row.price_display_type || undefined,
+    customPrice: row.custom_price ? Number(row.custom_price) : undefined,
+    customPriceUnit: row.custom_price_unit || undefined,
+    status: String(row.status || "").toUpperCase() === "RENTED" ? "RENTED" : "AVAILABLE",
+    rentedUntil: row.rented_until || null,
+    totalLittleLegends: champions.length || 1,
+    totalArenas: arenas.length || 1,
+    totalBooms: 5,
+    thumbnail:
+      cleanTftImageUrl(row.image_url) ||
+      "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop",
+    description: row.description || "Tài khoản VIP chính chủ.",
+    createdAt: row.created_at,
+  };
+}
+
+export function mapRowToCloneAccount(row: AccountDbRow, idx: number): TFTCloneAccount {
+  const features = Array.isArray(row.features) && row.features.length > 0
+    ? row.features
+    : [
+        "Tài Khoản An Toàn 100%",
+        "Hỗ Trợ Bàn Giao Thông Về Khách",
+        "Sẵn Sản Phẩm Như Mô Tả 100%",
+      ];
+  const price = Number(row.price) || Number(row.period_price) || 150000;
+  const periodPrice = Number(row.period_price) || price;
+  const periodUnit = row.period_unit || " / ∞";
+
+  return {
+    id: String(row.id || `clone-${idx}`),
+    code: row.code || `CLONE-${idx + 1 < 10 ? `0${idx + 1}` : idx + 1}`,
+    title: row.title || `Acc Clone ${row.rank || "Unranked"}`,
+    rankBadge: row.rank || "UNRANKED",
+    status: String(row.status || "").toUpperCase() === "RENTED" ? "RENTED" : "AVAILABLE",
+    rentedUntil: row.rented_until || null,
+    thumbnail:
+      cleanTftImageUrl(row.image_url) ||
+      "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop",
+    features,
+    price,
+    periodPrice,
+    periodUnit,
+    durationLabel: "Thuê Lâu Dài (Bàn Giao Full Thông Tin)",
+    weeklyPrice: Number(row.weekly_price) || 0,
+    monthlyPrice: price,
+    hourlyPrice: Number(row.hourly_price) || 10000,
+    dailyPrice: Number(row.daily_price) || (row.weekly_price ? Math.round(Number(row.weekly_price) / 7) : 25000),
+    priceDisplayType: row.price_display_type || undefined,
+    customPrice: row.custom_price ? Number(row.custom_price) : undefined,
+    customPriceUnit: row.custom_price_unit || undefined,
+    description: row.description || "Tài khoản Clone sạch sẽ, bàn giao full quyền sở hữu.",
+    createdAt: row.created_at,
+  };
+}
+
+/**
+ * Server-only: Lấy trực tiếp danh sách Acc VIP mới nhất từ Supabase
+ * Chỉ lấy đúng 4 bản ghi và các trường cần thiết, giảm payload tối đa.
+ */
+export async function getNewestVipAccountsServer(limit: number = 4): Promise<TFTRentalAccount[]> {
+  try {
+    const { data, error } = await supabase
+      .from("accounts")
+      .select("id, code, type, title, rank, price, hourly_price, daily_price, period_price, period_unit, price_display_type, custom_price, custom_price_unit, champions, arenas, image_url, status, rented_until, description, created_at")
+      .eq("type", "VIP")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (!error && data && data.length > 0) {
+      return data.map((row: AccountDbRow, idx: number) => mapRowToVipAccount(row, idx));
+    }
+  } catch (err) {
+    console.warn("Lỗi server query newest vip accounts:", err);
+  }
+  return TFT_RENTAL_ACCOUNTS.slice(0, limit);
+}
+
 /**
  * Gọi GET /api/accounts để lấy danh sách từ Database
  */
@@ -220,89 +327,8 @@ export async function getVipAndCloneAccounts(): Promise<{
     const vipRows = data.filter((row: AccountDbRow) => row.type === "VIP");
     const cloneRows = data.filter((row: AccountDbRow) => row.type === "CLONE");
 
-    const vipAccounts: TFTRentalAccount[] = vipRows.map((row: AccountDbRow, idx: number) => {
-      const { rankColor, rankBadgeBg } = getRankColors(row.rank || "THÁCH ĐẤU");
-      const champions = Array.isArray(row.champions) ? row.champions.filter(Boolean) : [];
-      const arenas = Array.isArray(row.arenas) ? row.arenas.filter(Boolean) : [];
-      const accountValue = Number(row.price) || 850000;
-      const hourly = Number(row.hourly_price) > 0
-        ? Number(row.hourly_price)
-        : Math.round((((accountValue * 0.03) + 20000) / 2) / 1000) * 1000;
-      const daily = Math.round((((accountValue * 0.12) + 20000) / 2) / 1000) * 1000;
-      const mainChibi = champions[0] || "Tí Nị Thần Thoại";
-      const mainArena = arenas[0] || "Sân Đấu Thần Thoại";
-
-      return {
-        id: String(row.id || `vip-${idx}`),
-        code: row.code || `MS: ${8800 + idx}`,
-        title: row.title || `${row.rank || "VIP"} - ${mainChibi}`,
-        mainChibi,
-        allChibi: champions.length > 0 ? champions : [mainChibi],
-        mainArena,
-        allArenas: arenas.length > 0 ? arenas : [mainArena],
-        rank: (row.rank as any) || "THÁCH ĐẤU",
-        rankColor,
-        rankBadgeBg,
-        hourlyPrice: hourly,
-        dailyPrice: Number(row.daily_price) || daily,
-        nightPrice: Math.round(hourly * 2.5),
-        accountValue,
-        periodPrice: Number(row.period_price) || accountValue,
-        periodUnit: row.period_unit || " / ∞",
-        priceDisplayType: row.price_display_type || undefined,
-        customPrice: row.custom_price ? Number(row.custom_price) : undefined,
-        customPriceUnit: row.custom_price_unit || undefined,
-        status: String(row.status || "").toUpperCase() === "RENTED" ? "RENTED" : "AVAILABLE",
-        rentedUntil: row.rented_until || null,
-        totalLittleLegends: champions.length || 1,
-        totalArenas: arenas.length || 1,
-        totalBooms: 5,
-        thumbnail:
-          cleanTftImageUrl(row.image_url) ||
-          "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop",
-        description: row.description || "Tài khoản VIP chính chủ.",
-        createdAt: row.created_at,
-      };
-    });
-
-    const cloneAccounts: TFTCloneAccount[] = cloneRows.map((row: AccountDbRow, idx: number) => {
-      const features = Array.isArray(row.features) && row.features.length > 0
-        ? row.features
-        : [
-            "Tài Khoản An Toàn 100%",
-            "Hỗ Trợ Bàn Giao Thông Về Khách",
-            "Sẵn Sản Phẩm Như Mô Tả 100%",
-          ];
-      const price = Number(row.price) || Number(row.period_price) || 150000;
-      const periodPrice = Number(row.period_price) || price;
-      const periodUnit = row.period_unit || " / ∞";
-
-      return {
-        id: String(row.id || `clone-${idx}`),
-        code: row.code || `CLONE-${idx + 1 < 10 ? `0${idx + 1}` : idx + 1}`,
-        title: row.title || `Acc Clone ${row.rank || "Unranked"}`,
-        rankBadge: row.rank || "UNRANKED",
-        status: String(row.status || "").toUpperCase() === "RENTED" ? "RENTED" : "AVAILABLE",
-        rentedUntil: row.rented_until || null,
-        thumbnail:
-          cleanTftImageUrl(row.image_url) ||
-          "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop",
-        features,
-        price,
-        periodPrice,
-        periodUnit,
-        durationLabel: "Thuê Lâu Dài (Bàn Giao Full Thông Tin)",
-        weeklyPrice: Number(row.weekly_price) || 0,
-        monthlyPrice: price,
-        hourlyPrice: Number(row.hourly_price) || 10000,
-        dailyPrice: Number(row.daily_price) || (row.weekly_price ? Math.round(Number(row.weekly_price) / 7) : 25000),
-        priceDisplayType: row.price_display_type || undefined,
-        customPrice: row.custom_price ? Number(row.custom_price) : undefined,
-        customPriceUnit: row.custom_price_unit || undefined,
-        description: row.description || "Tài khoản Clone sạch sẽ, bàn giao full quyền sở hữu.",
-        createdAt: row.created_at,
-      };
-    });
+    const vipAccounts: TFTRentalAccount[] = vipRows.map((row: AccountDbRow, idx: number) => mapRowToVipAccount(row, idx));
+    const cloneAccounts: TFTCloneAccount[] = cloneRows.map((row: AccountDbRow, idx: number) => mapRowToCloneAccount(row, idx));
 
     return { vipAccounts, cloneAccounts };
   } catch (err) {

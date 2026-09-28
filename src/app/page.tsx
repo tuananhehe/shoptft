@@ -1,6 +1,7 @@
 import React from "react";
 import type { Metadata } from "next";
 import { HomePageView } from "./home-page-view";
+import { getNewestVipAccountsServer } from "@/utils/supabase/accounts-service";
 
 export const metadata: Metadata = {
   title: {
@@ -28,6 +29,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
-  return <HomePageView />;
+export default async function HomePage() {
+  const initialNewAccounts = await getNewestVipAccountsServer(4);
+  return <HomePageView initialNewAccounts={initialNewAccounts} />;
 }

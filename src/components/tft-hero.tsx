@@ -39,24 +39,24 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
   ];
 
   return (
-    <section className="relative bg-[#09090b] text-white border-b border-white/[0.08] overflow-hidden py-12 sm:py-16 lg:py-20">
+    <section className="relative bg-[#09090b] text-white border-b border-white/[0.08] overflow-hidden py-8 sm:py-10 lg:py-12">
       {/* Subtle radial glow & clean grid background */}
       <div className="absolute inset-0 pointer-events-none opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_70%,transparent_100%)]" />
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
         {/* H1 Heading */}
-        <h1 className="font-heading font-bold text-3xl sm:text-4xl lg:text-[52px] leading-[1.06] tracking-[-0.03em] text-white max-w-3xl mx-auto">
+        <h1 className="font-heading font-bold text-3xl sm:text-4xl lg:text-[50px] leading-[1.08] tracking-[-0.03em] text-white max-w-3xl mx-auto">
           <span className="inline-block whitespace-nowrap">TÌM ĐÚNG ACC TFT</span>{" "}
           <span className="inline-block whitespace-nowrap">BẠN MUỐN</span>
         </h1>
 
         {/* Description */}
-        <p className="mt-4 text-sm sm:text-base text-zinc-400 max-w-xl mx-auto font-normal leading-relaxed">
+        <p className="mt-3 sm:mt-3.5 text-sm sm:text-base text-zinc-400 max-w-xl mx-auto font-normal leading-relaxed">
           Pet, Chibi, Sân Đấu và các combo TFT được cập nhật liên tục.
         </p>
 
         {/* Large Search Form */}
-        <form onSubmit={handleSearch} className="mt-8 max-w-2xl mx-auto" role="search">
+        <form onSubmit={handleSearch} className="mt-6 max-w-2xl mx-auto" role="search">
           <div className="relative flex items-center">
             <Search className="w-5 h-5 text-zinc-400 absolute left-4 pointer-events-none" />
             <input
@@ -89,7 +89,7 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
         </form>
 
         {/* Quick Shortcuts */}
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs">
+        <div className="mt-3.5 flex flex-wrap items-center justify-center gap-2 text-xs">
           <span className="text-zinc-500">Gợi ý:</span>
           {shortcuts.map((item) => (
             <Link
@@ -103,7 +103,7 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
         </div>
 
         {/* Actions & Trust Line */}
-        <div className="mt-8 pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-400">
+        <div className="mt-6 pt-5 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-400">
           <div className="flex items-center gap-2">
             <Link
               href="/shop"
@@ -120,7 +120,7 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
             </Link>
           </div>
 
-          <div className="flex items-center gap-2 text-[11px] sm:text-xs text-zinc-400 font-mono">
+          <div className="flex items-center gap-2 text-xs sm:text-[13px] text-zinc-400 font-normal tracking-normal">
             <span>Bảo hiểm giao dịch 30M</span>
             <span className="text-zinc-600">•</span>
             <span>Hỗ trợ trực tiếp</span>

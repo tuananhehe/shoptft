@@ -536,37 +536,60 @@ function calculateSimilarityScore(
 }
 
 /**
- * Lấy danh sách tài khoản liên quan / tương tự dựa trên điểm số tương đồng thông minh
+ * Lấy danh sách tài khoản liên quan / tương tự dựa trên điểm số tương đồng thông minh (Bounded Query)
  */
 export async function getRelatedAccounts(
   currentId: string,
   limit = 4
 ): Promise<UnifiedProductAccount[]> {
-  const all = await getAllProductAccounts();
-  const normalizedSearch = normalizeAccountCode(currentId);
-  const current = all.find(
-    (a) =>
-      a.id === currentId ||
-      a.code === currentId ||
-      normalizeAccountCode(a.code) === normalizedSearch ||
-      normalizeAccountCode(a.id) === normalizedSearch
-  );
-
-  const filtered = all.filter(
-    (a) => a.id !== current?.id && a.code !== current?.code
-  );
-
+  const current = await getAccountByIdOrSlug(currentId);
   if (!current) {
-    return filtered.slice(0, limit);
+    const vips = TFT_RENTAL_ACCOUNTS.map(transformVipFallback);
+    return vips.slice(0, limit);
   }
 
-  // Tính điểm tương đồng và sắp xếp giảm dần
-  const scored = filtered.map((candidate) => ({
-    account: candidate,
-    score: calculateSimilarityScore(current, candidate),
-  }));
+  try {
+    const { data, error } = await supabase
+      .from("accounts")
+      .select("id, code, type, title, rank, price, hourly_price, daily_price, period_price, period_unit, price_display_type, custom_price, custom_price_unit, champions, arenas, image_url, status, rented_until, description, created_at")
+      .eq("type", current.type)
+      .neq("id", current.id)
+      .order("created_at", { ascending: false })
+      .limit(16);
 
-  scored.sort((a, b) => b.score - a.score);
+    let candidates: UnifiedProductAccount[] = [];
+    if (!error && data && data.length > 0) {
+      candidates = data.map((row: AccountDbRow, idx: number) => transformDbRowToUnified(row, idx));
+    }
 
-  return scored.slice(0, limit).map((s) => s.account);
+    if (candidates.length < limit) {
+      const fallbackList = current.type === "VIP"
+        ? TFT_RENTAL_ACCOUNTS.map(transformVipFallback)
+        : TFT_CLONE_ACCOUNTS.map(transformCloneFallback);
+      const existingIds = new Set(candidates.map((c) => c.id.toLowerCase()));
+      existingIds.add(current.id.toLowerCase());
+      for (const f of fallbackList) {
+        if (!existingIds.has(f.id.toLowerCase())) {
+          candidates.push(f);
+        }
+      }
+    }
+
+    // Tính điểm tương đồng và sắp xếp giảm dần
+    const scored = candidates
+      .filter((a) => a.id !== current.id && a.code !== current.code)
+      .map((candidate) => ({
+        account: candidate,
+        score: calculateSimilarityScore(current, candidate),
+      }));
+
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, limit).map((s) => s.account);
+  } catch (err) {
+    console.warn("Lỗi khi load related accounts:", err);
+    const fallbackList = current.type === "VIP"
+      ? TFT_RENTAL_ACCOUNTS.map(transformVipFallback)
+      : TFT_CLONE_ACCOUNTS.map(transformCloneFallback);
+    return fallbackList.filter((a) => a.id !== current.id).slice(0, limit);
+  }
 }

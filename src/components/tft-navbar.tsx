@@ -136,16 +136,6 @@ export const TFTNavbar: React.FC = () => {
             >
               Về Shop
             </Link>
-            <a
-              href={PROFILE_INFO.zaloUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => analytics.trackClickZalo({ source: "header" })}
-              className="text-zinc-300 hover:text-white transition-colors py-2 flex items-center gap-1"
-            >
-              <span>Zalo</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 bg-white/10 rounded text-zinc-300">24/7</span>
-            </a>
           </nav>
 
           {/* 3. Right: Member Login / Profile + Primary CTA */}
@@ -256,8 +246,8 @@ export const TFTNavbar: React.FC = () => {
               }}
               className="flex items-center justify-between px-3 py-2 text-sm text-zinc-200 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
             >
-              <span>Liên hệ Zalo</span>
-              <span className="text-[11px] font-mono text-zinc-400">24/7</span>
+              <span>Tư Vấn Zalo</span>
+              <span className="text-[11px] text-zinc-400">Trực tiếp</span>
             </a>
           </div>
 

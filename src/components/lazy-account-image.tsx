@@ -27,33 +27,31 @@ function cleanTftImageUrl(url?: string): string {
   return cleaned;
 }
 
-const PRIMARY_FALLBACK = "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop";
-
 export const LazyAccountImage: React.FC<LazyAccountImageProps> = ({
   src,
   alt,
   className = "w-full h-full object-cover",
-  containerClassName = "relative aspect-square w-full overflow-hidden rounded-lg sm:rounded-xl bg-slate-900 border border-slate-100 shadow-inner",
+  containerClassName = "relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-[#141416] border border-white/[0.06]",
   priority = false,
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [fallbackStep, setFallbackStep] = useState(0); // 0 = original, 1 = sanitized/strip, 2 = primary fallback, 3 = failed
+  const [fallbackStep, setFallbackStep] = useState(0); // 0 = original, 1 = sanitized/strip, 2 = failed
   const imgRef = useRef<HTMLImageElement>(null);
 
   const initialCleanSrc = useMemo(() => cleanTftImageUrl(src), [src]);
 
   // Determine actual image source based on fallback step
   const activeSrc = useMemo(() => {
-    if (!initialCleanSrc) return PRIMARY_FALLBACK;
+    if (!initialCleanSrc) return null;
     if (fallbackStep === 0) return initialCleanSrc;
     if (fallbackStep === 1) {
       // Thử loại bỏ các phần mở rộng lạ sau _tier nếu có
       if (initialCleanSrc.includes("raw.communitydragon.org") && /_tier\d+\.[^/]+\.png$/i.test(initialCleanSrc)) {
         return initialCleanSrc.replace(/_tier\d+\.[^/]+\.png$/i, "_tier1.png");
       }
-      return PRIMARY_FALLBACK;
+      return null;
     }
-    return PRIMARY_FALLBACK;
+    return null;
   }, [initialCleanSrc, fallbackStep]);
 
   useEffect(() => {
@@ -70,10 +68,10 @@ export const LazyAccountImage: React.FC<LazyAccountImageProps> = ({
   }, [activeSrc]);
 
   const handleError = () => {
-    if (fallbackStep < 2) {
-      setFallbackStep((prev) => prev + 1);
+    if (fallbackStep === 0 && initialCleanSrc?.includes("raw.communitydragon.org")) {
+      setFallbackStep(1);
     } else {
-      setFallbackStep(3); // All image attempts failed
+      setFallbackStep(2); // All image attempts failed -> render clean neutral placeholder
       setIsLoaded(true);
     }
   };
@@ -81,12 +79,12 @@ export const LazyAccountImage: React.FC<LazyAccountImageProps> = ({
   return (
     <div className={`relative ${containerClassName}`}>
       {/* 1. Placeholder tĩnh khi ảnh đang tải */}
-      {!isLoaded && fallbackStep < 3 && (
-        <div className="absolute inset-0 z-0 bg-slate-800/40 animate-pulse" />
+      {!isLoaded && fallbackStep < 2 && activeSrc && (
+        <div className="absolute inset-0 z-0 bg-zinc-800/40 animate-pulse" />
       )}
 
       {/* 2. Thẻ ảnh với transition fade-in */}
-      {fallbackStep < 3 ? (
+      {fallbackStep < 2 && activeSrc ? (
         <img
           ref={imgRef}
           src={activeSrc}

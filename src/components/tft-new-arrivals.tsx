@@ -13,14 +13,21 @@ import {
 import { Sparkles } from "lucide-react";
 
 interface TFTNewArrivalsProps {
+  initialAccounts?: TFTRentalAccount[];
   onSelectAccount?: (account: TFTRentalAccount) => void;
 }
 
-export const TFTNewArrivals: React.FC<TFTNewArrivalsProps> = ({ onSelectAccount }) => {
-  const [newAccounts, setNewAccounts] = useState<TFTRentalAccount[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export const TFTNewArrivals: React.FC<TFTNewArrivalsProps> = ({ initialAccounts = [], onSelectAccount }) => {
+  const [newAccounts, setNewAccounts] = useState<TFTRentalAccount[]>(initialAccounts);
+  const [isLoading, setIsLoading] = useState(initialAccounts.length === 0);
 
   useEffect(() => {
+    if (initialAccounts && initialAccounts.length > 0) {
+      setNewAccounts(initialAccounts);
+      setIsLoading(false);
+      return;
+    }
+
     let isMounted = true;
     setIsLoading(true);
     getVipAndCloneAccounts()
@@ -40,7 +47,7 @@ export const TFTNewArrivals: React.FC<TFTNewArrivalsProps> = ({ onSelectAccount 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [initialAccounts]);
 
   if (!isLoading && newAccounts.length === 0) {
     return null;
@@ -49,11 +56,11 @@ export const TFTNewArrivals: React.FC<TFTNewArrivalsProps> = ({ onSelectAccount 
   return (
     <section
       id="acc-moi-ve"
-      className="scroll-mt-14 sm:scroll-mt-20 py-8 sm:py-12 lg:py-14 bg-[#090909] border-b border-white/[0.08] text-white relative"
+      className="scroll-mt-14 sm:scroll-mt-20 py-6 sm:py-9 lg:py-10 bg-[#090909] border-b border-white/[0.08] text-white relative"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4 sm:mb-6">
           <div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-zinc-300 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.08em] mb-2">
               <Sparkles className="w-3 h-3 text-zinc-400" />
@@ -89,7 +96,7 @@ export const TFTNewArrivals: React.FC<TFTNewArrivalsProps> = ({ onSelectAccount 
               <ProductCard
                 key={account.id}
                 item={normalizeVipAccount(account)}
-                priority={idx < 2}
+                priority={idx === 0}
                 onSelectAccount={onSelectAccount}
                 onViewDetail={(item) => {
                   if (item.rawVip && onSelectAccount) {

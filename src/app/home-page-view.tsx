@@ -15,7 +15,11 @@ import { TFTMobileBottomBar } from "@/components/tft-mobile-bottom-bar";
 import { TFTAccountModal } from "@/components/tft-account-modal";
 import { TFTRentalAccount } from "@/data/tft-data";
 
-export function HomePageView() {
+interface HomePageViewProps {
+  initialNewAccounts?: TFTRentalAccount[];
+}
+
+export function HomePageView({ initialNewAccounts = [] }: HomePageViewProps) {
   const [selectedAccount, setSelectedAccount] = useState<TFTRentalAccount | null>(null);
 
   return (
@@ -27,7 +31,10 @@ export function HomePageView() {
       <TFTHero />
 
       {/* 3. Acc Mới Về (4 recent accounts, sort=newest) */}
-      <TFTNewArrivals onSelectAccount={(acc) => setSelectedAccount(acc)} />
+      <TFTNewArrivals
+        initialAccounts={initialNewAccounts}
+        onSelectAccount={(acc) => setSelectedAccount(acc)}
+      />
 
       {/* 4. Khám Phá Theo Nhu Cầu */}
       <TFTCategoryDiscovery />
