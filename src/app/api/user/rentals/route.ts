@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { OrderItem } from "@/utils/orders-service";
+import { verifyMemberSessionToken, getMemberById } from "@/utils/members-service";
 
 const ORDERS_FILE_PATH = path.join(process.cwd(), "src", "data", "orders.json");
 
@@ -18,51 +19,64 @@ function readOrdersFromFile(): OrderItem[] {
 }
 
 /**
- * GET /api/user/rentals?email=...&phone=...&name=...
- * Trả về danh sách tài khoản mà khách hàng đang thuê và lịch sử thuê
+ * GET /api/user/rentals
+ * Trả về danh sách tài khoản mà thành viên đang thuê và lịch sử thuê của riêng mình
  */
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const email = searchParams.get("email")?.toLowerCase().trim();
-    const phone = searchParams.get("phone")?.trim();
-    const name = searchParams.get("name")?.toLowerCase().trim();
+    const cookieToken = req.cookies.get("member_session")?.value;
+    const headerToken = req.headers.get("x-member-token");
+    const token = cookieToken || headerToken;
+
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: "Yêu cầu đăng nhập thành viên (Unauthorized)", data: [] },
+        { status: 401 }
+      );
+    }
+
+    const session = verifyMemberSessionToken(token);
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: "Phiên đăng nhập hết hạn hoặc không hợp lệ", data: [] },
+        { status: 401 }
+      );
+    }
+
+    const member = await getMemberById(session.id);
+    if (!member || member.status === "LOCKED") {
+      return NextResponse.json(
+        { success: false, error: "Tài khoản không tồn tại hoặc bị khóa", data: [] },
+        { status: 403 }
+      );
+    }
 
     const allOrders = readOrdersFromFile();
-
-    // Sắp xếp đơn mới nhất lên đầu
     allOrders.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
-    let userOrders: OrderItem[] = [];
+    const memberZalo = (member.zalo || "").trim().toLowerCase();
+    const memberName = (member.full_name || "").trim().toLowerCase();
+    const memberUser = (member.username || "").trim().toLowerCase();
 
-    if (email || phone || name) {
-      userOrders = allOrders.filter((ord) => {
-        const cust = ord.customer?.toLowerCase().trim() || "";
-        const pz = ord.phoneZalo?.trim() || "";
-        const notes = ord.notes?.toLowerCase() || "";
+    const userOrders = allOrders.filter((ord) => {
+      const cust = (ord.customer || "").toLowerCase().trim();
+      const pz = (ord.phoneZalo || "").toLowerCase().trim();
+      const notes = (ord.notes || "").toLowerCase();
 
-        const matchEmail = email && (cust.includes(email) || notes.includes(email));
-        const matchPhone = phone && (pz.includes(phone) || notes.includes(phone));
-        const matchName = name && cust.length > 2 && cust.includes(name);
+      const matchZalo = memberZalo && memberZalo.length >= 6 && (pz.includes(memberZalo) || notes.includes(memberZalo));
+      const matchName = memberName && memberName.length >= 2 && cust.includes(memberName);
+      const matchUser = memberUser && (cust.includes(memberUser) || notes.includes(memberUser));
 
-        return matchEmail || matchPhone || matchName;
-      });
-    }
-
-    // Nếu người dùng mới hoặc chưa khớp chính xác theo tên, trả về các đơn đang thuê mẫu từ hệ thống để trải nghiệm
-    if (userOrders.length === 0) {
-      // Trả về tối đa 2 đơn đang thuê mẫu gần nhất để người dùng thấy giao diện quản lý thực tế
-      const sampleRenting = allOrders.filter((o) => o.status === "RENTING").slice(0, 2);
-      userOrders = sampleRenting;
-    }
+      return matchZalo || matchName || matchUser;
+    });
 
     const mappedRentals = userOrders.map((ord) => ({
       orderId: ord.id,
       accountCode: ord.accountCode,
       accountTitle: ord.accountTitle,
       accountType: ord.type,
-      accountLogin: ord.accountLogin || `tft_${ord.accountCode.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
-      accountPass: ord.accountPass || "TuanTFT@8899",
+      accountLogin: ord.accountLogin,
+      accountPass: ord.accountPass,
       packageName: ord.package,
       amount: ord.amount,
       startedAt: ord.startedAt || ord.createdAt,
@@ -71,8 +85,8 @@ export async function GET(req: NextRequest) {
       notes: ord.notes,
     }));
 
-    const totalOrders = Math.max(userOrders.length, 3);
-    const totalSpent = userOrders.reduce((sum, o) => sum + (o.amount || 0), 0) || 350000;
+    const totalOrders = userOrders.length;
+    const totalSpent = userOrders.reduce((sum, o) => sum + (o.amount || 0), 0);
 
     return NextResponse.json({
       success: true,

@@ -1,54 +1,40 @@
 import { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = "https://shoptftmobile.net";
+  const baseUrl = "https://www.shoptftmobile.net";
+
+  const disallowPatterns = [
+    "/admin",
+    "/admin/*",
+    "/profile",
+    "/profile/*",
+    "/login",
+    "/register",
+    "/pay/*",
+    "/api/*",
+    "/*?*search=*",
+    "/*?*q=*",
+  ];
 
   return {
     rules: [
       {
         userAgent: "*",
         allow: ["/", "/shop", "/acc/*", "/ve-shop"],
-        disallow: [
-          "/admin",
-          "/admin/*",
-          "/profile",
-          "/profile/*",
-          "/pay/*",
-          "/api/*",
-          "/*?*search=*",
-          "/*?*q=*",
-        ],
+        disallow: disallowPatterns,
       },
       {
         userAgent: "Googlebot",
         allow: ["/", "/shop", "/acc/*", "/ve-shop"],
-        disallow: [
-          "/admin",
-          "/admin/*",
-          "/profile",
-          "/profile/*",
-          "/pay/*",
-          "/api/*",
-          "/*?*search=*",
-          "/*?*q=*",
-        ],
+        disallow: disallowPatterns,
       },
       {
         userAgent: "Bingbot",
         allow: ["/", "/shop", "/acc/*", "/ve-shop"],
-        disallow: [
-          "/admin",
-          "/admin/*",
-          "/profile",
-          "/profile/*",
-          "/pay/*",
-          "/api/*",
-          "/*?*search=*",
-          "/*?*q=*",
-        ],
+        disallow: disallowPatterns,
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
-    host: "shoptftmobile.net",
+    host: "www.shoptftmobile.net",
   };
 }

@@ -27,9 +27,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const cleanCode = account.code.replace(/^MS:\s*/i, "").trim();
-  const canonicalUrl = `https://shoptftmobile.net/acc/${encodeURIComponent(cleanCode || account.id)}`;
+  const canonicalUrl = `https://www.shoptftmobile.net/acc/${encodeURIComponent(cleanCode || account.id)}`;
   const title = `${account.title} | ShopTFTMobile`;
-  const description = `${account.title} (Mã số: ${account.code}, Rank: ${account.rank}). Bàn giao tài khoản thủ công qua Zalo, an toàn và bảo mật tại ShopTFTMobile.`;
+
+  const accountTypeLabel = account.type === "VIP" ? "Acc VIP" : "Acc Clone";
+  const statusLabel = account.status === "AVAILABLE" ? "Còn acc" : "Đang thuê";
+  const petDetails = account.mainChibi ? `Chibi: ${account.mainChibi}` : (account.allChibi && account.allChibi.length > 0 ? `Chibi: ${account.allChibi[0]}` : "");
+  const arenaDetails = account.mainArena ? `Sân đấu: ${account.mainArena}` : "";
+  const extraDetails = [accountTypeLabel, `Rank ${account.rank}`, petDetails, arenaDetails, statusLabel]
+    .filter(Boolean)
+    .join(" - ");
+
+  const description = `${account.title} (${extraDetails}). Thuê tài khoản TFT hỗ trợ trực tiếp và bàn giao qua Zalo tại ShopTFTMobile.`;
 
   return {
     title: {
@@ -72,7 +81,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
 
   const relatedAccounts = await getRelatedAccounts(account.id, 4);
   const cleanCode = account.code.replace(/^MS:\s*/i, "").trim();
-  const accountUrl = `https://shoptftmobile.net/acc/${encodeURIComponent(cleanCode || account.id)}`;
+  const accountUrl = `https://www.shoptftmobile.net/acc/${encodeURIComponent(cleanCode || account.id)}`;
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -82,13 +91,13 @@ export default async function AccountDetailPage({ params }: PageProps) {
         "@type": "ListItem",
         "position": 1,
         "name": "Trang chủ",
-        "item": "https://shoptftmobile.net",
+        "item": "https://www.shoptftmobile.net",
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Kho Acc",
-        "item": "https://shoptftmobile.net/shop",
+        "item": "https://www.shoptftmobile.net/shop",
       },
       {
         "@type": "ListItem",

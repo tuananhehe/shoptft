@@ -8,15 +8,15 @@ import { TFTMobileBottomBar } from "@/components/tft-mobile-bottom-bar";
 export const metadata: Metadata = {
   title: "Về ShopTFTMobile | Tuấn Thái Bình",
   description:
-    "Giới thiệu ShopTFTMobile, người vận hành, cách hỗ trợ khách hàng và các thông tin xác minh dịch vụ.",
+    "Giới thiệu ShopTFTMobile, người vận hành, cách hỗ trợ khách hàng và thông tin dịch vụ.",
   alternates: {
-    canonical: "https://shoptftmobile.net/ve-shop",
+    canonical: "https://www.shoptftmobile.net/ve-shop",
   },
   openGraph: {
     title: "Về ShopTFTMobile | Tuấn Thái Bình",
     description:
-      "Giới thiệu ShopTFTMobile, người vận hành, cách hỗ trợ khách hàng và các thông tin xác minh dịch vụ.",
-    url: "https://shoptftmobile.net/ve-shop",
+      "Giới thiệu ShopTFTMobile, người vận hành, cách hỗ trợ khách hàng và thông tin dịch vụ.",
+    url: "https://www.shoptftmobile.net/ve-shop",
     siteName: "ShopTFTMobile",
     locale: "vi_VN",
     type: "website",

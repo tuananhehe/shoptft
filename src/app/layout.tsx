@@ -71,7 +71,7 @@ function getLiveSiteData() {
 
 function getLiveSEOConfig() {
   const { seo } = getLiveSiteData();
-  const rawCanonical = seo.canonicalUrl || process.env.NEXT_PUBLIC_SITE_URL || "https://shoptftmobile.net";
+  const rawCanonical = seo.canonicalUrl || process.env.NEXT_PUBLIC_SITE_URL || "https://www.shoptftmobile.net";
   const canonicalUrl = rawCanonical.trim().replace(/\/+$/, "");
 
   return {

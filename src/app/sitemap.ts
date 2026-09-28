@@ -4,7 +4,7 @@ import { getAllProductAccounts } from "@/utils/account-lookup";
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://shoptftmobile.net";
+  const baseUrl = "https://www.shoptftmobile.net";
   const now = new Date();
 
   const staticRoutes: MetadataRoute.Sitemap = [

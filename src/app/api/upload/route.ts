@@ -70,7 +70,6 @@ export async function POST(req: NextRequest) {
 
         const cloudUrl = publicUrlData?.publicUrl;
         if (cloudUrl) {
-          console.log("Uploaded successfully to Supabase Storage:", cloudUrl);
           return NextResponse.json({
             success: true,
             url: cloudUrl,

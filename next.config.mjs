@@ -24,6 +24,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'doihinhtft.vn',
       },
+      {
+        protocol: 'https',
+        hostname: 'wbeealitshckxjtfozsp.supabase.co',
+      },
     ],
   },
 };
