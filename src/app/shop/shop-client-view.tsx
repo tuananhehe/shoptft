@@ -22,6 +22,7 @@ import {
 import { getVipAndCloneAccounts } from "@/utils/supabase/accounts-service";
 import { TFTRentalAccount, TFTCloneAccount } from "@/data/tft-data";
 import { analytics } from "@/utils/analytics";
+import { Reveal } from "@/components/reveal";
 import { ChevronRight, RotateCcw } from "lucide-react";
 
 function removeAccents(str?: string | null): string {
@@ -525,13 +526,13 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
           <>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               {visibleAccounts.map((item, idx) => (
-                <div key={item.id} className="h-full">
+                <Reveal key={item.id} delay={Math.min((idx % PAGE_SIZE) * 40, 120)} className="h-full">
                   <ProductCard
                     item={item}
                     priority={idx === 0}
                     onSelectAccount={(vip) => setSelectedVipAccount(vip)}
                   />
-                </div>
+                </Reveal>
               ))}
             </div>
 

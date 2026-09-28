@@ -230,7 +230,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
             </button>
 
             {openDropdown === "type" && (
-              <div className="absolute left-0 top-full mt-1.5 w-44 bg-[#141414] border border-white/[0.08] rounded-xl shadow-xl z-40 py-1 text-xs">
+              <div className="absolute left-0 top-full mt-1.5 w-44 bg-[#141414] border border-white/[0.08] rounded-xl shadow-xl z-40 py-1 text-xs animate-in fade-in zoom-in-95 duration-150">
                 {[
                   { id: "ALL", label: `Tất cả (${filterOptions?.stats.total || 0})` },
                   { id: "VIP", label: `Kho VIP (${filterOptions?.stats.vip || 0})` },
@@ -272,7 +272,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
             </button>
 
             {openDropdown === "pet" && (
-              <div className="absolute left-0 top-full mt-1.5 w-72 bg-[#141414] border border-white/[0.08] rounded-xl shadow-2xl z-40 p-2.5 text-xs">
+              <div className="absolute left-0 top-full mt-1.5 w-72 bg-[#141414] border border-white/[0.08] rounded-xl shadow-2xl z-40 p-2.5 text-xs animate-in fade-in zoom-in-95 duration-150">
                 <div className="relative mb-2">
                   <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                   <input
@@ -344,7 +344,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
             </button>
 
             {openDropdown === "arena" && (
-              <div className="absolute left-0 top-full mt-1.5 w-72 bg-[#141414] border border-white/[0.08] rounded-xl shadow-2xl z-40 p-2.5 text-xs">
+              <div className="absolute left-0 top-full mt-1.5 w-72 bg-[#141414] border border-white/[0.08] rounded-xl shadow-2xl z-40 p-2.5 text-xs animate-in fade-in zoom-in-95 duration-150">
                 <div className="relative mb-2">
                   <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                   <input
@@ -409,7 +409,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
             </button>
 
             {openDropdown === "price" && (
-              <div className="absolute left-0 top-full mt-1.5 w-64 bg-[#141414] border border-white/[0.08] rounded-xl shadow-2xl z-40 py-1 text-xs">
+              <div className="absolute left-0 top-full mt-1.5 w-64 bg-[#141414] border border-white/[0.08] rounded-xl shadow-2xl z-40 py-1 text-xs animate-in fade-in zoom-in-95 duration-150">
                 {pricePresets.map((p) => (
                   <button
                     key={p.id}
@@ -453,7 +453,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
             </button>
 
             {openDropdown === "status" && (
-              <div className="absolute left-0 top-full mt-1.5 w-44 bg-[#141414] border border-white/[0.08] rounded-xl shadow-xl z-40 py-1 text-xs">
+              <div className="absolute left-0 top-full mt-1.5 w-44 bg-[#141414] border border-white/[0.08] rounded-xl shadow-xl z-40 py-1 text-xs animate-in fade-in zoom-in-95 duration-150">
                 {[
                   { id: "ALL", label: "Tất cả trạng thái" },
                   { id: "AVAILABLE", label: "Còn acc", dot: "bg-emerald-400" },
@@ -504,7 +504,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
             </button>
 
             {openDropdown === "sort" && (
-              <div className="absolute right-0 top-full mt-1.5 w-44 bg-[#141414] border border-white/[0.08] rounded-xl shadow-xl z-40 py-1 text-xs">
+              <div className="absolute right-0 top-full mt-1.5 w-44 bg-[#141414] border border-white/[0.08] rounded-xl shadow-xl z-40 py-1 text-xs animate-in fade-in zoom-in-95 duration-150">
                 {[
                   { id: "NEWEST", label: "Mới nhất" },
                   { id: "PRICE_ASC", label: "Giá thấp → cao" },
@@ -706,10 +706,10 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
         <div className="fixed inset-0 z-50 flex flex-col justify-end lg:hidden">
           <div
             onClick={() => setIsMobileDrawerOpen(false)}
-            className="fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity animate-in fade-in duration-150"
           />
 
-          <div className="relative bg-[#141414] text-white border-t border-white/[0.08] rounded-t-3xl max-h-[85vh] flex flex-col shadow-2xl z-10">
+          <div className="relative bg-[#141414] text-white border-t border-white/[0.08] rounded-t-3xl max-h-[85vh] flex flex-col shadow-2xl z-10 animate-in slide-in-from-bottom-6 duration-150 ease-out">
             <div className="p-4 border-b border-white/[0.08] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <SlidersHorizontal className="w-4 h-4 text-zinc-400" />

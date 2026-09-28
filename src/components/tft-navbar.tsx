@@ -38,8 +38,25 @@ export const TFTNavbar: React.FC = () => {
     setMobileOpen(false);
   }, [pathname, searchParams]);
 
+  // Subtle header transition on scroll
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-50 bg-[#09090b]/90 backdrop-blur-md border-b border-white/[0.08] text-white">
+    <header
+      className={`sticky top-0 z-50 backdrop-blur-md transition-colors duration-200 text-white ${
+        scrolled
+          ? "bg-[#09090b]/95 border-b border-white/[0.12] shadow-sm"
+          : "bg-[#09090b]/80 border-b border-white/[0.06]"
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="h-16 flex items-center justify-between gap-4">
           {/* 1. Left: Brand & Operator */}
@@ -180,7 +197,7 @@ export const TFTNavbar: React.FC = () => {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-white/[0.08] bg-[#09090b] px-4 py-4 space-y-3 shadow-2xl">
+        <div className="md:hidden border-t border-white/[0.08] bg-[#09090b] px-4 py-4 space-y-3 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-150">
           <div className="space-y-1">
             <Link
               href="/shop"

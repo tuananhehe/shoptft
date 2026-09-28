@@ -237,7 +237,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div
       style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}
-      className="flex flex-col h-full justify-between bg-[#121214] hover:bg-[#151518] border border-white/[0.08] hover:border-white/20 rounded-2xl p-3 sm:p-4 transition-all duration-200 hover:-translate-y-0.5 sm:hover:-translate-y-1 group"
+      className={`flex flex-col h-full justify-between rounded-2xl p-3 sm:p-4 transition-all duration-200 ease-out group ${
+        isAvailable
+          ? "bg-[#121214] hover:bg-[#151518] border border-white/[0.08] hover:border-white/20 hover:-translate-y-[2px] sm:hover:-translate-y-[3px]"
+          : "bg-[#0f0f11] border border-white/[0.05] opacity-80"
+      }`}
     >
       {/* ============================================================ */}
       {/* 1. KHU VỰC ẢNH SẢN PHẨM & OVERLAY BADGES (TINH GỌN)          */}
@@ -251,7 +255,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             src={item.thumbnail}
             alt={`Tài khoản TFT ${item.code} - ${item.title}`}
             containerClassName="w-full h-full flex items-center justify-center"
-            className="w-full h-full object-contain transition-transform duration-300 group-hover/img:scale-105"
+            className="w-full h-full object-contain transition-transform duration-200 ease-out group-hover/img:scale-[1.02]"
             priority={priority}
           />
 

@@ -27,6 +27,7 @@ export function Reveal({
   as: Component = "div",
 }: RevealProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [effectiveDelay, setEffectiveDelay] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,10 +40,17 @@ export function Reveal({
       return;
     }
 
+    // 2. Suppress stagger delay on mobile devices to prevent scroll stutter
+    if (typeof window !== "undefined" && window.innerWidth < 640) {
+      setEffectiveDelay(0);
+    } else {
+      setEffectiveDelay(delay);
+    }
+
     const node = ref.current;
     if (!node) return;
 
-    // 2. Fallback if IntersectionObserver is unsupported
+    // 3. Fallback if IntersectionObserver is unsupported
     if (!("IntersectionObserver" in window)) {
       setIsVisible(true);
       return;
@@ -66,16 +74,16 @@ export function Reveal({
     return () => {
       observer.disconnect();
     };
-  }, [threshold, rootMargin]);
+  }, [threshold, rootMargin, delay]);
 
   return (
     <Component
       ref={ref}
       style={{
-        transitionDuration: "450ms",
-        transitionDelay: delay ? `${delay}ms` : undefined,
+        transitionDuration: "400ms",
+        transitionDelay: effectiveDelay ? `${effectiveDelay}ms` : undefined,
       }}
-      className={`transition-[opacity,transform] ease-out will-change-[opacity,transform] ${
+      className={`transition-[opacity,transform] ease-out will-change-[opacity,transform] motion-reduce:transition-none motion-reduce:transform-none motion-reduce:opacity-100 ${
         isVisible
           ? "opacity-100 translate-y-0"
           : "opacity-0 translate-y-3 sm:translate-y-4"

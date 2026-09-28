@@ -10,6 +10,7 @@ import {
   ProductCardSkeleton,
   normalizeVipAccount,
 } from "@/components/product-card";
+import { Reveal } from "@/components/reveal";
 import { Sparkles } from "lucide-react";
 
 interface TFTNewArrivalsProps {
@@ -94,19 +95,20 @@ export const TFTNewArrivals: React.FC<TFTNewArrivalsProps> = ({ initialAccounts 
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
             {newAccounts.map((account, idx) => (
-              <ProductCard
-                key={account.id}
-                item={normalizeVipAccount(account)}
-                priority={idx === 0}
-                onSelectAccount={onSelectAccount}
-                onViewDetail={(item) => {
-                  if (item.rawVip && onSelectAccount) {
-                    onSelectAccount(item.rawVip);
-                  } else {
-                    window.location.href = getAccountProductUrl(item);
-                  }
-                }}
-              />
+              <Reveal key={account.id} delay={Math.min(idx * 40, 120)}>
+                <ProductCard
+                  item={normalizeVipAccount(account)}
+                  priority={idx === 0}
+                  onSelectAccount={onSelectAccount}
+                  onViewDetail={(item) => {
+                    if (item.rawVip && onSelectAccount) {
+                      onSelectAccount(item.rawVip);
+                    } else {
+                      window.location.href = getAccountProductUrl(item);
+                    }
+                  }}
+                />
+              </Reveal>
             ))}
           </div>
         )}

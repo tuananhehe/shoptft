@@ -102,6 +102,12 @@
   scrollbar-width: none;
 }
 
+/* Accessible Focus Indicators */
+:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 2px;
+}
+
 /* Prefers-reduced-motion Accessibility */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -111,6 +117,7 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+    transform: none !important;
   }
 }
 

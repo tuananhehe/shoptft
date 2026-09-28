@@ -54,11 +54,11 @@ export const ZaloRedirectModal: React.FC<ZaloRedirectModalProps> = ({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[99999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 select-none"
+      className="fixed inset-0 z-[99999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 select-none animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
-        className="bg-[#0f0f11] border border-white/[0.12] w-full max-w-md rounded-3xl overflow-hidden shadow-2xl flex flex-col relative text-white my-auto"
+        className="bg-[#0f0f11] border border-white/[0.12] w-full max-w-md rounded-2xl overflow-hidden shadow-2xl flex flex-col relative text-white my-auto animate-in zoom-in-98 duration-150 ease-out"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button Top-Right */}

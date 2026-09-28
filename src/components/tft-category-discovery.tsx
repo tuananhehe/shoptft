@@ -61,7 +61,7 @@ export const TFTCategoryDiscovery = () => (
           <Reveal key={cat.title} delay={idx * 40}>
             <Link
               href={cat.href}
-              className="group flex flex-col justify-between p-4 rounded-xl bg-[#141414] hover:bg-[#1a1a1d] border border-white/[0.08] hover:border-white/[0.2] transition-all cursor-pointer h-full"
+              className="group flex flex-col justify-between p-4 rounded-2xl bg-[#141414] hover:bg-[#18181b] border border-white/[0.08] hover:border-white/20 transition-all duration-200 ease-out hover:-translate-y-[2px] cursor-pointer h-full"
             >
             <div>
               <div className="w-8 h-8 rounded-lg bg-white/[0.06] border border-white/10 flex items-center justify-center text-zinc-300 group-hover:text-white group-hover:scale-105 transition-all mb-3">

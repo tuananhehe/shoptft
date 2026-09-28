@@ -255,11 +255,11 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto"
+      className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
-        className="bg-[#0f0f11] text-white border-t sm:border border-white/[0.12] w-full sm:max-w-xl md:max-w-2xl rounded-t-[24px] sm:rounded-3xl overflow-hidden relative flex flex-col max-h-[92vh] sm:max-h-[86vh] shadow-2xl"
+        className="bg-[#0f0f11] text-white border-t sm:border border-white/[0.12] w-full sm:max-w-xl md:max-w-2xl rounded-t-[24px] sm:rounded-2xl overflow-hidden relative flex flex-col max-h-[92vh] sm:max-h-[86vh] shadow-2xl animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-98 duration-150 ease-out"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Drag Indicator for Mobile */}

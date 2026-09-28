@@ -72,7 +72,7 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
               }}
               placeholder="Tìm Ahri, Jinx, Gwen, Sân đấu, mã acc..."
               aria-label="Tìm kiếm tài khoản TFT"
-              className="w-full h-12 sm:h-14 pl-12 pr-28 sm:pr-32 rounded-2xl bg-[#141416] border border-white/15 focus:border-white/40 text-white placeholder:text-zinc-500 text-sm focus:outline-none transition-colors shadow-xl"
+              className="w-full h-12 sm:h-14 pl-12 pr-28 sm:pr-32 rounded-2xl bg-[#141416] focus:bg-[#18181c] border border-white/15 focus:border-white/40 text-white placeholder:text-zinc-500 text-sm focus:outline-none transition-all shadow-sm"
             />
             <button
               type="submit"
@@ -81,7 +81,7 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
                 executeSearch();
               }}
               aria-label="Tìm kiếm"
-              className="absolute right-2 top-2 bottom-2 px-4 sm:px-5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs sm:text-sm font-semibold transition-all active:scale-98 flex items-center gap-1.5 cursor-pointer"
+              className="absolute right-2 top-2 bottom-2 px-4 sm:px-5 rounded-xl bg-white hover:bg-zinc-200 active:scale-98 text-black text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-black"
             >
               <span>Tìm kiếm</span>
               <ArrowRight className="w-3.5 h-3.5" />
