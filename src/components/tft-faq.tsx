@@ -14,27 +14,27 @@ interface FAQItem {
 const FAQS_LIST: FAQItem[] = [
   {
     q: "Thuê acc như thế nào?",
-    a: "Bạn chỉ cần duyệt kho acc trên website, chọn tài khoản ưng ý, sau đó bấm nút 'Thuê Ngay' để kết nối trực tiếp với shop qua Zalo và hoàn tất thanh toán.",
+    a: "Bạn chỉ cần duyệt kho acc trên website, chọn tài khoản ưng ý và bấm 'Thuê qua Zalo'. Admin sẽ trao đổi, xác nhận gói thuê và hướng dẫn bạn giao dịch trực tiếp.",
   },
   {
-    q: "Acc được bàn giao thế nào?",
-    a: "Sau khi bạn xác nhận và thanh toán, ShopTFTMobile sẽ bàn giao thông tin đăng nhập trực tiếp và hướng dẫn bạn đăng nhập an toàn qua tin nhắn Zalo.",
+    q: "Nhận acc bằng cách nào?",
+    a: "Sau khi thống nhất gói thuê, ShopTFTMobile sẽ bàn giao thông tin đăng nhập trực tiếp qua tin nhắn Zalo và đồng hành hướng dẫn bạn đăng nhập an toàn vào game.",
   },
   {
-    q: "Nếu acc đang được thuê thì sao?",
-    a: "Bạn có thể xem thời gian hết hạn dự kiến của tài khoản, bấm xem các acc tương tự trong kho, hoặc nhắn Zalo cho shop để đặt lịch giữ acc ngay khi có sẵn.",
+    q: "Acc đang thuê có chọn được không?",
+    a: "Khi tài khoản hiển thị nhãn 'ĐANG THUÊ', bạn có thể xem thời gian hết hạn dự kiến và nhắn Zalo để đặt trước, hoặc duyệt các tài khoản tương tự đang 'CÒN ACC' có sẵn trong kho.",
   },
   {
-    q: "Tài khoản thành viên dùng để làm gì?",
-    a: "Tài khoản thành viên giúp bạn lưu trữ thông tin liên hệ Zalo, xem lịch sử giao dịch và nhận các ưu đãi khách hàng thân thiết từ ShopTFTMobile.",
+    q: "Bảo hiểm giao dịch 30M là gì?",
+    a: "ShopTFTMobile ký quỹ bảo hiểm 30.000.000đ được xác minh minh bạch trên hệ thống Checkscam.vn, đảm bảo uy tín và quyền lợi tuyệt đối cho khách hàng trong suốt thời gian sử dụng dịch vụ.",
   },
   {
-    q: "Làm sao có tài khoản thành viên?",
-    a: "Tài khoản thành viên được ShopTFTMobile cấp trực tiếp. Website không mở đăng ký công khai nhằm đảm bảo tính bảo mật và quản lý khách hàng uy tín.",
+    q: "Member (tài khoản thành viên) dùng để làm gì?",
+    a: "Tài khoản thành viên được shop cấp riêng cho khách hàng thân thiết để tích lũy cấp bậc VIP, nhận chiết khấu tự động và lưu thông tin chăm sóc khách hàng. Website không mở đăng ký công khai.",
   },
   {
-    q: "Shop hỗ trợ qua đâu?",
-    a: `ShopTFTMobile hỗ trợ khách hàng trực tiếp và nhanh chóng qua Zalo chính thức (${PROFILE_INFO.phoneZalo}). Bạn có thể liên hệ bất kỳ lúc nào để được giải đáp.`,
+    q: "Liên hệ hỗ trợ ở đâu?",
+    a: `ShopTFTMobile hỗ trợ 1-1 trực tiếp qua số Hotline & Zalo chính thức: ${PROFILE_INFO.phoneZalo}. Bạn có thể nhắn tin để được tư vấn bất kỳ lúc nào.`,
   },
 ];
 

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, ShieldCheck, ArrowRight, Sparkles } from "lucide-react";
+import { PROFILE_INFO } from "@/data/tft-data";
 
 interface TFTHeroProps {
   heroConfig?: any;
@@ -120,11 +121,22 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
             </Link>
           </div>
 
-          <div className="flex items-center gap-2 text-xs sm:text-[13px] text-zinc-400 font-normal tracking-normal">
-            <span>Bảo hiểm giao dịch 30M</span>
-            <span className="text-zinc-600">•</span>
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 text-xs sm:text-[13px] text-zinc-400 font-normal">
+            <span className="inline-flex items-center gap-1.5">
+              <span>Bảo hiểm giao dịch 30M</span>
+              <a
+                href={PROFILE_INFO.checkscamUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-zinc-300 hover:text-white underline font-medium text-[11px] sm:text-xs transition-colors"
+                title="Kiểm tra quỹ bảo hiểm Checkscam.vn"
+              >
+                (Xem xác minh)
+              </a>
+            </span>
+            <span className="text-zinc-600 hidden sm:inline">•</span>
             <span>Hỗ trợ trực tiếp</span>
-            <span className="text-zinc-600">•</span>
+            <span className="text-zinc-600 hidden sm:inline">•</span>
             <span>Bàn giao qua Zalo</span>
           </div>
         </div>

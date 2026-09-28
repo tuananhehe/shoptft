@@ -392,11 +392,17 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
 
             {/* Trust Badges */}
             <div className="grid grid-cols-3 gap-2 text-center text-xs">
-              <div className="p-3 rounded-xl bg-[#121214] border border-white/[0.08] space-y-1">
+              <a
+                href={PROFILE_INFO.checkscamUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Xem xác minh bảo hiểm trên Checkscam"
+                className="p-3 rounded-xl bg-[#121214] border border-white/[0.08] hover:border-emerald-500/40 transition-colors space-y-1 block group"
+              >
                 <ShieldCheck className="w-4 h-4 text-emerald-400 mx-auto" />
                 <div className="font-semibold text-white">Bảo Hiểm 30M</div>
-                <div className="text-[10px] text-zinc-400">Checkscam</div>
-              </div>
+                <div className="text-[10px] text-zinc-400 group-hover:text-emerald-400 transition-colors">Xem xác minh ↗</div>
+              </a>
               <div className="p-3 rounded-xl bg-[#121214] border border-white/[0.08] space-y-1">
                 <MessageCircle className="w-4 h-4 text-zinc-300 mx-auto" />
                 <div className="font-semibold text-white">Bàn Giao Zalo</div>
@@ -570,12 +576,12 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                     className="w-full py-3.5 px-6 rounded-xl bg-white hover:bg-zinc-200 text-black font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-99 shadow-sm"
                   >
                     <MessageCircle className="w-4 h-4" />
-                    <span>Thuê Ngay Qua Zalo (Bàn Giao Trực Tiếp)</span>
+                    <span>Thuê qua Zalo</span>
                   </button>
                 )}
 
-                <div className="flex items-center justify-between text-xs text-zinc-500 pt-1">
-                  <span>Hỗ trợ trực tiếp qua Zalo</span>
+                <div className="flex items-center justify-between text-xs text-zinc-400 pt-1">
+                  <span>Bàn giao & hỗ trợ trực tiếp qua Zalo</span>
                   <a
                     href={`tel:${PROFILE_INFO.phoneZalo.replace(/\./g, "")}`}
                     className="text-zinc-400 hover:text-white flex items-center gap-1 transition-colors"
