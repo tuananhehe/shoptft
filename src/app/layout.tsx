@@ -1,21 +1,22 @@
 import type { Metadata, Viewport } from "next";
 import fs from "fs";
 import path from "path";
-import { Inter, Montserrat, Roboto_Mono } from "next/font/google";
+import { Inter, Manrope, Roboto_Mono } from "next/font/google";
 import { Toaster } from "react-hot-toast";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin", "vietnamese"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-inter",
   display: "swap",
 });
 
-const montserrat = Montserrat({
+const manrope = Manrope({
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "500", "600", "700", "800", "900"],
-  variable: "--font-montserrat",
+  weight: ["500", "600", "700", "800"],
+  variable: "--font-manrope",
   display: "swap",
 });
 
@@ -336,39 +337,41 @@ export default function RootLayout({
       </head>
       <body
         style={bodyStyle}
-        className={`${inter.variable} ${montserrat.variable} ${robotoMono.variable} min-h-screen w-full max-w-full overflow-x-hidden text-slate-900 selection:bg-orange-500 selection:text-white font-sans antialiased`}
+        className={`${inter.variable} ${manrope.variable} ${robotoMono.variable} min-h-screen w-full max-w-full overflow-x-hidden bg-[#09090b] text-white selection:bg-white selection:text-black font-sans antialiased`}
       >
-        <Toaster
-          position="top-right"
-          reverseOrder={false}
-          gutter={8}
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: "#0f172a",
-              color: "#ffffff",
-              fontSize: "13px",
-              fontWeight: "600",
-              borderRadius: "16px",
-              padding: "12px 18px",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.2)",
-            },
-            success: {
-              iconTheme: {
-                primary: "#10b981",
-                secondary: "#ffffff",
+        <Providers>
+          <Toaster
+            position="top-right"
+            reverseOrder={false}
+            gutter={8}
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: "#18181b",
+                color: "#ffffff",
+                fontSize: "13px",
+                fontWeight: "500",
+                borderRadius: "12px",
+                padding: "12px 18px",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                boxShadow: "0 10px 30px rgba(0, 0, 0, 0.4)",
               },
-            },
-            error: {
-              iconTheme: {
-                primary: "#f43f5e",
-                secondary: "#ffffff",
+              success: {
+                iconTheme: {
+                  primary: "#10b981",
+                  secondary: "#ffffff",
+                },
               },
-            },
-          }}
-        />
-        {children}
+              error: {
+                iconTheme: {
+                  primary: "#f43f5e",
+                  secondary: "#ffffff",
+                },
+              },
+            }}
+          />
+          {children}
+        </Providers>
       </body>
     </html>
   );

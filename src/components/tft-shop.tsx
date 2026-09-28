@@ -31,7 +31,8 @@ import {
 } from "lucide-react";
 
 interface TFTShopProps {
-  onSelectAccount: (account: TFTRentalAccount) => void;
+  onSelectAccount?: (account: TFTRentalAccount) => void;
+  alwaysExpanded?: boolean;
 }
 
 const shopContainerVariants: Variants = {
@@ -191,7 +192,10 @@ const matchesAccountSearch = (acc: TFTRentalAccount, query: string): boolean => 
   return false;
 };
 
-export const TFTShop: React.FC<TFTShopProps> = ({ onSelectAccount }) => {
+export const TFTShop: React.FC<TFTShopProps> = ({
+  onSelectAccount = () => {},
+  alwaysExpanded = false,
+}) => {
   // Khởi tạo trạng thái đang load, fetch trực tiếp dữ liệu từ Database
   const [vipAccounts, setVipAccounts] = useState<TFTRentalAccount[]>([]);
   const [globalPriceMode, setGlobalPriceMode] = useState<string>("AUTO");

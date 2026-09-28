@@ -33,16 +33,25 @@ export interface UserVoucherItem {
 
 export interface UserProfile {
   id: string;
-  email: string;
-  name: string;
-  avatar: string;
+  email?: string;
+  name?: string;
+  avatar?: string;
   phoneZalo?: string;
-  provider: "google" | "custom" | "guest";
-  totalOrders: number;
-  totalSpent: number;
-  vipPoints: number;
-  vouchers: UserVoucherItem[];
-  createdAt: string;
+  provider?: "google" | "custom" | "guest" | "member";
+  totalOrders?: number;
+  totalSpent?: number;
+  vipPoints?: number;
+  vouchers?: UserVoucherItem[];
+  createdAt?: string;
+  username?: string;
+  full_name?: string;
+  zalo?: string;
+  status?: "ACTIVE" | "LOCKED";
+  role?: "MEMBER";
+  notes?: string;
+  updatedAt?: string;
+  lastLoginAt?: string;
+  requiresProfileCompletion?: boolean;
 }
 
 interface UserAuthContextType {
@@ -57,6 +66,10 @@ interface UserAuthContextType {
   closeProfileModal: () => void;
   loginWithGoogle: () => Promise<void>;
   quickLogin: (info: { name: string; email: string; avatar?: string; phoneZalo?: string }) => void;
+  login: (username: string, password: string) => Promise<{ success: boolean; message?: string; user?: any; requiresProfileCompletion?: boolean }>;
+  completeProfile: (fullName: string, zalo: string) => Promise<{ success: boolean; message?: string }>;
+  updateProfile: (fullName: string, zalo: string) => Promise<{ success: boolean; message?: string }>;
+  refreshUser: () => Promise<void>;
   logout: () => Promise<void>;
   updatePhoneZalo: (phone: string) => void;
   fetchUserRentals: () => Promise<void>;
@@ -77,11 +90,83 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
   const [activeProfileTab, setActiveProfileTab] = useState<"RENTALS" | "VIP" | "REVIEW" | "VOUCHERS">("RENTALS");
 
-  // Load user from localStorage or Supabase on mount
+  // Refresh member user from /api/auth/me
+  const refreshUser = useCallback(async () => {
+    try {
+      const res = await fetch("/api/auth/me");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.authenticated && data.user) {
+          const u: UserProfile = {
+            id: data.user.id,
+            username: data.user.username,
+            name: data.user.full_name || `@${data.user.username}`,
+            email: `${data.user.username}@shoptft.local`,
+            avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${data.user.id}`,
+            full_name: data.user.full_name,
+            zalo: data.user.zalo,
+            phoneZalo: data.user.zalo,
+            status: data.user.status,
+            role: data.user.role,
+            notes: data.user.notes,
+            createdAt: data.user.createdAt,
+            updatedAt: data.user.updatedAt,
+            lastLoginAt: data.user.lastLoginAt,
+            requiresProfileCompletion: data.requiresProfileCompletion,
+            provider: "member",
+            totalOrders: 0,
+            totalSpent: 0,
+            vipPoints: 0,
+            vouchers: [],
+          };
+          setUser(u);
+          return;
+        }
+      }
+      setUser(null);
+    } catch (err) {
+      console.warn("Lỗi refreshUser:", err);
+    }
+  }, []);
+
+  // Load user on mount
   useEffect(() => {
     async function initAuth() {
       try {
-        // 1. Kiểm tra session từ Supabase
+        // 1. Kiểm tra session Member trước
+        const memberRes = await fetch("/api/auth/me");
+        if (memberRes.ok) {
+          const memberData = await memberRes.json();
+          if (memberData.authenticated && memberData.user) {
+            const u: UserProfile = {
+              id: memberData.user.id,
+              username: memberData.user.username,
+              name: memberData.user.full_name || `@${memberData.user.username}`,
+              email: `${memberData.user.username}@shoptft.local`,
+              avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${memberData.user.id}`,
+              full_name: memberData.user.full_name,
+              zalo: memberData.user.zalo,
+              phoneZalo: memberData.user.zalo,
+              status: memberData.user.status,
+              role: memberData.user.role,
+              notes: memberData.user.notes,
+              createdAt: memberData.user.createdAt,
+              updatedAt: memberData.user.updatedAt,
+              lastLoginAt: memberData.user.lastLoginAt,
+              requiresProfileCompletion: memberData.requiresProfileCompletion,
+              provider: "member",
+              totalOrders: 0,
+              totalSpent: 0,
+              vipPoints: 0,
+              vouchers: [],
+            };
+            setUser(u);
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        // 2. Fallback Supabase session if any
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           const authUser = session.user;
@@ -118,12 +203,12 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           setUser(googleUser);
           localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(googleUser));
         } else {
-          // 2. Nếu chưa có session Supabase, nạp từ local storage nếu đã đăng nhập trước đó
+          // 3. Nạp từ local storage nếu đã đăng nhập trước đó
           const savedStr = localStorage.getItem(USER_STORAGE_KEY);
           if (savedStr) {
             try {
               const saved = JSON.parse(savedStr);
-              if (saved && saved.email) {
+              if (saved && (saved.email || saved.username)) {
                 setUser(saved);
               }
             } catch {}
@@ -197,11 +282,15 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           if (json.totalOrders !== undefined && json.totalSpent !== undefined) {
             setUser((prev) => {
               if (!prev) return null;
+              const prevOrders = prev.totalOrders ?? 0;
+              const prevSpent = prev.totalSpent ?? 0;
+              const newOrders = Math.max(prevOrders, json.totalOrders);
+              const newSpent = Math.max(prevSpent, json.totalSpent);
               const updated: UserProfile = {
                 ...prev,
-                totalOrders: Math.max(prev.totalOrders, json.totalOrders),
-                totalSpent: Math.max(prev.totalSpent, json.totalSpent),
-                vipPoints: Math.round((Math.max(prev.totalSpent, json.totalSpent) / 1000)),
+                totalOrders: newOrders,
+                totalSpent: newSpent,
+                vipPoints: Math.round(newSpent / 1000),
               };
               localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updated));
               return updated;
@@ -295,8 +384,72 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setIsProfileModalOpen(true);
   };
 
+  // Đăng nhập thành viên
+  const login = async (username: string, password: string) => {
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        await refreshUser();
+        return {
+          success: true,
+          user: data.user,
+          requiresProfileCompletion: Boolean(data.requiresProfileCompletion),
+        };
+      }
+      return { success: false, message: data.message || "Đăng nhập thất bại." };
+    } catch (err: any) {
+      return { success: false, message: err?.message || "Lỗi kết nối máy chủ." };
+    }
+  };
+
+  // Hoàn tất hồ sơ thành viên (lần đầu)
+  const completeProfile = async (fullName: string, zalo: string) => {
+    try {
+      const res = await fetch("/api/auth/complete-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ full_name: fullName, zalo }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        await refreshUser();
+        return { success: true };
+      }
+      return { success: false, message: data.message || "Cập nhật thất bại." };
+    } catch (err: any) {
+      return { success: false, message: err?.message || "Lỗi kết nối máy chủ." };
+    }
+  };
+
+  // Cập nhật thông tin hồ sơ thành viên
+  const updateProfile = async (fullName: string, zalo: string) => {
+    try {
+      const res = await fetch("/api/auth/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ full_name: fullName, zalo }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        await refreshUser();
+        return { success: true };
+      }
+      return { success: false, message: data.message || "Cập nhật thất bại." };
+    } catch (err: any) {
+      return { success: false, message: err?.message || "Lỗi kết nối máy chủ." };
+    }
+  };
+
   // Đăng xuất
   const logout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {}
     try {
       await supabase.auth.signOut();
     } catch {}
@@ -336,13 +489,14 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Sử dụng vé Test Acc 2H miễn phí
   const useTestAccVoucher = async (voucherId: string): Promise<boolean> => {
     if (!user) return false;
-    const voucherIndex = user.vouchers.findIndex((v) => v.id === voucherId && !v.isUsed);
+    const currentVouchers = user.vouchers || [];
+    const voucherIndex = currentVouchers.findIndex((v) => v.id === voucherId && !v.isUsed);
     if (voucherIndex === -1) {
       toast.error("Vé test này đã được sử dụng hoặc không hợp lệ!");
       return false;
     }
 
-    const updatedVouchers = [...user.vouchers];
+    const updatedVouchers = [...currentVouchers];
     updatedVouchers[voucherIndex] = { ...updatedVouchers[voucherIndex], isUsed: true };
     const updatedUser = { ...user, vouchers: updatedVouchers };
     setUser(updatedUser);
@@ -392,6 +546,10 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         closeProfileModal,
         loginWithGoogle,
         quickLogin,
+        login,
+        completeProfile,
+        updateProfile,
+        refreshUser,
         logout,
         updatePhoneZalo,
         fetchUserRentals,

@@ -32,19 +32,20 @@ const config: Config = {
         nav: "0.5px",
       },
       fontFamily: {
-        gaming: [
-          "var(--font-montserrat)",
+        heading: [
+          "var(--font-manrope)",
           "var(--font-inter)",
           "-apple-system",
           "BlinkMacSystemFont",
           "sans-serif",
         ],
-        rajdhani: [
-          "var(--font-montserrat)",
+        gaming: [
+          "var(--font-manrope)",
           "var(--font-inter)",
+          "-apple-system",
+          "BlinkMacSystemFont",
           "sans-serif",
         ],
-        montserrat: ["var(--font-montserrat)", "sans-serif"],
         sans: [
           "var(--font-inter)",
           "-apple-system",

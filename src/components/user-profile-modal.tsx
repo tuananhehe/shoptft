@@ -208,7 +208,7 @@ export const UserProfileModal: React.FC = () => {
                 <div className="text-center">
                   <span className="text-[10px] text-slate-400 block uppercase font-bold">Vé Test 2H</span>
                   <span className="text-sm font-black text-cyan-400">
-                    {user.vouchers.filter((v) => v.type === "FREE_TEST_2H" && !v.isUsed).length}
+                    {(user.vouchers || []).filter((v) => v.type === "FREE_TEST_2H" && !v.isUsed).length}
                   </span>
                 </div>
               </div>

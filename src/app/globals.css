@@ -4,22 +4,20 @@
 
 @layer base {
   :root {
-    --canvas: #F8FAFC;
-    --surface-card: #FFFFFF;
-    --surface-soft: #F1F5F9;
-    --surface-elevated: #E2E8F0;
-    --hairline: #E2E8F0;
-    --body: #475569;
-    --body-strong: #0F172A;
-    --primary-orange: #EA580C;
-    --primary-red: #DC2626;
-    --trust-emerald: #059669;
+    --canvas: #09090b;
+    --surface-card: #121214;
+    --surface-soft: #18181b;
+    --surface-elevated: #27272a;
+    --hairline: rgba(255, 255, 255, 0.08);
+    --body: #a1a1aa;
+    --body-strong: #fafafa;
+    --trust-emerald: #10b981;
   }
 
   html,
   body {
-    background-color: #F8FAFC;
-    color: #0F172A;
+    background-color: #09090b;
+    color: #fafafa;
     font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     line-height: 1.5;
     overflow-x: hidden;
@@ -32,8 +30,12 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     touch-action: manipulation;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-heading {
+    font-family: var(--font-manrope), var(--font-inter), sans-serif;
+    letter-spacing: -0.02em;
   }
 }
 
@@ -45,8 +47,8 @@
 
 /* Gaming Font Styling */
 .font-gaming {
-  letter-spacing: -0.015em;
-  font-feature-settings: "cv02", "cv03", "cv04";
+  font-family: var(--font-manrope), var(--font-inter), sans-serif;
+  letter-spacing: -0.02em;
 }
 
 /* Continuous Infinite Marquee Loop */
@@ -69,23 +71,23 @@
   animation-play-state: paused;
 }
 
-/* Custom Light Scrollbar */
+/* Custom Minimal Dark Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F1F5F9;
+  background: #09090b;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: #27272a;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: #3f3f46;
 }
 
 /* Hide Scrollbar Utilities */
