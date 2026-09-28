@@ -2,58 +2,39 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { PROFILE_INFO } from "@/data/tft-data";
 import {
   getVipAndCloneAccounts,
   updateAccountApi,
   formatRentalExpiry,
   toLocalDatetimeInputString,
-  AccountDbRow,
 } from "@/utils/supabase/accounts-service";
 import toast from "react-hot-toast";
 import {
   Gamepad2,
   Receipt,
   DollarSign,
-  Hourglass,
   Clock,
   ArrowUpRight,
-  Sparkles,
-  Zap,
-  Copy,
   CheckCircle2,
-  RotateCcw,
-  Check,
-  Flame,
-  AlertTriangle,
-  Wallet,
-  Search,
   RefreshCw,
-  Eye,
-  X,
+  AlertCircle,
   ExternalLink,
-  ShieldCheck,
+  Users,
+  Copy,
+  ChevronRight,
+  Plus,
   Calendar,
-  Layers,
-  Crown,
-  ShoppingBag,
-  Phone,
-  MessageCircle,
-  TrendingUp,
-  User,
-  Tag,
-  CalendarDays,
+  X,
 } from "lucide-react";
 import {
   OrderItem,
   getOrders,
   createOrder,
   updateOrder,
-  buildDeliveryMessage,
   getRentalTimeRemaining,
   formatOrderDateTime,
 } from "@/utils/orders-service";
-import ProfitAnalyticsChart from "@/components/admin/ProfitAnalyticsChart";
+import { AdminRevenueChart } from "@/components/admin/AdminRevenueChart";
 
 export interface DashboardAccountItem {
   id: string;
@@ -64,7 +45,6 @@ export interface DashboardAccountItem {
   status: "AVAILABLE" | "RENTED";
   rentedUntil?: string | null;
   rank?: string;
-  rankBadge?: string;
   hourlyPrice?: number;
   dailyPrice?: number;
   monthlyPrice?: number;
@@ -78,15 +58,9 @@ export interface DashboardAccountItem {
 export default function AdminDashboardPage() {
   const [accounts, setAccounts] = useState<DashboardAccountItem[]>([]);
   const [orders, setOrders] = useState<OrderItem[]>([]);
+  const [membersCount, setMembersCount] = useState<number>(0);
+  const [incompleteMembersCount, setIncompleteMembersCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Bộ lọc kho acc sẵn sàng
-  const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<"ALL" | "VIP" | "CLONE">("ALL");
-
-  // Bộ lọc Bảng Đơn Hàng & Doanh Thu Thật
-  const [orderFilter, setOrderFilter] = useState<"ALL" | "RENTING" | "COMPLETED">("ALL");
-  const [orderSearchTerm, setOrderSearchTerm] = useState("");
 
   // Modal Cho Thuê / Gia Hạn Nhanh
   const [rentModalAccount, setRentModalAccount] = useState<DashboardAccountItem | null>(null);
@@ -94,17 +68,28 @@ export default function AdminDashboardPage() {
   const [customEndTime, setCustomEndTime] = useState<string>("");
   const [isSubmittingRental, setIsSubmittingRental] = useState(false);
 
-  // 1. TẢI DỮ LIỆU TÀI KHOẢN & ĐƠN HÀNG TỪ DATABASE
-  const loadAccounts = async (showToastNotice = false) => {
+  const loadData = async (showToastNotice = false) => {
     setIsLoading(true);
     try {
-      const [{ vipAccounts, cloneAccounts }, ordersRes] = await Promise.all([
+      const token = typeof window !== "undefined" ? localStorage.getItem("shoptft_admin_token") : null;
+      const headers: Record<string, string> = token ? { "x-admin-token": token } : {};
+
+      const [{ vipAccounts, cloneAccounts }, ordersRes, usersRes] = await Promise.all([
         getVipAndCloneAccounts(),
         getOrders(),
+        fetch("/api/admin/users", { headers })
+          .then((r) => r.json())
+          .catch(() => ({ success: false, data: [] })),
       ]);
 
       if (ordersRes && ordersRes.success) {
         setOrders(ordersRes.data || []);
+      }
+
+      if (usersRes && usersRes.success && Array.isArray(usersRes.data)) {
+        setMembersCount(usersRes.data.length);
+        const incomplete = usersRes.data.filter((u: any) => !u.zalo || !u.full_name).length;
+        setIncompleteMembersCount(incomplete);
       }
 
       const unifiedList: DashboardAccountItem[] = [
@@ -132,7 +117,7 @@ export default function AdminDashboardPage() {
           thumbnail: c.thumbnail || "/avatar.jpg",
           status: (c.status || "AVAILABLE").toUpperCase() as "AVAILABLE" | "RENTED",
           rentedUntil: c.rentedUntil || null,
-          rankBadge: c.rankBadge || "UNRANKED",
+          rank: c.rankBadge || "UNRANKED",
           monthlyPrice: Number(c.monthlyPrice) || Number(c.periodPrice) || Number(c.price) || 150000,
           periodPrice: Number(c.periodPrice) || 150000,
           accountValue: Number(c.price) || 150000,
@@ -141,1292 +126,572 @@ export default function AdminDashboardPage() {
       ];
 
       setAccounts(unifiedList);
-      if (showToastNotice) {
-        toast.success("✅ Đã làm mới số liệu kho & đơn hàng!");
-      }
+      if (showToastNotice) toast.success("Đã làm mới dữ liệu hệ thống!");
     } catch (err: any) {
-      console.error("Lỗi tải danh sách tài khoản:", err);
-      toast.error("Không thể tải danh sách tài khoản từ cơ sở dữ liệu!");
+      console.error("Lỗi tải dữ liệu dashboard:", err);
+      toast.error("Không thể tải dữ liệu dashboard!");
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    loadAccounts();
+    loadData();
   }, []);
 
-  // 2. TÍNH TOÁN CÁC CHỈ SỐ THỐNG KÊ THỰC TẾ
-  const stats = useMemo(() => {
-    const total = accounts.length;
-    const vipCount = accounts.filter((a) => a.category === "VIP").length;
-    const cloneCount = accounts.filter((a) => a.category === "CLONE").length;
-    const available = accounts.filter((a) => a.status === "AVAILABLE").length;
-    const rented = accounts.filter((a) => a.status === "RENTED").length;
+  // Tính toán KPI thực tế từ dữ liệu
+  const vipCount = useMemo(() => accounts.filter((a) => a.category === "VIP").length, [accounts]);
+  const cloneCount = useMemo(() => accounts.filter((a) => a.category === "CLONE").length, [accounts]);
+  const rentedAccounts = useMemo(() => accounts.filter((a) => a.status === "RENTED"), [accounts]);
+  const availableAccounts = useMemo(() => accounts.filter((a) => a.status === "AVAILABLE"), [accounts]);
 
-    // Vốn tài khoản còn trong kho (các acc AVAILABLE)
-    const availableValue = accounts
-      .filter((a) => a.status === "AVAILABLE")
-      .reduce((sum, a) => {
-        if (a.category === "VIP") {
-          return sum + (Number(a.accountValue) || Number(a.price) || 850000);
-        }
-        return sum + (Number(a.monthlyPrice) || Number(a.periodPrice) || Number(a.price) || 150000);
-      }, 0);
+  const todayOrders = useMemo(() => {
+    const today = new Date();
+    const pad = (n: number) => (n < 10 ? `0${n}` : n);
+    const todayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
 
-    // Tổng định giá toàn bộ kho tài khoản
-    const totalValue = accounts.reduce((sum, a) => {
-      if (a.category === "VIP") {
-        return sum + (Number(a.accountValue) || Number(a.price) || 850000);
-      }
-      return sum + (Number(a.monthlyPrice) || Number(a.periodPrice) || Number(a.price) || 150000);
-    }, 0);
-
-    // Tỷ lệ cho thuê (Lấp đầy)
-    const fillRate = total > 0 ? Math.round((rented / total) * 100) : 0;
-
-    // Danh sách tài khoản đang thuê
-    const rentedList = accounts.filter((a) => a.status === "RENTED");
-
-    // Tài khoản sắp hết giờ thuê (dưới 24h hoặc đã quá hạn)
-    const nowMs = Date.now();
-    const expiringList = rentedList.filter((a) => {
-      if (!a.rentedUntil) return false;
-      const expiryMs = new Date(a.rentedUntil).getTime();
-      return isNaN(expiryMs) || expiryMs <= nowMs + 24 * 60 * 60 * 1000;
+    return orders.filter((o) => {
+      const created = o.createdAt || "";
+      return created.startsWith(todayStr);
     });
-
-    return {
-      total,
-      vipCount,
-      cloneCount,
-      available,
-      rented,
-      availableValue,
-      totalValue,
-      fillRate,
-      rentedList,
-      expiringCount: expiringList.length,
-    };
-  }, [accounts]);
-
-  // Danh sách các acc đang được cho thuê trong kho để đồng bộ biểu đồ lợi nhuận
-  const extraRentedAccounts = useMemo(() => {
-    return stats.rentedList.map((a) => {
-      let amount = 60000;
-      if (a.category === "VIP") {
-        amount = Number(a.dailyPrice) || (Number(a.hourlyPrice) ? Number(a.hourlyPrice) * 4 : 60000);
-      } else {
-        amount = Number(a.monthlyPrice) || Number(a.periodPrice) || 210000;
-      }
-      return {
-        code: a.code,
-        category: a.category,
-        amount,
-        profit: amount,
-        title: a.title,
-      };
-    });
-  }, [stats.rentedList]);
-
-  // 3. TÍNH TOÁN DOANH THU & ĐƠN HÀNG THỰC TẾ
-  const orderMetrics = useMemo(() => {
-    const totalRevenue = orders.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
-    const totalProfit = totalRevenue; // Thuê acc & dịch vụ lãi 100% doanh thu
-    const rentingCount = orders.filter((o) => o.status === "RENTING").length;
-    const completedCount = orders.filter((o) => o.status === "COMPLETED").length;
-    return {
-      totalRevenue,
-      totalProfit,
-      rentingCount,
-      completedCount,
-    };
   }, [orders]);
 
-  // Danh sách đơn hàng đã lọc và tìm kiếm
-  const filteredOrders = useMemo(() => {
-    return orders
-      .filter((o) => {
-        if (orderFilter === "RENTING" && o.status !== "RENTING") return false;
-        if (orderFilter === "COMPLETED" && o.status !== "COMPLETED") return false;
-        if (orderSearchTerm.trim()) {
-          const q = orderSearchTerm.toLowerCase();
-          return (
-            o.id.toLowerCase().includes(q) ||
-            o.customer.toLowerCase().includes(q) ||
-            (o.deliveredBy && o.deliveredBy.toLowerCase().includes(q)) ||
-            (o.phoneZalo && o.phoneZalo.toLowerCase().includes(q)) ||
-            o.accountCode.toLowerCase().includes(q) ||
-            o.accountTitle.toLowerCase().includes(q) ||
-            o.package.toLowerCase().includes(q)
-          );
-        }
-        return true;
+  const todayRevenue = useMemo(() => {
+    return todayOrders.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+  }, [todayOrders]);
+
+  const pendingOrders = useMemo(() => {
+    return orders.filter((o) => (o.status as string) === "PENDING" || o.status === "EXPIRED");
+  }, [orders]);
+
+  // Các tài khoản đang thuê sắp hết hạn trong vòng 24 giờ
+  const expiringRentals = useMemo(() => {
+    const now = new Date().getTime();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+
+    return rentedAccounts
+      .filter((a) => {
+        if (!a.rentedUntil) return false;
+        const expiry = new Date(a.rentedUntil).getTime();
+        const diff = expiry - now;
+        return diff > 0 && diff <= oneDayMs;
       })
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [orders, orderFilter, orderSearchTerm]);
+      .sort((a, b) => new Date(a.rentedUntil!).getTime() - new Date(b.rentedUntil!).getTime());
+  }, [rentedAccounts]);
 
-  // 4. THAO TÁC HOÀN THÀNH ĐƠN (TỪ BẢNG ĐƠN HÀNG)
-  const handleCompleteExistingOrder = async (ord: OrderItem) => {
-    const toastId = toast.loading(`Đang chốt hoàn thành đơn [${ord.id}]...`);
-    try {
-      // 1. Cập nhật trạng thái đơn hàng sang COMPLETED
-      const res = await updateOrder(ord.id, {
-        status: "COMPLETED",
-        notes: `${ord.notes || ""}\n[${new Date().toLocaleTimeString("vi-VN")}] Admin chốt hoàn thành đơn & thu hồi acc về kho.`.trim(),
-      });
+  // Hoạt động gần đây: lấy 8 đơn hàng mới nhất
+  const recentOrders = useMemo(() => {
+    return [...orders]
+      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+      .slice(0, 8);
+  }, [orders]);
 
-      if (!res.success) {
-        throw new Error(res.error || "Không thể cập nhật trạng thái đơn hàng!");
-      }
-
-      // 2. Tìm tài khoản tương ứng trong Supabase và đưa về AVAILABLE
-      const matchedAccount = accounts.find(
-        (a) => a.code.toLowerCase().trim() === ord.accountCode.toLowerCase().trim()
-      );
-
-      if (matchedAccount) {
-        await updateAccountApi({
-          id: matchedAccount.id,
-          status: "AVAILABLE",
-          rented_until: null,
-        });
-
-        setAccounts((prev) =>
-          prev.map((a) =>
-            a.id === matchedAccount.id ? { ...a, status: "AVAILABLE", rentedUntil: null } : a
-          )
-        );
-      }
-
-      // 3. Cập nhật state local đơn hàng
-      setOrders((prev) =>
-        prev.map((o) => (o.id === ord.id ? { ...o, status: "COMPLETED" } : o))
-      );
-
-      toast.success(`✅ Đã hoàn thành đơn [${ord.id}] & thu hồi acc [${ord.accountCode}] về kho sẵn sàng!`, {
-        id: toastId,
-      });
-    } catch (err: any) {
-      toast.error(`Lỗi: ${err.message}`, { id: toastId });
-    }
-  };
-
-  // 5. THAO TÁC HOÀN THÀNH ĐƠN & THU HỒI ACC VỀ KHO (TỪ BẢNG KHO ACC ĐANG THUÊ)
-  const handleCompleteOrderFromAccount = async (account: DashboardAccountItem) => {
-    const toastId = toast.loading(`Đang chốt hoàn thành đơn [${account.code}]...`);
-    try {
-      // 1. Cập nhật trạng thái tài khoản về AVAILABLE trên Supabase
-      const res = await updateAccountApi({
-        id: account.id,
-        status: "AVAILABLE",
-        rented_until: null,
-      });
-
-      if (!res.success) {
-        throw new Error(res.error || "Không thể cập nhật trạng thái tài khoản!");
-      }
-
-      // 2. Tìm đơn hàng tương ứng trong hệ thống đơn hoặc tạo mới để chốt lãi
-      const matchedOrder = orders.find(
-        (o) => o.accountCode.trim().toLowerCase() === account.code.trim().toLowerCase() && o.status === "RENTING"
-      );
-
-      if (matchedOrder) {
-        // Cập nhật đơn hàng hiện có sang COMPLETED
-        await updateOrder(matchedOrder.id, {
-          status: "COMPLETED",
-          notes: `${matchedOrder.notes || ""}\n[${new Date().toLocaleTimeString("vi-VN")}] Hoàn thành đơn & thu hồi acc về kho.`.trim(),
-        });
-        setOrders((prev) =>
-          prev.map((o) => (o.id === matchedOrder.id ? { ...o, status: "COMPLETED" } : o))
-        );
-      } else {
-        // Tự động sinh đơn hoàn thành với giá gói chính xác theo cấu hình trong Quản lý Acc
-        let amount = 850000;
-        let packageName = "Gói Thuê Lâu Dài (Vô Cực ∞)";
-        if (account.category === "VIP") {
-          const accountValue = Number(account.accountValue) || Number(account.price) || 850000;
-          if (account.rentedUntil) {
-            const expDate = new Date(account.rentedUntil);
-            const now = new Date();
-            const diffDays = Math.round((expDate.getTime() - now.getTime()) / (24 * 3600 * 1000));
-            if (expDate.getFullYear() >= 2028) {
-              packageName = "Gói Thuê Lâu Dài (Vô Cực ∞)";
-              amount = accountValue;
-            } else if (diffDays >= 16) {
-              packageName = "Gói 30 Ngày (1 Tháng VIP)";
-              amount = Math.round((accountValue * 0.30) / 1000) * 1000;
-            } else if (diffDays >= 4) {
-              packageName = "Gói 7 Ngày (Tiết Kiệm VIP)";
-              amount = Math.round((accountValue * 0.12) / 1000) * 1000 + 20000;
-            } else {
-              packageName = "Gói 24 Giờ (1 Ngày VIP)";
-              amount = Number(account.dailyPrice) || Math.round((((accountValue * 0.12) + 20000) / 2) / 1000) * 1000;
-            }
-          } else {
-            packageName = "Gói Thuê Lâu Dài (Vô Cực ∞)";
-            amount = accountValue;
-          }
-        } else {
-          amount = Number(account.monthlyPrice) || Number(account.periodPrice) || Number(account.price) || 150000;
-          packageName = "Gói Thuê Lâu Dài (Bàn Giao Full Thông Tin)";
-        }
-
-        const createRes = await createOrder({
-          type: account.category,
-          customer: "Khách hàng ẩn danh",
-          deliveredBy: "Admin",
-          phoneZalo: "0352.867.283",
-          accountCode: account.code,
-          accountTitle: account.title,
-          package: packageName,
-          amount,
-          status: "COMPLETED",
-          createdBy: "ADMIN",
-          source: "ADMIN",
-          accountLogin: `tft_${account.code.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
-          accountPass: "TuanTFT@Shop",
-          notes: "Đơn hoàn thành trực tiếp từ trang Quản trị tổng quan.",
-        });
-
-        if (createRes.success && createRes.data) {
-          setOrders((prev) => [createRes.data!, ...prev]);
-        }
-      }
-
-      // 3. Cập nhật state local danh sách tài khoản
-      setAccounts((prev) =>
-        prev.map((a) =>
-          a.id === account.id ? { ...a, status: "AVAILABLE", rentedUntil: null } : a
-        )
-      );
-
-      toast.success(`✅ Đã hoàn thành đơn & thu hồi acc [${account.code}] về kho sẵn sàng!`, {
-        id: toastId,
-      });
-    } catch (err: any) {
-      toast.error(`Lỗi: ${err.message}`, { id: toastId });
-    }
-  };
-
-  // 6. MỞ MODAL CHO THUÊ / GIA HẠN NHANH
-  const openRentModal = (account: DashboardAccountItem) => {
-    setRentModalAccount(account);
-    const initialHours = 2;
-    setQuickHours(initialHours);
-
-    // Mặc định thời gian kết thúc = bây giờ + initialHours
-    const d = new Date(Date.now() + initialHours * 60 * 60 * 1000);
-    setCustomEndTime(toLocalDatetimeInputString(d));
-  };
-
-  // Mở modal gia hạn từ đơn hàng
-  const openRentModalFromOrder = (ord: OrderItem) => {
-    const matched = accounts.find((a) => a.code.trim().toLowerCase() === ord.accountCode.trim().toLowerCase());
-    if (matched) {
-      openRentModal(matched);
-    } else {
-      // Tạo mock account item để mở modal
-      openRentModal({
-        id: ord.id,
-        category: ord.type === "CLONE" ? "CLONE" : "VIP",
-        code: ord.accountCode,
-        title: ord.accountTitle,
-        thumbnail: "/avatar.jpg",
-        status: "RENTED",
-        rentedUntil: ord.expiresAt,
-      });
-    }
-  };
-
-  // Chọn số giờ thuê mẫu nhanh
-  const handleSelectQuickHours = (hours: number) => {
-    setQuickHours(hours);
-    const d = new Date(Date.now() + hours * 60 * 60 * 1000);
-    setCustomEndTime(toLocalDatetimeInputString(d));
-  };
-
-  // 7. LƯU THỜI GIAN CHO THUÊ / GIA HẠN
-  const handleSaveRentalDuration = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Xử lý gửi cho thuê nhanh / gia hạn
+  const handleConfirmQuickRental = async () => {
     if (!rentModalAccount) return;
-
-    if (!customEndTime) {
-      toast.error("Vui lòng chọn thời gian trả tài khoản!");
-      return;
-    }
-
-    const targetDate = new Date(customEndTime);
-    if (isNaN(targetDate.getTime())) {
-      toast.error("Thời gian không hợp lệ!");
-      return;
-    }
-
     setIsSubmittingRental(true);
-    const toastId = toast.loading(`Đang lưu thời gian thuê acc [${rentModalAccount.code}]...`);
 
     try {
-      const isoString = targetDate.toISOString();
+      let targetEndTime: string;
+      if (customEndTime) {
+        targetEndTime = new Date(customEndTime).toISOString();
+      } else {
+        const now = new Date();
+        const baseTime =
+          rentModalAccount.rentedUntil && new Date(rentModalAccount.rentedUntil) > now
+            ? new Date(rentModalAccount.rentedUntil)
+            : now;
+        baseTime.setHours(baseTime.getHours() + quickHours);
+        targetEndTime = baseTime.toISOString();
+      }
+
       const res = await updateAccountApi({
-        id: rentModalAccount.id,
+        code: rentModalAccount.code,
         status: "RENTED",
-        rented_until: isoString,
+        rented_until: targetEndTime,
       });
 
       if (!res.success) {
-        throw new Error(res.error || "Không thể cập nhật thời gian thuê!");
+        toast.error(res.error || "Lỗi cập nhật trạng thái thuê!");
+        return;
       }
 
-      // Cập nhật state local tài khoản
-      setAccounts((prev) =>
-        prev.map((a) =>
-          a.id === rentModalAccount.id
-            ? { ...a, status: "RENTED", rentedUntil: isoString }
-            : a
-        )
-      );
-
-      // Đồng thời cập nhật expiresAt trong đơn hàng nếu có
-      const matchedOrder = orders.find(
-        (o) => o.accountCode.trim().toLowerCase() === rentModalAccount.code.trim().toLowerCase() && o.status === "RENTING"
-      );
-      if (matchedOrder) {
-        await updateOrder(matchedOrder.id, { expiresAt: isoString });
-        setOrders((prev) =>
-          prev.map((o) => (o.id === matchedOrder.id ? { ...o, expiresAt: isoString } : o))
-        );
-      }
-
-      toast.success(`✅ Đã thiết lập cho thuê acc [${rentModalAccount.code}] thành công!`, {
-        id: toastId,
+      // Tạo đơn hàng lưu lịch sử
+      await createOrder({
+        type: rentModalAccount.category || "VIP",
+        accountCode: rentModalAccount.code,
+        accountTitle: rentModalAccount.title,
+        customer: "Khách Thuê Nhanh (Admin)",
+        phoneZalo: "0352867283",
+        package: `Thuê Nhanh (${quickHours}h)`,
+        durationHours: quickHours,
+        amount: (rentModalAccount.hourlyPrice || 15000) * quickHours,
+        status: "RENTING",
+        source: "ADMIN",
+        startedAt: new Date().toISOString(),
+        expiresAt: targetEndTime,
+        accountLogin: "tft_" + rentModalAccount.code.toLowerCase().replace(/[^a-z0-9]/g, ""),
+        accountPass: "TuanTFT@8888",
       });
+
+      toast.success(`Đã cập nhật cho thuê ${rentModalAccount.code}!`);
       setRentModalAccount(null);
+      setCustomEndTime("");
+      loadData();
     } catch (err: any) {
-      toast.error(`Lỗi: ${err.message}`, { id: toastId });
+      toast.error(err.message || "Lỗi xử lý!");
     } finally {
       setIsSubmittingRental(false);
     }
   };
 
-  // Sao chép tin nhắn bàn giao chuẩn Zalo
-  const handleCopyDelivery = (ord: OrderItem) => {
-    const msg = buildDeliveryMessage(ord);
-    navigator.clipboard.writeText(msg).then(() => {
-      toast.success(`Đã sao chép tin nhắn bàn giao đơn [${ord.id}]!`);
-    });
-  };
+  const handleReturnAccount = async (acc: DashboardAccountItem) => {
+    if (!confirm(`Xác nhận thu hồi tài khoản ${acc.code} về trạng thái SẴN SÀNG?`)) return;
 
-  // Sao chép thông tin tài khoản cho khách Zalo
-  const handleCopyAccountInfo = (account: DashboardAccountItem) => {
-    const text = `[THÔNG TIN ACC SHOP TFT]\n- Mã Acc: ${account.code}\n- Tên Acc: ${account.title}\n- Loại: ${account.category === "VIP" ? "Kho VIP" : "Kho Clone"}\n- Trạng Thái: ${account.status === "RENTED" ? "Đang Thuê" : "Sẵn Sàng"}`;
-    navigator.clipboard.writeText(text).then(() => {
-      toast.success(`Đã sao chép thông tin acc [${account.code}]!`);
-    });
-  };
-
-  // Danh sách tài khoản sẵn sàng đã được lọc
-  const filteredAvailableAccounts = useMemo(() => {
-    return accounts
-      .filter((a) => a.status === "AVAILABLE")
-      .filter((a) => {
-        if (categoryFilter === "VIP" && a.category !== "VIP") return false;
-        if (categoryFilter === "CLONE" && a.category !== "CLONE") return false;
-        if (searchTerm.trim()) {
-          const q = searchTerm.toLowerCase();
-          return (
-            a.code.toLowerCase().includes(q) ||
-            a.title.toLowerCase().includes(q) ||
-            (a.mainChibi && a.mainChibi.toLowerCase().includes(q))
-          );
-        }
-        return true;
+    try {
+      const res = await updateAccountApi({
+        code: acc.code,
+        status: "AVAILABLE",
+        rented_until: null,
       });
-  }, [accounts, categoryFilter, searchTerm]);
+
+      if (res.success) {
+        toast.success(`Đã thu hồi tài khoản ${acc.code}!`);
+        loadData();
+      } else {
+        toast.error(res.error || "Không thể thu hồi tài khoản!");
+      }
+    } catch {
+      toast.error("Lỗi khi kết nối máy chủ!");
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* 1. WELCOME BANNER & TỔNG QUAN HỆ THỐNG */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 text-white flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-xl shadow-orange-600/15 relative overflow-hidden">
-        <div className="space-y-1.5 z-10">
-          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/20 text-white text-[11px] font-bold uppercase tracking-wider backdrop-blur-sm">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Tổng Quan Hệ Thống Kho Acc • {PROFILE_INFO.realName}</span>
-          </div>
-          <h2 className="text-xl sm:text-2xl font-black tracking-tight font-gaming">
-            Hệ Thống Kho Acc ĐTCL Đang Hoạt Động Tốt
-          </h2>
-          <p className="text-xs sm:text-sm text-orange-100 max-w-xl font-normal leading-relaxed">
-            Hiện tại đang có <strong className="font-bold text-white underline">{stats.rented} tài khoản</strong> đang cho khách thuê và{" "}
-            <strong className="font-bold text-white underline">{stats.available} tài khoản</strong> sẵn sàng bàn giao trong kho.
+      {/* 1. COMPACT PAGE HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-gray-200">
+        <div>
+          <h1 className="font-heading font-bold text-xl sm:text-2xl text-[#111111] tracking-tight">
+            Tổng quan
+          </h1>
+          <p className="text-xs text-[#6B7280] mt-0.5">
+            Theo dõi tình trạng kho, thuê và doanh thu hệ thống.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 z-10 flex-shrink-0 flex-wrap">
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => loadAccounts(true)}
-            className="px-3.5 py-2.5 bg-white/15 hover:bg-white/25 text-white font-bold text-xs uppercase tracking-wider rounded-xl backdrop-blur-sm transition-all flex items-center gap-1.5 cursor-pointer border border-white/20"
-            title="Tải lại dữ liệu mới nhất từ cơ sở dữ liệu"
+            onClick={() => loadData(true)}
+            disabled={isLoading}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#E5E7EB] hover:bg-gray-50 text-xs font-medium text-[#111111] transition-colors cursor-pointer shadow-xs"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
-            <span>Làm Mới</span>
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-gray-500" : ""}`} />
+            <span>Làm mới</span>
           </button>
 
           <Link
-            href="/admin/orders"
-            className="px-3.5 py-2.5 bg-white/15 hover:bg-white/25 text-white font-bold text-xs uppercase tracking-wider rounded-xl backdrop-blur-sm transition-all flex items-center gap-1.5 cursor-pointer border border-white/20"
-          >
-            <Receipt className="w-3.5 h-3.5" />
-            <span>Quản Lý Đơn Hàng</span>
-          </Link>
-
-          <Link
             href="/admin/accounts"
-            className="px-4 py-2.5 bg-white hover:bg-slate-50 text-orange-700 font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all hover:scale-105 flex items-center gap-2 cursor-pointer font-gaming"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#111111] hover:bg-black text-white text-xs font-semibold transition-colors shadow-xs"
           >
-            <Gamepad2 className="w-4 h-4" />
-            <span>Kho Chi Tiết ➔</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Thêm tài khoản</span>
           </Link>
         </div>
       </div>
 
-      {/* 2. STATS GRID: 4 THẺ THỐNG KÊ DỮ LIỆU THỰC TẾ */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Tổng Kho Tài Khoản */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2 relative overflow-hidden group hover:border-slate-300 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider font-gaming">
-              Tổng Kho Tài Khoản
-            </span>
-            <span className="p-2 bg-slate-100 text-slate-700 rounded-xl">
-              <Gamepad2 className="w-4 h-4" />
-            </span>
-          </div>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black text-slate-900 font-mono">
-              {stats.total} Acc
-            </span>
-            <span className="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md font-mono">
-              {stats.vipCount} VIP • {stats.cloneCount} Clone
+      {/* 2. KPI METRICS CARDS (6 COMPACT SAAS CARDS) */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        {/* Card 1: Tổng kho */}
+        <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 shadow-xs flex flex-col justify-between">
+          <span className="text-[11px] font-medium text-[#6B7280] uppercase tracking-wider block">
+            Tổng tài khoản
+          </span>
+          <div className="my-2">
+            <span className="font-heading font-bold text-2xl text-[#111111]">
+              {accounts.length}
             </span>
           </div>
-          <p className="text-[11px] text-slate-500 font-normal">
-            Tổng định giá kho: <strong className="font-mono text-slate-700 font-bold">{stats.totalValue.toLocaleString("vi-VN")}đ</strong>
+          <p className="text-[11px] text-[#6B7280]">
+            {vipCount} VIP • {cloneCount} Clone
           </p>
         </div>
 
-        {/* Card 2: Đang Cho Thuê */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2 relative overflow-hidden group hover:border-orange-300 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider font-gaming">
-              Đang Cho Thuê
-            </span>
-            <span className="p-2 bg-orange-100 text-orange-600 rounded-xl">
-              <Flame className="w-4 h-4 text-orange-600 animate-pulse" />
-            </span>
-          </div>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black text-orange-600 font-mono">
-              {stats.rented} Acc
-            </span>
-            <span className="text-xs text-orange-700 bg-orange-50 border border-orange-200 font-bold px-2 py-0.5 rounded-md font-mono">
-              Lấp đầy {stats.fillRate}%
+        {/* Card 2: Đang cho thuê */}
+        <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 shadow-xs flex flex-col justify-between">
+          <span className="text-[11px] font-medium text-[#6B7280] uppercase tracking-wider block">
+            Đang cho thuê
+          </span>
+          <div className="my-2">
+            <span className="font-heading font-bold text-2xl text-amber-600">
+              {rentedAccounts.length}
             </span>
           </div>
-          <p className="text-[11px] text-slate-500 font-normal">
-            {stats.rented > 0 ? "Đang có khách giữ pass chơi game" : "Hiện tại kho đang trống chưa cho thuê"}
+          <p className="text-[11px] text-[#6B7280]">
+            {accounts.length > 0 ? Math.round((rentedAccounts.length / accounts.length) * 100) : 0}% tổng kho
           </p>
         </div>
 
-        {/* Card 3: Vốn Acc Còn Trong Kho */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2 relative overflow-hidden group hover:border-emerald-300 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider font-gaming">
-              Vốn Acc Sẵn Sàng
-            </span>
-            <span className="p-2 bg-emerald-100 text-emerald-600 rounded-xl">
-              <Wallet className="w-4 h-4" />
-            </span>
-          </div>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black text-emerald-600 font-mono">
-              {stats.availableValue.toLocaleString("vi-VN")}đ
-            </span>
-            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-mono">
-              {stats.available} SẴN SÀNG
+        {/* Card 3: Sẵn sàng */}
+        <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 shadow-xs flex flex-col justify-between">
+          <span className="text-[11px] font-medium text-[#6B7280] uppercase tracking-wider block">
+            Sẵn sàng
+          </span>
+          <div className="my-2">
+            <span className="font-heading font-bold text-2xl text-emerald-600">
+              {availableAccounts.length}
             </span>
           </div>
-          <p className="text-[11px] text-slate-500 font-normal">
-            Tổng giá trị acc chưa cho thuê trong kho
+          <p className="text-[11px] text-[#6B7280]">
+            {accounts.length > 0 ? Math.round((availableAccounts.length / accounts.length) * 100) : 0}% tổng kho
           </p>
         </div>
 
-        {/* Card 4: Doanh Thu & Lợi Nhuận Thật */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2 relative overflow-hidden group hover:border-blue-300 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider font-gaming">
-              Tổng Doanh Thu Đơn
-            </span>
-            <span className="p-2 bg-blue-100 text-blue-600 rounded-xl">
-              <DollarSign className="w-4 h-4" />
-            </span>
-          </div>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black text-blue-600 font-mono">
-              {orderMetrics.totalRevenue.toLocaleString("vi-VN")}đ
-            </span>
-            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-mono">
-              100% LÃI
+        {/* Card 4: Doanh thu hôm nay */}
+        <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 shadow-xs flex flex-col justify-between">
+          <span className="text-[11px] font-medium text-[#6B7280] uppercase tracking-wider block">
+            Doanh thu hôm nay
+          </span>
+          <div className="my-2">
+            <span className="font-heading font-bold text-xl sm:text-2xl text-[#111111]">
+              {todayRevenue >= 1000000
+                ? `${(todayRevenue / 1000000).toFixed(1)}M`
+                : todayRevenue >= 1000
+                ? `${(todayRevenue / 1000).toFixed(0)}k`
+                : `${todayRevenue}đ`}
             </span>
           </div>
-          <p className="text-[11px] text-slate-500 font-normal">
-            {orders.length} Đơn hàng thực tế • {orderMetrics.rentingCount} đang thuê
+          <p className="text-[11px] text-[#6B7280]">
+            {todayOrders.length} giao dịch trong ngày
+          </p>
+        </div>
+
+        {/* Card 5: Giao dịch chờ xử lý */}
+        <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 shadow-xs flex flex-col justify-between">
+          <span className="text-[11px] font-medium text-[#6B7280] uppercase tracking-wider block">
+            Chờ xử lý
+          </span>
+          <div className="my-2">
+            <span className={`font-heading font-bold text-2xl ${pendingOrders.length > 0 ? "text-red-600" : "text-[#111111]"}`}>
+              {pendingOrders.length}
+            </span>
+          </div>
+          <p className="text-[11px] text-[#6B7280]">
+            {pendingOrders.length > 0 ? "Cần kiểm tra ngay" : "Đã xử lý xong"}
+          </p>
+        </div>
+
+        {/* Card 6: Khách hàng */}
+        <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 shadow-xs flex flex-col justify-between">
+          <span className="text-[11px] font-medium text-[#6B7280] uppercase tracking-wider block">
+            Khách hàng
+          </span>
+          <div className="my-2">
+            <span className="font-heading font-bold text-2xl text-[#111111]">
+              {membersCount}
+            </span>
+          </div>
+          <p className="text-[11px] text-[#6B7280]">
+            {incompleteMembersCount > 0 ? `${incompleteMembersCount} chưa đủ Zalo` : "Thành viên lưu trữ"}
           </p>
         </div>
       </div>
 
-      {/* 2.5. BIỂU ĐỒ LỢI NHUẬN & DOANH THU SHOP (PROFIT ANALYTICS CHART) */}
-      <ProfitAnalyticsChart
-        orders={orders}
-        extraRentedAccounts={extraRentedAccounts}
-      />
-
-      {/* 3. BẢNG CHI TIẾT ĐƠN HÀNG & DOANH THU THẬT (REAL ORDERS & REVENUE DETAILS) */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-orange-600" />
-              <h3 className="font-extrabold text-slate-900 text-base font-gaming uppercase tracking-tight">
-                Chi Tiết Đơn Hàng & Doanh Thu Cho Thuê ({filteredOrders.length} Đơn)
-              </h3>
-            </div>
-            <p className="text-xs text-slate-500 font-normal mt-0.5">
-              Danh sách các tài khoản đã cho thuê: đầy đủ Ngày cho thuê, Ngày kết thúc, Người nhận (Khách hàng ẩn danh) và Người giao (Admin).
-            </p>
+      {/* 3. VIỆC CẦN XỬ LÝ (ACTION REQUIRED) */}
+      <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 shadow-xs space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-500" />
+            <h3 className="font-heading font-bold text-sm text-[#111111]">
+              Việc cần xử lý
+            </h3>
           </div>
-
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Thanh tìm kiếm đơn */}
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                value={orderSearchTerm}
-                onChange={(e) => setOrderSearchTerm(e.target.value)}
-                placeholder="Tìm mã đơn, khách, SĐT, mã acc..."
-                className="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-orange-500 w-48 sm:w-60"
-              />
-            </div>
-
-            {/* Tab lọc trạng thái đơn */}
-            <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs">
-              <button
-                type="button"
-                onClick={() => setOrderFilter("ALL")}
-                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                  orderFilter === "ALL" ? "bg-white text-slate-900 shadow-xs" : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Tất cả ({orders.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setOrderFilter("RENTING")}
-                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                  orderFilter === "RENTING" ? "bg-white text-orange-700 shadow-xs" : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Đang thuê ({orderMetrics.rentingCount}) 📦
-              </button>
-              <button
-                type="button"
-                onClick={() => setOrderFilter("COMPLETED")}
-                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                  orderFilter === "COMPLETED" ? "bg-white text-emerald-700 shadow-xs" : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Đã xong ({orderMetrics.completedCount}) ✅
-              </button>
-            </div>
-
-            <Link
-              href="/admin/orders"
-              className="px-3 py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 rounded-xl font-bold text-xs flex items-center gap-1 transition-colors"
-            >
-              <ExternalLink className="w-3 h-3" />
-              <span>Quản Lý Toàn Bộ Đơn</span>
-            </Link>
-          </div>
+          <span className="text-xs text-[#6B7280]">
+            {expiringRentals.length + pendingOrders.length + (incompleteMembersCount > 0 ? 1 : 0)} mục cần chú ý
+          </span>
         </div>
 
-        {filteredOrders.length === 0 ? (
-          <div className="py-12 px-4 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-2">
-            <Receipt className="w-8 h-8 text-slate-400 mx-auto" />
-            <h4 className="font-bold text-sm text-slate-800">Không Có Đơn Hàng Phù Hợp</h4>
-            <p className="text-xs text-slate-500 max-w-md mx-auto">
-              Không tìm thấy đơn hàng nào khớp với từ khóa tìm kiếm hoặc bộ lọc hiện tại.
-            </p>
+        {expiringRentals.length === 0 && pendingOrders.length === 0 && incompleteMembersCount === 0 ? (
+          <div className="py-4 text-center text-xs text-[#6B7280] flex items-center justify-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <span>Tất cả tài khoản và giao dịch đang hoạt động ổn định.</span>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider bg-slate-50/80">
-                  <th className="py-3 px-3 rounded-l-xl">Mã Đơn & Nguồn</th>
-                  <th className="py-3 px-3">Người Nhận & Người Giao</th>
-                  <th className="py-3 px-3">Tài Khoản Cho Thuê</th>
-                  <th className="py-3 px-3">Ngày Thuê ➔ Hạn Trả</th>
-                  <th className="py-3 px-3">Gói Thuê & Doanh Thu</th>
-                  <th className="py-3 px-3 text-right rounded-r-xl">Trạng Thái & Thao Tác</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-xs">
-                {filteredOrders.map((ord) => {
-                  const remaining = getRentalTimeRemaining(ord.expiresAt);
-                  const isRenting = ord.status === "RENTING";
-
-                  return (
-                    <tr key={ord.id} className="hover:bg-slate-50/80 transition-colors group">
-                      {/* Cột 1: Mã đơn & Nguồn */}
-                      <td className="py-3.5 px-3 align-top">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-mono font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded text-[11px]">
-                              {ord.id}
-                            </span>
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
-                              {ord.source || "ZALO"}
-                            </span>
-                          </div>
-                          <p className="text-[10px] text-slate-400 font-mono">
-                            Tạo: {formatOrderDateTime(ord.createdAt)}
-                          </p>
-                        </div>
-                      </td>
-
-                      {/* Cột 2: Người Nhận (Khách hàng ẩn danh) & Người Giao (Admin) */}
-                      <td className="py-3.5 px-3 align-top">
-                        <div className="space-y-1">
-                          {/* Người nhận */}
-                          <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                            <User className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                            <span className="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-[11px]">
-                              {ord.customer || "Khách hàng ẩn danh"}
-                            </span>
-                          </div>
-
-                          {/* Người giao */}
-                          <div className="flex items-center gap-1 text-[11px] text-emerald-700 font-semibold">
-                            <ShieldCheck className="w-3 h-3 text-emerald-600 flex-shrink-0" />
-                            <span>Giao: <strong>{ord.deliveredBy || "Admin"}</strong></span>
-                          </div>
-
-                          {/* SĐT Zalo */}
-                          {ord.phoneZalo && (
-                            <a
-                              href={`https://zalo.me/${ord.phoneZalo.replace(/[^0-9]/g, "")}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-blue-600 hover:text-blue-700 hover:underline"
-                              title="Chat Zalo trực tiếp"
-                            >
-                              <Phone className="w-2.5 h-2.5" />
-                              <span>{ord.phoneZalo}</span>
-                              <ArrowUpRight className="w-2.5 h-2.5 opacity-60" />
-                            </a>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Cột 3: Tài Khoản */}
-                      <td className="py-3.5 px-3 align-top">
-                        <div className="space-y-1 max-w-xs">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="px-1.5 py-0.5 rounded bg-black/80 text-white font-mono font-bold text-[10px]">
-                              {ord.accountCode}
-                            </span>
-                            <span
-                              className={`px-1.5 py-0.5 rounded font-extrabold text-[9px] ${
-                                ord.type === "VIP"
-                                  ? "bg-orange-100 text-orange-700 border border-orange-200"
-                                  : "bg-purple-100 text-purple-700 border border-purple-200"
-                              }`}
-                            >
-                              {ord.type === "VIP" ? "KHO VIP" : "KHO CLONE"}
-                            </span>
-                          </div>
-                          <h5 className="font-bold text-slate-800 text-xs line-clamp-1" title={ord.accountTitle}>
-                            {ord.accountTitle}
-                          </h5>
-                          <div className="text-[10px] text-slate-500 font-mono">
-                            Acc Login: <code className="bg-slate-100 px-1 py-0.2 rounded text-slate-700">{ord.accountLogin}</code>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Cột 4: Ngày Cho Thuê & Ngày Kết Thúc */}
-                      <td className="py-3.5 px-3 align-top">
-                        <div className="space-y-1.5 min-w-[190px]">
-                          {/* Ngày cho thuê */}
-                          <div className="flex items-center gap-1 text-[11px] text-slate-600">
-                            <CalendarDays className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                            <span className="text-slate-400 font-normal">Thuê:</span>
-                            <strong className="font-mono text-slate-800 font-semibold">
-                              {formatOrderDateTime(ord.startedAt || ord.createdAt)}
-                            </strong>
-                          </div>
-
-                          {/* Ngày kết thúc */}
-                          <div className="flex items-center gap-1 text-[11px] text-slate-900">
-                            <Clock className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" />
-                            <span className="text-slate-400 font-normal">Hạn:</span>
-                            <strong className="font-mono font-bold text-slate-900">
-                              {ord.expiresAt ? formatOrderDateTime(ord.expiresAt) : "Vô Cực ∞"}
-                            </strong>
-                          </div>
-
-                          {/* Countdown badge */}
-                          {isRenting ? (
-                            <span
-                              className={`inline-block text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${
-                                remaining.isExpired
-                                  ? "text-rose-600 bg-rose-50 border-rose-200 animate-pulse"
-                                  : "text-orange-600 bg-orange-50 border-orange-200"
-                              }`}
-                            >
-                              {remaining.isExpired ? `⚠️ ${remaining.formatted}` : `⏳ ${remaining.formatted}`}
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3" />
-                              <span>Đã thu hồi / Bàn giao xong</span>
-                            </span>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Cột 5: Gói Thuê & Doanh Thu */}
-                      <td className="py-3.5 px-3 align-top">
-                        <div className="space-y-1">
-                          <span className="inline-block px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 font-bold text-[10px]">
-                            {ord.package}
-                          </span>
-                          <div className="font-mono font-black text-slate-900 text-sm">
-                            {ord.amount.toLocaleString("vi-VN")}đ
-                          </div>
-                          <div className="flex items-center gap-1 text-[10px] text-emerald-700 font-bold font-mono">
-                            <TrendingUp className="w-3 h-3" />
-                            <span>+{(Number(ord.amount) || 0).toLocaleString("vi-VN")}đ LÃI</span>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Cột 6: Trạng Thái & Thao Tác */}
-                      <td className="py-3.5 px-3 align-top text-right">
-                        <div className="flex flex-col items-end gap-1.5">
-                          {isRenting ? (
-                            <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 font-bold text-[10px] border border-orange-200 animate-pulse">
-                              📦 Đang Thuê Pass
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px] border border-emerald-200">
-                              ✅ Đã Hoàn Thành
-                            </span>
-                          )}
-
-                          <div className="flex items-center gap-1 justify-end flex-wrap mt-1">
-                            <button
-                              type="button"
-                              onClick={() => handleCopyDelivery(ord)}
-                              className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors cursor-pointer"
-                              title="Sao chép tin nhắn bàn giao chuẩn Zalo"
-                            >
-                              <Copy className="w-3.5 h-3.5" />
-                            </button>
-
-                            {isRenting && (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={() => openRentModalFromOrder(ord)}
-                                  className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
-                                  title="Gia hạn thời gian thuê"
-                                >
-                                  <Clock className="w-3 h-3" />
-                                  <span>Gia Hạn</span>
-                                </button>
-
-                                <button
-                                  type="button"
-                                  onClick={() => handleCompleteExistingOrder(ord)}
-                                  className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[11px] flex items-center gap-1 transition-colors shadow-xs cursor-pointer"
-                                  title="Chốt hoàn thành đơn và thu hồi acc về kho"
-                                >
-                                  <CheckCircle2 className="w-3 h-3" />
-                                  <span>Hoàn Thành</span>
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Tổng kết dưới chân bảng */}
-        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-4 text-slate-600">
-            <span>
-              Tổng số đơn: <strong className="font-mono text-slate-900 font-bold">{orders.length}</strong>
-            </span>
-            <span>•</span>
-            <span>
-              Đang cho thuê: <strong className="font-mono text-orange-600 font-bold">{orderMetrics.rentingCount}</strong>
-            </span>
-            <span>•</span>
-            <span>
-              Đã hoàn thành: <strong className="font-mono text-emerald-600 font-bold">{orderMetrics.completedCount}</strong>
-            </span>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <span className="text-[11px] text-slate-500 font-medium mr-2">Tổng Doanh Thu:</span>
-              <strong className="font-mono text-slate-900 font-black text-sm">
-                {orderMetrics.totalRevenue.toLocaleString("vi-VN")}đ
-              </strong>
-            </div>
-            <div className="text-right border-l border-slate-200 pl-4">
-              <span className="text-[11px] text-slate-500 font-medium mr-2">Tổng Lãi Ròng:</span>
-              <strong className="font-mono text-emerald-600 font-black text-sm">
-                +{orderMetrics.totalProfit.toLocaleString("vi-VN")}đ
-              </strong>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. KHỐI DANH SÁCH: CÁC TÀI KHOẢN ĐANG ĐƯỢC CHO THUÊ TRONG KHO (RENTED LIVE TABLE) */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
-              <h3 className="font-extrabold text-slate-900 text-base font-gaming uppercase tracking-tight">
-                Kho Tài Khoản Đang Cho Thuê ({stats.rentedList.length} Acc)
-              </h3>
-            </div>
-            <p className="text-xs text-slate-500 font-normal mt-0.5">
-              Theo dõi thời gian khách trả acc, đếm ngược thời gian và nút 1 chạm hoàn thành đơn chốt lãi / gia hạn tài khoản.
-            </p>
-          </div>
-
-          <Link
-            href="/admin/accounts"
-            className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1 self-start sm:self-auto cursor-pointer"
-          >
-            <span>Đến Trang Quản Lý Kho</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-
-        {stats.rentedList.length === 0 ? (
-          <div className="py-12 px-4 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-2">
-            <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
-            <h4 className="font-bold text-sm text-slate-800">Tất Cả Tài Khoản Đang Sẵn Sàng</h4>
-            <p className="text-xs text-slate-500 max-w-md mx-auto">
-              Hiện tại không có tài khoản nào đang được cho thuê. Khi có khách đặt thuê qua Zalo, hãy bấm nút <strong>"Cho Thuê Nhanh"</strong> ở bảng bên dưới.
-            </p>
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-100 overflow-x-auto">
-            {stats.rentedList.map((account) => {
-              const expiryInfo = formatRentalExpiry(account.rentedUntil);
-
-              return (
-                <div
-                  key={account.id}
-                  className="py-3.5 px-3 rounded-2xl hover:bg-slate-50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs group"
-                >
-                  {/* Cột 1: Thông tin Acc */}
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <img
-                      src={account.thumbnail}
-                      alt={account.code}
-                      className="w-12 h-12 rounded-xl object-cover border border-slate-200 shadow-xs flex-shrink-0"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/avatar.jpg";
-                      }}
-                    />
-
-                    <div className="space-y-0.5 min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="px-2 py-0.5 rounded bg-black/80 text-white font-mono font-bold text-[10px]">
-                          {account.code}
-                        </span>
-
-                        {account.category === "VIP" ? (
-                          <span className="px-2 py-0.5 rounded bg-orange-100 text-orange-700 font-extrabold text-[10px] border border-orange-200">
-                            KHO VIP
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 font-extrabold text-[10px] border border-purple-200">
-                            KHO CLONE
-                          </span>
-                        )}
-
-                        <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-[10px]">
-                          {account.category === "VIP" ? account.rank : account.rankBadge}
-                        </span>
-                      </div>
-
-                      <h4 className="font-bold text-slate-900 text-xs sm:text-sm truncate">
-                        {account.title}
-                      </h4>
-
-                      {account.mainArena && (
-                        <p className="text-[10px] text-slate-500 truncate">
-                          🏟️ {account.mainArena}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Cột 2: Thời hạn thuê & Đếm ngược */}
-                  <div className="flex flex-col justify-center min-w-[200px] bg-slate-50 px-3 py-2 rounded-xl border border-slate-200/80">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-slate-500 font-medium">Hạn Trả Acc:</span>
-                      <strong className="text-slate-900 font-mono font-bold">
-                        {expiryInfo ? expiryInfo.expiryFormatted : "Chưa thiết lập"}
-                      </strong>
-                    </div>
-
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-[10px] text-slate-400">Thời gian còn lại:</span>
-                      {expiryInfo ? (
-                        <span
-                          className={`text-[11px] font-mono font-black ${
-                            !expiryInfo.isInfinite && expiryInfo.remainingSec === 0
-                              ? "text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded"
-                              : "text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded"
-                          }`}
-                        >
-                          {!expiryInfo.isInfinite && expiryInfo.remainingSec === 0
-                            ? "⚠️ Quá Hạn Thuê"
-                            : `⏳ ${expiryInfo.shortCountdown}`}
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-slate-400 italic">Đang thuê không thời hạn</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Cột 3: Nút Thao Tác Nhanh */}
-                  <div className="flex items-center gap-1.5 justify-end flex-shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => handleCopyAccountInfo(account)}
-                      title="Sao chép mã acc"
-                      className="p-2 rounded-xl bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 transition-colors shadow-xs cursor-pointer"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => openRentModal(account)}
-                      className="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer"
-                    >
-                      <Clock className="w-3.5 h-3.5 text-amber-600" />
-                      <span>Gia Hạn</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleCompleteOrderFromAccount(account)}
-                      className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm hover:shadow-emerald-600/20 active:scale-95 cursor-pointer"
-                      title="Chốt hoàn thành đơn, ghi nhận lãi vào doanh thu và thu hồi acc về kho"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Hoàn Thành Đơn</span>
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* 5. KHỐI DANH SÁCH: TÀI KHOẢN SẴN SÀNG CHO THUÊ (AVAILABLE ACCOUNTS PREVIEW) */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <h3 className="font-extrabold text-slate-900 text-base font-gaming uppercase tracking-tight">
-                Kho Tài Khoản Sẵn Sàng Bàn Giao ({filteredAvailableAccounts.length} Acc)
-              </h3>
-            </div>
-            <p className="text-xs text-slate-500 font-normal mt-0.5">
-              Chọn nhanh tài khoản để gán giờ thuê cho khách phát sinh từ Zalo / Hotline.
-            </p>
-          </div>
-
-          {/* Bộ lọc nhanh */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Tìm mã acc, tên tí nị..."
-                className="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-orange-500 w-48 sm:w-56"
-              />
-            </div>
-
-            <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs">
-              <button
-                type="button"
-                onClick={() => setCategoryFilter("ALL")}
-                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                  categoryFilter === "ALL" ? "bg-white text-slate-900 shadow-xs" : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Tất cả
-              </button>
-              <button
-                type="button"
-                onClick={() => setCategoryFilter("VIP")}
-                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                  categoryFilter === "VIP" ? "bg-white text-orange-700 shadow-xs" : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Kho VIP
-              </button>
-              <button
-                type="button"
-                onClick={() => setCategoryFilter("CLONE")}
-                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                  categoryFilter === "CLONE" ? "bg-white text-purple-700 shadow-xs" : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Kho Clone
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {filteredAvailableAccounts.length === 0 ? (
-          <div className="py-8 text-center text-slate-400 text-xs">
-            Không tìm thấy tài khoản sẵn sàng nào phù hợp với từ khóa tìm kiếm.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {filteredAvailableAccounts.slice(0, 9).map((account) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+            {/* Mục 1: Acc sắp hết hạn */}
+            {expiringRentals.slice(0, 3).map((acc) => (
               <div
-                key={account.id}
-                className="p-3.5 rounded-2xl border border-slate-200 hover:border-orange-300 hover:shadow-md transition-all flex flex-col justify-between bg-white space-y-3 group"
+                key={acc.code}
+                className="p-3 rounded-lg border border-amber-200 bg-amber-50/50 flex items-center justify-between gap-3 text-xs"
               >
-                <div className="flex items-start gap-3">
-                  <img
-                    src={account.thumbnail}
-                    alt={account.code}
-                    className="w-14 h-14 rounded-xl object-cover border border-slate-200 flex-shrink-0 group-hover:scale-105 transition-transform"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "/avatar.jpg";
-                    }}
-                  />
-
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="px-1.5 py-0.5 rounded bg-black/80 text-white font-mono font-bold text-[9px]">
-                        {account.code}
-                      </span>
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[9px]">
-                        SẴN SÀNG
-                      </span>
-                      <span className="text-[9px] font-bold text-slate-500 font-mono">
-                        {account.category === "VIP" ? account.rank : account.rankBadge}
-                      </span>
-                    </div>
-
-                    <h4 className="font-bold text-slate-900 text-xs truncate">
-                      {account.title}
-                    </h4>
-
-                    <div className="flex items-baseline gap-1 text-[11px]">
-                      <span className="font-mono font-bold text-red-600">
-                        {account.category === "VIP"
-                          ? `${(account.hourlyPrice || 15000).toLocaleString("vi-VN")}đ/h`
-                          : `${(account.monthlyPrice || 150000).toLocaleString("vi-VN")}đ/tháng`}
-                      </span>
-                      <span className="text-slate-400 text-[10px]">
-                        • Vốn {(account.accountValue || 850000).toLocaleString("vi-VN")}đ
-                      </span>
-                    </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-semibold text-amber-900">{acc.code}</span>
+                    <span className="text-[10px] text-amber-700 bg-amber-100 px-1.5 py-0.2 rounded font-mono">
+                      {formatRentalExpiry(acc.rentedUntil)?.shortCountdown || "Sắp hết hạn"}
+                    </span>
                   </div>
+                  <p className="text-[11px] text-amber-800 truncate mt-0.5">{acc.title}</p>
                 </div>
 
-                <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <button
                     type="button"
-                    onClick={() => handleCopyAccountInfo(account)}
-                    className="p-2 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl border border-slate-200 text-xs font-bold transition-colors cursor-pointer"
-                    title="Sao chép thông tin"
+                    onClick={() => {
+                      setRentModalAccount(acc);
+                      setQuickHours(2);
+                    }}
+                    className="px-2 py-1 bg-white hover:bg-gray-100 border border-amber-300 rounded text-[11px] font-semibold text-amber-900 cursor-pointer shadow-2xs"
                   >
-                    <Copy className="w-3.5 h-3.5" />
+                    Gia hạn
                   </button>
-
                   <button
                     type="button"
-                    onClick={() => openRentModal(account)}
-                    className="flex-1 py-2 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                    onClick={() => handleReturnAccount(acc)}
+                    className="px-2 py-1 bg-amber-700 hover:bg-amber-800 rounded text-[11px] font-semibold text-white cursor-pointer"
                   >
-                    <Zap className="w-3.5 h-3.5" />
-                    <span>Cho Thuê Nhanh</span>
+                    Thu hồi
                   </button>
                 </div>
               </div>
             ))}
-          </div>
-        )}
 
-        {filteredAvailableAccounts.length > 9 && (
-          <div className="pt-2 text-center">
-            <Link
-              href="/admin/accounts"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-orange-600 transition-colors py-2 px-4 rounded-xl border border-slate-200 hover:border-orange-300 bg-slate-50"
-            >
-              <span>Xem Thêm {filteredAvailableAccounts.length - 9} Tài Khoản Khác Trong Kho ➔</span>
-            </Link>
+            {/* Mục 2: Đơn hàng chờ xử lý */}
+            {pendingOrders.slice(0, 2).map((order) => (
+              <div
+                key={order.id}
+                className="p-3 rounded-lg border border-red-200 bg-red-50/50 flex items-center justify-between gap-3 text-xs"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-semibold text-red-900">{order.id}</span>
+                    <span className="text-[10px] text-red-700 bg-red-100 px-1.5 py-0.2 rounded font-medium">
+                      Chờ thanh toán
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-red-800 truncate mt-0.5">
+                    {order.customer} • {order.accountTitle}
+                  </p>
+                </div>
+
+                <Link
+                  href="/admin/orders"
+                  className="px-2.5 py-1 bg-[#111111] hover:bg-black rounded text-[11px] font-semibold text-white flex-shrink-0"
+                >
+                  Xử lý
+                </Link>
+              </div>
+            ))}
+
+            {/* Mục 3: Thành viên thiếu Zalo */}
+            {incompleteMembersCount > 0 && (
+              <div className="p-3 rounded-lg border border-blue-200 bg-blue-50/50 flex items-center justify-between gap-3 text-xs">
+                <div className="min-w-0">
+                  <span className="font-semibold text-blue-900">
+                    {incompleteMembersCount} thành viên chưa đủ Zalo
+                  </span>
+                  <p className="text-[11px] text-blue-800 mt-0.5">
+                    Cập nhật số Zalo để tiện liên hệ bàn giao tài khoản.
+                  </p>
+                </div>
+                <Link
+                  href="/admin/users"
+                  className="px-2.5 py-1 bg-white hover:bg-blue-100 border border-blue-300 rounded text-[11px] font-semibold text-blue-900 flex-shrink-0"
+                >
+                  Xem
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* 6. MODAL: THIẾT LẬP THỜI GIAN CHO THUÊ / GIA HẠN NHANH */}
-      {rentModalAccount && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
-                  <Clock className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-sm text-slate-900">
-                    {rentModalAccount.status === "RENTED" ? "Gia Hạn Thời Gian Thuê" : "Thiết Lập Cho Thuê Nhanh"}
-                  </h3>
-                  <span className="text-[10px] font-mono text-slate-500 font-bold">
-                    Mã Acc: {rentModalAccount.code} • {rentModalAccount.category === "VIP" ? "Kho VIP" : "Kho Clone"}
-                  </span>
-                </div>
-              </div>
+      {/* 4. DOANH THU (CLEAN REVENUE CHART) */}
+      <AdminRevenueChart orders={orders} />
 
+      {/* 5. HOẠT ĐỘNG GẦN ĐÂY (RECENT ACTIVITY TABLE) */}
+      <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-xs overflow-hidden">
+        <div className="p-4 sm:p-5 border-b border-[#E5E7EB] flex items-center justify-between">
+          <div>
+            <h3 className="font-heading font-bold text-sm text-[#111111]">
+              Hoạt động gần đây
+            </h3>
+            <p className="text-xs text-[#6B7280] mt-0.5">
+              Giao dịch và nhật ký thuê tài khoản mới nhất.
+            </p>
+          </div>
+
+          <Link
+            href="/admin/orders"
+            className="text-xs font-semibold text-[#111111] hover:text-black flex items-center gap-1"
+          >
+            <span>Xem tất cả giao dịch</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {recentOrders.length === 0 ? (
+          <div className="py-12 text-center text-xs text-[#6B7280]">
+            Chưa có hoạt động giao dịch nào.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-[#111111]">
+              <thead className="bg-[#F7F7F8] border-b border-[#E5E7EB] text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">
+                <tr>
+                  <th className="py-3 px-4">Thời gian</th>
+                  <th className="py-3 px-4">Mã Đơn / MS</th>
+                  <th className="py-3 px-4">Khách hàng</th>
+                  <th className="py-3 px-4">Gói dịch vụ</th>
+                  <th className="py-3 px-4">Số tiền</th>
+                  <th className="py-3 px-4">Trạng thái</th>
+                  <th className="py-3 px-4 text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E5E7EB]">
+                {recentOrders.map((order) => (
+                  <tr key={order.id} className="hover:bg-gray-50/60 transition-colors">
+                    <td className="py-3 px-4 text-[#6B7280] whitespace-nowrap font-mono text-[11px]">
+                      {formatOrderDateTime(order.createdAt)}
+                    </td>
+                    <td className="py-3 px-4 whitespace-nowrap">
+                      <div className="font-semibold text-[#111111]">{order.id}</div>
+                      <div className="text-[11px] text-[#6B7280] font-mono">{order.accountCode}</div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="font-medium text-[#111111]">{order.customer}</div>
+                      {order.phoneZalo && (
+                        <div className="text-[11px] text-[#6B7280] font-mono">{order.phoneZalo}</div>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 max-w-xs truncate text-[#6B7280]">
+                      {order.package || order.accountTitle}
+                    </td>
+                    <td className="py-3 px-4 whitespace-nowrap font-semibold font-mono text-[#111111]">
+                      {order.amount ? `${Number(order.amount).toLocaleString("vi-VN")}đ` : "—"}
+                    </td>
+                    <td className="py-3 px-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                          order.status === "RENTING"
+                            ? "bg-amber-50 text-amber-700 border border-amber-200"
+                            : order.status === "COMPLETED"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : "bg-gray-100 text-gray-700 border border-gray-200"
+                        }`}
+                      >
+                        {order.status === "RENTING"
+                          ? "Đang thuê"
+                          : order.status === "COMPLETED"
+                          ? "Hoàn tất"
+                          : "Chờ xử lý"}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 whitespace-nowrap text-right">
+                      <Link
+                        href="/admin/orders"
+                        className="text-xs font-semibold text-[#111111] hover:underline"
+                      >
+                        Chi tiết
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* 6. MODAL GIA HẠN / CHO THUÊ NHANH */}
+      {rentModalAccount && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-xl w-full max-w-md p-5 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-gray-700" />
+                <h3 className="font-heading font-bold text-sm text-[#111111]">
+                  Gia hạn / Cho thuê nhanh
+                </h3>
+              </div>
               <button
                 type="button"
                 onClick={() => setRentModalAccount(null)}
-                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveRentalDuration} className="space-y-4 text-xs">
-              {/* Thông tin Acc tóm tắt */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-3">
-                <img
-                  src={rentModalAccount.thumbnail}
-                  alt={rentModalAccount.code}
-                  className="w-10 h-10 rounded-lg object-cover border border-slate-200"
-                />
-                <div className="min-w-0 flex-1">
-                  <h4 className="font-bold text-slate-900 truncate">{rentModalAccount.title}</h4>
-                  <span className="text-[10px] text-slate-500 font-mono">
-                    {rentModalAccount.category === "VIP"
-                      ? `${rentModalAccount.hourlyPrice?.toLocaleString("vi-VN")}đ/giờ`
-                      : `${rentModalAccount.monthlyPrice?.toLocaleString("vi-VN")}đ/tháng`}
-                  </span>
-                </div>
+            <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 flex items-center gap-3">
+              <img
+                src={rentModalAccount.thumbnail}
+                alt={rentModalAccount.code}
+                className="w-12 h-12 rounded-lg object-cover border border-gray-200"
+              />
+              <div className="min-w-0">
+                <span className="font-bold text-xs text-[#111111]">{rentModalAccount.code}</span>
+                <p className="text-xs text-[#6B7280] truncate">{rentModalAccount.title}</p>
+                <p className="text-[11px] font-mono text-amber-700 mt-0.5">
+                  {formatRentalExpiry(rentModalAccount.rentedUntil)?.shortCountdown || "Đang cho thuê"}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-[#111111] block">
+                Chọn gói thời gian thuê thêm:
+              </label>
+              <div className="grid grid-cols-4 gap-2 text-xs">
+                {[1, 2, 4, 12, 24, 72].map((h) => (
+                  <button
+                    key={h}
+                    type="button"
+                    onClick={() => {
+                      setQuickHours(h);
+                      setCustomEndTime("");
+                    }}
+                    className={`py-2 rounded-lg border text-center font-semibold cursor-pointer transition-colors ${
+                      quickHours === h && !customEndTime
+                        ? "bg-[#111111] text-white border-[#111111]"
+                        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    +{h >= 24 ? `${h / 24} ngày` : `${h}h`}
+                  </button>
+                ))}
               </div>
 
-              {/* Phím bấm nhanh số giờ */}
-              <div className="space-y-1.5">
-                <label className="font-bold text-slate-800 block">
-                  ⚡ Chọn Nhanh Gói Thời Gian:
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {[
-                    { label: "2 Giờ", hours: 2 },
-                    { label: "4 Giờ", hours: 4 },
-                    { label: "10 Giờ (Đêm)", hours: 10 },
-                    { label: "24 Giờ", hours: 24 },
-                    { label: "3 Ngày", hours: 72 },
-                    { label: "7 Ngày (1T)", hours: 168 },
-                    { label: "30 Ngày", hours: 720 },
-                    { label: "Vô Cực (1N)", hours: 8760 },
-                  ].map((p) => (
-                    <button
-                      key={p.hours}
-                      type="button"
-                      onClick={() => handleSelectQuickHours(p.hours)}
-                      className={`py-2 px-1 rounded-xl font-bold text-[11px] transition-all cursor-pointer text-center ${
-                        quickHours === p.hours
-                          ? "bg-orange-600 text-white shadow-xs"
-                          : "bg-slate-100 hover:bg-slate-200 text-slate-700"
-                      }`}
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Chọn chính xác ngày giờ trả acc */}
-              <div className="space-y-1.5">
-                <label className="font-bold text-slate-800 block flex items-center justify-between">
-                  <span>Thời Điểm Hết Hạn Trả Acc:</span>
-                  <span className="text-[10px] text-slate-400 font-normal">Giờ Việt Nam (GMT+7)</span>
+              <div>
+                <label className="text-[11px] text-[#6B7280] block mb-1">
+                  Hoặc chọn mốc thời gian kết thúc cụ thể:
                 </label>
                 <input
                   type="datetime-local"
-                  required
                   value={customEndTime}
-                  onChange={(e) => {
-                    setCustomEndTime(e.target.value);
-                    setQuickHours(0);
-                  }}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-900 focus:outline-none focus:border-orange-500 font-bold"
+                  onChange={(e) => setCustomEndTime(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs text-[#111111] focus:outline-none focus:border-gray-400"
                 />
               </div>
+            </div>
 
-              {/* Nút hành động */}
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setRentModalAccount(null)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
-                >
-                  Hủy Bỏ
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmittingRental}
-                  className="flex-1 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-orange-600/20"
-                >
-                  {isSubmittingRental ? <RotateCcw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                  <span>Xác Nhận Cho Thuê</span>
-                </button>
-              </div>
-            </form>
+            <div className="pt-2 flex items-center justify-end gap-2 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setRentModalAccount(null)}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmQuickRental}
+                disabled={isSubmittingRental}
+                className="px-4 py-2 bg-[#111111] hover:bg-black text-white rounded-xl text-xs font-semibold cursor-pointer transition-colors disabled:opacity-50"
+              >
+                {isSubmittingRental ? "Đang xử lý..." : "Xác nhận gia hạn"}
+              </button>
+            </div>
           </div>
         </div>
       )}
