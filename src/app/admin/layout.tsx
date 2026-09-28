@@ -133,7 +133,7 @@ export default function AdminLayout({
       items: [
         {
           title: "Khách Hàng",
-          href: "/admin/users",
+          href: "/admin/customers",
           icon: Users,
           active: pathname.startsWith("/admin/users") || pathname.startsWith("/admin/customers"),
         },
