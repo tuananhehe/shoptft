@@ -1,227 +1,118 @@
 "use client";
 
-import React, { useState, useMemo, useRef, useDeferredValue } from "react";
-import { FAQS, PROFILE_INFO, FAQItem } from "@/data/tft-data";
-import { FAQConfigItem } from "@/utils/homepage-service";
-import {
-  HelpCircle,
-  ChevronDown,
-  Search,
-  MessageCircle,
-  ShieldCheck,
-  Zap,
-  CheckCircle2,
-  Clock,
-  Lock,
-  Swords,
-  CreditCard,
-  X,
-} from "lucide-react";
+import React, { useState } from "react";
+import { ChevronDown, HelpCircle, MessageCircle } from "lucide-react";
+import { PROFILE_INFO } from "@/utils/profile-info";
+
+interface FAQItem {
+  q: string;
+  a: string;
+}
+
+const FAQS_LIST: FAQItem[] = [
+  {
+    q: "Thuê acc như thế nào?",
+    a: "Bạn chỉ cần duyệt kho acc trên website, chọn tài khoản ưng ý, sau đó bấm nút 'Thuê Ngay' để kết nối trực tiếp với shop qua Zalo và hoàn tất thanh toán.",
+  },
+  {
+    q: "Acc được bàn giao thế nào?",
+    a: "Sau khi bạn xác nhận và thanh toán, ShopTFTMobile sẽ bàn giao thông tin đăng nhập trực tiếp và hướng dẫn bạn đăng nhập an toàn qua tin nhắn Zalo.",
+  },
+  {
+    q: "Nếu acc đang được thuê thì sao?",
+    a: "Bạn có thể xem thời gian hết hạn dự kiến của tài khoản, bấm xem các acc tương tự trong kho, hoặc nhắn Zalo cho shop để đặt lịch giữ acc ngay khi có sẵn.",
+  },
+  {
+    q: "Tài khoản thành viên dùng để làm gì?",
+    a: "Tài khoản thành viên giúp bạn lưu trữ thông tin liên hệ Zalo, xem lịch sử giao dịch và nhận các ưu đãi khách hàng thân thiết từ ShopTFTMobile.",
+  },
+  {
+    q: "Làm sao có tài khoản thành viên?",
+    a: "Tài khoản thành viên được ShopTFTMobile cấp trực tiếp. Website không mở đăng ký công khai nhằm đảm bảo tính bảo mật và quản lý khách hàng uy tín.",
+  },
+  {
+    q: "Shop hỗ trợ qua đâu?",
+    a: `ShopTFTMobile hỗ trợ khách hàng trực tiếp và nhanh chóng qua Zalo chính thức (${PROFILE_INFO.phoneZalo}). Bạn có thể liên hệ bất kỳ lúc nào để được giải đáp.`,
+  },
+];
 
 interface TFTFaqProps {
-  customFaqs?: FAQConfigItem[];
+  customFaqs?: FAQItem[];
 }
 
 export const TFTFaq: React.FC<TFTFaqProps> = ({ customFaqs }) => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-  const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const deferredSearchQuery = useDeferredValue(searchQuery);
-  const faqInputRef = useRef<HTMLInputElement>(null);
-
-  const displayFaqs = customFaqs && customFaqs.length > 0 ? customFaqs : FAQS;
-
-  const categories = [
-    { id: "ALL", label: "Tất Cả Câu Hỏi", icon: HelpCircle },
-    { id: "THUE_ACC", label: "Thuê Acc & Bàn Giao", icon: Zap },
-    { id: "BAO_MAT", label: "Bảo Mật & Đổi Pass", icon: Lock },
-    { id: "CAY_RANK", label: "Cày Rank & Coaching", icon: Swords },
-    { id: "THANH_TOAN", label: "Thanh Toán & Quỹ 30M", icon: CreditCard },
-  ];
-
-  // Lọc câu hỏi theo Danh mục và Ô tìm kiếm
-  const filteredFaqs = useMemo(() => {
-    return displayFaqs.filter((faq) => {
-      const matchCategory =
-        selectedCategory === "ALL" || faq.category === selectedCategory;
-      const queryTrimmed = deferredSearchQuery.trim().toLowerCase();
-      const matchQuery =
-        queryTrimmed === "" ||
-        faq.q.toLowerCase().includes(queryTrimmed) ||
-        faq.a.toLowerCase().includes(queryTrimmed);
-      return matchCategory && matchQuery;
-    });
-  }, [displayFaqs, selectedCategory, deferredSearchQuery]);
+  const faqs = customFaqs && customFaqs.length > 0 ? customFaqs : FAQS_LIST;
 
   const toggle = (idx: number) => {
     setOpenIndex(openIndex === idx ? null : idx);
   };
 
   return (
-    <section id="faq" className="py-6 sm:py-20 bg-[#F8FAFC] text-slate-900 border-b border-slate-200 overflow-hidden">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="faq" className="py-12 sm:py-16 bg-[#09090b] text-white border-b border-white/[0.08]">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-4 sm:mb-10 space-y-2">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-xs font-bold uppercase tracking-wider">
-            <HelpCircle className="w-3.5 h-3.5 text-orange-600" />
-            <span>Trung Tâm Trợ Giúp & FAQ</span>
+        <div className="text-center mb-8 sm:mb-10">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-zinc-300 text-xs font-semibold uppercase tracking-[0.08em] mb-2">
+            <HelpCircle className="w-3.5 h-3.5 text-zinc-400" />
+            <span>HỎI ĐÁP</span>
           </div>
 
-          <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900">
-            HỎI ĐÁP & HƯỚNG DẪN THUÊ ACC TFT
+          <h2 className="font-heading text-2xl sm:text-3xl lg:text-[34px] font-bold tracking-[-0.02em] text-white leading-tight">
+            Câu Hỏi Thường Gặp
           </h2>
-          <p className="text-slate-600 text-sm sm:text-base font-normal">
-            Giải đáp chi tiết và minh bạch tất cả các thắc mắc về quy trình nhận acc, bảo hành và chính sách cam kết tại Shop Tuấn Thái Bình.
+          <p className="text-zinc-400 text-xs sm:text-sm mt-1 max-w-lg mx-auto leading-relaxed">
+            Giải đáp các thắc mắc phổ biến về quy trình thuê, bàn giao và tài khoản thành viên.
           </p>
         </div>
 
-        {/* Search Bar & Category Filter */}
-        <div className="space-y-4 mb-10">
-          {/* Ô Tìm Kiếm Nhanh với Hitbox mở rộng */}
-          <div className="relative max-w-md mx-auto flex items-center">
-            <button
-              type="button"
-              onClick={() => faqInputRef.current?.focus()}
-              aria-label="Kích hoạt tìm kiếm FAQ"
-              className="w-11 sm:w-12 h-full absolute left-0 top-0 flex items-center justify-center text-slate-400 hover:text-orange-600 active:scale-95 transition-all cursor-pointer z-10"
-            >
-              <Search className="w-4.5 h-4.5" />
-            </button>
-
-            <input
-              ref={faqInputRef}
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm nhanh: đổi pass, hoàn tiền, cọc, mobile..."
-              className="w-full h-11 sm:h-12 pl-11 sm:pl-12 pr-11 sm:pr-12 bg-white hover:bg-slate-50/80 focus:bg-white border border-slate-300 focus:border-orange-500 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 shadow-sm transition-all"
-            />
-
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchQuery("");
-                  faqInputRef.current?.focus();
-                }}
-                aria-label="Xóa từ khóa FAQ"
-                className="w-11 sm:w-12 h-full absolute right-0 top-0 flex items-center justify-center text-slate-400 hover:text-slate-700 active:scale-95 transition-all cursor-pointer z-10 group"
-                title="Xóa tìm kiếm"
-              >
-                <span className="w-6 h-6 rounded-full bg-slate-200 group-hover:bg-slate-300 text-slate-600 flex items-center justify-center text-xs transition-colors">
-                  <X className="w-3.5 h-3.5" />
-                </span>
-              </button>
-            )}
-          </div>
-
-          {/* Category Tabs */}
-          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-            {categories.map((cat) => {
-              const Icon = cat.icon;
-              const isSelected = selectedCategory === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => {
-                    setSelectedCategory(cat.id);
-                    setOpenIndex(0);
-                  }}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    isSelected
-                      ? "bg-orange-600 text-white shadow-md shadow-orange-600/20"
-                      : "bg-white hover:bg-slate-100 text-slate-700 border border-slate-200"
-                  }`}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span>{cat.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         {/* FAQ Accordion List */}
-        <div className="space-y-3.5">
-          {filteredFaqs.length > 0 ? (
-            filteredFaqs.map((faq, idx) => {
-              const isOpen = openIndex === idx;
-              return (
-                <div
-                  key={idx}
-                  className={`bg-white border rounded-2xl overflow-hidden transition-all duration-200 shadow-sm ${
-                    isOpen
-                      ? "border-orange-500 ring-2 ring-orange-500/10 shadow-md"
-                      : "border-slate-200 hover:border-slate-300"
-                  }`}
+        <div className="space-y-3">
+          {faqs.map((faq, idx) => {
+            const isOpen = openIndex === idx;
+            return (
+              <div
+                key={idx}
+                className="rounded-xl bg-[#121214] border border-white/[0.08] hover:border-white/15 transition-colors overflow-hidden"
+              >
+                <button
+                  type="button"
+                  onClick={() => toggle(idx)}
+                  className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 cursor-pointer focus:outline-none"
                 >
-                  <button
-                    onClick={() => toggle(idx)}
-                    className="w-full p-5 sm:p-5.5 text-left flex items-center justify-between gap-4 transition-colors group cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3 pr-2">
-                      {faq.badge && (
-                        <span className="hidden sm:inline-flex px-2.5 py-0.5 rounded-md bg-orange-50 border border-orange-200 text-orange-700 font-bold text-[10px] uppercase flex-shrink-0">
-                          {faq.badge}
-                        </span>
-                      )}
-                      <span className={`text-sm sm:text-base font-bold transition-colors ${isOpen ? "text-orange-600" : "text-slate-900 group-hover:text-orange-600"}`}>
-                        {faq.q}
-                      </span>
-                    </div>
+                  <span className="font-heading font-semibold text-sm sm:text-base text-white">
+                    {faq.q}
+                  </span>
+                  <ChevronDown
+                    className={`w-4 h-4 text-zinc-400 flex-shrink-0 transition-transform duration-200 ${
+                      isOpen ? "rotate-180 text-white" : ""
+                    }`}
+                  />
+                </button>
 
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all flex-shrink-0 ${
-                      isOpen ? "bg-orange-600 text-white rotate-180" : "bg-slate-100 text-slate-500 group-hover:bg-slate-200"
-                    }`}>
-                      <ChevronDown className="w-4 h-4" />
-                    </div>
-                  </button>
-
-                  {isOpen && (
-                    <div className="px-5 sm:px-6 pb-5 pt-0 text-slate-600 text-xs sm:text-sm leading-relaxed border-t border-slate-100/80 font-normal">
-                      <div className="pt-3.5 flex items-start gap-2.5">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                        <p className="leading-relaxed">{faq.a}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          ) : (
-            <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-500 text-sm">
-              Không tìm thấy câu hỏi phù hợp với từ khóa "<strong>{searchQuery}</strong>". Bạn hãy nhắn tin trực tiếp để shop giải đáp nhé!
-            </div>
-          )}
+                {isOpen && (
+                  <div className="px-4 pb-4 sm:px-5 sm:pb-5 pt-0 text-xs sm:text-sm text-zinc-400 leading-relaxed border-t border-white/[0.04]">
+                    <div className="pt-2">{faq.a}</div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        {/* Need More Help Card (CTA) */}
-        <div className="mt-12 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-orange-600 via-amber-600 to-orange-600 text-white flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl shadow-orange-600/15 relative overflow-hidden">
-          <div className="space-y-1.5 text-center sm:text-left z-10">
-            <span className="text-xs font-bold uppercase tracking-wider text-orange-200">
-              Hỗ Trợ Trực Tuyến 24/7
-            </span>
-            <h3 className="text-lg sm:text-xl font-black">
-              Bạn vẫn còn câu hỏi thắc mắc khác?
-            </h3>
-            <p className="text-xs sm:text-sm text-orange-100 font-normal max-w-md">
-              Nhắn tin trực tiếp qua Zalo của Tuấn Thái Bình để được giải đáp thắc mắc và tư vấn chọn acc trong 30 giây!
-            </p>
-          </div>
-
+        {/* Support CTA */}
+        <div className="mt-8 text-center">
           <a
             href={PROFILE_INFO.zaloUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-6 py-3 bg-white hover:bg-slate-50 text-orange-700 hover:text-orange-800 rounded-2xl font-black text-xs uppercase tracking-wider transition-all shadow-lg hover:scale-105 flex items-center gap-2 flex-shrink-0 z-10 cursor-pointer"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm text-zinc-400 hover:text-white transition-colors"
           >
-            <MessageCircle className="w-4 h-4 text-orange-600" />
-            <span>Chat Zalo: {PROFILE_INFO.phoneZalo}</span>
+            <MessageCircle className="w-4 h-4 text-emerald-400" />
+            <span>Chưa tìm thấy câu trả lời? Nhắn tin qua Zalo cho shop →</span>
           </a>
         </div>
       </div>
     </section>
   );
 };
-
-export const TFTFAQ = TFTFaq;

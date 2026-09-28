@@ -69,10 +69,10 @@ export const TFTNewArrivals: React.FC<TFTNewArrivalsProps> = ({ onSelectAccount 
 
           {/* Desktop CTA */}
           <Link
-            href="/shop"
+            href="/shop?sort=newest"
             className="hidden sm:inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-zinc-300 hover:text-white transition-colors cursor-pointer"
           >
-            <span>Xem toàn bộ kho →</span>
+            <span>Xem tất cả acc mới →</span>
           </Link>
         </div>
 
@@ -106,10 +106,10 @@ export const TFTNewArrivals: React.FC<TFTNewArrivalsProps> = ({ onSelectAccount 
         {/* Mobile Bottom CTA */}
         <div className="mt-6 text-center sm:hidden">
           <Link
-            href="/shop"
+            href="/shop?sort=newest"
             className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-300 hover:text-white py-2 px-4 rounded-xl bg-white/[0.06] border border-white/10"
           >
-            <span>Xem toàn bộ kho →</span>
+            <span>Xem tất cả acc mới →</span>
           </Link>
         </div>
       </div>
