@@ -222,7 +222,7 @@ export function PaymentClientView({ paymentId, initialToken }: PaymentClientView
                 className="px-5 py-2.5 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-md shadow-orange-600/30"
               >
                 <MessageCircle className="w-4 h-4" />
-                <span>Nhắn Zalo Lấy Link Mới (30s)</span>
+                <span>Nhắn Zalo Lấy Link Mới</span>
               </a>
               <Link
                 href="/"
@@ -393,7 +393,7 @@ export function PaymentClientView({ paymentId, initialToken }: PaymentClientView
               <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px] leading-relaxed flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
                 <div>
-                  <strong>Lưu ý quan trọng:</strong> Vui lòng giữ nguyên <strong>nội dung chuyển khoản</strong> và chuyển đúng <strong>số tiền</strong> để hệ thống tự động kích hoạt tài khoản trong vòng 30 giây.
+                  <strong>Lưu ý quan trọng:</strong> Vui lòng giữ nguyên <strong>nội dung chuyển khoản</strong> và chuyển đúng <strong>số tiền</strong> để admin đối soát và bàn giao tài khoản nhanh chóng qua Zalo.
                 </div>
               </div>
             </div>
@@ -443,7 +443,7 @@ export function PaymentClientView({ paymentId, initialToken }: PaymentClientView
             <div className="space-y-1.5">
               <h3 className="font-black text-lg text-white">Đã Ghi Nhận Thanh Toán!</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Cảm ơn bạn đã thuê acc tại Tuấn Thái Bình. Để nhận ID và Mật Khẩu bàn giao trong 30 giây, vui lòng bấm nút bên dưới để gửi tin nhắn xác nhận qua Zalo.
+                Cảm ơn bạn đã thuê acc tại Tuấn Thái Bình. Để nhận thông tin tài khoản bàn giao trực tiếp, vui lòng bấm nút bên dưới để gửi tin nhắn xác nhận qua Zalo.
               </p>
             </div>
 

@@ -101,7 +101,7 @@ export const TFT_REVIEWS: ReviewItem[] = [
     categoryLabel: "Thuê Acc TFT",
     rating: 5,
     date: "Hôm qua lúc 21:45",
-    comment: "Acc cực mượt, đúng đủ Tí Nị Ahri và Sân Đấu Đổi Nhạc như mô tả. Nhắn tin Zalo 30s là shop gửi pass luôn. Rất uy tín!",
+    comment: "Acc cực mượt, đúng đủ Tí Nị Ahri và Sân Đấu Đổi Nhạc như mô tả. Nhắn tin Zalo shop rep và bàn giao rất nhanh. Rất uy tín!",
     verifiedTag: "Giao Dịch Xác Thực #MB9821",
     proofImage: "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=800&auto=format&fit=crop",
     transactionCode: "GD-8899-2024",
@@ -185,7 +185,7 @@ export const TFT_REVIEWS: ReviewItem[] = [
     categoryLabel: "Thuê Acc TFT",
     rating: 5,
     date: "5 ngày trước",
-    comment: "Mượn acc Aatrox đi giải đấu giao lưu cùng anh em, hiệu ứng chém kết liễu cực mượt. Thao tác lấy acc qua Zalo nhanh gọn lẹ chỉ 30s, chắc chắn sẽ ủng hộ tiếp!",
+    comment: "Mượn acc Aatrox đi giải đấu giao lưu cùng anh em, hiệu ứng chém kết liễu cực mượt. Thao tác lấy acc qua Zalo nhanh gọn lẹ, chắc chắn sẽ ủng hộ tiếp!",
     verifiedTag: "Giao Dịch Xác Thực #MB9934",
     proofImage: "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=800&auto=format&fit=crop",
     transactionCode: "GD-9934-2024",
@@ -265,14 +265,14 @@ export const TFT_REVIEWS: ReviewItem[] = [
 export const TFT_SERVICE_PACKAGES: ServicePackage[] = [
   {
     id: "srv-01",
-    title: "Cày Rank ĐTCL Siêu Tốc (Cày Tay 100%)",
-    badge: "CAM KẾT TOP 1-2-3",
+    title: "Cày Rank ĐTCL (Cày tay trực tiếp)",
+    badge: "HỖ TRỢ LEO RANK",
     price: "Từ 50.000đ / Bậc",
     features: [
-      "Cày tay 100% bởi Tuấn Thái Bình (Cựu Thách Đấu 1.134 ĐNG)",
-      "Bảo mật tài khoản tuyệt đối, đổi IP sạch tránh khóa acc",
+      "Cày tay trực tiếp bởi Tuấn Thái Bình (Cựu Thách Đấu 1.134 ĐNG)",
+      "Đảm bảo an toàn tài khoản, đổi IP sạch tránh khóa acc",
       "Cập nhật tiến độ liên tục qua Zalo sau mỗi trận đấu",
-      "Đền bù 200% nếu có bất kỳ rủi ro nào về tài khoản",
+      "Hỗ trợ tận tâm trong suốt quá trình cày rank",
     ],
   },
   {
@@ -285,7 +285,7 @@ export const TFT_SERVICE_PACKAGES: ServicePackage[] = [
       "Voice 1-1 qua Discord/Zalo, xem màn hình và chỉ lỗi sai trực tiếp",
       "Hướng dẫn cách giữ máu, quản lý kinh tế và roll ở các round then chốt",
       "Giáo án độc quyền các đội hình Meta leo rank ổn định nhất",
-      "Hỗ trợ giải đáp thắc mắc xoay bài 24/7 sau buổi học",
+      "Hỗ trợ giải đáp thắc mắc xoay bài qua Zalo sau buổi học",
     ],
   },
   {
@@ -304,22 +304,22 @@ export const TFT_SERVICE_PACKAGES: ServicePackage[] = [
 
 export const FAQS: FAQItem[] = [
   {
-    q: "Sau khi gửi đơn qua Zalo thì bao lâu tôi nhận được tài khoản?",
-    a: "Hệ thống hoạt động tự động 24/7. Ngay sau khi bạn gửi thông tin đơn hàng và chuyển khoản theo STK shop gửi trong Zalo, ID và Mật khẩu tài khoản sẽ được bàn giao cho bạn trong vòng 30 giây.",
+    q: "Sau khi gửi thông tin qua Zalo thì bao lâu tôi nhận được tài khoản?",
+    a: "Sau khi bạn xác nhận mã tài khoản và hoàn tất chuyển khoản, Shop sẽ trực tiếp kiểm tra và bàn giao tài khoản kèm hướng dẫn đăng nhập an toàn qua tin nhắn Zalo.",
     category: "THUE_ACC",
-    badge: "Bàn giao 30s",
+    badge: "Bàn giao Zalo",
   },
   {
     q: "Tôi có cần phải đặt cọc khi thuê tài khoản không?",
-    a: "100% KHÔNG CẦN ĐẶT CỌC. Bạn chỉ cần thanh toán đúng số tiền của gói thời gian bạn chọn (2h, 7 ngày, 30 ngày...). Không phát sinh bất kỳ chi phí thế chấp hay phụ phí ẩn nào.",
+    a: "Không cần đặt cọc. Bạn chỉ cần thanh toán đúng số tiền của gói thời gian bạn chọn (2h, 7 ngày, 30 ngày...). Không phát sinh bất kỳ chi phí thế chấp hay phụ phí ẩn nào.",
     category: "THUE_ACC",
     badge: "Không Cọc",
   },
   {
     q: "Nếu đang chơi mà tài khoản bị lỗi hoặc bị trùng pass thì shop xử lý ra sao?",
-    a: "ShopTFT Mobile cam kết bảo hành 100% thời gian thuê. Nếu có bất kỳ sự cố gián đoạn nào, shop sẽ đổi ngay acc tương đương hoặc bù thêm giờ chơi / hoàn tiền 100% ngay lập tức qua Zalo 0352.867.283.",
+    a: "ShopTFTMobile cam kết hỗ trợ chu đáo trong suốt thời gian thuê. Nếu có bất kỳ sự cố gián đoạn nào, shop sẽ đổi ngay acc tương đương hoặc bù thêm giờ chơi nhanh chóng qua Zalo 0352.867.283.",
     category: "BAO_MAT",
-    badge: "Bảo hành 100%",
+    badge: "Hỗ trợ chu đáo",
   },
   {
     q: "Shop có bảo hiểm checkscam bảo chứng uy tín không?",
@@ -335,7 +335,7 @@ export const FAQS: FAQItem[] = [
   },
   {
     q: "Chơi trên điện thoại (ĐTCL Mobile iOS / Android) hay PC có được không?",
-    a: "Tất cả tài khoản của shop đều hỗ trợ đăng nhập đa nền tảng: Cả trên máy tính PC (Client Riot VNG) và điện thoại di động (ĐTCL Mobile iOS / Android) đều mượt mà 100%.",
+    a: "Tất cả tài khoản của shop đều hỗ trợ đăng nhập đa nền tảng: Cả trên máy tính PC (Client Riot VNG) và điện thoại di động (ĐTCL Mobile iOS / Android) đều mượt mà.",
     category: "THUE_ACC",
     badge: "Hỗ trợ Mobile & PC",
   },
@@ -347,9 +347,9 @@ export const FAQS: FAQItem[] = [
   },
   {
     q: "Dịch vụ Cày Rank có an toàn cho tài khoản chính không?",
-    a: "Tuấn trực tiếp cày tay 100% (Cựu Thách Đấu 1.134 ĐNG), sử dụng mạng IP sạch, không can thiệp phần mềm thứ 3 và cam kết bảo mật 100% danh tính khách hàng, không chat trong game.",
+    a: "Tuấn trực tiếp cày tay (Cựu Thách Đấu 1.134 ĐNG), sử dụng mạng IP sạch, không can thiệp phần mềm thứ 3 và bảo mật thông tin khách hàng, không chat trong game.",
     category: "CAY_RANK",
-    badge: "Cày tay 100%",
+    badge: "Cày tay trực tiếp",
   },
   {
     q: "Gói Coaching 1-1 diễn ra như thế nào?",

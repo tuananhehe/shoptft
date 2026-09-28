@@ -100,7 +100,7 @@ export const TFTServices: React.FC<TFTServicesProps> = ({ packages }) => {
             CÀY THUÊ RANK & COACHING 1-1 ĐTCL
           </h2>
           <p className="text-slate-600 text-xs sm:text-sm md:text-base font-normal max-w-xl mx-auto leading-relaxed">
-            Kèm 1-1 & cày tay 100% bởi Cựu Thách Đấu 1.134 ĐNG. Bảo mật danh tính tuyệt đối & đền bù 200% nếu có sự cố.
+            Kèm 1-1 & cày tay trực tiếp bởi Cựu Thách Đấu 1.134 ĐNG. Bảo mật danh tính chu đáo & cam kết hỗ trợ tận tâm.
           </p>
         </div>
 
@@ -184,11 +184,11 @@ export const TFTServices: React.FC<TFTServicesProps> = ({ packages }) => {
               <div className="grid grid-cols-2 gap-1.5 mb-3.5">
                 <div className="flex items-center gap-1.5 p-2 rounded-lg bg-slate-50 border border-slate-100 text-[11px] font-semibold text-slate-700">
                   <Zap className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
-                  <span className="truncate">Cày tay 100%</span>
+                  <span className="truncate">Cày tay trực tiếp</span>
                 </div>
                 <div className="flex items-center gap-1.5 p-2 rounded-lg bg-slate-50 border border-slate-100 text-[11px] font-semibold text-slate-700">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
-                  <span className="truncate">Bảo mật tuyệt đối</span>
+                  <span className="truncate">Bảo mật chu đáo</span>
                 </div>
               </div>
 
@@ -342,7 +342,7 @@ export const TFTServices: React.FC<TFTServicesProps> = ({ packages }) => {
               <Zap className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-xs font-bold text-slate-900">Cày Tay 100% Cựu Thách Đấu</div>
+              <div className="text-xs font-bold text-slate-900">Cày Tay Trực Tiếp Cựu Thách Đấu</div>
               <div className="text-[10px] sm:text-[11px] text-slate-500">Nói không với Tool / Hack / Bug</div>
             </div>
           </div>
@@ -352,8 +352,8 @@ export const TFTServices: React.FC<TFTServicesProps> = ({ packages }) => {
               <UserCheck className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-xs font-bold text-slate-900">Bảo Mật Thông Tin Tuyệt Đối</div>
-              <div className="text-[10px] sm:text-[11px] text-slate-500">Fake IP sạch, an toàn 100%</div>
+              <div className="text-xs font-bold text-slate-900">Bảo Mật Thông Tin Chu Đáo</div>
+              <div className="text-[10px] sm:text-[11px] text-slate-500">Fake IP sạch, đảm bảo an toàn</div>
             </div>
           </div>
         </div>

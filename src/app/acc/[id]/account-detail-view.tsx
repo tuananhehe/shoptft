@@ -316,8 +316,8 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                   src={account.thumbnail}
                   alt={`Thuê acc TFT ${account.code} ${account.title}`}
                   priority
-                  containerClassName="w-full h-full"
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  containerClassName="w-full h-full flex items-center justify-center"
+                  className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
                 />
 
                 {/* Top-Right: Code Button */}
@@ -636,8 +636,8 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                         <LazyAccountImage
                           src={rel.thumbnail}
                           alt={rel.title}
-                          containerClassName="w-full h-full"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          containerClassName="w-full h-full flex items-center justify-center"
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                         />
                         <div className="absolute top-1.5 right-1.5">
                           <span className="px-1.5 py-0.5 rounded bg-black/80 text-[10px] font-mono text-white">

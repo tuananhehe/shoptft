@@ -322,7 +322,7 @@ Xin chào ${customerName}, Shop bàn giao bạn thông tin tài khoản:
 1. Đăng nhập tại https://account.riotgames.com
 2. Đổi ngay Mật Khẩu và liên kết Email cá nhân của bạn.
 3. Kích hoạt bảo mật 2 lớp (2FA).
-🛡️ Cam kết: Tài khoản sạch 100%, bảo hành trọn đời từ Tuấn Thái Bình (Quỹ 30M Checkscam).`;
+🛡️ Cam kết: Tài khoản sạch đảm bảo, bảo hành trọn đời từ Tuấn Thái Bình (Quỹ 30M Checkscam).`;
   }
 
   if (ord.type === "SERVICE" || ord.type === "COACHING") {
@@ -359,7 +359,7 @@ Xin chào ${customerName}, Shop gửi bạn thông tin tài khoản trải nghi�
 - Vui lòng KHÔNG tự ý đổi mật khẩu / email của shop.
 - KHÔNG sử dụng phần mềm thứ ba hoặc cố tình phá rank.
 - Hỗ trợ đổi acc / gia hạn / nâng cấp sở hữu bù 70% qua Zalo 0352.867.283.
-🛡️ Shop bảo hành 100% suốt thời gian bạn thuê! Chúc bạn leo rank vui vẻ!`;
+🛡️ Shop bảo hành chu đáo suốt thời gian bạn thuê! Chúc bạn leo rank vui vẻ!`;
 }
 
 /**

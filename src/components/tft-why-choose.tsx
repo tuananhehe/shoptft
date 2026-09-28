@@ -4,8 +4,8 @@ import { Reveal } from "@/components/reveal";
 const stats = [
   { value: "30M", label: "Bảo hiểm giao dịch" },
   { value: "5+ năm", label: "Đồng hành cùng ĐTCL" },
-  { value: "100%", label: "Bàn giao qua Zalo" },
-  { value: "Trực tiếp", label: "Hỗ trợ 1-1 chủ shop" },
+  { value: "Zalo", label: "Bàn giao trực tiếp" },
+  { value: "1-1", label: "Hỗ trợ cùng chủ shop" },
 ];
 
 export const TFTWhyChoose = () => (

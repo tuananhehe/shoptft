@@ -27,12 +27,12 @@ const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
     titleLine2: "Uy Tín Hàng Đầu",
     titleHighlight: "Việt Nam",
     subtitle:
-      "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7 bàn giao 30s. Sở hữu trọn bộ Tướng Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc EDM và Dịch vụ Cày Rank ĐTCL uy tín số 1 bởi Cựu Thách Đấu Tuấn Thái Bình (1.134 ĐNG - Bảo hiểm 30M Checkscam).",
+      "ShopTFTMobile chuyên tài khoản TFT/ĐTCL Việt Nam uy tín, đa dạng từ giá rẻ đến VIP. Thông tin minh bạch, tư vấn chu đáo và bàn giao trực tiếp qua Zalo.",
     stats: [
-      { id: "clients", label: "Khách Hàng Phục Vụ", value: "1,850+" },
+      { id: "experience", label: "Gắn Bó Cùng ĐTCL", value: "5+ Năm" },
       { id: "insurance", label: "Quỹ Checkscam.vn", value: "30.000.000đ" },
-      { id: "delivery", label: "Bàn Giao & Đổi Pass", value: "30 Giây" },
-      { id: "satisfaction", label: "Tỷ Lệ Hài Lòng", value: "99.9%" },
+      { id: "delivery", label: "Bàn Giao & Hỗ Trợ", value: "Trực Tiếp Zalo" },
+      { id: "support", label: "Hỗ Trợ 1-1", value: "Cùng Chủ Shop" },
     ],
   },
   images: {
@@ -47,18 +47,18 @@ const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
   alertBanner: {
     active: true,
     content:
-      "🎁 Ưu đãi đặc biệt: Tặng thêm 1 giờ chơi và miễn phí phí đổi pass cố định cho khách hàng thuê lần đầu qua Zalo Tuấn Thái Bình!",
+      "🎁 Ưu đãi đặc biệt: Hỗ trợ tư vấn chọn acc và hướng dẫn đăng nhập trực tiếp qua Zalo Tuấn Thái Bình!",
   },
   seo: {
     metaTitle: "Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Mobile Uy Tín",
     metaDescription:
-      "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7 bàn giao 30s. Đầy đủ Tướng Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc EDM & Cày Rank uy tín bởi Tuấn Thái Bình (Bảo hiểm 30M).",
+      "ShopTFTMobile chuyên tài khoản TFT/ĐTCL Việt Nam uy tín, đa dạng từ giá rẻ đến VIP. Thông tin minh bạch, tư vấn chu đáo và bàn giao trực tiếp qua Zalo.",
     metaKeywords:
       "thuê acc tft, thuê acc đtcl, shop tft, tuấn thái bình tft, thuê acc tí nị, cày thuê đtcl, shop acc tft uy tín, shop tft mobile, thuê tài khoản đtcl, tí nị ahri, tí nị yasuo, coaching tft",
-    canonicalUrl: "https://shoptftmobile.net/",
+    canonicalUrl: "https://www.shoptftmobile.net/",
     ogTitle: "Tuấn Thái Bình TFT | Nền Tảng Thuê Acc ĐTCL Uy Tín",
     ogDescription:
-      "Thuê acc VIP ĐTCL / TFT Mobile tự động bàn giao 30s, trọn bộ Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc EDM. Quỹ bảo hiểm 30M Checkscam uy tín số 1.",
+      "ShopTFTMobile chuyên tài khoản TFT/ĐTCL Việt Nam uy tín, đa dạng từ giá rẻ đến VIP. Thông tin minh bạch, tư vấn chu đáo và bàn giao trực tiếp qua Zalo.",
     ogImage: "/banner-seo.jpg",
     faviconUrl: "/favicon.ico",
     bgImageUrl: "",
@@ -87,15 +87,15 @@ const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
   servicePackages: [
     {
       id: "srv-01",
-      title: "Cày Rank ĐTCL Siêu Tốc (Cày Tay 100%)",
-      badge: "CAM KẾT TOP 1-2-3",
+      title: "Cày Rank ĐTCL (Cày tay trực tiếp)",
+      badge: "HỖ TRỢ LEO RANK",
       price: "Từ 50.000đ / Bậc",
       popular: false,
       features: [
-        "Cày tay 100% bởi Tuấn Thái Bình (Cựu Thách Đấu 1.134 ĐNG)",
-        "Bảo mật tài khoản tuyệt đối, đổi IP sạch tránh khóa acc",
+        "Cày tay trực tiếp bởi Tuấn Thái Bình (Cựu Thách Đấu 1.134 ĐNG)",
+        "Đảm bảo an toàn tài khoản, đổi IP sạch tránh khóa acc",
         "Cập nhật tiến độ liên tục qua Zalo sau mỗi trận đấu",
-        "Đền bù 200% nếu có bất kỳ rủi ro nào về tài khoản",
+        "Hỗ trợ tận tâm trong suốt quá trình cày rank",
       ],
     },
     {
@@ -108,7 +108,7 @@ const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
         "Voice 1-1 qua Discord/Zalo, xem màn hình và chỉ lỗi sai trực tiếp",
         "Hướng dẫn cách giữ máu, quản lý kinh tế và roll ở các round then chốt",
         "Giáo án độc quyền các đội hình Meta leo rank ổn định nhất",
-        "Hỗ trợ giải đáp thắc mắc xoay bài 24/7 sau buổi học",
+        "Hỗ trợ giải đáp thắc mắc xoay bài qua Zalo sau buổi học",
       ],
     },
     {
@@ -128,24 +128,24 @@ const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
   faqs: [
     {
       id: "faq-01",
-      q: "Sau khi gửi đơn qua Zalo thì bao lâu tôi nhận được tài khoản?",
-      a: "Hệ thống hoạt động tự động 24/7. Ngay sau khi bạn gửi thông tin đơn hàng và chuyển khoản theo STK shop gửi trong Zalo, ID và Mật khẩu tài khoản sẽ được bàn giao cho bạn trong vòng 30 giây.",
+      q: "Sau khi gửi thông tin qua Zalo thì bao lâu tôi nhận được tài khoản?",
+      a: "Sau khi bạn xác nhận mã tài khoản và hoàn tất chuyển khoản, Shop sẽ trực tiếp kiểm tra và bàn giao tài khoản kèm hướng dẫn đăng nhập an toàn qua tin nhắn Zalo.",
       category: "THUE_ACC",
-      badge: "Bàn giao 30s",
+      badge: "Bàn giao Zalo",
     },
     {
       id: "faq-02",
       q: "Tôi có cần phải đặt cọc khi thuê tài khoản không?",
-      a: "100% KHÔNG CẦN ĐẶT CỌC. Bạn chỉ cần thanh toán đúng số tiền của gói thời gian bạn chọn (2h, 7 ngày, 30 ngày...). Không phát sinh bất kỳ chi phí thế chấp hay phụ phí ẩn nào.",
+      a: "Không cần đặt cọc. Bạn chỉ cần thanh toán đúng số tiền của gói thời gian bạn chọn (2h, 7 ngày, 30 ngày...). Không phát sinh bất kỳ chi phí thế chấp hay phụ phí ẩn nào.",
       category: "THUE_ACC",
       badge: "Không Cọc",
     },
     {
       id: "faq-03",
       q: "Nếu đang chơi mà tài khoản bị lỗi hoặc bị trùng pass thì shop xử lý ra sao?",
-      a: "ShopTFT Mobile cam kết bảo hành 100% thời gian thuê. Nếu có bất kỳ sự cố gián đoạn nào, shop sẽ đổi ngay acc tương đương hoặc bù thêm giờ chơi / hoàn tiền 100% ngay lập tức qua Zalo 0352.867.283.",
+      a: "ShopTFTMobile cam kết hỗ trợ chu đáo trong suốt thời gian thuê. Nếu có bất kỳ sự cố gián đoạn nào, shop sẽ đổi ngay acc tương đương hoặc bù thêm giờ chơi nhanh chóng qua Zalo 0352.867.283.",
       category: "BAO_MAT",
-      badge: "Bảo hành 100%",
+      badge: "Hỗ trợ chu đáo",
     },
     {
       id: "faq-04",
@@ -164,7 +164,7 @@ const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
     {
       id: "faq-06",
       q: "Chơi trên điện thoại (ĐTCL Mobile iOS / Android) hay PC có được không?",
-      a: "Tất cả tài khoản của shop đều hỗ trợ đăng nhập đa nền tảng: Cả trên máy tính PC (Client Riot VNG) và điện thoại di động (ĐTCL Mobile iOS / Android) đều mượt mà 100%.",
+      a: "Tất cả tài khoản của shop đều hỗ trợ đăng nhập đa nền tảng: Cả trên máy tính PC (Client Riot VNG) và điện thoại di động (ĐTCL Mobile iOS / Android) đều mượt mà.",
       category: "THUE_ACC",
       badge: "Hỗ trợ Mobile & PC",
     },

@@ -111,13 +111,13 @@ export default function AdminHomepageManagerPage() {
   const [seo, setSeo] = useState<SEOConfig>({
     metaTitle: "Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Mobile Uy Tín",
     metaDescription:
-      "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7 bàn giao 30s. Đầy đủ Tướng Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc EDM & Cày Rank uy tín bởi Tuấn Thái Bình (Bảo hiểm 30M).",
+      "Shop thuê acc TFT, thuê acc ĐTCL VIP bàn giao trực tiếp qua Zalo uy tín. Đầy đủ Tướng Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc EDM & Cày Rank uy tín bởi Tuấn Thái Bình (Bảo hiểm 30M).",
     metaKeywords:
       "thuê acc tft, thuê acc đtcl, shop tft, tuấn thái bình tft, thuê acc tí nị, cày thuê đtcl, shop acc tft uy tín, shop tft mobile, thuê tài khoản đtcl, tí nị ahri, tí nị yasuo, coaching tft",
-    canonicalUrl: "https://shoptftmobile.net/",
+    canonicalUrl: "https://www.shoptftmobile.net/",
     ogTitle: "Tuấn Thái Bình TFT | Nền Tảng Thuê Acc ĐTCL Uy Tín",
     ogDescription:
-      "Thuê acc VIP ĐTCL / TFT Mobile tự động bàn giao 30s, trọn bộ Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc EDM. Quỹ bảo hiểm 30M Checkscam uy tín số 1.",
+      "Thuê acc VIP ĐTCL / TFT Mobile bàn giao nhanh qua Zalo, trọn bộ Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc EDM. Quỹ bảo hiểm 30M Checkscam uy tín số 1.",
     ogImage: "/banner-seo.jpg",
     faviconUrl: "/favicon.ico",
     bgImageUrl: "",

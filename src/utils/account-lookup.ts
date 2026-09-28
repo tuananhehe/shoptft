@@ -170,13 +170,13 @@ export function transformDbRowToUnified(row: AccountDbRow, index = 0): UnifiedPr
     ? [
         `Tướng Tí Nị HOT: ${mainChibi || "Full Set VIP"}`,
         `Sân Đấu: ${mainArena || "Thần Thoại Đổi Nhạc EDM"}`,
-        "Tài Khoản Riot ID Chính Chủ 100%",
-        "Bàn Giao Tự Động Siêu Tốc 30 Giây",
+        "Tài Khoản Riot ID Đảm Bảo Uy Tín",
+        "Bàn Giao Trực Tiếp Qua Zalo",
       ]
     : [
-        "Tài Khoản An Toàn 100%",
-        "Hỗ Trợ Bàn Giao Thông Về Khách",
-        "Sẵn Sản Phẩm Như Mô Tả 100%",
+        "Tài Khoản Đảm Bảo An Toàn",
+        "Hỗ Trợ Bàn Giao Nhanh Qua Zalo",
+        "Thông Tin Acc Đúng Như Mô Tả",
       ];
 
   const accountValue = Number(row.price) || (isVip ? 850000 : 150000);
@@ -193,9 +193,9 @@ export function transformDbRowToUnified(row: AccountDbRow, index = 0): UnifiedPr
     if (isVip) {
       const chibiDesc = allChibi.length > 0 ? allChibi.join(", ") : mainChibi;
       const arenaDesc = allArenas.length > 0 ? allArenas.join(", ") : mainArena;
-      description = `Tài khoản VIP chính chủ sở hữu ${chibiDesc}${arenaDesc ? ` kèm ${arenaDesc}` : ""}. Bậc rank ${row.rank || "VIP"}, cam kết Riot ID sạch 100%, bàn giao tự động 30s và bảo hành trực tiếp bởi Cựu Thách Đấu Tuấn Thái Bình (Bảo hiểm 30M Checkscam).`;
+      description = `Tài khoản VIP chính chủ sở hữu ${chibiDesc}${arenaDesc ? ` kèm ${arenaDesc}` : ""}. Bậc rank ${row.rank || "VIP"}, Riot ID an toàn, bàn giao trực tiếp qua Zalo và hỗ trợ chu đáo bởi Tuấn Thái Bình.`;
     } else {
-      description = `Tài khoản Clone / Smurf sạch sẽ bậc rank ${row.rank || "Unranked"}, sẵn sàng vào game leo rank ngay. Bàn giao full quyền Riot ID và bảo hành 100%.`;
+      description = `Tài khoản Clone / Smurf sạch sẽ bậc rank ${row.rank || "Unranked"}, sẵn sàng vào game leo rank ngay. Bàn giao qua Zalo và hỗ trợ chu đáo.`;
     }
   }
 
@@ -276,8 +276,8 @@ function transformVipFallback(item: TFTRentalAccount): UnifiedProductAccount {
     features: [
       `Tướng Tí Nị HOT: ${item.mainChibi}`,
       `Sân Đấu: ${item.mainArena}`,
-      "Cam kết Riot ID chính chủ 100%",
-      "Bàn giao siêu tốc 30 giây",
+      "Tài khoản Riot ID an toàn, chính chủ",
+      "Bàn giao trực tiếp qua Zalo",
     ],
     rankBadge: item.rank,
     durationLabel: "Thuê Theo Giờ / Ngày",
@@ -317,9 +317,9 @@ function transformCloneFallback(item: TFTCloneAccount): UnifiedProductAccount {
     allChibi: [],
     allArenas: [],
     features: item.features || [
-      "Tài Khoản An Toàn 100%",
-      "Hỗ Trợ Bàn Giao Thông Về Khách",
-      "Sẵn Sản Phẩm Như Mô Tả 100%",
+      "Tài Khoản Đảm Bảo An Toàn",
+      "Hỗ Trợ Bàn Giao Nhanh Qua Zalo",
+      "Thông Tin Acc Đúng Như Mô Tả",
     ],
     rankBadge: item.rankBadge,
     durationLabel: item.durationLabel || "Thuê Lâu Dài (Full Sở Hữu)",

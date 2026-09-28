@@ -44,7 +44,7 @@ export const VIP_TIERS: Record<VipTierId, VipTier> = {
     benefits: [
       "Giảm ngay 2% cho mọi đơn thuê tài khoản & dịch vụ",
       "Tặng 1 Voucher tân thủ trải nghiệm",
-      "Bảo hành 100% tài khoản trong suốt thời gian thuê",
+      "Bảo hành tài khoản chu đáo trong suốt thời gian thuê",
       "Hỗ trợ cài đặt & hướng dẫn đăng nhập tận tình qua Zalo",
     ],
   },
@@ -108,7 +108,7 @@ export const VIP_TIERS: Record<VipTierId, VipTier> = {
     discountPercent: 7,
     freeTestHours: 3,
     swapPerk: "Được đổi acc thoải mái 2 lần / ngày không cần lý do",
-    supportPerk: "Bảo hiểm tài khoản 100% + Hỗ trợ bù giờ nếu game cập nhật",
+    supportPerk: "Bảo hiểm tài khoản trọn gói + Hỗ trợ bù giờ nếu game cập nhật",
     summary: "Dành cho các cờ thủ cày rank chuyên nghiệp thuê từ 10 đơn hoặc chi tiêu từ 1.500.000đ",
     benefits: [
       "Giảm 7% trực tiếp vào mọi hóa đơn",
@@ -131,7 +131,7 @@ export const VIP_TIERS: Record<VipTierId, VipTier> = {
     discountPercent: 10,
     freeTestHours: 999,
     swapPerk: "Đặc quyền đổi acc không giới hạn bất kỳ lúc nào",
-    supportPerk: "Hotline & Zalo VIP phục vụ 24/7 tức thì trong 30 giây",
+    supportPerk: "Hotline & Zalo VIP ưu tiên hỗ trợ trực tiếp từ chủ shop",
     summary: "Đẳng cấp VIP cao nhất dành cho khách hàng VIP Legend với chi tiêu từ 4.000.000đ hoặc từ 20 đơn",
     benefits: [
       "Giảm tối đa 10% trọn đời toàn bộ dịch vụ của Shop",
