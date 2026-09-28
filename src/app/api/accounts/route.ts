@@ -100,16 +100,44 @@ function isAuthorizedAdmin(req: NextRequest): boolean {
   return !!session;
 }
 
+const LISTING_COLUMNS =
+  "id, code, type, title, rank, price, hourly_price, daily_price, period_price, period_unit, price_display_type, custom_price, custom_price_unit, champions, arenas, image_url, status, rented_until, description, created_at, features, weekly_price";
+
 /**
  * GET /api/accounts
- * Lấy danh sách toàn bộ tài khoản từ bảng accounts trên Supabase
+ * Lấy danh sách tài khoản từ bảng accounts trên Supabase
+ * Hỗ trợ bộ lọc type, status, phân trang limit/offset, tinh gọn payload và cache fresh
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const { data, error } = await supabase
+    const { searchParams } = new URL(req.url);
+    const type = searchParams.get("type");
+    const status = searchParams.get("status");
+    const rawLimit = searchParams.get("limit");
+    const rawOffset = searchParams.get("offset");
+
+    let query = supabase
       .from("accounts")
-      .select("*")
+      .select(LISTING_COLUMNS, { count: "exact" })
       .order("created_at", { ascending: false });
+
+    if (type && type.toUpperCase() !== "ALL") {
+      query = query.eq("type", type.toUpperCase());
+    }
+
+    if (status && status.toUpperCase() !== "ALL") {
+      query = query.eq("status", status.toUpperCase());
+    }
+
+    if (rawLimit) {
+      const limit = parseInt(rawLimit, 10);
+      const offset = rawOffset ? parseInt(rawOffset, 10) : 0;
+      if (!isNaN(limit) && limit > 0) {
+        query = query.range(offset, offset + limit - 1);
+      }
+    }
+
+    const { data, error, count } = await query;
 
     if (error) {
       console.warn("Lỗi truy vấn Supabase accounts:", error.message);
@@ -118,19 +146,28 @@ export async function GET() {
           success: false,
           error: error.message,
           data: [],
+          total: 0,
         },
         { status: 200 } // Trả về 200 kèm data rỗng để frontend không crash nếu chưa tạo bảng
       );
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: data || [],
+      total: count || (data ? data.length : 0),
     });
+
+    response.headers.set(
+      "Cache-Control",
+      "public, s-maxage=10, stale-while-revalidate=30"
+    );
+
+    return response;
   } catch (err: any) {
     console.error("Lỗi Server GET /api/accounts:", err);
     return NextResponse.json(
-      { success: false, error: err.message || "Lỗi máy chủ nội bộ", data: [] },
+      { success: false, error: err.message || "Lỗi máy chủ nội bộ", data: [], total: 0 },
       { status: 500 }
     );
   }

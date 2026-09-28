@@ -1,4 +1,4 @@
-import { TFTRentalAccount, TFTCloneAccount, TFT_RENTAL_ACCOUNTS } from "@/data/tft-data";
+import { TFTRentalAccount, TFTCloneAccount, TFT_RENTAL_ACCOUNTS, TFT_CLONE_ACCOUNTS } from "@/data/tft-data";
 import { supabase } from "./client";
 
 export function cleanTftImageUrl(url?: string): string {
@@ -299,6 +299,48 @@ export async function getNewestVipAccountsServer(limit: number = 4): Promise<TFT
 }
 
 /**
+ * Server-only: Lấy batch tài khoản đầu tiên cho trang /shop trực tiếp trên server
+ * Chạy parallel 2 query VIP & Clone với limit 24, loại bỏ hoàn toàn delay first load.
+ */
+export async function getInitialShopAccountsServer(): Promise<{
+  vipAccounts: TFTRentalAccount[];
+  cloneAccounts: TFTCloneAccount[];
+}> {
+  try {
+    const [vipRes, cloneRes] = await Promise.all([
+      supabase
+        .from("accounts")
+        .select("id, code, type, title, rank, price, hourly_price, daily_price, period_price, period_unit, price_display_type, custom_price, custom_price_unit, champions, arenas, image_url, status, rented_until, description, created_at")
+        .eq("type", "VIP")
+        .order("created_at", { ascending: false })
+        .limit(24),
+      supabase
+        .from("accounts")
+        .select("id, code, type, title, rank, price, hourly_price, daily_price, period_price, period_unit, price_display_type, custom_price, custom_price_unit, champions, arenas, image_url, status, rented_until, description, created_at, features, weekly_price")
+        .eq("type", "CLONE")
+        .order("created_at", { ascending: false })
+        .limit(24),
+    ]);
+
+    const vipAccounts = (!vipRes.error && vipRes.data && vipRes.data.length > 0)
+      ? vipRes.data.map((row: AccountDbRow, idx: number) => mapRowToVipAccount(row, idx))
+      : TFT_RENTAL_ACCOUNTS.slice(0, 24);
+
+    const cloneAccounts = (!cloneRes.error && cloneRes.data && cloneRes.data.length > 0)
+      ? cloneRes.data.map((row: AccountDbRow, idx: number) => mapRowToCloneAccount(row, idx))
+      : TFT_CLONE_ACCOUNTS.slice(0, 24);
+
+    return { vipAccounts, cloneAccounts };
+  } catch (err) {
+    console.warn("Lỗi server query initial shop accounts:", err);
+    return {
+      vipAccounts: TFT_RENTAL_ACCOUNTS.slice(0, 24),
+      cloneAccounts: TFT_CLONE_ACCOUNTS.slice(0, 24),
+    };
+  }
+}
+
+/**
  * Gọi GET /api/accounts để lấy danh sách từ Database
  */
 export async function getVipAndCloneAccounts(): Promise<{
@@ -309,7 +351,7 @@ export async function getVipAndCloneAccounts(): Promise<{
     const res = await fetch("/api/accounts", {
       method: "GET",
       headers: { "Content-Type": "application/json" },
-      cache: "no-store",
+      next: { revalidate: 15 },
     });
 
     if (!res.ok) {

@@ -24,6 +24,14 @@ function cleanTftImageUrl(url?: string): string {
   cleaned = cleaned.replace(/\.chibi_vex_cafecuties\.png$/i, ".png");
   cleaned = cleaned.replace(/\.tft_style2_darius_base\.png$/i, ".png");
 
+  // Tối ưu Unsplash: thumbnail chỉ cần 450px thay vì 1600px
+  if (cleaned.includes("images.unsplash.com")) {
+    cleaned = cleaned.replace(/w=\d+/, "w=450").replace(/q=\d+/, "q=75");
+    if (!cleaned.includes("auto=format")) {
+      cleaned += "&auto=format";
+    }
+  }
+
   return cleaned;
 }
 
@@ -89,9 +97,10 @@ export const LazyAccountImage: React.FC<LazyAccountImageProps> = ({
           ref={imgRef}
           src={activeSrc}
           alt={alt}
-          width={400}
-          height={400}
+          width={360}
+          height={360}
           loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "low"}
           decoding="async"
           referrerPolicy="no-referrer"
           onLoad={() => setIsLoaded(true)}

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { TFTRentalAccount } from "@/data/tft-data";
-import { getVipAndCloneAccounts } from "@/utils/supabase/accounts-service";
+import { mapRowToVipAccount } from "@/utils/supabase/accounts-service";
 import { getAccountProductUrl } from "@/utils/account-lookup";
 import {
   ProductCard,
@@ -29,12 +29,13 @@ export const TFTNewArrivals: React.FC<TFTNewArrivalsProps> = ({ initialAccounts 
     }
 
     let isMounted = true;
-    setIsLoading(true);
-    getVipAndCloneAccounts()
-      .then(({ vipAccounts }) => {
+    fetch("/api/accounts?type=VIP&limit=4")
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.statusText)))
+      .then((result) => {
         if (isMounted) {
-          if (vipAccounts && vipAccounts.length > 0) {
-            setNewAccounts(vipAccounts.slice(0, 4));
+          const rows = result.data || [];
+          if (rows.length > 0) {
+            setNewAccounts(rows.map((row: any, idx: number) => mapRowToVipAccount(row, idx)));
           }
           setIsLoading(false);
         }
