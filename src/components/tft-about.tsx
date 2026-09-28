@@ -78,7 +78,7 @@ export const TFTAbout: React.FC = () => {
     {
       step: "02",
       title: "Gửi mã acc qua Zalo",
-      desc: "Nhắn mã số tài khoản (MS) cho ShopTFTMobile để kiểm tra tình trạng sẵn sàng.",
+      desc: "Nhắn mã số tài khoản (MS) cho ShopTFTMobile để kiểm tra tình trạng còn acc và nhận hỗ trợ.",
     },
     {
       step: "03",
@@ -317,7 +317,7 @@ export const TFTAbout: React.FC = () => {
       <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 text-center">
         <div className="max-w-xl mx-auto space-y-4">
           <h2 className="font-heading text-2xl sm:text-3xl font-bold text-white tracking-tight">
-            Sẵn Sàng Trải Nghiệm Acc TFT?
+            Trải Nghiệm Acc TFT Đẳng Cấp Ngay Hôm Nay
           </h2>
           <p className="text-xs sm:text-sm text-zinc-400 font-normal max-w-md mx-auto leading-relaxed">
             Duyệt kho tài khoản đang có sẵn hoặc liên hệ trực tiếp qua Zalo để được tư vấn nhanh chóng.

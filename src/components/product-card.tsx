@@ -237,7 +237,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div
       style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}
-      className="flex flex-col h-full justify-between bg-[#121214] hover:bg-[#151518] border border-white/[0.08] hover:border-white/[0.18] rounded-2xl p-3 sm:p-4 transition-all duration-200 hover:-translate-y-1 group"
+      className="flex flex-col h-full justify-between bg-[#121214] hover:bg-[#151518] border border-white/[0.08] hover:border-white/20 rounded-2xl p-3 sm:p-4 transition-all duration-200 hover:-translate-y-0.5 sm:hover:-translate-y-1 group"
     >
       {/* ============================================================ */}
       {/* 1. KHU VỰC ẢNH SẢN PHẨM & OVERLAY BADGES (TINH GỌN)          */}
@@ -245,7 +245,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <div>
         <div
           onClick={handleViewDetail}
-          className="relative aspect-square w-full overflow-hidden rounded-xl bg-[#0a0a0c] mb-3 border border-white/[0.06] cursor-pointer flex items-center justify-center group/img"
+          className="relative aspect-square w-full overflow-hidden rounded-xl bg-[#0a0a0c] mb-2.5 sm:mb-3 border border-white/[0.06] cursor-pointer flex items-center justify-center group/img"
         >
           <LazyAccountImage
             src={item.thumbnail}
@@ -271,12 +271,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {/* Top-Right: Trạng Thái Acc (● CÒN ACC / ● ĐANG THUÊ) */}
           <div className="absolute top-2 right-2 z-10">
             {isAvailable ? (
-              <span className="px-2 py-0.5 rounded-md bg-[#09090b]/90 text-emerald-400 border border-emerald-500/20 text-[9px] sm:text-[10px] font-medium tracking-tight uppercase backdrop-blur-md flex items-center gap-1.5 shadow-sm">
+              <span className="px-2 py-0.5 rounded-md bg-[#09090b]/90 text-emerald-400 border border-emerald-500/20 text-[9px] sm:text-[10px] font-semibold tracking-tight uppercase backdrop-blur-md flex items-center gap-1.5 shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 <span>CÒN ACC</span>
               </span>
             ) : (
-              <span className="px-2 py-0.5 rounded-md bg-[#09090b]/90 text-zinc-400 border border-white/10 text-[9px] sm:text-[10px] font-medium tracking-tight uppercase backdrop-blur-md flex items-center gap-1.5 shadow-sm">
+              <span className="px-2 py-0.5 rounded-md bg-[#09090b]/90 text-zinc-400 border border-white/10 text-[9px] sm:text-[10px] font-semibold tracking-tight uppercase backdrop-blur-md flex items-center gap-1.5 shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
                 <span>ĐANG THUÊ</span>
               </span>
@@ -292,42 +292,42 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* ============================================================ */}
-        {/* 2. TÊN SẢN PHẨM                                              */}
+        {/* 2. TÊN SẢN PHẨM (CLAMP 2 DÒNG)                               */}
         {/* ============================================================ */}
         <h3
           onClick={handleViewDetail}
-          className="font-heading font-semibold text-[15px] sm:text-base text-white line-clamp-2 min-h-[42px] sm:min-h-[44px] leading-[1.38] group-hover:text-zinc-200 transition-colors cursor-pointer mb-2"
+          className="font-heading font-semibold text-[15px] sm:text-base text-white line-clamp-2 min-h-[42px] sm:min-h-[44px] leading-snug group-hover:text-zinc-200 transition-colors cursor-pointer mb-2 sm:mb-2.5"
           title={item.title}
         >
           {item.title}
         </h3>
 
         {/* ============================================================ */}
-        {/* 3. THÔNG TIN METADATA (PET & SÂN ĐẤU)                        */}
+        {/* 3. THÔNG TIN METADATA (PET & SÂN ĐẤU, TỐI ĐA 1 DÒNG)        */}
         {/* ============================================================ */}
-        <div className="space-y-1 text-xs sm:text-[13px] mb-3">
+        <div className="space-y-1 text-xs sm:text-[13px] mb-2.5 sm:mb-3">
           <div
             onClick={handleViewDetail}
-            className="flex items-center gap-1.5 text-zinc-300 min-w-0 cursor-pointer"
+            className="flex items-center gap-1.5 text-zinc-200 min-w-0 cursor-pointer"
             title={item.allPetsSummary || item.mainPet}
           >
-            <span className="text-zinc-500 font-medium flex-shrink-0 text-xs sm:text-[13px]">
+            <span className="text-zinc-400 font-medium flex-shrink-0 text-xs sm:text-[13px]">
               Pet:
             </span>
-            <span className="font-normal text-zinc-300 truncate">
+            <span className="font-normal text-zinc-200 truncate">
               {item.allPetsSummary || item.mainPet || "Tướng Tí Nị"}
             </span>
           </div>
 
           <div
             onClick={handleViewDetail}
-            className="flex items-center gap-1.5 text-zinc-400 min-w-0 cursor-pointer"
+            className="flex items-center gap-1.5 text-zinc-300 min-w-0 cursor-pointer"
             title={item.arena || (item.features && item.features[0]) || "Bản đồ cơ bản"}
           >
-            <span className="text-zinc-500 font-medium flex-shrink-0 text-xs sm:text-[13px]">
+            <span className="text-zinc-400 font-medium flex-shrink-0 text-xs sm:text-[13px]">
               {item.arena ? "Sân:" : item.features && item.features.length > 0 ? "Đặc điểm:" : "Sân:"}
             </span>
-            <span className="font-normal text-zinc-400 truncate">
+            <span className="font-normal text-zinc-300 truncate">
               {item.arena || (item.features && item.features.length > 0 ? item.features[0] : "Bản đồ cơ bản")}
             </span>
           </div>
@@ -338,23 +338,50 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       {/* 4. GIÁ SẢN PHẨM & CÁC NÚT THAO TÁC (CTA)                     */}
       {/* ============================================================ */}
       <div className="mt-auto pt-2.5 sm:pt-3 border-t border-white/[0.06]">
-        {/* Hiển thị giá nổi bật (WHITE PRICE) */}
-        <div className="flex items-baseline gap-1 mb-2.5 sm:mb-3">
-          <span className="text-[17px] sm:text-[18px] font-bold text-white font-heading tracking-tight">
+        {/* Hiển thị giá nổi bật (18-20px / 700-800) */}
+        <div className="flex items-baseline gap-1.5 mb-2.5 sm:mb-3">
+          <span className="text-[18px] sm:text-[20px] font-bold text-white font-heading tracking-tight">
             {formatVND(item.price)}
           </span>
-          <span className="text-xs sm:text-[13px] text-zinc-400 font-normal">
+          <span className="text-xs sm:text-[13px] text-zinc-400 font-medium">
             {item.priceUnit}
           </span>
         </div>
 
-        {/* 2 Nút CTA chuẩn hoá theo trạng thái */}
-        <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+        {/* Nút CTA: Mobile 1 nút nổi bật (tap target 40px), Desktop 2 nút (Chi tiết | Thuê ngay) */}
+        {/* Mobile View (< sm) */}
+        <div className="sm:hidden">
+          {isAvailable ? (
+            <button
+              type="button"
+              onClick={handlePrimaryAction}
+              className="w-full h-10 px-3 bg-white hover:bg-zinc-200 active:scale-98 text-[#09090b] font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
+              aria-label={`Thuê ngay tài khoản ${item.code}`}
+            >
+              <KeyRound className="w-3.5 h-3.5 flex-shrink-0 text-[#09090b]" />
+              <span className="truncate">Thuê ngay</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="w-full h-10 px-3 bg-white/[0.03] text-zinc-400 border border-white/[0.06] font-medium text-xs rounded-xl flex items-center justify-center gap-1.5 cursor-not-allowed select-none opacity-80"
+              aria-label={`Tài khoản ${item.code} đang thuê`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
+              <span className="truncate">Đang thuê</span>
+            </button>
+          )}
+        </div>
+
+        {/* Desktop / Tablet View (>= sm) */}
+        <div className="hidden sm:grid sm:grid-cols-2 gap-2">
           {/* Nút Phụ: Chi tiết */}
           <button
             type="button"
             onClick={handleViewDetail}
-            className="h-9 px-1.5 sm:px-2 bg-white/[0.04] hover:bg-white/[0.08] active:scale-98 text-zinc-300 hover:text-white border border-white/[0.08] hover:border-white/[0.16] rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center justify-center gap-1 cursor-pointer focus-visible:outline-none"
+            className="h-10 px-2 bg-white/[0.04] hover:bg-white/[0.08] active:scale-98 text-zinc-300 hover:text-white border border-white/[0.08] hover:border-white/[0.16] rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20"
+            aria-label={`Xem chi tiết tài khoản ${item.code}`}
           >
             <Eye className="w-3.5 h-3.5 flex-shrink-0 text-zinc-400" />
             <span className="truncate">Chi tiết</span>
@@ -365,7 +392,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <button
               type="button"
               onClick={handlePrimaryAction}
-              className="h-9 px-1.5 sm:px-2 bg-white hover:bg-zinc-200 active:scale-98 text-[#09090b] font-semibold text-xs sm:text-sm rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer shadow-sm focus-visible:outline-none"
+              className="h-10 px-2 bg-white hover:bg-zinc-200 active:scale-98 text-[#09090b] font-semibold text-sm rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
+              aria-label={`Thuê ngay tài khoản ${item.code}`}
             >
               <KeyRound className="w-3.5 h-3.5 flex-shrink-0 text-[#09090b]" />
               <span className="truncate">Thuê ngay</span>
@@ -374,7 +402,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <button
               type="button"
               disabled
-              className="h-9 px-1 sm:px-1.5 bg-white/[0.03] text-zinc-500 border border-white/[0.05] font-medium text-xs sm:text-sm rounded-xl flex items-center justify-center gap-1.5 cursor-not-allowed select-none opacity-80"
+              className="h-10 px-1.5 bg-white/[0.03] text-zinc-500 border border-white/[0.05] font-medium text-sm rounded-xl flex items-center justify-center gap-1.5 cursor-not-allowed select-none opacity-80"
+              aria-label={`Tài khoản ${item.code} đang thuê`}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
               <span className="truncate">Đang thuê</span>
@@ -394,14 +423,14 @@ export const ProductCardSkeleton: React.FC = () => {
     <div className="flex flex-col h-full justify-between bg-[#121214] border border-white/[0.07] rounded-2xl p-3 sm:p-4 animate-pulse">
       <div>
         {/* Image thumbnail placeholder with exact square 1:1 aspect ratio */}
-        <div className="relative aspect-square w-full rounded-xl bg-zinc-800/60 mb-3 border border-white/[0.06] overflow-hidden">
+        <div className="relative aspect-square w-full rounded-xl bg-zinc-800/60 mb-2.5 sm:mb-3 border border-white/[0.06] overflow-hidden">
           <div className="absolute top-2 left-2 w-8 h-4 rounded bg-zinc-700/60" />
           <div className="absolute top-2 right-2 w-16 h-4 rounded bg-zinc-700/60" />
           <div className="absolute bottom-2 left-2 w-10 h-3.5 rounded bg-zinc-700/60" />
         </div>
 
         {/* Title skeleton (clamped 2 lines) */}
-        <div className="space-y-1.5 mb-2">
+        <div className="space-y-1.5 mb-2.5">
           <div className="h-4 sm:h-4.5 bg-zinc-800/70 rounded w-4/5" />
           <div className="h-4 sm:h-4.5 bg-zinc-800/50 rounded w-3/5" />
         </div>
@@ -416,9 +445,14 @@ export const ProductCardSkeleton: React.FC = () => {
       {/* Price & action buttons skeleton */}
       <div className="mt-auto pt-2.5 sm:pt-3 border-t border-white/[0.06] space-y-2.5">
         <div className="h-5 sm:h-5.5 bg-zinc-800/70 rounded w-28" />
-        <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-          <div className="h-9 bg-zinc-800/40 rounded-xl" />
-          <div className="h-9 bg-zinc-800/60 rounded-xl" />
+        {/* Mobile Skeleton */}
+        <div className="sm:hidden">
+          <div className="h-10 bg-zinc-800/60 rounded-xl w-full" />
+        </div>
+        {/* Desktop Skeleton */}
+        <div className="hidden sm:grid sm:grid-cols-2 gap-2">
+          <div className="h-10 bg-zinc-800/40 rounded-xl" />
+          <div className="h-10 bg-zinc-800/60 rounded-xl" />
         </div>
       </div>
     </div>

@@ -78,8 +78,18 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
         setOpenDropdown(null);
       }
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpenDropdown(null);
+        setIsMobileDrawerOpen(false);
+      }
+    };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, []);
 
   // Xử lý focus query param (?focus=pet | ?focus=arena)
@@ -446,7 +456,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
               <div className="absolute left-0 top-full mt-1.5 w-44 bg-[#141414] border border-white/[0.08] rounded-xl shadow-xl z-40 py-1 text-xs">
                 {[
                   { id: "ALL", label: "Tất cả trạng thái" },
-                  { id: "AVAILABLE", label: "Còn acc (Sẵn sàng)", dot: "bg-emerald-400" },
+                  { id: "AVAILABLE", label: "Còn acc", dot: "bg-emerald-400" },
                   { id: "RENTED", label: "Đang thuê", dot: "bg-zinc-500" },
                 ].map((s) => (
                   <button
@@ -524,7 +534,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
         {/* MOBILE COMPACT HEADER BAR (< 1024PX)                          */}
         {/* ============================================================ */}
         <div className="lg:hidden space-y-2">
-          {/* Ô tìm kiếm nhanh trên Mobile */}
+          {/* Ô tìm kiếm nhanh trên Mobile (h-10 / 40px tap target) */}
           <div className="relative w-full">
             <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
@@ -532,7 +542,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Tìm theo tên, Pet, mã số, Sân Đấu..."
-              className="w-full pl-9 pr-8 py-2 bg-[#181818] border border-white/[0.08] rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
+              className="w-full h-10 pl-9 pr-8 bg-[#181818] border border-white/[0.08] rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
             />
             {searchInput && (
               <button
@@ -549,12 +559,12 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
             )}
           </div>
 
-          {/* Hàng nút: [ Bộ lọc (count) ] [ Sắp xếp ] */}
+          {/* Hàng nút: [ Bộ lọc (count) ] [ Sắp xếp ] (h-10 / 40px tap target) */}
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => setIsMobileDrawerOpen(true)}
-              className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border ${
+              className={`h-10 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border ${
                 meaningfulFilterCount > 0
                   ? "bg-white text-black border-white"
                   : "bg-[#181818] text-zinc-200 border-white/[0.08] hover:border-white/[0.18]"
@@ -571,7 +581,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
                 value={filters.sort}
                 onChange={(e) => onFilterChange({ sort: e.target.value as any })}
                 aria-label="Sắp xếp sản phẩm"
-                className="w-full py-2 px-3 bg-[#181818] border border-white/[0.08] rounded-xl text-xs font-semibold text-zinc-200 focus:outline-none focus:border-white/30 cursor-pointer appearance-none text-center"
+                className="w-full h-10 px-3 bg-[#181818] border border-white/[0.08] rounded-xl text-xs font-semibold text-zinc-200 focus:outline-none focus:border-white/30 cursor-pointer appearance-none text-center"
               >
                 <option value="NEWEST">Mới nhất</option>
                 <option value="PRICE_ASC">Giá thấp → cao</option>
@@ -713,7 +723,8 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
               <button
                 type="button"
                 onClick={() => setIsMobileDrawerOpen(false)}
-                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-zinc-300 hover:text-white cursor-pointer"
+                className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-zinc-300 hover:text-white cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
+                aria-label="Đóng bộ lọc"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -753,14 +764,14 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
                 <div className="grid grid-cols-3 gap-2">
                   {[
                     { id: "ALL", label: "Tất Cả" },
-                    { id: "AVAILABLE", label: "Còn Acc", dot: "bg-emerald-400" },
-                    { id: "RENTED", label: "Đang Thuê", dot: "bg-zinc-500" },
+                    { id: "AVAILABLE", label: "Còn acc", dot: "bg-emerald-400" },
+                    { id: "RENTED", label: "Đang thuê", dot: "bg-zinc-500" },
                   ].map((s) => (
                     <button
                       key={s.id}
                       type="button"
                       onClick={() => onFilterChange({ status: s.id as any })}
-                      className={`py-2 px-2 rounded-xl font-medium transition-all flex items-center justify-center gap-1.5 text-center cursor-pointer border ${
+                      className={`min-h-[40px] py-2 px-2 rounded-xl font-medium transition-all flex items-center justify-center gap-1.5 text-center cursor-pointer border ${
                         filters.status === s.id
                           ? "bg-white text-black font-semibold border-white"
                           : "bg-[#181818] text-zinc-300 border-white/[0.08] hover:border-white/[0.18]"

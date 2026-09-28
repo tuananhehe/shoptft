@@ -433,7 +433,7 @@ function ShopPageContent() {
   }, [hasMore, isLoading, isLoadingMore, filteredAccounts.length]);
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-white flex flex-col justify-between selection:bg-white selection:text-black">
+    <div className="min-h-screen bg-[#09090b] text-white flex flex-col justify-between selection:bg-white selection:text-black overflow-x-hidden">
       {/* Header */}
       <TFTNavbar />
 
