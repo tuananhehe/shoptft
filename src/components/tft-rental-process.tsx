@@ -5,28 +5,31 @@ import { PROFILE_INFO } from "@/utils/profile-info";
 const steps = [
   {
     step: "01",
-    title: "Tìm acc",
-    desc: "Tìm theo Pet, Chibi hoặc Sân Đấu.",
+    title: "Chọn acc",
+    desc: "Tìm acc theo Pet, Chibi hoặc Sân Đấu.",
   },
   {
     step: "02",
-    title: "Chọn acc",
-    desc: "Xem thông tin, giá và trạng thái.",
+    title: "Chọn gói thuê",
+    desc: "Xem chi tiết gói giá và thời lượng thuê.",
   },
   {
     step: "03",
-    title: "Liên hệ Zalo",
-    desc: "Gửi mã acc cho ShopTFTMobile.",
+    title: "Liên hệ Shop qua Zalo",
+    desc: "Gửi mã acc và nhu cầu thuê cho shop.",
   },
   {
     step: "04",
-    title: "Nhận acc",
-    desc: "Thanh toán và nhận thông tin tài khoản trực tiếp từ shop.",
+    title: "Admin xác nhận & bàn giao",
+    desc: "Shop kiểm tra và bàn giao tài khoản trực tiếp qua Zalo.",
   },
 ];
 
 export const TFTRentalProcess = () => (
-  <section className="bg-[#090909] py-8 sm:py-12 lg:py-14 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08]">
+  <section
+    id="huong-dan"
+    className="scroll-mt-14 sm:scroll-mt-20 bg-[#090909] py-8 sm:py-12 lg:py-14 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08]"
+  >
     <div className="max-w-5xl mx-auto">
       <div className="mb-8 sm:mb-12 text-center">
         <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.08em] text-zinc-400">

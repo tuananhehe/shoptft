@@ -1,25 +1,46 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import { PROFILE_INFO } from "@/data/tft-data";
 import { useUserAuth } from "@/context/user-auth-context";
 import { ChevronDown, Menu, X, User } from "lucide-react";
 
-interface TFTNavbarProps {
-  sectionsConfig?: any;
-}
-
-export const TFTNavbar: React.FC<TFTNavbarProps> = () => {
+export const TFTNavbar: React.FC = () => {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [shopDropdown, setShopDropdown] = useState(false);
   const { user } = useUserAuth();
+
+  // Active navigation states
+  const sortParam = searchParams.get("sort");
+  const isShopActive = pathname === "/shop" && sortParam !== "newest";
+  const isNewArrivalsActive = pathname === "/shop" && sortParam === "newest";
+  const isAboutActive = pathname === "/ve-shop";
+
+  // Prevent body scrolling when mobile navigation drawer is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname, searchParams]);
 
   return (
     <header className="sticky top-0 z-50 bg-[#09090b]/90 backdrop-blur-md border-b border-white/[0.08] text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="h-16 flex items-center justify-between gap-4">
-          
           {/* 1. Left: Brand & Operator */}
           <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
             <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-white/10 group-hover:border-white/30 transition-colors">
@@ -38,9 +59,7 @@ export const TFTNavbar: React.FC<TFTNavbarProps> = () => {
                   TFT
                 </span>
               </div>
-              <p className="text-[11px] text-zinc-400">
-                ShopTFT Mobile
-              </p>
+              <p className="text-[11px] text-zinc-400">ShopTFT Mobile</p>
             </div>
           </Link>
 
@@ -54,14 +73,18 @@ export const TFTNavbar: React.FC<TFTNavbarProps> = () => {
             >
               <Link
                 href="/shop"
-                className="inline-flex items-center gap-1 hover:text-white transition-colors py-2"
+                className={`inline-flex items-center gap-1 transition-colors py-2 ${
+                  isShopActive
+                    ? "text-white font-semibold"
+                    : "text-zinc-300 hover:text-white"
+                }`}
               >
                 <span>Kho Acc</span>
                 <ChevronDown className="w-3.5 h-3.5 opacity-60" />
               </Link>
 
               {shopDropdown && (
-                <div className="absolute top-full left-0 w-44 py-1.5 rounded-xl bg-[#121214] border border-white/10 shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150 z-50">
+                <div className="absolute top-full left-0 w-48 py-1.5 rounded-xl bg-[#121214] border border-white/10 shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150 z-50">
                   <Link
                     href="/shop"
                     className="block px-3.5 py-2 text-xs text-zinc-300 hover:text-white hover:bg-white/5 transition-colors"
@@ -86,23 +109,31 @@ export const TFTNavbar: React.FC<TFTNavbarProps> = () => {
 
             <Link
               href="/shop?sort=newest"
-              className="hover:text-white transition-colors py-2"
+              className={`transition-colors py-2 ${
+                isNewArrivalsActive
+                  ? "text-white font-semibold"
+                  : "text-zinc-300 hover:text-white"
+              }`}
             >
               Acc Mới
             </Link>
 
             <Link
-              href="/#services"
-              className="hover:text-white transition-colors py-2"
+              href="/#huong-dan"
+              className="text-zinc-300 hover:text-white transition-colors py-2"
             >
-              Cày Rank
+              Hướng Dẫn
             </Link>
 
             <Link
-              href="/#faq"
-              className="hover:text-white transition-colors py-2"
+              href="/ve-shop"
+              className={`transition-colors py-2 ${
+                isAboutActive
+                  ? "text-white font-semibold"
+                  : "text-zinc-300 hover:text-white"
+              }`}
             >
-              Hướng Dẫn
+              Về Shop
             </Link>
           </nav>
 
@@ -137,7 +168,7 @@ export const TFTNavbar: React.FC<TFTNavbarProps> = () => {
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+              className="md:hidden p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
               aria-label="Toggle navigation"
             >
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -148,12 +179,16 @@ export const TFTNavbar: React.FC<TFTNavbarProps> = () => {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-white/[0.08] bg-[#09090b] px-4 py-4 space-y-3">
+        <div className="md:hidden border-t border-white/[0.08] bg-[#09090b] px-4 py-4 space-y-3 shadow-2xl">
           <div className="space-y-1">
             <Link
               href="/shop"
               onClick={() => setMobileOpen(false)}
-              className="block px-3 py-2 text-sm text-zinc-200 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+              className={`block px-3 py-2 text-sm rounded-lg transition-colors ${
+                isShopActive
+                  ? "text-white font-semibold bg-white/10"
+                  : "text-zinc-200 hover:text-white hover:bg-white/5"
+              }`}
             >
               Kho Acc (Tất cả)
             </Link>
@@ -162,35 +197,43 @@ export const TFTNavbar: React.FC<TFTNavbarProps> = () => {
               onClick={() => setMobileOpen(false)}
               className="block pl-6 pr-3 py-1.5 text-xs text-zinc-400 hover:text-white transition-colors"
             >
-              • Kho VIP
+              • Kho VIP (Chibi & Sân)
             </Link>
             <Link
               href="/shop?type=clone"
               onClick={() => setMobileOpen(false)}
               className="block pl-6 pr-3 py-1.5 text-xs text-zinc-400 hover:text-white transition-colors"
             >
-              • Kho Clone
+              • Kho Clone (Sở hữu)
             </Link>
             <Link
               href="/shop?sort=newest"
               onClick={() => setMobileOpen(false)}
-              className="block px-3 py-2 text-sm text-zinc-200 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+              className={`block px-3 py-2 text-sm rounded-lg transition-colors ${
+                isNewArrivalsActive
+                  ? "text-white font-semibold bg-white/10"
+                  : "text-zinc-200 hover:text-white hover:bg-white/5"
+              }`}
             >
               Acc Mới
             </Link>
             <Link
-              href="/#services"
+              href="/#huong-dan"
               onClick={() => setMobileOpen(false)}
               className="block px-3 py-2 text-sm text-zinc-200 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
             >
-              Cày Rank
+              Hướng Dẫn Thuê
             </Link>
             <Link
-              href="/#faq"
+              href="/ve-shop"
               onClick={() => setMobileOpen(false)}
-              className="block px-3 py-2 text-sm text-zinc-200 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+              className={`block px-3 py-2 text-sm rounded-lg transition-colors ${
+                isAboutActive
+                  ? "text-white font-semibold bg-white/10"
+                  : "text-zinc-200 hover:text-white hover:bg-white/5"
+              }`}
             >
-              Hướng Dẫn
+              Về ShopTFTMobile
             </Link>
           </div>
 

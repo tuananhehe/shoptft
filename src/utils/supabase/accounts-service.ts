@@ -261,6 +261,7 @@ export async function getVipAndCloneAccounts(): Promise<{
           cleanTftImageUrl(row.image_url) ||
           "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop",
         description: row.description || "Tài khoản VIP chính chủ.",
+        createdAt: row.created_at,
       };
     });
 
@@ -299,6 +300,7 @@ export async function getVipAndCloneAccounts(): Promise<{
         customPrice: row.custom_price ? Number(row.custom_price) : undefined,
         customPriceUnit: row.custom_price_unit || undefined,
         description: row.description || "Tài khoản Clone sạch sẽ, bàn giao full quyền sở hữu.",
+        createdAt: row.created_at,
       };
     });
 

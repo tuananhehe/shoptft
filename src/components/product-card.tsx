@@ -36,6 +36,7 @@ export interface ProductCardData {
   arena?: string;
   features?: string[];
   description?: string;
+  createdAt?: string;
   rawVip?: TFTRentalAccount;
   rawClone?: TFTCloneAccount;
 }
@@ -103,6 +104,7 @@ export function normalizeVipAccount(
     allPetsSummary,
     arena,
     description: account.description,
+    createdAt: account.createdAt,
     rawVip: account,
   };
 }
@@ -135,6 +137,7 @@ export function normalizeCloneAccount(
     arena: "",
     features,
     description: account.description,
+    createdAt: account.createdAt,
     rawClone: account,
   };
 }

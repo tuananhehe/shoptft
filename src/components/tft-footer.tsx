@@ -82,13 +82,18 @@ export const TFTFooter: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/shop?sort=newest" className="hover:text-white transition-colors">
-                  Acc Mới
+                <Link href="/shop?type=vip" className="hover:text-white transition-colors">
+                  Kho VIP (Chibi & Sân)
                 </Link>
               </li>
               <li>
-                <Link href="/#services" className="hover:text-white transition-colors">
-                  Cày Rank
+                <Link href="/shop?type=clone" className="hover:text-white transition-colors">
+                  Kho Clone (Sở hữu)
+                </Link>
+              </li>
+              <li>
+                <Link href="/shop?sort=newest" className="hover:text-white transition-colors">
+                  Acc Mới
                 </Link>
               </li>
             </ul>
@@ -112,8 +117,13 @@ export const TFTFooter: React.FC = () => {
                 </a>
               </li>
               <li>
+                <Link href="/#huong-dan" className="hover:text-white transition-colors">
+                  Quy Trình Thuê Acc
+                </Link>
+              </li>
+              <li>
                 <Link href="/#faq" className="hover:text-white transition-colors">
-                  Hướng Dẫn
+                  Câu Hỏi Thường Gặp
                 </Link>
               </li>
               <li className="pt-2 border-t border-white/[0.04]">

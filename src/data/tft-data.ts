@@ -28,6 +28,7 @@ export interface TFTRentalAccount {
   thumbnail: string;
   description: string;
   tag?: string;
+  createdAt?: string;
 }
 
 export interface ReviewItem {
@@ -386,6 +387,7 @@ export interface TFTCloneAccount {
   customPrice?: number;
   customPriceUnit?: string;
   description: string;
+  createdAt?: string;
 }
 
 export const TFT_CLONE_ACCOUNTS: TFTCloneAccount[] = [];

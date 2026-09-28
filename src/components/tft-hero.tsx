@@ -33,7 +33,7 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
     { label: "Jinx", href: "/shop?search=Jinx" },
     { label: "Gwen", href: "/shop?search=Gwen" },
     { label: "Pet / Chibi", href: "/shop?focus=pet" },
-    { label: "Sân đấu", href: "/shop?focus=arena" },
+    { label: "Sân Đấu", href: "/shop?focus=arena" },
     { label: "VIP", href: "/shop?type=vip" },
     { label: "Clone", href: "/shop?type=clone" },
   ];

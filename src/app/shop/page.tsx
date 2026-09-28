@@ -233,7 +233,11 @@ function ShopPageContent() {
   const allNormalizedAccounts = useMemo<ProductCardData[]>(() => {
     const vips = vipRaw.map((v) => normalizeVipAccount(v));
     const clones = cloneRaw.map((c) => normalizeCloneAccount(c));
-    return [...vips, ...clones];
+    return [...vips, ...clones].sort((a, b) => {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return timeB - timeA;
+    });
   }, [vipRaw, cloneRaw]);
 
   // Compute Filter Options data for dropdown lists
@@ -350,8 +354,10 @@ function ShopPageContent() {
         if (filters.sort === "PRICE_DESC") {
           return b.price - a.price;
         }
-        // "NEWEST": Preserve chronological order or ID order
-        return 0;
+        // "NEWEST": Sort by creation timestamp descending
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return timeB - timeA;
       });
   }, [allNormalizedAccounts, filters]);
 
