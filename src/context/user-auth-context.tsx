@@ -286,6 +286,8 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
               const prevSpent = prev.totalSpent ?? 0;
               const newOrders = Math.max(prevOrders, json.totalOrders);
               const newSpent = Math.max(prevSpent, json.totalSpent);
+              // Only update if values actually changed to prevent re-render loop
+              if (prevOrders === newOrders && prevSpent === newSpent) return prev;
               const updated: UserProfile = {
                 ...prev,
                 totalOrders: newOrders,
@@ -301,7 +303,8 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } catch (err) {
       console.warn("Lỗi tải thông tin tài khoản đang thuê:", err);
     }
-  }, [user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.email, user?.phoneZalo]);
 
   useEffect(() => {
     if (user) {
