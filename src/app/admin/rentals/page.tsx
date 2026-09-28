@@ -130,7 +130,14 @@ function AdminRentalsContent() {
   const initialAccountCode = searchParams.get("accountCode") || "";
   const initialSearch = searchParams.get("search") || "";
 
-  const [activeTab, setActiveTab] = useState<"ACTIVE" | "EXPIRING" | "OVERDUE" | "HISTORY" | "ALL">("ACTIVE");
+  const initialTabParam = (searchParams.get("tab") || searchParams.get("status") || "").toUpperCase();
+  const initialActiveTab: "ACTIVE" | "EXPIRING" | "OVERDUE" | "HISTORY" | "ALL" =
+    initialTabParam === "EXPIRING" ? "EXPIRING" :
+    initialTabParam === "OVERDUE" ? "OVERDUE" :
+    initialTabParam === "HISTORY" ? "HISTORY" :
+    initialTabParam === "ALL" ? "ALL" : "ACTIVE";
+
+  const [activeTab, setActiveTab] = useState<"ACTIVE" | "EXPIRING" | "OVERDUE" | "HISTORY" | "ALL">(initialActiveTab);
   const [orders, setOrders] = useState<OrderItem[]>([]);
   const [stats, setStats] = useState<OrdersStats>({
     totalRevenue: 0,

@@ -573,6 +573,13 @@ export default function AdminAccountsPage() {
   };
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const st = (params.get("status") || "").toUpperCase();
+      if (st === "AVAILABLE" || st === "RENTED") {
+        setStatusFilter(st);
+      }
+    }
     fetchAccounts(true);
     getHomepageConfig().then((cfg) => {
       if (cfg?.pricing) {
