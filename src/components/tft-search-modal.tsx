@@ -385,7 +385,7 @@ export const TFTSearchModal: React.FC<TFTSearchModalProps> = ({
             <div className="py-8 px-4 space-y-4">
               <div className="flex items-center justify-between text-xs font-mono font-medium text-zinc-400 px-1">
                 <span>DANH MỤC NỔI BẬT</span>
-                <span className="text-[10px] text-zinc-500">Bàn giao tự động 30s</span>
+                <span className="text-[10px] text-zinc-500">Bàn giao qua Zalo</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">

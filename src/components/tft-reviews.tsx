@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { CUSTOMER_REVIEWS } from "@/data/tft-data";
 import { getReviewsApi, CustomerReviewItem } from "@/utils/reviews-service";
 import { ReviewModal } from "@/components/review-modal";
 import {
@@ -13,18 +12,6 @@ import {
   MessageCircle,
 } from "lucide-react";
 
-// Bảng màu Pastel Gaming cho Avatar chữ cái
-const AVATAR_COLOR_PALETTES = [
-  "bg-orange-100 text-orange-600 border-orange-200",
-  "bg-blue-100 text-blue-600 border-blue-200",
-  "bg-emerald-100 text-emerald-600 border-emerald-200",
-  "bg-purple-100 text-purple-600 border-purple-200",
-  "bg-rose-100 text-rose-600 border-rose-200",
-  "bg-amber-100 text-amber-700 border-amber-200",
-  "bg-indigo-100 text-indigo-600 border-indigo-200",
-  "bg-teal-100 text-teal-600 border-teal-200",
-];
-
 const getCustomerInitial = (name: string): string => {
   const clean = name.replace(/\([^)]*\)/g, "").trim();
   const words = clean.split(/\s+/).filter(Boolean);
@@ -33,44 +20,20 @@ const getCustomerInitial = (name: string): string => {
   return lastName.charAt(0).toUpperCase();
 };
 
-const getAvatarColor = (name: string, index: number): string => {
-  return AVATAR_COLOR_PALETTES[index % AVATAR_COLOR_PALETTES.length];
-};
-
 export const TFTReviews: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [page, setPage] = useState(0);
   const [liveReviews, setLiveReviews] = useState<CustomerReviewItem[]>([]);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState<boolean>(false);
-  const [totalCount, setTotalCount] = useState<number>(1850);
-  const [averageRating, setAverageRating] = useState<number>(5.0);
 
   const fetchReviews = async () => {
     try {
       const res = await getReviewsApi(false);
       if (res.success && Array.isArray(res.data) && res.data.length > 0) {
         setLiveReviews(res.data);
-        if (res.avgRating) setAverageRating(res.avgRating);
-        if (res.total) setTotalCount(res.total + 1850);
-      } else {
-        // Fallback sang mock data
-        const fallbackList: CustomerReviewItem[] = CUSTOMER_REVIEWS.map((r) => ({
-          id: r.id,
-          customerName: r.customerName,
-          rating: r.rating,
-          category: r.category as any,
-          accountBought: r.accountBought,
-          comment: r.comment,
-          verifiedTag: r.verifiedTag,
-          isApproved: true,
-          isGoogleUser: false,
-          createdAt: new Date().toISOString(),
-          date: r.date,
-        }));
-        setLiveReviews(fallbackList);
       }
     } catch {
-      // Fallback
+      // Giữ danh sách hiện tại nếu lỗi mạng
     }
   };
 
@@ -79,10 +42,10 @@ export const TFTReviews: React.FC = () => {
   }, []);
 
   const categories = [
-    { id: "ALL", label: "Tất Cả Đánh Giá" },
+    { id: "ALL", label: "Tất Cả" },
     { id: "THUE_ACC", label: "Thuê Acc TFT" },
-    { id: "CAY_THUE", label: "Cày Thuê Rank" },
-    { id: "GDTG", label: "GDTG Trung Gian" },
+    { id: "CAY_THUE", label: "Cày Rank" },
+    { id: "COACHING", label: "Coaching" },
   ];
 
   const filteredReviews = liveReviews.filter((rev) => {
@@ -99,45 +62,44 @@ export const TFTReviews: React.FC = () => {
   };
 
   return (
-    <section id="reviews" className="py-6 sm:py-20 bg-white text-slate-900 border-b border-slate-200 overflow-hidden">
+    <section id="reviews" className="py-12 sm:py-16 lg:py-20 bg-[#09090b] text-white border-b border-white/[0.08] overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-4 sm:mb-8 space-y-2">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-xs font-bold uppercase tracking-wider">
-            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-            <span>Đánh Giá Thực Tế Từ Khách Hàng</span>
-          </div>
+        <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10 space-y-2">
+          <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.08em] text-zinc-400">
+            Ý KIẾN KHÁCH HÀNG
+          </span>
 
-          <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900">
-            ĐÁNH GIÁ THỰC TẾ TỪ KHÁCH HÀNG THUÊ ACC TFT
+          <h2 className="font-heading text-2xl sm:text-3xl lg:text-[34px] font-bold tracking-tight text-white leading-tight">
+            Khách Hàng Nói Gì Về ShopTFTMobile
           </h2>
-          <p className="text-slate-600 text-sm sm:text-base font-normal">
-            Hơn 4,500+ lượt thuê tài khoản và {totalCount.toLocaleString("vi-VN")}+ giao dịch thành công. Điểm đánh giá trung bình:{" "}
-            <strong className="text-amber-600 font-black">{averageRating} / 5.0</strong>.
+
+          <p className="text-zinc-400 text-xs sm:text-sm font-normal leading-relaxed">
+            Trải nghiệm thực tế từ người chơi đã thuê tài khoản và sử dụng dịch vụ tại ShopTFTMobile.
           </p>
 
-          {/* Action Bar: Nút Viết Đánh Giá Mới */}
-          <div className="pt-2 flex items-center justify-center gap-3">
+          {/* Action Bar */}
+          <div className="pt-3 flex items-center justify-center">
             <button
               onClick={() => setIsReviewModalOpen(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 active:scale-95 text-white text-xs sm:text-sm font-bold shadow-md shadow-orange-600/20 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] text-white text-xs font-semibold border border-white/10 transition-colors cursor-pointer"
             >
-              <MessageSquarePlus className="w-4 h-4" />
+              <MessageSquarePlus className="w-3.5 h-3.5 text-zinc-300" />
               <span>Gửi Đánh Giá & Góp Ý</span>
             </button>
           </div>
         </div>
 
         {/* Filter Bar */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-8 sm:mb-10">
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => handleCategoryChange(cat.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                 selectedCategory === cat.id
-                  ? "bg-orange-700 hover:bg-orange-800 text-white shadow-md shadow-orange-700/20"
-                  : "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
+                  ? "bg-white text-[#09090b] font-semibold shadow-sm"
+                  : "bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white border border-white/10"
               }`}
             >
               {cat.label}
@@ -146,112 +108,90 @@ export const TFTReviews: React.FC = () => {
         </div>
 
         {/* Reviews 3-Card Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          {currentReviews.map((rev, index) => {
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-8">
+          {currentReviews.map((rev) => {
             const initial = getCustomerInitial(rev.customerName);
-            const colorClass = getAvatarColor(rev.customerName, index);
 
             return (
               <div
                 key={rev.id}
-                className="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl p-6 flex flex-col justify-between hover:shadow-md transition-all shadow-sm group"
+                className="bg-[#121214] border border-white/[0.08] hover:border-white/[0.16] rounded-2xl p-5 sm:p-6 flex flex-col justify-between transition-all group"
               >
                 <div>
-                  {/* Header với AVATAR GOOGLE HOẶC AVATAR CHỮ CÁI */}
-                  <div className="flex items-center gap-3.5 mb-4">
-                    {rev.customerAvatar && rev.customerAvatar.startsWith("http") ? (
-                      <img
-                        src={rev.customerAvatar}
-                        alt={rev.customerName}
-                        className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl object-cover border border-amber-300 shadow-sm flex-shrink-0 group-hover:scale-105 transition-transform"
-                      />
-                    ) : (
-                      <div
-                        className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl border flex items-center justify-center font-black text-base sm:text-lg flex-shrink-0 shadow-sm transition-transform group-hover:scale-105 ${colorClass}`}
-                      >
-                        <span>{initial}</span>
-                      </div>
-                    )}
+                  {/* Header: Avatar + Info */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/10 text-white font-heading font-bold text-sm flex items-center justify-center flex-shrink-0">
+                      <span>{initial}</span>
+                    </div>
 
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <p className="font-bold text-slate-900 text-sm truncate">{rev.customerName}</p>
-                        {rev.isGoogleUser && (
-                          <span className="text-[9px] font-black text-blue-600 bg-blue-50 border border-blue-200 px-1.5 py-0.2 rounded">
-                            Google ✓
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-[11px] text-slate-500 font-normal truncate block">
-                        {rev.accountBought}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-heading font-bold text-white text-xs sm:text-sm truncate">
+                        {rev.customerName}
+                      </p>
+                      <span className="text-[11px] text-zinc-400 font-normal truncate block">
+                        {rev.accountBought || "Thuê tài khoản"}
                       </span>
                     </div>
                   </div>
 
-                  {/* Stars & Tag */}
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="flex text-amber-500">
-                      {[...Array(rev.rating || 5)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-amber-500" />
+                  {/* Stars (Rendered only from real review rating) */}
+                  {rev.rating && Number(rev.rating) > 0 && (
+                    <div className="flex items-center gap-1 text-amber-400 mb-3">
+                      {[...Array(Math.min(5, Math.max(1, Number(rev.rating))))].map((_, i) => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
                       ))}
                     </div>
-
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                      <span>{rev.verifiedTag || "Đã Xác Thực"}</span>
-                    </span>
-                  </div>
+                  )}
 
                   {/* Comment */}
-                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium mb-4">
-                    "{rev.comment}"
+                  <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed font-normal mb-3">
+                    &ldquo;{rev.comment}&rdquo;
                   </p>
 
-                  {/* Admin Reply Box (Nếu có) */}
+                  {/* Admin Reply Box */}
                   {rev.adminReply && (
-                    <div className="p-3 bg-orange-50/80 border border-orange-200/80 rounded-xl text-xs mb-3 space-y-1">
-                      <div className="flex items-center gap-1 text-orange-900 font-bold">
-                        <MessageCircle className="w-3.5 h-3.5 text-orange-600" />
-                        <span>Phản hồi từ Tuấn Thái Bình:</span>
+                    <div className="p-3 bg-white/[0.03] border border-white/10 rounded-xl text-xs mb-3 space-y-1">
+                      <div className="flex items-center gap-1.5 text-zinc-200 font-medium">
+                        <MessageCircle className="w-3.5 h-3.5 text-zinc-400" />
+                        <span>Phản hồi từ ShopTFTMobile:</span>
                       </div>
-                      <p className="text-slate-700">{rev.adminReply}</p>
+                      <p className="text-zinc-400 leading-relaxed">{rev.adminReply}</p>
                     </div>
                   )}
                 </div>
 
                 {/* Footer Card */}
-                <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-400 font-normal">
-                  <span>{rev.date || "Vừa xong"}</span>
-                  {rev.vipTier && (
-                    <span className="font-bold text-[10px] text-amber-700 uppercase">
-                      VIP {rev.vipTier}
-                    </span>
-                  )}
+                <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-zinc-500 font-mono">
+                  <span>{rev.date || "Gần đây"}</span>
+                  <span className="inline-flex items-center gap-1 text-emerald-400 font-sans font-medium text-[10px]">
+                    <CheckCircle2 className="w-3 h-3" />
+                    <span>Đã xác nhận</span>
+                  </span>
                 </div>
               </div>
             );
           })}
         </div>
 
-        {/* Pagination với aria-label chuẩn Accessibility */}
+        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-3">
             <button
               onClick={() => setPage(Math.max(0, page - 1))}
               disabled={page === 0}
               aria-label="Trang trước"
-              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:pointer-events-none text-slate-700 border border-slate-200 transition-colors cursor-pointer"
+              className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] disabled:opacity-30 disabled:pointer-events-none text-zinc-300 border border-white/10 transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="text-xs font-semibold text-slate-600 font-mono">
+            <span className="text-xs text-zinc-400 font-mono">
               Trang {page + 1} / {totalPages}
             </span>
             <button
               onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
               disabled={page === totalPages - 1}
               aria-label="Trang tiếp theo"
-              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:pointer-events-none text-slate-700 border border-slate-200 transition-colors cursor-pointer"
+              className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] disabled:opacity-30 disabled:pointer-events-none text-zinc-300 border border-white/10 transition-colors cursor-pointer"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

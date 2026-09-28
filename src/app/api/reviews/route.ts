@@ -178,9 +178,9 @@ export async function POST(req: NextRequest) {
       accountBought: body.accountBought || "Dịch Vụ Trải Nghiệm TFT VIP",
       comment: body.comment.trim(),
       improvementSuggestion: body.improvementSuggestion ? body.improvementSuggestion.trim() : undefined,
-      verifiedTag: body.isGoogleUser ? "Đã Xác Thực Google ⭐" : (body.verifiedTag || "Khách Trải Nghiệm"),
+      verifiedTag: body.verifiedTag || "Khách Hàng",
       isApproved: true, // Tự động duyệt để khách thấy ngay
-      isGoogleUser: Boolean(body.isGoogleUser),
+      isGoogleUser: false,
       createdAt: now.toISOString(),
       date: dateStr,
     };

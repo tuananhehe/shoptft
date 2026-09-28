@@ -37,17 +37,9 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
   return (
     <section className="relative bg-[#09090b] text-white border-b border-white/[0.08] overflow-hidden py-12 sm:py-16 lg:py-20">
       {/* Subtle radial glow & clean grid background */}
-      <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_70%,transparent_100%)]" />
+      <div className="absolute inset-0 pointer-events-none opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_70%,transparent_100%)]" />
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
-        {/* Trust pill */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.05] border border-white/10 text-xs text-zinc-300 mb-6">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Bảo hiểm giao dịch 30M</span>
-          <span className="text-zinc-600">•</span>
-          <span>Bàn giao thủ công qua Zalo</span>
-        </div>
-
         {/* H1 Heading */}
         <h1 className="font-heading font-bold text-3xl sm:text-4xl lg:text-[52px] leading-[1.06] tracking-[-0.03em] text-white max-w-3xl mx-auto">
           <span className="inline-block whitespace-nowrap">TÌM ĐÚNG ACC TFT</span>{" "}
@@ -113,7 +105,7 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
           </div>
 
           <div className="flex items-center gap-2 text-[11px] sm:text-xs text-zinc-400 font-mono">
-            <span>Bảo hiểm 30M</span>
+            <span>Bảo hiểm giao dịch 30M</span>
             <span className="text-zinc-600">•</span>
             <span>Hỗ trợ trực tiếp</span>
             <span className="text-zinc-600">•</span>

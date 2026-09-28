@@ -15,9 +15,9 @@ export interface CustomerReviewItem {
   accountBought: string;
   comment: string;
   improvementSuggestion?: string;
-  verifiedTag: string; // "Đã Thuê VIP" | "Đã Xác Thực Google" | "Khách VIP"
+  verifiedTag?: string; // "Đã Thuê VIP" | "Khách VIP"
   isApproved: boolean; // Được duyệt hiển thị công khai trang chủ
-  isGoogleUser: boolean;
+  isGoogleUser?: boolean;
   adminReply?: string;
   adminReplyAt?: string;
   createdAt: string; // ISO string

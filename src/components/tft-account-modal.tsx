@@ -7,22 +7,18 @@ import { TFTRentalAccount, PROFILE_INFO } from "@/data/tft-data";
 import { formatRentalExpiry } from "@/utils/supabase/accounts-service";
 import { getHomepageConfig, PricingConfig } from "@/utils/homepage-service";
 import { getAccountProductUrl } from "@/utils/account-lookup";
-import { copyToClipboard, buildZaloOrderUrl } from "@/utils/clipboard-helper";
+import { copyToClipboard } from "@/utils/clipboard-helper";
 import { LazyAccountImage } from "@/components/lazy-account-image";
 import { ZaloRedirectModal } from "@/components/zalo-redirect-modal";
 import toast from "react-hot-toast";
 import {
   X,
-  CheckCircle2,
   Copy,
   Check,
   MessageCircle,
   ShieldCheck,
   Clock,
-  KeyRound,
-  Zap,
   Lock,
-  BellRing,
   ChevronDown,
   ChevronUp,
   ExternalLink,
@@ -147,7 +143,6 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
       totalPrice: number;
       basePrice: number;
       passFee: number;
-      tag?: string;
     }
   > = {
     "2h": {
@@ -157,34 +152,30 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
       basePrice: roundToThousand(baseAccountValue * rate2h),
       passFee: passFee,
       totalPrice: roundToThousand(baseAccountValue * rate2h) + passFee,
-      tag: "Phổ biến",
     },
     "7d": {
       id: "7d",
       name: "7 Ngày",
-      sub: "Tiết kiệm 45%",
+      sub: "Tiết kiệm chi phí",
       basePrice: roundToThousand(baseAccountValue * rate7d),
       passFee: passFee,
       totalPrice: roundToThousand(baseAccountValue * rate7d) + passFee,
-      tag: "Tiết kiệm",
     },
     "30d": {
       id: "30d",
       name: "30 Ngày",
-      sub: "Free đổi pass",
+      sub: "Hỗ trợ đổi pass",
       basePrice: roundToThousand(baseAccountValue * rate30d),
       passFee: 0,
       totalPrice: roundToThousand(baseAccountValue * rate30d),
-      tag: "Hot nhất",
     },
-    "perm": {
+    perm: {
       id: "perm",
       name: "Lâu Dài (∞)",
-      sub: "Bàn giao về chính chủ",
+      sub: "Bàn giao tài khoản sử dụng lâu dài",
       basePrice: roundToThousand(baseAccountValue),
       passFee: 0,
       totalPrice: roundToThousand(baseAccountValue),
-      tag: "Chính chủ",
     },
   };
 
@@ -204,24 +195,24 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
     if (typeof window !== "undefined") {
       const url = `${window.location.origin}${getAccountProductUrl(account)}`;
       navigator.clipboard.writeText(url).catch(() => {});
-      toast.success("Đã sao chép đường link riêng của acc!", { icon: "🔗" });
+      toast.success("Đã sao chép đường link của tài khoản!", { icon: "🔗" });
     }
   };
 
   const handleOrderZalo = async () => {
     if (!isAgreed) {
-      toast.error("Vui lòng tích đồng ý với quy định thuê!");
+      toast.error("Vui lòng tích đồng ý với quy định dịch vụ!");
       return;
     }
 
     const upgradeNote =
       selectedPackage === "30d"
-        ? "\n*Ghi chú: Đơn này được áp dụng chính sách bù 70% để nâng cấp lên Thuê Lâu Dài trong quá trình sử dụng.*"
+        ? "\n*Ghi chú: Khách muốn tìm hiểu chính sách bù phí nâng cấp lên gói Lâu Dài.*"
         : "";
 
     const linkUrl = typeof window !== "undefined" ? `${window.location.origin}${getAccountProductUrl(account)}` : "";
 
-    const orderMessage = `Chào Tuấn Thái Bình, mình muốn thuê tài khoản ${account.code} (${account.title}) - Gói ${activePkg.name} (${formatMoney(activePkg.totalPrice)}). Link acc: ${linkUrl}${upgradeNote}`;
+    const orderMessage = `Chào Tuấn Thái Bình, mình muốn thuê tài khoản ${account.code} (${account.title}) - Gói ${activePkg.name} (Tổng giá thuê: ${formatMoney(activePkg.totalPrice)}). Link acc: ${linkUrl}${upgradeNote}`;
 
     await copyToClipboard(orderMessage);
     setZaloRedirectMessage(orderMessage);
@@ -242,42 +233,42 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[100] bg-black/75 backdrop-blur-xs sm:backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto"
+      className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="bg-white border-t sm:border border-slate-200 w-full sm:max-w-xl md:max-w-2xl rounded-t-[24px] sm:rounded-3xl overflow-hidden relative animate-fadeIn flex flex-col max-h-[92vh] sm:max-h-[88vh] shadow-2xl"
+        className="bg-[#0f0f11] text-white border-t sm:border border-white/[0.12] w-full sm:max-w-xl md:max-w-2xl rounded-t-[24px] sm:rounded-3xl overflow-hidden relative flex flex-col max-h-[92vh] sm:max-h-[86vh] shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Drag Indicator for Mobile */}
-        <div className="pt-2.5 pb-1 flex justify-center sm:hidden bg-slate-50">
-          <div className="w-10 h-1 rounded-full bg-slate-300" />
+        <div className="pt-2.5 pb-1 flex justify-center sm:hidden bg-[#0f0f11]">
+          <div className="w-10 h-1 rounded-full bg-zinc-700" />
         </div>
 
         {/* 1. Header Bar */}
-        <div className="px-4 py-3 sm:px-6 sm:py-3.5 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between flex-shrink-0">
+        <div className="px-4 py-3 sm:px-6 sm:py-3.5 bg-[#141416] border-b border-white/[0.08] flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={copyAccCode}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-100/90 border border-orange-200 text-orange-800 font-mono font-bold text-[11px] active:scale-95 transition-transform cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 text-white font-mono font-medium text-xs transition-colors cursor-pointer"
               title="Bấm để sao chép mã"
             >
               <span>{account.code}</span>
-              {copiedCode ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3 text-slate-400" />}
+              {copiedCode ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-zinc-400" />}
             </button>
 
-            <span className="px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-extrabold uppercase bg-slate-200/80 text-slate-800">
+            <span className="px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-semibold uppercase bg-white/[0.05] border border-white/10 text-zinc-300 font-mono">
               {account.rank}
             </span>
 
             {!isRented ? (
-              <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[10px] sm:text-[11px] flex items-center gap-1 border border-emerald-200">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-                <span>SẴN SÀNG</span>
+              <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-semibold text-[10px] sm:text-xs flex items-center gap-1.5 border border-emerald-500/25">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>CÒN ACC</span>
               </span>
             ) : (
-              <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-bold text-[10px] sm:text-[11px] flex items-center gap-1 border border-rose-200">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
+              <span className="px-2.5 py-0.5 rounded-md bg-white/[0.05] text-zinc-400 font-semibold text-[10px] sm:text-xs flex items-center gap-1.5 border border-white/10">
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
                 <span>ĐANG THUÊ</span>
               </span>
             )}
@@ -287,7 +278,7 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
             <button
               onClick={copyAccountLink}
               title="Sao chép link riêng"
-              className="px-2 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-orange-600 text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+              className="px-2.5 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-zinc-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Share2 className="w-3.5 h-3.5" />
               <span className="hidden xs:inline sm:inline">Chép link</span>
@@ -297,7 +288,7 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
               href={directPageUrl}
               target="_blank"
               title="Mở trang riêng acc này"
-              className="px-2 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-orange-600 text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+              className="px-2.5 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-zinc-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <ExternalLink className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Trang riêng</span>
@@ -306,7 +297,7 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
             <button
               onClick={onClose}
               aria-label="Đóng"
-              className="w-8 h-8 rounded-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 flex items-center justify-center font-bold shadow-xs transition-colors cursor-pointer flex-shrink-0 ml-1"
+              className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-zinc-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer ml-1"
             >
               <X className="w-4 h-4" />
             </button>
@@ -314,53 +305,53 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
         </div>
 
         {/* 2. Scrollable Body Content */}
-        <div className="p-4 sm:p-5 overflow-y-auto space-y-4 text-slate-900 flex-1 overscroll-contain">
-          {/* COMPACT HERO CARD: Thumbnail + Title + Specs gọn gàng */}
-          <div className="flex gap-3 sm:gap-4 p-3 sm:p-3.5 bg-slate-50/90 border border-slate-200/90 rounded-2xl items-center">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-xl overflow-hidden bg-slate-900 border border-slate-200 shadow-xs relative">
+        <div className="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1 overscroll-contain">
+          {/* COMPACT PRODUCT CARD */}
+          <div className="flex gap-3 sm:gap-4 p-3 sm:p-3.5 bg-[#141416] border border-white/[0.08] rounded-2xl items-center">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-xl overflow-hidden bg-black border border-white/10 relative">
               <LazyAccountImage
                 src={account.thumbnail}
                 alt={`Acc ${account.code}`}
                 containerClassName="w-full h-full"
                 priority
               />
-              <span className="absolute bottom-1 left-1 px-1 py-0.2 bg-black/80 text-[8px] sm:text-[9px] font-bold text-white rounded">
+              <span className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/85 text-[9px] font-mono font-bold text-white rounded border border-white/10">
                 VIP
               </span>
             </div>
 
             <div className="flex-1 min-w-0 space-y-1">
-              <h3 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1">
+              <h3 className="font-heading text-xs sm:text-sm font-bold text-white line-clamp-1">
                 {account.title}
               </h3>
-              <p className="text-[11px] sm:text-xs text-slate-600 font-medium line-clamp-1 flex items-center gap-1.5">
-                <span className="text-slate-400">Tí Nị:</span>
-                <span className="truncate">{account.mainChibi}</span>
+              <p className="text-xs text-zinc-400 font-normal line-clamp-1 flex items-center gap-1.5">
+                <span className="text-zinc-500">Tí Nị:</span>
+                <span className="truncate text-zinc-300">{account.mainChibi}</span>
               </p>
-              <p className="text-[11px] sm:text-xs text-slate-500 line-clamp-1 flex items-center gap-1.5">
-                <span className="text-slate-400">Sân:</span>
-                <span className="truncate">{account.mainArena}</span>
+              <p className="text-xs text-zinc-400 font-normal line-clamp-1 flex items-center gap-1.5">
+                <span className="text-zinc-500">Sân Đấu:</span>
+                <span className="truncate text-zinc-300">{account.mainArena}</span>
               </p>
               <div className="flex items-center gap-2 pt-0.5">
-                <span className="text-[10px] font-semibold text-slate-500 bg-white border border-slate-200 px-1.5 py-0.5 rounded">
+                <span className="text-[10px] font-medium text-zinc-400 bg-white/[0.04] border border-white/10 px-2 py-0.5 rounded">
                   {allChibis.length} Tí Nị
                 </span>
-                <span className="text-[10px] font-semibold text-slate-500 bg-white border border-slate-200 px-1.5 py-0.5 rounded">
+                <span className="text-[10px] font-medium text-zinc-400 bg-white/[0.04] border border-white/10 px-2 py-0.5 rounded">
                   {allArenas.length} Sân Đấu
                 </span>
               </div>
             </div>
           </div>
 
-          {/* INVENTORY BADGE CHIPS (Gọn gàng, có nút xem thêm) */}
+          {/* INVENTORY BADGE CHIPS */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-              <span>Tướng Tí Nị & Sân Đấu Trong Acc:</span>
+            <div className="flex items-center justify-between text-xs font-semibold text-zinc-300">
+              <span>Linh Thú & Sân Đấu Trong Acc:</span>
               {allChibis.length > 4 && (
                 <button
                   type="button"
                   onClick={() => setShowAllChibis(!showAllChibis)}
-                  className="text-[11px] text-orange-600 hover:text-orange-700 font-bold flex items-center gap-0.5 cursor-pointer"
+                  className="text-xs text-zinc-400 hover:text-white font-medium flex items-center gap-0.5 cursor-pointer"
                 >
                   <span>{showAllChibis ? "Thu gọn" : `+${allChibis.length - 4} xem thêm`}</span>
                   {showAllChibis ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -372,82 +363,78 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
               {displayChibis.map((chibi, idx) => (
                 <span
                   key={idx}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-50/80 border border-orange-200/80 text-orange-900 text-[11px] font-medium"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-zinc-300 text-xs font-normal"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 flex-shrink-0" />
                   <span className="truncate max-w-[200px]">{chibi}</span>
                 </span>
               ))}
               {allArenas.map((arena, idx) => (
                 <span
                   key={`arena-${idx}`}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-medium"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-zinc-300 text-xs font-normal"
                 >
-                  <span className="text-slate-400 text-[10px]">Sân:</span>
+                  <span className="text-zinc-500 text-[11px]">Sân:</span>
                   <span className="truncate max-w-[200px]">{arena}</span>
                 </span>
               ))}
             </div>
           </div>
 
-          {/* ============================================================ */}
-          {/* TRƯỜNG HỢP 1: ACC ĐANG ĐƯỢC THUÊ (COUNTDOWN GỌN GÀNG) */}
-          {/* ============================================================ */}
+          {/* TRƯỜNG HỢP 1: ACC ĐANG ĐƯỢC THUÊ */}
           {isRented ? (
-            <div className="bg-rose-50/90 border border-rose-200 rounded-2xl p-4 text-center space-y-3">
-              <div className="flex items-center justify-center gap-1.5 text-rose-800 font-bold text-xs sm:text-sm">
-                <Lock className="w-4 h-4 text-rose-600" />
+            <div className="bg-[#141416] border border-white/10 rounded-2xl p-4 text-center space-y-3">
+              <div className="flex items-center justify-center gap-1.5 text-zinc-300 font-semibold text-xs sm:text-sm">
+                <Lock className="w-4 h-4 text-zinc-400" />
                 <span>TÀI KHOẢN ĐANG CÓ KHÁCH THUÊ</span>
               </div>
 
               {isInfinite ? (
-                <div className="py-2 px-3 bg-white border border-rose-200 rounded-xl font-mono text-sm font-bold text-rose-700">
-                  ∞ Thuê Lâu Dài (Vô Cực)
+                <div className="py-2.5 px-3 bg-white/[0.04] border border-white/10 rounded-xl font-mono text-sm font-semibold text-zinc-300">
+                  ∞ Thuê Lâu Dài
                 </div>
               ) : (
-                <div className="flex items-center justify-center gap-1 sm:gap-2 font-mono">
+                <div className="flex items-center justify-center gap-1.5 sm:gap-2 font-mono">
                   {days > 0 && (
                     <>
-                      <div className="bg-white border border-rose-200 px-2 py-1 rounded-xl text-center min-w-[48px]">
-                        <span className="text-base sm:text-lg font-black text-rose-600 block leading-tight">{pad(days)}</span>
-                        <span className="text-[9px] text-slate-500 font-bold block">Ngày</span>
+                      <div className="bg-white/[0.04] border border-white/10 px-2.5 py-1.5 rounded-xl text-center min-w-[50px]">
+                        <span className="text-base sm:text-lg font-bold text-white block leading-tight">{pad(days)}</span>
+                        <span className="text-[9px] text-zinc-500 block">Ngày</span>
                       </div>
-                      <span className="font-bold text-rose-400">:</span>
+                      <span className="font-bold text-zinc-600">:</span>
                     </>
                   )}
-                  <div className="bg-white border border-rose-200 px-2 py-1 rounded-xl text-center min-w-[48px]">
-                    <span className="text-base sm:text-lg font-black text-rose-600 block leading-tight">{pad(hours)}</span>
-                    <span className="text-[9px] text-slate-500 font-bold block">Giờ</span>
+                  <div className="bg-white/[0.04] border border-white/10 px-2.5 py-1.5 rounded-xl text-center min-w-[50px]">
+                    <span className="text-base sm:text-lg font-bold text-white block leading-tight">{pad(hours)}</span>
+                    <span className="text-[9px] text-zinc-500 block">Giờ</span>
                   </div>
-                  <span className="font-bold text-rose-400">:</span>
-                  <div className="bg-white border border-rose-200 px-2 py-1 rounded-xl text-center min-w-[48px]">
-                    <span className="text-base sm:text-lg font-black text-rose-600 block leading-tight">{pad(minutes)}</span>
-                    <span className="text-[9px] text-slate-500 font-bold block">Phút</span>
+                  <span className="font-bold text-zinc-600">:</span>
+                  <div className="bg-white/[0.04] border border-white/10 px-2.5 py-1.5 rounded-xl text-center min-w-[50px]">
+                    <span className="text-base sm:text-lg font-bold text-white block leading-tight">{pad(minutes)}</span>
+                    <span className="text-[9px] text-zinc-500 block">Phút</span>
                   </div>
-                  <span className="font-bold text-rose-400">:</span>
-                  <div className="bg-white border border-rose-200 px-2 py-1 rounded-xl text-center min-w-[48px]">
-                    <span className="text-base sm:text-lg font-black text-rose-600 block leading-tight">{pad(seconds)}</span>
-                    <span className="text-[9px] text-slate-500 font-bold block">Giây</span>
+                  <span className="font-bold text-zinc-600">:</span>
+                  <div className="bg-white/[0.04] border border-white/10 px-2.5 py-1.5 rounded-xl text-center min-w-[50px]">
+                    <span className="text-base sm:text-lg font-bold text-white block leading-tight">{pad(seconds)}</span>
+                    <span className="text-[9px] text-zinc-500 block">Giây</span>
                   </div>
                 </div>
               )}
 
-              <p className="text-[11px] text-slate-600">
+              <p className="text-xs text-zinc-400">
                 {rentalInfo?.expiryFormatted ? `Dự kiến trả acc: ${rentalInfo.expiryFormatted}. ` : ""}
-                Bạn có thể đặt trước để ưu tiên nhận tài khoản ngay khi trống!
+                Bạn có thể liên hệ Zalo để đặt trước khi tài khoản được hoàn trả.
               </p>
             </div>
           ) : (
-            /* ============================================================ */
-            /* TRƯỜNG HỢP 2: ACC CÓ SẴN -> BẢNG CHỌN GÓI 2x2 CỰC GỌN */
-            /* ============================================================ */
+            /* TRƯỜNG HỢP 2: ACC CÒN ACC -> BẢNG CHỌN GÓI THUÊ */
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-orange-600" />
+                <span className="text-xs font-semibold text-white flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-zinc-400" />
                   <span>Chọn Gói Thời Gian Thuê:</span>
                 </span>
-                <span className="text-[10px] text-slate-500 font-medium">Bấm để đổi gói</span>
+                <span className="text-[11px] text-zinc-500">Bấm để đổi gói</span>
               </div>
 
               {/* GRID 2x2 COMPACT PACKAGE CARDS */}
@@ -463,31 +450,19 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
                       onClick={() => setSelectedPackage(key)}
                       className={`p-2.5 sm:p-3 rounded-xl border text-left transition-all relative cursor-pointer ${
                         isSelected
-                          ? "bg-orange-50/90 border-orange-600 text-slate-900 shadow-sm ring-2 ring-orange-500/20"
-                          : "bg-slate-50/70 border-slate-200 text-slate-700 hover:bg-white hover:border-slate-300"
+                          ? "bg-white/[0.08] border-white text-white shadow-lg"
+                          : "bg-[#141416] border-white/[0.08] text-zinc-300 hover:border-white/20 hover:bg-white/[0.04]"
                       }`}
                     >
-                      {pkg.tag && (
-                        <span
-                          className={`absolute top-1.5 right-1.5 text-[8px] sm:text-[9px] font-bold px-1.5 py-0.2 rounded ${
-                            isSelected
-                              ? "bg-orange-600 text-white"
-                              : "bg-slate-200 text-slate-700"
-                          }`}
-                        >
-                          {pkg.tag}
-                        </span>
-                      )}
-
-                      <div className="font-bold text-xs sm:text-sm text-slate-900 pr-10">
+                      <div className="font-heading font-bold text-xs sm:text-sm text-white">
                         {pkg.name}
                       </div>
 
-                      <div className="font-black font-mono text-red-600 text-xs sm:text-sm mt-0.5">
+                      <div className="font-mono font-bold text-white text-xs sm:text-sm mt-0.5">
                         {formatMoney(pkg.totalPrice)}
                       </div>
 
-                      <div className="text-[10px] text-slate-500 mt-0.5 truncate">
+                      <div className="text-[11px] text-zinc-400 mt-0.5 truncate">
                         {pkg.sub}
                       </div>
                     </button>
@@ -495,37 +470,37 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
                 })}
               </div>
 
-              {/* CHI TIẾT BÓC TÁCH GIÁ GỌN GÀNG */}
-              <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1.5 text-[11px] text-slate-600">
+              {/* CHI TIẾT BÓC TÁCH GIÁ */}
+              <div className="p-3 bg-[#141416] border border-white/[0.08] rounded-xl space-y-1.5 text-xs text-zinc-400">
                 <div className="flex items-center justify-between">
                   <span>Tiền thuê gốc ({activePkg.name}):</span>
-                  <span className="font-mono font-bold text-slate-900">{formatMoney(activePkg.basePrice)}</span>
+                  <span className="font-mono font-medium text-white">{formatMoney(activePkg.basePrice)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>Phí đổi pass hoàn trả:</span>
-                  <span className={`font-mono font-bold ${activePkg.passFee > 0 ? "text-orange-700" : "text-emerald-700"}`}>
+                  <span>Phí đổi mật khẩu hoàn trả:</span>
+                  <span className={`font-mono font-medium ${activePkg.passFee > 0 ? "text-zinc-300" : "text-emerald-400"}`}>
                     {activePkg.passFee > 0 ? `+${formatMoney(activePkg.passFee)}` : "Miễn phí (0đ)"}
                   </span>
                 </div>
-                <div className="pt-1 border-t border-slate-200/80 flex items-center justify-between font-bold text-slate-900 text-xs">
-                  <span>Tổng thanh toán:</span>
-                  <span className="font-mono font-black text-red-600 text-sm">{formatMoney(activePkg.totalPrice)}</span>
+                <div className="pt-1.5 border-t border-white/[0.08] flex items-center justify-between font-bold text-white text-xs sm:text-sm">
+                  <span>Tổng giá thuê:</span>
+                  <span className="font-mono font-bold text-white text-sm sm:text-base">{formatMoney(activePkg.totalPrice)}</span>
                 </div>
               </div>
 
-              {/* GỢI Ý NÂNG CẤP HOẶC ĐẶC QUYỀN LÂU DÀI */}
+              {/* GHI CHÚ GÓI */}
               {selectedPackage === "perm" ? (
-                <div className="flex items-start gap-1.5 px-3 py-2 bg-emerald-50/80 border border-emerald-200/80 rounded-xl text-[11px] text-emerald-900">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                <div className="flex items-start gap-2 p-2.5 bg-white/[0.03] border border-white/[0.08] rounded-xl text-xs text-zinc-400">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
                   <span>
-                    <strong>Đặc quyền gói Lâu Dài:</strong> Bàn giao thông tin acc về chính chủ, sở hữu lâu dài.
+                    <strong className="text-zinc-200">Gói Lâu Dài:</strong> Bàn giao thông tin tài khoản và hỗ trợ cài đặt, sử dụng lâu dài.
                   </span>
                 </div>
               ) : selectedPackage === "30d" ? (
-                <div className="flex items-start gap-1.5 px-3 py-2 bg-blue-50/70 border border-blue-200/60 rounded-xl text-[11px] text-blue-900">
-                  <Zap className="w-3.5 h-3.5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="flex items-start gap-2 p-2.5 bg-white/[0.03] border border-white/[0.08] rounded-xl text-xs text-zinc-400">
+                  <Clock className="w-4 h-4 text-zinc-300 flex-shrink-0 mt-0.5" />
                   <span>
-                    <strong>Đặc quyền gói 30 ngày:</strong> Thuê gói 30 ngày chỉ cần bù thêm 70% để nâng cấp lên Thuê Lâu Dài bất cứ lúc nào.
+                    <strong className="text-zinc-200">Gói 30 ngày:</strong> Hỗ trợ đổi mật khẩu định kỳ và tư vấn nâng cấp gói nếu cần.
                   </span>
                 </div>
               ) : null}
@@ -534,27 +509,27 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
 
           {/* CHECKBOX CAM KẾT */}
           {!isRented && (
-            <label className="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-xl bg-orange-50/60 border border-orange-200/70 cursor-pointer text-xs select-none">
+            <label className="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-xl bg-[#141416] border border-white/[0.08] cursor-pointer text-xs select-none">
               <input
                 type="checkbox"
                 checked={isAgreed}
                 onChange={(e) => setIsAgreed(e.target.checked)}
-                className="w-4 h-4 text-orange-600 rounded border-slate-300 focus:ring-orange-500 cursor-pointer accent-orange-600 flex-shrink-0"
+                className="w-4 h-4 rounded border-white/20 bg-black text-white focus:ring-0 cursor-pointer accent-white flex-shrink-0"
               />
-              <span className="text-slate-700 font-medium leading-tight">
-                Cam kết không hack / phá rank & đồng ý điều khoản shop.
+              <span className="text-zinc-300 font-normal leading-tight">
+                Cam kết không sử dụng phần mềm thứ ba & đồng ý điều khoản dịch vụ của shop.
               </span>
             </label>
           )}
         </div>
 
         {/* 3. Sticky Action Footer */}
-        <div className="px-4 py-3 sm:px-6 sm:py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 flex-shrink-0">
+        <div className="px-4 py-3 sm:px-6 sm:py-3.5 bg-[#141416] border-t border-white/[0.08] flex items-center justify-between gap-3 flex-shrink-0">
           <div className="flex flex-col">
-            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-              {isRented ? "Trạng thái:" : "Thanh toán:"}
+            <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">
+              {isRented ? "Trạng thái:" : "Tổng giá thuê:"}
             </span>
-            <span className="font-black font-mono text-sm sm:text-base text-red-600 leading-tight">
+            <span className="font-heading font-bold text-sm sm:text-base text-white leading-tight">
               {isRented ? "Đang có khách" : formatMoney(activePkg.totalPrice)}
             </span>
           </div>
@@ -562,7 +537,7 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl font-bold text-xs transition-colors cursor-pointer"
+              className="px-3.5 py-2 bg-white/[0.06] hover:bg-white/[0.12] text-zinc-300 border border-white/10 rounded-xl font-medium text-xs transition-colors cursor-pointer"
             >
               Đóng
             </button>
@@ -570,10 +545,10 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
             {isRented ? (
               <button
                 onClick={handlePreOrderZalo}
-                className="px-4 py-2 bg-gradient-to-r from-orange-600 to-rose-600 hover:from-orange-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm flex items-center gap-1.5 active:scale-95 cursor-pointer"
+                className="px-4 py-2 bg-white hover:bg-zinc-200 text-[#09090b] rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer shadow-sm"
               >
-                <BellRing className="w-3.5 h-3.5" />
-                <span>Đặt Lịch Thuê</span>
+                <MessageCircle className="w-3.5 h-3.5" />
+                <span>Liên Hệ Zalo Đặt Trước</span>
               </button>
             ) : (
               <button
@@ -581,19 +556,19 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
                 disabled={!canSubmit}
                 className={`px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer ${
                   canSubmit
-                    ? "bg-orange-700 hover:bg-orange-800 text-white shadow-md shadow-orange-700/20"
-                    : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                    ? "bg-white hover:bg-zinc-200 text-[#09090b] shadow-md"
+                    : "bg-white/10 text-zinc-500 cursor-not-allowed border border-white/5"
                 }`}
               >
                 <MessageCircle className="w-3.5 h-3.5" />
-                <span>Nhận Acc Zalo</span>
+                <span>Thuê Qua Zalo</span>
               </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* 4. Zalo Redirect Modal with Oki Bae */}
+      {/* 4. Zalo Redirect Modal */}
       <ZaloRedirectModal
         isOpen={!!zaloRedirectMessage}
         onClose={() => setZaloRedirectMessage(null)}
@@ -609,4 +584,3 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
 
   return modalContent;
 };
-
