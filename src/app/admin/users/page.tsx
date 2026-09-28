@@ -339,15 +339,15 @@ export default function AdminUsersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-              Quản Lý Thành Viên
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-heading">
+              Khách Hàng
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-              {members.length} Khách
+              {members.length} Member
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Tài khoản do Admin cấp trực tiếp. Bổ sung Họ tên & Zalo sau lần đăng nhập đầu tiên.
+            Quản lý tài khoản Member do Admin cấp trực tiếp, hỗ trợ CSKH và lưu trữ liên hệ Zalo.
           </p>
         </div>
 

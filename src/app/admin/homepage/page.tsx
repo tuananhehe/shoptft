@@ -576,10 +576,10 @@ export default function AdminHomepageManagerPage() {
             <Layout className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
-              <span>Quản Lý Nội Dung Trang Chủ</span>
+            <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2 font-heading">
+              <span>CMS Website</span>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
-                CMS
+                Giao Diện
               </span>
             </h1>
             <p className="text-xs text-slate-500">
@@ -705,6 +705,14 @@ export default function AdminHomepageManagerPage() {
           <Globe className="w-3.5 h-3.5 text-slate-400" />
           <span>SEO, Favicon & Nền Web</span>
         </button>
+
+        <Link
+          href="/admin/channels"
+          className="px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
+        >
+          <Share2 className="w-3.5 h-3.5 text-slate-400" />
+          <span>Kênh Truyền Thông ↗</span>
+        </Link>
       </div>
 
       {/* 3. TAB CONTENT */}

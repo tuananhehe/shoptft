@@ -8,12 +8,10 @@ import toast from "react-hot-toast";
 import {
   LayoutDashboard,
   Gamepad2,
-  Clock,
-  Receipt,
+  CalendarDays,
   Users,
-  Layout,
+  MonitorSmartphone,
   Settings,
-  ClipboardCheck,
   LogOut,
   ExternalLink,
   Menu,
@@ -117,22 +115,16 @@ export default function AdminLayout({
       title: "VẬN HÀNH",
       items: [
         {
-          title: "Kho tài khoản",
+          title: "Kho Acc",
           href: "/admin/accounts",
           icon: Gamepad2,
           active: pathname.startsWith("/admin/accounts"),
         },
         {
-          title: "Thuê đang hoạt động",
-          href: "/admin/orders?tab=rentals",
-          icon: Clock,
-          active: pathname === "/admin/orders" && typeof window !== "undefined" && window.location.search.includes("tab=rentals"),
-        },
-        {
-          title: "Giao dịch",
-          href: "/admin/orders",
-          icon: Receipt,
-          active: pathname.startsWith("/admin/orders") && (typeof window === "undefined" || !window.location.search.includes("tab=rentals")),
+          title: "Lượt Thuê",
+          href: "/admin/rentals",
+          icon: CalendarDays,
+          active: pathname.startsWith("/admin/rentals"),
         },
       ],
     },
@@ -140,10 +132,10 @@ export default function AdminLayout({
       title: "KHÁCH HÀNG",
       items: [
         {
-          title: "Khách hàng",
+          title: "Khách Hàng",
           href: "/admin/users",
           icon: Users,
-          active: pathname.startsWith("/admin/users"),
+          active: pathname.startsWith("/admin/users") || pathname.startsWith("/admin/customers"),
         },
       ],
     },
@@ -153,8 +145,11 @@ export default function AdminLayout({
         {
           title: "CMS Website",
           href: "/admin/homepage",
-          icon: Layout,
-          active: pathname.startsWith("/admin/homepage"),
+          icon: MonitorSmartphone,
+          active:
+            pathname.startsWith("/admin/homepage") ||
+            pathname.startsWith("/admin/cms") ||
+            pathname.startsWith("/admin/channels"),
         },
       ],
     },
@@ -162,16 +157,10 @@ export default function AdminLayout({
       title: "HỆ THỐNG",
       items: [
         {
-          title: "Cài đặt",
+          title: "Cài Đặt",
           href: "/admin/settings",
           icon: Settings,
           active: pathname.startsWith("/admin/settings"),
-        },
-        {
-          title: "Phản hồi",
-          href: "/admin/surveys",
-          icon: ClipboardCheck,
-          active: pathname.startsWith("/admin/surveys"),
         },
       ],
     },
@@ -179,13 +168,16 @@ export default function AdminLayout({
 
   const getPageTitle = () => {
     if (pathname === "/admin") return "Tổng quan";
-    if (pathname.startsWith("/admin/accounts")) return "Kho tài khoản";
-    if (pathname.startsWith("/admin/orders")) return "Giao dịch & Thuê Acc";
-    if (pathname.startsWith("/admin/users")) return "Khách hàng";
+    if (pathname.startsWith("/admin/accounts")) return "Kho Acc";
+    if (pathname.startsWith("/admin/rentals")) return "Lượt Thuê";
+    if (pathname.startsWith("/admin/orders")) return "Lượt Thuê (Legacy)";
+    if (pathname.startsWith("/admin/users")) return "Khách Hàng";
+    if (pathname.startsWith("/admin/customers")) return "Khách Hàng";
     if (pathname.startsWith("/admin/homepage")) return "CMS Website";
-    if (pathname.startsWith("/admin/channels")) return "Kênh truyền thông";
-    if (pathname.startsWith("/admin/surveys")) return "Phản hồi & Khảo sát";
-    if (pathname.startsWith("/admin/settings")) return "Cài đặt hệ thống";
+    if (pathname.startsWith("/admin/cms")) return "CMS Website";
+    if (pathname.startsWith("/admin/channels")) return "CMS Website";
+    if (pathname.startsWith("/admin/surveys")) return "Phản Hồi & Khảo Sát";
+    if (pathname.startsWith("/admin/settings")) return "Cài Đặt";
     return "Quản trị";
   };
 
