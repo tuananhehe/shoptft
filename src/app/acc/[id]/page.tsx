@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     : "Giá tốt";
 
   const title = `[${account.code}] ${account.title} - Thuê Acc TFT Rank ${account.rank} (${priceFormatted})`;
-  const description = `${account.description} Bàn giao tự động 30s bởi Cựu Thách Đấu Tuấn Thái Bình (1.134 ĐNG - Bảo hiểm 30M Checkscam).`;
+  const description = `${account.description || ""} Hỗ trợ trực tiếp bởi Cựu Thách Đấu Tuấn Thái Bình (1.134 ĐNG - Bảo hiểm 30M Checkscam), bàn giao qua Zalo.`;
 
   return {
     title,
