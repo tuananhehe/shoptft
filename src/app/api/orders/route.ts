@@ -86,6 +86,13 @@ function calculateStats(orders: OrderItem[]): OrdersStats {
  * Lấy danh sách toàn bộ đơn hàng & tự động đồng bộ 100% với kho Supabase
  */
 export async function GET(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json(
+      { success: false, error: "Yêu cầu quyền Quản Trị Viên (Unauthorized)!" },
+      { status: 401 }
+    );
+  }
+
   try {
     let orders = readOrdersFromFile();
 

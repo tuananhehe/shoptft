@@ -8,21 +8,21 @@ import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin", "vietnamese"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-inter",
   display: "swap",
 });
 
 const manrope = Manrope({
   subsets: ["latin", "vietnamese"],
-  weight: ["500", "600", "700", "800"],
+  weight: ["600", "700", "800"],
   variable: "--font-manrope",
   display: "swap",
 });
 
 const robotoMono = Roboto_Mono({
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["500", "600"],
   variable: "--font-mono",
   display: "swap",
 });
@@ -37,13 +37,11 @@ function cleanVerificationCode(raw?: string): string | undefined {
   const trimmed = raw.trim();
   if (!trimmed) return undefined;
 
-  // Nếu người dùng dán cả thẻ <meta ... content="XYZ" ... />
   const metaMatch = trimmed.match(/content=["']([^"']+)["']/i);
   if (metaMatch && metaMatch[1]) {
     return metaMatch[1].trim();
   }
 
-  // Nếu người dùng dán dạng key=value (VD: google-site-verification=XYZ hoặc msvalidate.01=XYZ)
   if (trimmed.includes("=")) {
     const parts = trimmed.split("=");
     return parts[parts.length - 1].replace(/["';>]/g, "").trim();
@@ -78,24 +76,24 @@ function getLiveSEOConfig() {
 
   return {
     metaTitle:
-      seo.metaTitle || "Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Tự Động 24/7",
+      seo.metaTitle || "ShopTFTMobile - Kho Acc TFT, Pet, Chibi & Sân Đấu",
     metaDescription:
       seo.metaDescription ||
-      "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7 bàn giao 30s. Đầy đủ Tướng Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc EDM & Cày Rank uy tín bởi Tuấn Thái Bình (Bảo hiểm 30M).",
+      "Tìm tài khoản TFT theo Pet, Chibi, Sân Đấu và nhu cầu sử dụng tại ShopTFTMobile. Hỗ trợ trực tiếp và bàn giao qua Zalo.",
     metaKeywords:
       seo.metaKeywords ||
-      "thuê acc tft, thuê acc đtcl, shop tft, tuấn thái bình tft, thuê acc tí nị, cày thuê đtcl, shop acc tft uy tín, shop tft mobile, thuê tài khoản đtcl, tí nị ahri, tí nị yasuo, coaching tft",
+      "thuê acc tft, shop acc tft, tuấn thái bình tft, acc tí nị, linh thú tft, sân đấu tft, shop tft mobile, tài khoản tft",
     canonicalUrl,
     ogTitle:
-      seo.ogTitle || seo.metaTitle || "Tuấn Thái Bình TFT | Nền Tảng Thuê Acc ĐTCL Uy Tín",
+      seo.ogTitle || seo.metaTitle || "ShopTFTMobile - Kho Acc TFT, Pet, Chibi & Sân Đấu",
     ogDescription:
       seo.ogDescription ||
       seo.metaDescription ||
-      "Thuê acc VIP ĐTCL / TFT Mobile tự động bàn giao 30s, trọn bộ Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc EDM. Quỹ bảo hiểm 30M Checkscam uy tín số 1.",
+      "Tìm tài khoản TFT theo Pet, Chibi, Sân Đấu và nhu cầu sử dụng tại ShopTFTMobile. Hỗ trợ trực tiếp và bàn giao qua Zalo.",
     ogImage: seo.ogImage || "/banner-seo.jpg",
     faviconUrl: seo.faviconUrl || "/favicon.ico",
     bgImageUrl: seo.bgImageUrl || "",
-    bgColor: seo.bgColor || "#F8FAFC",
+    bgColor: seo.bgColor || "#09090b",
     googleVerification: cleanVerificationCode(seo.googleVerification),
     bingVerification: cleanVerificationCode(seo.bingVerification),
     author: seo.author || "Tuấn Thái Bình",
@@ -127,17 +125,17 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   return {
-    title: seo.metaTitle,
+    title: {
+      default: seo.metaTitle,
+      template: "%s | ShopTFTMobile",
+    },
     description: seo.metaDescription,
     keywords: keywordsList,
     authors: [{ name: seo.author }],
     creator: seo.author,
-    publisher: "ShopTFT Mobile - Tuấn Thái Bình",
-    applicationName: "ShopTFT Mobile",
+    publisher: "ShopTFTMobile - Tuấn Thái Bình",
+    applicationName: "ShopTFTMobile",
     metadataBase: new URL(seo.canonicalUrl),
-    alternates: {
-      canonical: seo.canonicalUrl,
-    },
     icons: {
       icon: [
         { url: seo.faviconUrl || "/favicon.ico" },
@@ -150,13 +148,13 @@ export async function generateMetadata(): Promise<Metadata> {
       title: seo.ogTitle,
       description: seo.ogDescription,
       url: seo.canonicalUrl,
-      siteName: "ShopTFT Mobile - Tuấn Thái Bình",
+      siteName: "ShopTFTMobile",
       images: [
         {
           url: absoluteOgImage,
           width: 1200,
           height: 630,
-          alt: "Shop Thuê Acc TFT - ĐTCL Uy Tín Tuấn Thái Bình",
+          alt: "ShopTFTMobile - Kho Acc TFT",
         },
       ],
       locale: "vi_VN",
@@ -190,7 +188,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#ea580c",
+  themeColor: "#09090b",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -206,82 +204,43 @@ export default function RootLayout({
   const seo = getLiveSEOConfig();
   const { faqs } = getLiveSiteData();
 
-  const absoluteBannerUrl = seo.ogImage.startsWith("http")
-    ? seo.ogImage
-    : `${seo.canonicalUrl}${seo.ogImage.startsWith("/") ? "" : "/"}${seo.ogImage}`;
-
   const jsonLdGraph: any[] = [
     {
       "@type": "WebSite",
       "@id": `${seo.canonicalUrl}/#website`,
       url: seo.canonicalUrl,
-      name: "ShopTFT Mobile - Tuấn Thái Bình",
+      name: "ShopTFTMobile",
       description: seo.metaDescription,
       inLanguage: "vi-VN",
       potentialAction: {
         "@type": "SearchAction",
         target: {
           "@type": "EntryPoint",
-          urlTemplate: `${seo.canonicalUrl}/?q={search_term_string}`,
+          urlTemplate: `${seo.canonicalUrl}/shop?search={search_term_string}`,
         },
         "query-input": "required name=search_term_string",
       },
     },
     {
-      "@type": "LocalBusiness",
-      "@id": `${seo.canonicalUrl}/#localbusiness`,
-      name: "ShopTFT Mobile - Tuấn Thái Bình",
-      image: absoluteBannerUrl,
-      logo: `${seo.canonicalUrl}/avatar.jpg`,
-      description: seo.metaDescription,
+      "@type": "Organization",
+      "@id": `${seo.canonicalUrl}/#organization`,
+      name: "ShopTFTMobile",
       url: seo.canonicalUrl,
-      telephone: "0352.867.283",
-      priceRange: "6.000đ - 1.200.000đ",
-      currenciesAccepted: "VND",
-      paymentAccepted: "Chuyển khoản Ngân Hàng, VietQR, ZaloPay, MoMo",
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: "Thái Bình",
-        addressCountry: "VN",
-      },
+      logo: `${seo.canonicalUrl}/avatar.jpg`,
       founder: {
         "@type": "Person",
         name: "Tuấn Thái Bình",
-        jobTitle: "Cựu Thách Đấu TFT 1.134 ĐNG",
-        url: seo.canonicalUrl,
+        jobTitle: "Cựu Thách Đấu ĐTCL",
+        url: `${seo.canonicalUrl}/ve-shop`,
       },
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.98",
-        reviewCount: "1850",
-        bestRating: "5",
-        worstRating: "1",
-      },
-      openingHoursSpecification: [
-        {
-          "@type": "OpeningHoursSpecification",
-          dayOfWeek: [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-            "Sunday",
-          ],
-          opens: "00:00",
-          closes: "23:59",
-        },
-      ],
       sameAs: [
         "https://zalo.me/0352867283",
         "https://checkscam.vn",
-        "https://www.tiktok.com/@tuan.tft",
       ],
     },
   ];
 
-  // Schema FAQPage: Tự động trích xuất các câu hỏi thường gặp để Google & Bing hiển thị rich FAQ accordion
+  // Schema FAQPage neu co FAQ cau hinh thuc te
   if (Array.isArray(faqs) && faqs.length > 0) {
     jsonLdGraph.push({
       "@type": "FAQPage",
@@ -302,19 +261,6 @@ export default function RootLayout({
     "@graph": jsonLdGraph,
   };
 
-  const bodyStyle: React.CSSProperties = {
-    backgroundColor: seo.bgColor || "#F8FAFC",
-    ...(seo.bgImageUrl
-      ? {
-          backgroundImage: `url('${seo.bgImageUrl}')`,
-          backgroundAttachment: "fixed",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }
-      : {}),
-  };
-
   return (
     <html lang="vi" className="scroll-smooth overflow-x-hidden w-full max-w-full">
       <head>
@@ -324,10 +270,8 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link rel="preconnect" href="https://doihinhtft.vn" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://doihinhtft.vn" />
-        <link rel="canonical" href={seo.canonicalUrl} />
         <link rel="icon" href={seo.faviconUrl || "/favicon.ico"} sizes="any" />
         <link rel="apple-touch-icon" href={seo.faviconUrl || "/apple-touch-icon.png"} />
-        <link rel="preload" href="/banner-seo.jpg" as="image" type="image/jpeg" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -336,7 +280,6 @@ export default function RootLayout({
         />
       </head>
       <body
-        style={bodyStyle}
         className={`${inter.variable} ${manrope.variable} ${robotoMono.variable} min-h-screen w-full max-w-full overflow-x-hidden bg-[#09090b] text-white selection:bg-white selection:text-black font-sans antialiased`}
       >
         <Providers>

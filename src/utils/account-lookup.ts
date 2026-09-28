@@ -455,8 +455,8 @@ export async function getAccountByIdOrSlug(identifier: string): Promise<UnifiedP
     if (match) return match;
   }
 
-  // Fallback an toàn: Nếu vẫn không tìm thấy, trả về tài khoản đầu tiên để không bao giờ bị đứt link
-  return allAccounts[0] || null;
+  // Khong tim thay tai khoan phu hop -> Tra ve null de kich hoat trang 404 chuan
+  return null;
 }
 
 /**

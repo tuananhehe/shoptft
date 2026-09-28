@@ -130,8 +130,11 @@ export function verifyMemberSessionToken(
   }
 }
 
-export function toSafeMember(member: Member): SafeMember {
+export function toSafeMember(member: Member, isAdmin: boolean = false): SafeMember {
   const { passwordHash, salt, ...safe } = member;
+  if (!isAdmin) {
+    delete safe.notes;
+  }
   return safe;
 }
 

@@ -249,13 +249,13 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
             </Link>
             <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
             <Link
-              href={account.type === "VIP" ? "/shop?type=vip" : "/shop?type=clone"}
+              href="/shop"
               className="hover:text-white transition-colors"
             >
-              {account.type === "VIP" ? "Kho VIP" : "Kho Clone"}
+              Kho Acc
             </Link>
             <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
-            <span className="text-white font-mono font-medium">{account.code}</span>
+            <span className="text-white font-medium truncate max-w-[200px] sm:max-w-xs">{account.title}</span>
           </nav>
 
           <div className="flex items-center gap-2">

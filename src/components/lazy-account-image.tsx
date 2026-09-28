@@ -102,11 +102,11 @@ export const LazyAccountImage: React.FC<LazyAccountImageProps> = ({
         />
       ) : (
         /* 3. Fallback sang trọng nếu toàn bộ link ảnh đều hỏng */
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 text-slate-300 text-xs p-3 text-center gap-1.5 select-none">
-          <Gamepad2 className="w-8 h-8 text-orange-500/80 drop-shadow-sm" />
-          <span className="text-[11px] font-bold text-slate-200 line-clamp-1">{alt || "Tài Khoản ĐTCL"}</span>
-          <span className="text-[9px] font-mono text-orange-400 bg-orange-950/60 px-2 py-0.5 rounded border border-orange-500/20">
-            TFT Shop Tuấn
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#141416] text-zinc-400 text-xs p-3 text-center gap-1.5 select-none">
+          <Gamepad2 className="w-8 h-8 text-zinc-500 drop-shadow-sm" />
+          <span className="text-[11px] font-medium text-zinc-300 line-clamp-1">{alt || "Tài Khoản ĐTCL"}</span>
+          <span className="text-[9px] font-mono text-zinc-400 bg-white/[0.04] px-2 py-0.5 rounded border border-white/10">
+            ShopTFTMobile
           </span>
         </div>
       )}

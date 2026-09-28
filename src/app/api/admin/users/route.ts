@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
       members.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
     }
 
-    const safeMembers = members.map(toSafeMember);
+    const safeMembers = members.map((m) => toSafeMember(m, true));
     return NextResponse.json({
       success: true,
       data: safeMembers,

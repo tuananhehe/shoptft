@@ -1,45 +1,49 @@
 import { MetadataRoute } from "next";
-import fs from "fs";
-import path from "path";
+import { getAllProductAccounts } from "@/utils/account-lookup";
 
-/**
- * Lấy URL miền chính xác (Canonical Base URL) cấu hình trong hệ thống
- */
-function getCanonicalBaseUrl(): string {
-  try {
-    const configPath = path.join(process.cwd(), "src", "data", "homepage-config.json");
-    if (fs.existsSync(configPath)) {
-      const file = fs.readFileSync(configPath, "utf8");
-      const json = JSON.parse(file);
-      if (json?.seo?.canonicalUrl) {
-        return json.seo.canonicalUrl.trim().replace(/\/+$/, "");
-      }
-    }
-  } catch (err) {
-    console.error("Lỗi đọc canonical URL cho sitemap:", err);
-  }
+export const dynamic = "force-dynamic";
 
-  const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  if (envUrl) {
-    return envUrl.trim().replace(/\/+$/, "");
-  }
-
-  return "https://shoptftmobile.net";
-}
-
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = getCanonicalBaseUrl();
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const baseUrl = "https://shoptftmobile.net";
   const now = new Date();
 
-  // Chuẩn SEO Google & Bing:
-  // 1. Chỉ chứa các URL canonical hợp lệ (200 OK)
-  // 2. Tuyệt đối KHÔNG chứa hash (#shop, #clone-shop...) vì bot tìm kiếm sẽ báo lỗi URL không hợp lệ / không lập chỉ mục
-  return [
+  const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: now,
       changeFrequency: "daily",
       priority: 1.0,
     },
+    {
+      url: `${baseUrl}/shop`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/ve-shop`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
   ];
+
+  try {
+    const accounts = await getAllProductAccounts();
+    const productRoutes: MetadataRoute.Sitemap = accounts.map((acc) => {
+      const cleanCode = acc.code.replace(/^MS:\s*/i, "").trim();
+      const slug = cleanCode || acc.id;
+      return {
+        url: `${baseUrl}/acc/${encodeURIComponent(slug)}`,
+        lastModified: now,
+        changeFrequency: "daily",
+        priority: 0.8,
+      };
+    });
+
+    return [...staticRoutes, ...productRoutes];
+  } catch (err) {
+    console.error("Lỗi tạo sitemap sản phẩm:", err);
+    return staticRoutes;
+  }
 }
