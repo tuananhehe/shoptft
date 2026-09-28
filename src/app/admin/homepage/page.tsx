@@ -219,12 +219,12 @@ export default function AdminHomepageManagerPage() {
       setAlertBanner(data.alertBanner);
       if (data.seo) {
         setSeo({
-          metaTitle: data.seo.metaTitle || "Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Tự Động 24/7",
-          metaDescription: data.seo.metaDescription || "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7.",
-          metaKeywords: data.seo.metaKeywords || "thuê acc tft, thuê acc đtcl, shop tft, tuấn thái bình tft",
-          canonicalUrl: data.seo.canonicalUrl || "https://shoptft.vercel.app/",
+          metaTitle: data.seo.metaTitle || "Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Mobile Uy Tín",
+          metaDescription: data.seo.metaDescription || "Shop thuê acc TFT, thuê acc ĐTCL VIP uy tín, bàn giao thủ công qua Zalo.",
+          metaKeywords: data.seo.metaKeywords || "thuê acc tft, thuê acc đtcl, shop tft, tuấn thái bình tft, thuê acc tí nị",
+          canonicalUrl: data.seo.canonicalUrl || "https://shoptftmobile.net/",
           ogTitle: data.seo.ogTitle || "Tuấn Thái Bình TFT | Nền Tảng Thuê Acc ĐTCL Uy Tín",
-          ogDescription: data.seo.ogDescription || "Thuê acc VIP ĐTCL tự động 30s.",
+          ogDescription: data.seo.ogDescription || "Thuê acc VIP ĐTCL bàn giao thủ công qua Zalo.",
           ogImage: data.seo.ogImage || "/banner-seo.jpg",
           faviconUrl: data.seo.faviconUrl || "/favicon.ico",
           bgImageUrl: data.seo.bgImageUrl || "",
@@ -338,29 +338,29 @@ export default function AdminHomepageManagerPage() {
 
   const heroPresets = [
     {
-      name: "Shop Thuê Acc TFT ĐTCL Việt Nam Uy Tín Hàng Đầu",
-      badge: "HỆ THỐNG THUÊ ACC TFT ĐTCL CHÍNH CHỦ // TUẤN THÁI BÌNH",
+      name: "Shop Thuê Acc TFT ĐTCL Việt Nam Uy Tín",
+      badge: "HỆ THỐNG THUÊ ACC TFT ĐTCL // TUẤN THÁI BÌNH",
       titleLine1: "Shop Thuê Acc TFT ĐTCL",
       titleHighlight: "Việt Nam",
-      titleLine2: "Uy Tín Hàng Đầu",
+      titleLine2: "Bàn Giao Trực Tiếp Qua Zalo",
       subtitle:
-        "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7 bàn giao 30s. Sở hữu trọn bộ Tướng Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc EDM và Dịch vụ Cày Rank ĐTCL uy tín số 1 bởi Cựu Thách Đấu Tuấn Thái Bình (1.134 ĐNG - Bảo hiểm 30M Checkscam).",
+        "Shop thuê acc TFT, thuê acc ĐTCL VIP bàn giao trực tiếp qua Zalo. Trọn bộ Tướng Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc EDM và Dịch vụ Cày Rank ĐTCL uy tín bởi Cựu Thách Đấu Tuấn Thái Bình (Bảo hiểm 30M Checkscam).",
     },
     {
-      name: "Hệ Thống Thuê Acc ĐTCL Tự Động 24/7 Bàn Giao 30 Giây",
-      badge: "THUÊ ACC ĐTCL MOBILE & PC // TỰ ĐỘNG 24/7",
+      name: "Hệ Thống Thuê Acc ĐTCL Uy Tín Bàn Giao Nhanh Qua Zalo",
+      badge: "THUÊ ACC ĐTCL MOBILE & PC // BÀN GIAO ZALO",
       titleLine1: "Hệ Thống Thuê Acc ĐTCL",
-      titleHighlight: "Tự Động 24/7",
-      titleLine2: "Bàn Giao 30 Giây",
+      titleHighlight: "Chính Chủ",
+      titleLine2: "Bàn Giao Qua Zalo",
       subtitle:
-        "Hệ thống thuê acc TFT tự động nhận thông tin ngay sau 30s. Trọn bộ Tướng Tí Nị HOT nhất, Sân Đấu Thần Thoại và Dịch vụ Cày Rank uy tín số 1 bởi Cựu Thách Đấu Tuấn Thái Bình (1.134 ĐNG).",
+        "Hệ thống thuê acc TFT nhận thông tin tài khoản trực tiếp qua Zalo. Trọn bộ Tướng Tí Nị HOT nhất, Sân Đấu Thần Thoại và Dịch vụ Cày Rank uy tín bởi Cựu Thách Đấu Tuấn Thái Bình.",
     },
     {
-      name: "Nền Tảng Thuê Acc TFT & Cày Rank ĐTCL Số 1 Việt Nam",
+      name: "Nền Tảng Thuê Acc TFT & Cày Rank ĐTCL Uy Tín",
       badge: "TUẤN THÁI BÌNH // CỰU THÁCH ĐẤU 1.134 ĐNG",
       titleLine1: "Nền Tảng Thuê Acc TFT &",
       titleHighlight: "Cày Rank ĐTCL",
-      titleLine2: "Số 1 Việt Nam",
+      titleLine2: "Uy Tín Hàng Đầu",
       subtitle:
         "Chuyên cung cấp tài khoản ĐTCL VIP, Tướng Tí Nị Thần Thoại và dịch vụ Cày Rank, Coaching 1-1 trực tiếp bởi Cựu Thách Đấu Tuấn Thái Bình (Bảo hiểm 30M Checkscam).",
     },
@@ -504,7 +504,7 @@ export default function AdminHomepageManagerPage() {
   if (loading) {
     return (
       <div className="p-12 bg-white rounded-3xl border border-slate-200 text-center space-y-3">
-        <Loader2 className="w-8 h-8 text-orange-600 animate-spin mx-auto" />
+        <Loader2 className="w-8 h-8 text-slate-800 animate-spin mx-auto" />
         <p className="text-xs text-slate-500 font-mono">Đang tải cấu hình trang chủ...</p>
       </div>
     );
@@ -570,20 +570,20 @@ export default function AdminHomepageManagerPage() {
   return (
     <div className="space-y-6">
       {/* 1. Header & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 text-white flex items-center justify-center font-bold shadow-md shadow-orange-500/20">
-            <Layout className="w-6 h-6" />
+          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
+            <Layout className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <span>Quản Lý & Tự Setup Trang Chủ</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 border border-orange-200">
+            <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              <span>Quản Lý Nội Dung Trang Chủ</span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                 CMS
               </span>
             </h1>
-            <p className="text-xs text-slate-500 font-medium">
-              Bật/tắt các khối giao diện, tùy chỉnh hình ảnh, Hero Banner, bảng giá cày rank và giải đáp FAQ.
+            <p className="text-xs text-slate-500">
+              Bật/tắt các khối giao diện, tùy chỉnh hình ảnh, Hero Banner, gói cày rank và câu hỏi FAQ.
             </p>
           </div>
         </div>
@@ -592,16 +592,16 @@ export default function AdminHomepageManagerPage() {
           <Link
             href="/"
             target="_blank"
-            className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <Eye className="w-3.5 h-3.5 text-orange-600" />
+            <Eye className="w-3.5 h-3.5 text-slate-600" />
             <span className="hidden sm:inline">Xem Trang Chủ ↗</span>
           </Link>
 
           <button
             type="button"
             onClick={handleReset}
-            className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
             title="Khôi phục toàn bộ cấu hình về mặc định"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -612,7 +612,7 @@ export default function AdminHomepageManagerPage() {
             type="button"
             disabled={saving}
             onClick={handleSaveAll}
-            className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all shadow-md shadow-orange-600/25 flex items-center gap-2 cursor-pointer hover:scale-105 disabled:opacity-50"
+            className="px-5 py-2 bg-[#111111] hover:bg-[#222222] text-white rounded-xl text-xs font-semibold transition-all shadow-xs flex items-center gap-2 cursor-pointer disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>Lưu Thay Đổi</span>
@@ -621,88 +621,88 @@ export default function AdminHomepageManagerPage() {
       </div>
 
       {/* 2. Tabs Navigation */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-200">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-slate-200">
         <button
           onClick={() => setActiveTab("sections")}
-          className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === "sections"
-              ? "bg-slate-900 text-white shadow-sm"
-              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+              ? "bg-[#111111] text-white shadow-xs"
+              : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
           }`}
         >
-          <Layers className="w-4 h-4 text-orange-400" />
+          <Layers className="w-3.5 h-3.5 text-slate-400" />
           <span>Bật / Tắt Khối Giao Diện</span>
         </button>
 
         <button
           onClick={() => setActiveTab("images")}
-          className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === "images"
-              ? "bg-slate-900 text-white shadow-sm"
-              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+              ? "bg-[#111111] text-white shadow-xs"
+              : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
           }`}
         >
-          <ImageIcon className="w-4 h-4 text-pink-400" />
+          <ImageIcon className="w-3.5 h-3.5 text-slate-400" />
           <span>Hình Ảnh & Thẻ Hero VIP</span>
         </button>
 
         <button
           onClick={() => setActiveTab("hero")}
-          className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === "hero"
-              ? "bg-slate-900 text-white shadow-sm"
-              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+              ? "bg-[#111111] text-white shadow-xs"
+              : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
           }`}
         >
-          <Zap className="w-4 h-4 text-amber-400" />
+          <Zap className="w-3.5 h-3.5 text-slate-400" />
           <span>Hero Tiêu Đề & Số Liệu</span>
         </button>
 
         <button
           onClick={() => setActiveTab("banner")}
-          className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === "banner"
-              ? "bg-slate-900 text-white shadow-sm"
-              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+              ? "bg-[#111111] text-white shadow-xs"
+              : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
           }`}
         >
-          <Megaphone className="w-4 h-4 text-purple-400" />
+          <Megaphone className="w-3.5 h-3.5 text-slate-400" />
           <span>Thông Báo Khẩn (Banner)</span>
         </button>
 
         <button
           onClick={() => setActiveTab("services")}
-          className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === "services"
-              ? "bg-slate-900 text-white shadow-sm"
-              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+              ? "bg-[#111111] text-white shadow-xs"
+              : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
           }`}
         >
-          <Sliders className="w-4 h-4 text-sky-400" />
+          <Sliders className="w-3.5 h-3.5 text-slate-400" />
           <span>Gói Cày Rank ({servicePackages.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab("faq")}
-          className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === "faq"
-              ? "bg-slate-900 text-white shadow-sm"
-              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+              ? "bg-[#111111] text-white shadow-xs"
+              : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
           }`}
         >
-          <HelpCircle className="w-4 h-4 text-emerald-400" />
+          <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
           <span>Câu Hỏi FAQ ({faqs.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab("seo")}
-          className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
             activeTab === "seo"
-              ? "bg-slate-900 text-white shadow-sm"
-              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+              ? "bg-[#111111] text-white shadow-xs"
+              : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
           }`}
         >
-          <Globe className="w-4 h-4 text-emerald-400" />
+          <Globe className="w-3.5 h-3.5 text-slate-400" />
           <span>SEO, Favicon & Nền Web</span>
         </button>
       </div>
@@ -714,7 +714,7 @@ export default function AdminHomepageManagerPage() {
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-6">
           <div>
             <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
-              <Layers className="w-5 h-5 text-orange-600" />
+              <Layers className="w-5 h-5 text-slate-800" />
               <span>Quản Lý Bật / Tắt Các Khối Trên Trang Chủ</span>
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -742,7 +742,7 @@ export default function AdminHomepageManagerPage() {
                         <div
                           className={`w-9 h-9 rounded-xl flex items-center justify-center ${
                             isEnabled
-                              ? "bg-orange-50 text-orange-600"
+                              ? "bg-slate-100 text-slate-800"
                               : "bg-slate-200 text-slate-500"
                           }`}
                         >
@@ -826,13 +826,13 @@ export default function AdminHomepageManagerPage() {
                       value={images.heroCardImage}
                       onChange={(e) => setImages({ ...images, heroCardImage: e.target.value })}
                       placeholder="https://..."
-                      className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500"
+                      className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-slate-900"
                     />
                     <button
                       type="button"
                       disabled={uploadingHeroCard}
                       onClick={() => heroCardInputRef.current?.click()}
-                      className="px-3.5 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-xl font-bold flex items-center gap-1.5 cursor-pointer flex-shrink-0 transition-colors shadow-xs"
+                      className="px-3.5 py-2 bg-[#111111] hover:bg-[#222222] text-white rounded-xl font-bold flex items-center gap-1.5 cursor-pointer flex-shrink-0 transition-colors shadow-xs"
                     >
                       {uploadingHeroCard ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -852,7 +852,7 @@ export default function AdminHomepageManagerPage() {
                       value={images.heroCardCode}
                       onChange={(e) => setImages({ ...images, heroCardCode: e.target.value })}
                       placeholder="MS: 8899"
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500 font-mono"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-slate-900 font-mono"
                     />
                   </div>
 
@@ -863,7 +863,7 @@ export default function AdminHomepageManagerPage() {
                       value={images.heroCardPrice}
                       onChange={(e) => setImages({ ...images, heroCardPrice: e.target.value })}
                       placeholder="15.000đ/h"
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-red-600 focus:outline-none focus:border-orange-500 font-mono"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-red-600 focus:outline-none focus:border-slate-900 font-mono"
                     />
                   </div>
                 </div>
@@ -875,7 +875,7 @@ export default function AdminHomepageManagerPage() {
                     value={images.heroCardChibi}
                     onChange={(e) => setImages({ ...images, heroCardChibi: e.target.value })}
                     placeholder="Tí Nị Ahri Chiêu Hồn + Yasuo Chân Long"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                   />
                 </div>
 
@@ -886,7 +886,7 @@ export default function AdminHomepageManagerPage() {
                     value={images.heroCardArena}
                     onChange={(e) => setImages({ ...images, heroCardArena: e.target.value })}
                     placeholder="Sân Đấu Thần Thoại Tiệm Trà Tâm Linh (Đổi Nhạc EDM)"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-orange-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-slate-900"
                   />
                 </div>
 
@@ -901,7 +901,7 @@ export default function AdminHomepageManagerPage() {
                         key={idx}
                         type="button"
                         onClick={() => applyPreset(p)}
-                        className="p-2.5 bg-slate-50 hover:bg-orange-50/80 border border-slate-200 hover:border-orange-300 rounded-xl text-left transition-all cursor-pointer flex items-center gap-2 group"
+                        className="p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 rounded-xl text-left transition-all cursor-pointer flex items-center gap-2 group"
                       >
                         <img
                           src={p.imageUrl}
@@ -909,7 +909,7 @@ export default function AdminHomepageManagerPage() {
                           className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
                         />
                         <div className="min-w-0 flex-1">
-                          <strong className="block text-[11px] text-slate-900 truncate group-hover:text-orange-600">
+                          <strong className="block text-[11px] text-slate-900 truncate group-hover:text-black">
                             {p.name}
                           </strong>
                           <span className="text-[10px] text-slate-500 font-mono">{p.code} • {p.price}</span>
@@ -932,13 +932,13 @@ export default function AdminHomepageManagerPage() {
                       <span className="text-emerald-800 font-bold block">Bảo Hiểm</span>
                       <strong className="text-emerald-600 font-mono font-bold block">30M</strong>
                     </div>
-                    <div className="bg-amber-50 rounded-lg py-1">
-                      <span className="text-amber-800 font-bold block">Rank ĐTCL</span>
-                      <strong className="text-amber-600 font-bold block">1.134 ĐNG</strong>
+                    <div className="bg-slate-100 rounded-lg py-1">
+                      <span className="text-slate-700 font-bold block">Rank ĐTCL</span>
+                      <strong className="text-slate-900 font-bold block">1.134 ĐNG</strong>
                     </div>
-                    <div className="bg-orange-50 rounded-lg py-1">
-                      <span className="text-orange-800 font-bold block">Bàn Giao</span>
-                      <strong className="text-orange-600 font-bold block">30s Zalo</strong>
+                    <div className="bg-slate-100 rounded-lg py-1">
+                      <span className="text-slate-700 font-bold block">Bàn Giao</span>
+                      <strong className="text-slate-900 font-bold block">Zalo</strong>
                     </div>
                   </div>
 
@@ -951,7 +951,7 @@ export default function AdminHomepageManagerPage() {
                     <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                     
                     <div className="absolute top-2 left-2 flex items-center gap-1">
-                      <span className="px-2 py-0.5 rounded bg-orange-600 text-white font-mono font-bold text-[10px]">
+                      <span className="px-2 py-0.5 rounded bg-[#111111] text-white font-mono font-bold text-[10px]">
                         {images.heroCardCode}
                       </span>
                       <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[9px] font-bold">
@@ -1008,10 +1008,10 @@ export default function AdminHomepageManagerPage() {
                   value={images.avatarUrl}
                   onChange={(e) => setImages({ ...images, avatarUrl: e.target.value })}
                   placeholder="/avatar.jpg hoặc https://..."
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-slate-900"
                 />
                 <span className="text-[10px] text-slate-400">
-                  Mặc định: <code className="text-orange-600">/avatar.jpg</code> (ảnh trong thư mục public).
+                  Mặc định: <code className="text-slate-800">/avatar.jpg</code> (ảnh trong thư mục public).
                 </span>
               </div>
 
@@ -1022,7 +1022,7 @@ export default function AdminHomepageManagerPage() {
                   value={images.coverUrl}
                   onChange={(e) => setImages({ ...images, coverUrl: e.target.value })}
                   placeholder="https://..."
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-slate-900"
                 />
               </div>
             </div>
@@ -1038,7 +1038,7 @@ export default function AdminHomepageManagerPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100">
               <div>
                 <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-amber-500" />
+                  <Zap className="w-5 h-5 text-slate-800" />
                   <span>Cấu Hình Tiêu Đề & Lời Chào Mở Đầu (Hero Banner)</span>
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -1054,7 +1054,7 @@ export default function AdminHomepageManagerPage() {
                     key={idx}
                     type="button"
                     onClick={() => applyHeroPreset(p)}
-                    className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 rounded-lg text-[10px] font-bold text-amber-900 transition-colors cursor-pointer"
+                    className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-800 transition-colors cursor-pointer"
                   >
                     Mẫu {idx + 1}
                   </button>
@@ -1063,9 +1063,9 @@ export default function AdminHomepageManagerPage() {
             </div>
 
             {/* LIVE PREVIEW BOX */}
-            <div className="p-4 sm:p-6 bg-gradient-to-b from-orange-50/70 via-white to-slate-50 border border-orange-200/80 rounded-2xl shadow-inner space-y-3">
+            <div className="p-4 sm:p-6 bg-slate-50 border border-slate-200 rounded-2xl shadow-inner space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-orange-700 flex items-center gap-1">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1">
                   <Eye className="w-3.5 h-3.5" />
                   <span>Xem Trước Trực Tiếp Ngoài Trang Chủ</span>
                 </span>
@@ -1077,8 +1077,8 @@ export default function AdminHomepageManagerPage() {
                 {/* Top Badge & Tags */}
                 <div className="flex flex-wrap items-center gap-2">
                   {hero.badge && (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-orange-100 border border-orange-300 text-orange-700 text-[10px] font-black uppercase tracking-wider font-gaming">
-                      <Sparkles className="w-3 h-3 text-orange-600 animate-pulse" />
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100 border border-slate-300 text-slate-800 text-[10px] font-black uppercase tracking-wider font-gaming">
+                      <Sparkles className="w-3 h-3 text-slate-700" />
                       <span>{hero.badge}</span>
                     </div>
                   )}
@@ -1092,7 +1092,7 @@ export default function AdminHomepageManagerPage() {
                   <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase bg-rose-600 text-white font-gaming">
                     Không Mua Bán
                   </span>
-                  <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase bg-amber-500 text-white font-gaming">
+                  <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase bg-slate-800 text-white font-gaming">
                     Demo
                   </span>
                 </div>
@@ -1101,7 +1101,7 @@ export default function AdminHomepageManagerPage() {
                 <h1 className="font-gaming text-xl sm:text-2xl lg:text-3xl font-black uppercase text-slate-900 leading-tight">
                   {hero.titleLine1 ? `${hero.titleLine1} ` : ""}
                   {hero.titleHighlight ? (
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500">
+                    <span className="text-slate-900 underline decoration-slate-300 underline-offset-4">
                       {hero.titleHighlight}
                     </span>
                   ) : null}
@@ -1128,7 +1128,7 @@ export default function AdminHomepageManagerPage() {
                   value={hero.badge}
                   onChange={(e) => setHero({ ...hero, badge: e.target.value })}
                   placeholder="HỆ THỐNG THUÊ ACC TFT ĐTCL CHÍNH CHỦ // TUẤN THÁI BÌNH"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                 />
               </div>
 
@@ -1139,35 +1139,35 @@ export default function AdminHomepageManagerPage() {
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="space-y-1">
-                    <span className="text-[11px] text-slate-500 block font-semibold">Phần trước chữ cam:</span>
+                    <span className="text-[11px] text-slate-500 block font-semibold">Phần trước chữ nổi bật:</span>
                     <input
                       type="text"
                       value={hero.titleLine1}
                       onChange={(e) => setHero({ ...hero, titleLine1: e.target.value })}
                       placeholder="Shop Thuê Acc TFT ĐTCL"
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[11px] text-orange-600 block font-bold">Chữ nổi bật (Màu cam gradient):</span>
+                    <span className="text-[11px] text-slate-700 block font-bold">Chữ nổi bật:</span>
                     <input
                       type="text"
                       value={hero.titleHighlight}
                       onChange={(e) => setHero({ ...hero, titleHighlight: e.target.value })}
                       placeholder="Việt Nam"
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-orange-300 rounded-xl font-bold text-orange-600 focus:outline-none focus:border-orange-500"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[11px] text-slate-500 block font-semibold">Phần sau chữ cam:</span>
+                    <span className="text-[11px] text-slate-500 block font-semibold">Phần sau:</span>
                     <input
                       type="text"
                       value={hero.titleLine2}
                       onChange={(e) => setHero({ ...hero, titleLine2: e.target.value })}
                       placeholder="Uy Tín Hàng Đầu"
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                     />
                   </div>
                 </div>
@@ -1189,7 +1189,7 @@ export default function AdminHomepageManagerPage() {
                         setSeo((prev) => ({ ...prev, metaDescription: hero.subtitle }));
                         toast.success("Đã đồng bộ đoạn mô tả sang SEO Meta Description!");
                       }}
-                      className="text-[10px] font-bold text-orange-600 hover:text-orange-700 underline cursor-pointer"
+                      className="text-[10px] font-bold text-slate-800 hover:text-black underline cursor-pointer"
                     >
                       Đồng bộ sang SEO Meta
                     </button>
@@ -1199,8 +1199,8 @@ export default function AdminHomepageManagerPage() {
                   rows={4}
                   value={hero.subtitle}
                   onChange={(e) => setHero({ ...hero, subtitle: e.target.value })}
-                  placeholder="Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7 bàn giao 30s. Sở hữu trọn bộ Tướng Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc EDM và Dịch vụ Cày Rank ĐTCL uy tín số 1 bởi Cựu Thách Đấu Tuấn Thái Bình (1.134 ĐNG - Bảo hiểm 30M Checkscam)."
-                  className="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-orange-500 leading-relaxed text-xs"
+                  placeholder="Shop thuê acc TFT, thuê acc ĐTCL VIP uy tín, bàn giao qua Zalo. Sở hữu trọn bộ Tướng Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc EDM và Dịch vụ Cày Rank ĐTCL uy tín số 1 bởi Cựu Thách Đấu Tuấn Thái Bình (1.134 ĐNG - Bảo hiểm 30M Checkscam)."
+                  className="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-slate-900 leading-relaxed text-xs"
                 />
               </div>
             </div>
@@ -1210,7 +1210,7 @@ export default function AdminHomepageManagerPage() {
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
             <div>
               <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
-                <Award className="w-5 h-5 text-orange-600" />
+                <Award className="w-5 h-5 text-slate-800" />
                 <span>4 Chỉ Số Thống Kê Uy Tín (Stats Cards)</span>
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -1245,7 +1245,7 @@ export default function AdminHomepageManagerPage() {
                         updated[index] = { ...st, value: e.target.value };
                         setHero({ ...hero, stats: updated });
                       }}
-                      className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-orange-600 font-mono"
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-900 font-mono"
                     />
                   </div>
                 </div>
@@ -1261,7 +1261,7 @@ export default function AdminHomepageManagerPage() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
-                <Megaphone className="w-5 h-5 text-purple-600" />
+                <Megaphone className="w-5 h-5 text-slate-800" />
                 <span>Thanh Thông Báo Nổi (Alert Banner)</span>
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -1277,7 +1277,7 @@ export default function AdminHomepageManagerPage() {
                 type="button"
                 onClick={() => setAlertBanner({ ...alertBanner, active: !alertBanner.active })}
                 className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  alertBanner.active ? "bg-orange-500" : "bg-slate-300"
+                  alertBanner.active ? "bg-emerald-500" : "bg-slate-300"
                 }`}
               >
                 <span
@@ -1296,16 +1296,16 @@ export default function AdminHomepageManagerPage() {
               value={alertBanner.content}
               onChange={(e) => setAlertBanner({ ...alertBanner, content: e.target.value })}
               placeholder="Nhập nội dung thông báo hiển thị cho khách..."
-              className="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-orange-500 leading-relaxed"
+              className="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-slate-900 leading-relaxed"
             />
           </div>
 
           {/* Preview */}
-          <div className="p-4 bg-orange-500/10 border border-orange-500/30 rounded-2xl text-xs space-y-1">
-            <span className="text-[10px] font-mono text-orange-600 font-bold uppercase tracking-wider block">
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs space-y-1">
+            <span className="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider block">
               Xem trước ngoài trang chủ:
             </span>
-            <div className="text-orange-950 font-medium py-1">{alertBanner.content || "Chưa có nội dung"}</div>
+            <div className="text-slate-800 font-medium py-1">{alertBanner.content || "Chưa có nội dung"}</div>
           </div>
         </div>
       )}
@@ -1316,7 +1316,7 @@ export default function AdminHomepageManagerPage() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
-                <Sliders className="w-5 h-5 text-sky-600" />
+                <Sliders className="w-5 h-5 text-slate-800" />
                 <span>Quản Lý Bảng Giá Cày Rank & Coaching</span>
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -1327,7 +1327,7 @@ export default function AdminHomepageManagerPage() {
             <button
               type="button"
               onClick={openAddService}
-              className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
+              className="px-4 py-2 bg-[#111111] hover:bg-[#222222] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
             >
               <Plus className="w-4 h-4" />
               <span>Thêm Gói Mới</span>
@@ -1339,11 +1339,11 @@ export default function AdminHomepageManagerPage() {
               <div
                 key={srv.id}
                 className={`p-5 rounded-2xl border flex flex-col justify-between relative ${
-                  srv.popular ? "bg-orange-50/50 border-orange-300 shadow-sm" : "bg-white border-slate-200"
+                  srv.popular ? "bg-slate-50 border-slate-900 shadow-xs" : "bg-white border-slate-200"
                 }`}
               >
                 {srv.popular && (
-                  <span className="absolute -top-2.5 right-4 bg-orange-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  <span className="absolute -top-2.5 right-4 bg-[#111111] text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
                     HOT NHẤT
                   </span>
                 )}
@@ -1356,7 +1356,7 @@ export default function AdminHomepageManagerPage() {
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => openEditService(srv)}
-                        className="p-1 text-slate-400 hover:text-orange-600 rounded cursor-pointer"
+                        className="p-1 text-slate-400 hover:text-slate-900 rounded cursor-pointer"
                       >
                         <Sliders className="w-3.5 h-3.5" />
                       </button>
@@ -1370,7 +1370,7 @@ export default function AdminHomepageManagerPage() {
                   </div>
 
                   <h4 className="font-extrabold text-sm text-slate-900 mb-1">{srv.title}</h4>
-                  <div className="text-base font-black text-orange-600 font-mono mb-3">{srv.price}</div>
+                  <div className="text-base font-black text-slate-900 font-mono mb-3">{srv.price}</div>
 
                   <ul className="space-y-1.5 text-xs text-slate-600">
                     {(srv.features || []).map((f, i) => (
@@ -1393,7 +1393,7 @@ export default function AdminHomepageManagerPage() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
-                <HelpCircle className="w-5 h-5 text-emerald-600" />
+                <HelpCircle className="w-5 h-5 text-slate-800" />
                 <span>Quản Lý Câu Hỏi Thường Gặp (FAQ)</span>
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -1404,7 +1404,7 @@ export default function AdminHomepageManagerPage() {
             <button
               type="button"
               onClick={openAddFaq}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
+              className="px-4 py-2 bg-[#111111] hover:bg-[#222222] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
             >
               <Plus className="w-4 h-4" />
               <span>Thêm Câu Hỏi FAQ</span>
@@ -1419,7 +1419,7 @@ export default function AdminHomepageManagerPage() {
               >
                 <div className="space-y-1 max-w-2xl">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-800 border border-slate-300">
                       {item.badge || "FAQ"}
                     </span>
                     <h4 className="font-bold text-xs text-slate-900">
@@ -1432,7 +1432,7 @@ export default function AdminHomepageManagerPage() {
                 <div className="flex items-center gap-1.5 self-end sm:self-center flex-shrink-0">
                   <button
                     onClick={() => openEditFaq(item)}
-                    className="px-3 py-1.5 bg-white hover:bg-orange-50 text-slate-700 hover:text-orange-600 border border-slate-200 rounded-xl text-xs font-bold cursor-pointer"
+                    className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200 rounded-xl text-xs font-bold cursor-pointer"
                   >
                     Sửa
                   </button>
@@ -1480,7 +1480,7 @@ export default function AdminHomepageManagerPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-emerald-600" />
+                  <Globe className="w-5 h-5 text-slate-800" />
                   <span>Tối Ưu SEO, Favicon & Giao Diện Nền Web</span>
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -1492,7 +1492,7 @@ export default function AdminHomepageManagerPage() {
                 type="button"
                 disabled={saving}
                 onClick={handleSaveAll}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 cursor-pointer self-start sm:self-auto"
+                className="px-5 py-2.5 rounded-xl bg-[#111111] hover:bg-[#222222] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs cursor-pointer self-start sm:self-auto"
               >
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 <span>Lưu Cài Đặt SEO</span>
@@ -1525,16 +1525,16 @@ export default function AdminHomepageManagerPage() {
                   </div>
                   <div className="flex flex-col text-[11px] leading-tight truncate">
                     <span className="text-slate-900 font-medium">ShopTFT Mobile</span>
-                    <span className="text-slate-500 font-mono text-[10px] truncate">{seo.canonicalUrl || "https://shoptft.vercel.app/"}</span>
+                    <span className="text-slate-500 font-mono text-[10px] truncate">{seo.canonicalUrl || "https://shoptftmobile.net/"}</span>
                   </div>
                 </div>
 
                 <h4 className="text-blue-700 hover:underline font-medium text-base sm:text-lg leading-snug cursor-pointer line-clamp-1">
-                  {seo.metaTitle || "Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Tự Động"}
+                  {seo.metaTitle || "Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Mobile Uy Tín"}
                 </h4>
 
                 <p className="text-xs text-slate-600 leading-relaxed line-clamp-2">
-                  {seo.metaDescription || "Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7. Cung cấp tài khoản full Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc..."}
+                  {seo.metaDescription || "Shop thuê acc TFT, thuê acc ĐTCL VIP uy tín, bàn giao qua Zalo. Cung cấp tài khoản full Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc..."}
                 </p>
               </div>
             </div>
@@ -1546,7 +1546,7 @@ export default function AdminHomepageManagerPage() {
             {/* CỘT TRÁI (7 cols): CÁC THẺ META SEO CHÍNH */}
             <div className="lg:col-span-7 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
               <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-                <FileText className="w-4 h-4 text-orange-600" />
+                <FileText className="w-4 h-4 text-slate-800" />
                 <span>1. Thẻ Meta & Thông Tin Tìm Kiếm</span>
               </h4>
 
@@ -1566,8 +1566,8 @@ export default function AdminHomepageManagerPage() {
                   type="text"
                   value={seo.metaTitle}
                   onChange={(e) => setSeo({ ...seo, metaTitle: e.target.value })}
-                  placeholder="Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Tự Động 24/7"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-orange-500 text-xs"
+                  placeholder="Tuấn Thái Bình TFT | Hệ Thống Thuê Acc ĐTCL - TFT Mobile Uy Tín"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-slate-900 text-xs"
                 />
                 <p className="text-[10px] text-slate-400">
                   Xuất hiện trên thanh tiêu đề trình duyệt và dòng tiêu đề lớn màu xanh khi tìm kiếm trên Google.
@@ -1590,8 +1590,8 @@ export default function AdminHomepageManagerPage() {
                   rows={3}
                   value={seo.metaDescription}
                   onChange={(e) => setSeo({ ...seo, metaDescription: e.target.value })}
-                  placeholder="Shop thuê acc TFT, thuê acc ĐTCL VIP tự động 24/7..."
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-orange-500 text-xs leading-relaxed"
+                  placeholder="Shop thuê acc TFT, thuê acc ĐTCL VIP uy tín, bàn giao qua Zalo..."
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-slate-900 text-xs leading-relaxed"
                 />
                 <p className="text-[10px] text-slate-400">
                   Tóm tắt ngắn gọn dịch vụ, chứa từ khóa để kích thích người dùng bấm vào trang.
@@ -1608,7 +1608,7 @@ export default function AdminHomepageManagerPage() {
                   value={seo.metaKeywords}
                   onChange={(e) => setSeo({ ...seo, metaKeywords: e.target.value })}
                   placeholder="thuê acc tft, thuê acc đtcl, shop tft, tuấn thái bình tft, thuê acc tí nị, cày thuê đtcl"
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-orange-500 text-xs leading-relaxed"
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-slate-900 text-xs leading-relaxed"
                 />
               </div>
 
@@ -1620,8 +1620,8 @@ export default function AdminHomepageManagerPage() {
                     type="text"
                     value={seo.canonicalUrl}
                     onChange={(e) => setSeo({ ...seo, canonicalUrl: e.target.value })}
-                    placeholder="https://shoptft.vercel.app/"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500 text-xs"
+                    placeholder="https://shoptftmobile.net/"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-slate-900 text-xs"
                   />
                 </div>
 
@@ -1633,7 +1633,7 @@ export default function AdminHomepageManagerPage() {
                     value={seo.author || ""}
                     onChange={(e) => setSeo({ ...seo, author: e.target.value })}
                     placeholder="Tuấn Thái Bình"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-orange-500 text-xs"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-slate-900 text-xs"
                   />
                 </div>
               </div>
@@ -1648,7 +1648,7 @@ export default function AdminHomepageManagerPage() {
                   value={seo.googleVerification || ""}
                   onChange={(e) => setSeo({ ...seo, googleVerification: e.target.value })}
                   placeholder="VD: google-site-verification=abcxyz123... hoặc dán toàn bộ thẻ HTML"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500 text-xs"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-slate-900 text-xs"
                 />
                 <p className="text-[10px] text-slate-400">
                   Dùng để xác minh quyền sở hữu trang web trong Google Search Console (Hỗ trợ dán cả thẻ meta hoặc chuỗi mã).
@@ -1665,7 +1665,7 @@ export default function AdminHomepageManagerPage() {
                   value={seo.bingVerification || ""}
                   onChange={(e) => setSeo({ ...seo, bingVerification: e.target.value })}
                   placeholder="VD: msvalidate.01=abcxyz123... hoặc chuỗi mã xác minh Bing"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500 text-xs"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-slate-900 text-xs"
                 />
                 <p className="text-[10px] text-slate-400">
                   Dùng để xác minh và kích hoạt lập chỉ mục nhanh trên Bing Webmaster Tools & Yahoo Search.
@@ -1673,13 +1673,13 @@ export default function AdminHomepageManagerPage() {
               </div>
 
               {/* Hộp Thông Tin Hướng Dẫn Index Google & Bing */}
-              <div className="p-3.5 rounded-xl bg-blue-50/80 border border-blue-200 text-xs space-y-2 mt-2">
-                <div className="font-bold text-blue-900 flex items-center gap-1.5 text-[11px]">
-                  <Zap className="w-3.5 h-3.5 text-blue-600" />
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2 mt-2">
+                <div className="font-bold text-slate-900 flex items-center gap-1.5 text-[11px]">
+                  <Zap className="w-3.5 h-3.5 text-slate-800" />
                   <span>Mẹo Sửa Lỗi Lập Chỉ Mục (Google & Bing Indexing):</span>
                 </div>
-                <ul className="text-[10px] text-blue-800 space-y-1 leading-relaxed list-disc list-inside">
-                  <li><strong>Sitemap:</strong> Gửi link <code className="bg-blue-100/80 px-1 py-0.5 rounded font-mono text-blue-900">{seo.canonicalUrl ? `${seo.canonicalUrl.replace(/\/+$/, "")}/sitemap.xml` : "https://shoptftmobile.net/sitemap.xml"}</code> vào Google Search Console & Bing Webmaster.</li>
+                <ul className="text-[10px] text-slate-600 space-y-1 leading-relaxed list-disc list-inside">
+                  <li><strong>Sitemap:</strong> Gửi link <code className="bg-slate-200 px-1 py-0.5 rounded font-mono text-slate-900">{seo.canonicalUrl ? `${seo.canonicalUrl.replace(/\/+$/, "")}/sitemap.xml` : "https://shoptftmobile.net/sitemap.xml"}</code> vào Google Search Console & Bing Webmaster.</li>
                   <li><strong>Lỗi URL không hợp lệ (#):</strong> Hệ thống đã tự động loại bỏ các hash (#shop, #clone-shop...) khỏi sitemap để đảm bảo 100% hợp lệ.</li>
                   <li><strong>Kiểm tra URL:</strong> Trong Google Search Console, dán link trang chủ vào thanh tìm kiếm trên cùng và bấm <em>"Yêu cầu lập chỉ mục" (Request Indexing)</em>.</li>
                 </ul>
@@ -1692,7 +1692,7 @@ export default function AdminHomepageManagerPage() {
               {/* KHỐI 2: FAVICON & ICON TAB TRÌNH DUYỆT */}
               <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                 <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  <Sparkles className="w-4 h-4 text-slate-800" />
                   <span>2. Favicon & Icon Tab Trình Duyệt</span>
                 </h4>
 
@@ -1723,14 +1723,14 @@ export default function AdminHomepageManagerPage() {
                       value={seo.faviconUrl}
                       onChange={(e) => setSeo({ ...seo, faviconUrl: e.target.value })}
                       placeholder="/favicon.ico hoặc https://..."
-                      className="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                      className="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-900 focus:outline-none focus:border-slate-900"
                     />
 
                     <button
                       type="button"
                       disabled={uploadingFavicon}
                       onClick={() => faviconInputRef.current?.click()}
-                      className="px-3.5 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold flex items-center gap-1.5 cursor-pointer flex-shrink-0 transition-colors shadow-xs"
+                      className="px-3.5 py-2 bg-[#111111] hover:bg-[#222222] text-white rounded-xl font-bold flex items-center gap-1.5 cursor-pointer flex-shrink-0 transition-colors shadow-xs"
                     >
                       {uploadingFavicon ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -1749,7 +1749,7 @@ export default function AdminHomepageManagerPage() {
               {/* KHỐI 3: HÌNH NỀN & MÀU SẮC TRANG WEB */}
               <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                 <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-                  <Paintbrush className="w-4 h-4 text-purple-600" />
+                  <Paintbrush className="w-4 h-4 text-slate-800" />
                   <span>3. Tùy Chỉnh Nền Toàn Trang Web</span>
                 </h4>
 
@@ -1781,14 +1781,14 @@ export default function AdminHomepageManagerPage() {
                       value={seo.bgImageUrl || ""}
                       onChange={(e) => setSeo({ ...seo, bgImageUrl: e.target.value })}
                       placeholder="Để trống nếu muốn dùng nền trơn hoặc nhập link..."
-                      className="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                      className="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-900 focus:outline-none focus:border-slate-900"
                     />
 
                     <button
                       type="button"
                       disabled={uploadingBg}
                       onClick={() => bgInputRef.current?.click()}
-                      className="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold flex items-center gap-1.5 cursor-pointer flex-shrink-0 transition-colors shadow-xs"
+                      className="px-3.5 py-2 bg-[#111111] hover:bg-[#222222] text-white rounded-xl font-bold flex items-center gap-1.5 cursor-pointer flex-shrink-0 transition-colors shadow-xs"
                     >
                       {uploadingBg ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -1842,7 +1842,7 @@ export default function AdminHomepageManagerPage() {
               {/* KHỐI 4: CHIA SẺ MẠNG XÃ HỘI (OPEN GRAPH) */}
               <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                 <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-                  <Share2 className="w-4 h-4 text-sky-600" />
+                  <Share2 className="w-4 h-4 text-slate-800" />
                   <span>4. Chia Sẻ Mạng Xã Hội (Facebook / Zalo OG)</span>
                 </h4>
 
@@ -1854,7 +1854,7 @@ export default function AdminHomepageManagerPage() {
                       value={seo.ogTitle}
                       onChange={(e) => setSeo({ ...seo, ogTitle: e.target.value })}
                       placeholder="Tuấn Thái Bình TFT | Nền Tảng Thuê Acc ĐTCL Uy Tín"
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-orange-500"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-slate-900"
                     />
                   </div>
 
@@ -1864,8 +1864,8 @@ export default function AdminHomepageManagerPage() {
                       rows={2}
                       value={seo.ogDescription}
                       onChange={(e) => setSeo({ ...seo, ogDescription: e.target.value })}
-                      placeholder="Thuê acc VIP ĐTCL tự động 30s..."
-                      className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-orange-500"
+                      placeholder="Thuê acc VIP ĐTCL uy tín bàn giao Zalo..."
+                      className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-slate-900"
                     />
                   </div>
 
@@ -1877,14 +1877,14 @@ export default function AdminHomepageManagerPage() {
                         value={seo.ogImage}
                         onChange={(e) => setSeo({ ...seo, ogImage: e.target.value })}
                         placeholder="/banner-seo.jpg hoặc https://..."
-                        className="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-900 focus:outline-none focus:border-orange-500"
+                        className="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-900 focus:outline-none focus:border-slate-900"
                       />
 
                       <button
                         type="button"
                         disabled={uploadingOg}
                         onClick={() => ogInputRef.current?.click()}
-                        className="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold flex items-center gap-1.5 cursor-pointer flex-shrink-0 transition-colors shadow-xs"
+                        className="px-3.5 py-2 bg-[#111111] hover:bg-[#222222] text-white rounded-xl font-bold flex items-center gap-1.5 cursor-pointer flex-shrink-0 transition-colors shadow-xs"
                       >
                         {uploadingOg ? (
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -1911,7 +1911,7 @@ export default function AdminHomepageManagerPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 space-y-4">
             <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
-              <HelpCircle className="w-5 h-5 text-emerald-600" />
+              <HelpCircle className="w-5 h-5 text-slate-800" />
               <span>{editingFaq ? "Chỉnh Sửa Câu Hỏi FAQ" : "Thêm Câu Hỏi FAQ Mới"}</span>
             </h3>
 
@@ -1924,7 +1924,7 @@ export default function AdminHomepageManagerPage() {
                   value={faqQ}
                   onChange={(e) => setFaqQ(e.target.value)}
                   placeholder="VD: Sau khi gửi đơn qua Zalo bao lâu nhận được pass?"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                 />
               </div>
 
@@ -1936,7 +1936,7 @@ export default function AdminHomepageManagerPage() {
                   value={faqA}
                   onChange={(e) => setFaqA(e.target.value)}
                   placeholder="Nhập câu trả lời giải đáp chi tiết..."
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-orange-500 leading-relaxed"
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-slate-900 leading-relaxed"
                 />
               </div>
 
@@ -1947,8 +1947,8 @@ export default function AdminHomepageManagerPage() {
                     type="text"
                     value={faqBadge}
                     onChange={(e) => setFaqBadge(e.target.value)}
-                    placeholder="VD: Bàn giao 30s"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-orange-500"
+                    placeholder="VD: Bàn giao Zalo"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-slate-900"
                   />
                 </div>
 
@@ -1957,7 +1957,7 @@ export default function AdminHomepageManagerPage() {
                   <select
                     value={faqCategory}
                     onChange={(e) => setFaqCategory(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-900 focus:outline-none focus:border-orange-500"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-900 focus:outline-none focus:border-slate-900"
                   >
                     <option value="THUE_ACC">Thuê Acc</option>
                     <option value="BAO_MAT">Bảo Mật</option>
@@ -1971,13 +1971,13 @@ export default function AdminHomepageManagerPage() {
                 <button
                   type="button"
                   onClick={() => setFaqModalOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-700 hover:bg-slate-100"
+                  className="flex-1 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
                 >
                   Hủy Bỏ
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                  className="flex-1 py-2.5 rounded-xl bg-[#111111] hover:bg-[#222222] text-white font-bold cursor-pointer"
                 >
                   {editingFaq ? "Lưu FAQ" : "Thêm FAQ"}
                 </button>
@@ -1992,7 +1992,7 @@ export default function AdminHomepageManagerPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 space-y-4">
             <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
-              <Sliders className="w-5 h-5 text-sky-600" />
+              <Sliders className="w-5 h-5 text-slate-800" />
               <span>{editingService ? "Chỉnh Sửa Gói Dịch Vụ" : "Thêm Gói Dịch Vụ Mới"}</span>
             </h3>
 
@@ -2005,7 +2005,7 @@ export default function AdminHomepageManagerPage() {
                   value={srvTitle}
                   onChange={(e) => setSrvTitle(e.target.value)}
                   placeholder="VD: Cày Rank ĐTCL Siêu Tốc (Cày Tay 100%)"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                 />
               </div>
 
@@ -2018,7 +2018,7 @@ export default function AdminHomepageManagerPage() {
                     value={srvPrice}
                     onChange={(e) => setSrvPrice(e.target.value)}
                     placeholder="VD: Từ 50.000đ / Bậc"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-orange-600 focus:outline-none focus:border-orange-500 font-mono"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-slate-900 font-mono"
                   />
                 </div>
 
@@ -2029,7 +2029,7 @@ export default function AdminHomepageManagerPage() {
                     value={srvBadge}
                     onChange={(e) => setSrvBadge(e.target.value)}
                     placeholder="VD: CAM KẾT TOP 1-2-3"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-orange-500"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-slate-900"
                   />
                 </div>
               </div>
@@ -2044,7 +2044,7 @@ export default function AdminHomepageManagerPage() {
                   value={srvFeaturesText}
                   onChange={(e) => setSrvFeaturesText(e.target.value)}
                   placeholder="Cày tay 100% bởi Tuấn Thái Bình&#10;Bảo mật tuyệt đối&#10;Cập nhật tiến độ qua Zalo"
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-orange-500 font-mono text-xs leading-relaxed"
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-slate-900 font-mono text-xs leading-relaxed"
                 />
               </div>
 
@@ -2054,7 +2054,7 @@ export default function AdminHomepageManagerPage() {
                   type="checkbox"
                   checked={srvPopular}
                   onChange={(e) => setSrvPopular(e.target.checked)}
-                  className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 accent-orange-600 cursor-pointer"
+                  className="w-4 h-4 rounded text-slate-900 focus:ring-slate-900 accent-slate-900 cursor-pointer"
                 />
               </div>
 
@@ -2062,13 +2062,13 @@ export default function AdminHomepageManagerPage() {
                 <button
                   type="button"
                   onClick={() => setServiceModalOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-700 hover:bg-slate-100"
+                  className="flex-1 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
                 >
                   Hủy Bỏ
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold"
+                  className="flex-1 py-2.5 rounded-xl bg-[#111111] hover:bg-[#222222] text-white font-bold cursor-pointer"
                 >
                   {editingService ? "Lưu Gói" : "Thêm Gói"}
                 </button>

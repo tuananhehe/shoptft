@@ -193,17 +193,17 @@ export default function AdminChannelsPage() {
   return (
     <div className="space-y-6">
       {/* 1. Header & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
               <Users className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
                 Hệ Sinh Thái & Kênh Truyền Thông
               </h1>
-              <p className="text-xs text-slate-500 font-medium">
+              <p className="text-xs text-slate-500 font-normal">
                 Quản lý các kênh TikTok, Zalo, Discord, Facebook hiển thị ở mục Giới Thiệu ngoài trang chủ.
               </p>
             </div>
@@ -214,7 +214,7 @@ export default function AdminChannelsPage() {
           <button
             type="button"
             onClick={handleResetDefault}
-            className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
             title="Khôi phục danh sách 4 kênh chuẩn mặc định"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -224,7 +224,7 @@ export default function AdminChannelsPage() {
           <button
             type="button"
             onClick={openAddModal}
-            className="px-5 py-2.5 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all shadow-md shadow-orange-600/25 flex items-center gap-2 cursor-pointer hover:scale-105"
+            className="px-4 py-2 bg-[#111111] hover:bg-[#222222] text-white rounded-xl text-xs font-semibold transition-all shadow-xs flex items-center gap-2 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Thêm Kênh Mới</span>
@@ -234,24 +234,24 @@ export default function AdminChannelsPage() {
 
       {/* 2. Channels List / Cards */}
       {loading ? (
-        <div className="bg-white p-12 rounded-3xl border border-slate-200 text-center space-y-3">
-          <Loader2 className="w-8 h-8 text-orange-600 animate-spin mx-auto" />
+        <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center space-y-3">
+          <Loader2 className="w-7 h-7 text-slate-900 animate-spin mx-auto" />
           <p className="text-xs text-slate-500 font-mono">Đang tải danh sách kênh truyền thông...</p>
         </div>
       ) : channels.length === 0 ? (
-        <div className="bg-white p-12 rounded-3xl border border-slate-200 text-center space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center mx-auto">
-            <Users className="w-7 h-7" />
+        <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center space-y-4">
+          <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center mx-auto">
+            <Users className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-bold text-slate-800">Chưa Có Kênh Truyền Thông Nào</h3>
+            <h3 className="font-semibold text-slate-800 text-sm">Chưa Có Kênh Truyền Thông Nào</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
               Bạn có thể bấm &quot;Thêm Kênh Mới&quot; hoặc &quot;Khôi Phục Mặc Định&quot; để tạo các kênh cộng đồng.
             </p>
           </div>
           <button
             onClick={handleResetDefault}
-            className="px-4 py-2 bg-orange-600 text-white rounded-xl text-xs font-bold"
+            className="px-4 py-2 bg-[#111111] text-white rounded-xl text-xs font-semibold"
           >
             Nạp 4 Kênh Mặc Định
           </button>
@@ -294,7 +294,7 @@ export default function AdminChannelsPage() {
                     <button
                       onClick={() => openEditModal(item)}
                       title="Chỉnh sửa kênh"
-                      className="p-1.5 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors cursor-pointer"
+                      className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
@@ -311,7 +311,7 @@ export default function AdminChannelsPage() {
 
                 {/* Badge & Order */}
                 <div className="flex items-center justify-between mb-2">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${meta.badgeBg}`}>
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${meta.badgeBg}`}>
                     {item.badge}
                   </span>
                   <span className="text-[10px] font-mono text-slate-400">
@@ -321,7 +321,7 @@ export default function AdminChannelsPage() {
 
                 {/* Content */}
                 <div className="mb-4">
-                  <h3 className="font-bold text-slate-900 text-sm mb-1 leading-snug group-hover:text-orange-600 transition-colors">
+                  <h3 className="font-semibold text-slate-900 text-sm mb-1 leading-snug">
                     {item.title}
                   </h3>
                   <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
@@ -335,7 +335,7 @@ export default function AdminChannelsPage() {
                     href={item.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`w-full py-2 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 border transition-all ${meta.buttonStyle}`}
+                    className={`w-full py-2 rounded-xl font-medium text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 border transition-all ${meta.buttonStyle}`}
                   >
                     <span>{item.buttonText || "Tham Gia ➔"}</span>
                     <ExternalLink className="w-3 h-3" />
@@ -353,12 +353,12 @@ export default function AdminChannelsPage() {
 
       {/* 3. Modal Thêm / Sửa Kênh */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 space-y-5 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 space-y-5 max-h-[90vh] overflow-y-auto">
             {/* Header Modal */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2 text-slate-900 font-extrabold text-base">
-                <Users className="w-5 h-5 text-orange-600" />
+              <div className="flex items-center gap-2 text-slate-900 font-bold text-base">
+                <Users className="w-5 h-5 text-slate-700" />
                 <span>{editingItem ? "Chỉnh Sửa Kênh Truyền Thông" : "Thêm Kênh Truyền Thông Mới"}</span>
               </div>
               <button
@@ -373,25 +373,25 @@ export default function AdminChannelsPage() {
             <form onSubmit={handleSaveForm} className="space-y-4 text-xs">
               {/* Platform Selector */}
               <div className="space-y-1.5">
-                <label className="font-bold text-slate-800 block">Nền Tảng / Icon Kênh:</label>
+                <label className="font-semibold text-slate-800 block">Nền Tảng / Icon Kênh:</label>
                 <select
                   value={formPlatform}
                   onChange={(e) => setFormPlatform(e.target.value as ChannelPlatform)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-slate-900"
                 >
-                  <option value="tiktok">TikTok (Màu Hồng/Đỏ)</option>
-                  <option value="zalo">Zalo / Nhóm Zalo (Màu Xanh Dương)</option>
-                  <option value="discord">Discord (Màu Tím Indigo)</option>
-                  <option value="facebook">Facebook Group / Fanpage (Màu Xanh Lam)</option>
-                  <option value="youtube">YouTube (Màu Đỏ)</option>
-                  <option value="telegram">Telegram (Màu Xanh Cyan)</option>
-                  <option value="website">Website / Link Khác (Màu Xanh Lá)</option>
+                  <option value="tiktok">TikTok</option>
+                  <option value="zalo">Zalo / Nhóm Zalo</option>
+                  <option value="discord">Discord</option>
+                  <option value="facebook">Facebook Group / Fanpage</option>
+                  <option value="youtube">YouTube</option>
+                  <option value="telegram">Telegram</option>
+                  <option value="website">Website / Link Khác</option>
                 </select>
               </div>
 
               {/* Tên Kênh */}
               <div className="space-y-1.5">
-                <label className="font-bold text-slate-800 block">
+                <label className="font-semibold text-slate-800 block">
                   Tiêu Đề Kênh: <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -400,50 +400,50 @@ export default function AdminChannelsPage() {
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
                   placeholder="VD: Kênh TikTok ShopTFT Mobile"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-slate-900"
                 />
               </div>
 
               {/* Mô Tả Phụ */}
               <div className="space-y-1.5">
-                <label className="font-bold text-slate-800 block">Mô Tả Ngắn / Chức Năng:</label>
+                <label className="font-semibold text-slate-800 block">Mô Tả Ngắn / Chức Năng:</label>
                 <input
                   type="text"
                   value={formSubtitle}
                   onChange={(e) => setFormSubtitle(e.target.value)}
                   placeholder="VD: Xem highlight & test acc VIP"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-orange-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-slate-900"
                 />
               </div>
 
               {/* Huy Hiệu & Thứ Tự */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="font-bold text-slate-800 block">Huy Hiệu / Số Lượng:</label>
+                  <label className="font-semibold text-slate-800 block">Huy Hiệu / Số Lượng:</label>
                   <input
                     type="text"
                     value={formBadge}
                     onChange={(e) => setFormBadge(e.target.value)}
                     placeholder="VD: 50K+ Followers"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-900 focus:outline-none focus:border-orange-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-slate-900"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="font-bold text-slate-800 block">Thứ Tự Hiển Thị:</label>
+                  <label className="font-semibold text-slate-800 block">Thứ Tự Hiển Thị:</label>
                   <input
                     type="number"
                     min={1}
                     value={formOrder}
                     onChange={(e) => setFormOrder(Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-slate-900 focus:outline-none focus:border-slate-900"
                   />
                 </div>
               </div>
 
               {/* Đường Dẫn Link */}
               <div className="space-y-1.5">
-                <label className="font-bold text-slate-800 block">
+                <label className="font-semibold text-slate-800 block">
                   Đường Dẫn Liên Kết (URL): <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -452,33 +452,33 @@ export default function AdminChannelsPage() {
                   value={formLink}
                   onChange={(e) => setFormLink(e.target.value)}
                   placeholder="https://zalo.me/g/..."
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-slate-900"
                 />
               </div>
 
               {/* Chữ Trên Nút Bấm */}
               <div className="space-y-1.5">
-                <label className="font-bold text-slate-800 block">Chữ Trên Nút Bấm:</label>
+                <label className="font-semibold text-slate-800 block">Chữ Trên Nút Bấm:</label>
                 <input
                   type="text"
                   value={formButtonText}
                   onChange={(e) => setFormButtonText(e.target.value)}
                   placeholder="VD: Xem TikTok ➔, Tham Gia Zalo ➔"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-slate-900"
                 />
               </div>
 
               {/* Trạng Thái Bật/Tắt */}
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
                 <div>
-                  <span className="font-bold text-slate-800 block">Hiển Thị Trên Website:</span>
+                  <span className="font-semibold text-slate-800 block">Hiển Thị Trên Website:</span>
                   <span className="text-[11px] text-slate-500">Bật để hiển thị ở mục Giới Thiệu trang chủ</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setFormIsActive(!formIsActive)}
                   className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    formIsActive ? "bg-orange-600" : "bg-slate-300"
+                    formIsActive ? "bg-emerald-500" : "bg-slate-300"
                   }`}
                 >
                   <span
@@ -494,14 +494,14 @@ export default function AdminChannelsPage() {
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-300 font-bold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                 >
                   Hủy Bỏ
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-extrabold uppercase tracking-wider transition-all shadow-md shadow-orange-600/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl bg-[#111111] hover:bg-[#222222] text-white font-semibold transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   <span>{editingItem ? "Lưu Thay Đổi" : "Thêm Kênh"}</span>

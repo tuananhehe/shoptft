@@ -64,7 +64,7 @@ const QUESTION_TYPE_LABELS: Record<SurveyQuestionType, { label: string; color: s
   RATING_5: { label: "Đánh giá 1 - 5 Sao ⭐", color: "bg-amber-50 text-amber-700 border-amber-200" },
   RATING_10: { label: "Thang điểm NPS (1 - 10)", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   TEXT: { label: "Văn bản ngắn", color: "bg-slate-50 text-slate-700 border-slate-200" },
-  TEXTAREA: { label: "Đóng góp ý kiến (Văn bản dài)", color: "bg-orange-50 text-orange-700 border-orange-200" },
+  TEXTAREA: { label: "Đóng góp ý kiến (Văn bản dài)", color: "bg-indigo-50 text-indigo-700 border-indigo-200" },
 };
 
 export default function AdminSurveysPage() {
@@ -470,7 +470,7 @@ export default function AdminSurveysPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2.5">
-            <ClipboardCheck className="w-6 h-6 text-orange-600" />
+            <ClipboardCheck className="w-6 h-6 text-slate-800" />
             <span>Quản Lý Khảo Sát & Ý Kiến Cải Tiến CSKH</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
@@ -482,7 +482,7 @@ export default function AdminSurveysPage() {
           <Link
             href="/khao-sat"
             target="_blank"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-orange-50 border border-orange-200 text-orange-700 hover:bg-orange-100 text-xs font-bold transition-all shadow-xs"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 text-xs font-bold transition-all shadow-xs"
           >
             <ExternalLink className="w-4 h-4" />
             <span>Xem Trang Khảo Sát Khách</span>
@@ -496,7 +496,7 @@ export default function AdminSurveysPage() {
           onClick={() => setActiveTab("REVIEWS")}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
             activeTab === "REVIEWS"
-              ? "bg-orange-600 text-white shadow-md shadow-orange-600/20"
+              ? "bg-[#111111] text-white shadow-xs"
               : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
           }`}
         >
@@ -508,7 +508,7 @@ export default function AdminSurveysPage() {
           onClick={() => setActiveTab("RESPONSES")}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
             activeTab === "RESPONSES"
-              ? "bg-orange-600 text-white shadow-md shadow-orange-600/20"
+              ? "bg-[#111111] text-white shadow-xs"
               : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
           }`}
         >
@@ -520,7 +520,7 @@ export default function AdminSurveysPage() {
           onClick={() => setActiveTab("SETTINGS")}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
             activeTab === "SETTINGS"
-              ? "bg-orange-600 text-white shadow-md shadow-orange-600/20"
+              ? "bg-[#111111] text-white shadow-xs"
               : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
           }`}
         >
@@ -593,7 +593,7 @@ export default function AdminSurveysPage() {
                 value={reviewSearch}
                 onChange={(e) => setReviewSearch(e.target.value)}
                 placeholder="🔍 Tìm theo Tên khách hàng, Email, Số Zalo, nội dung đánh giá..."
-                className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-inner"
+                className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all shadow-inner"
               />
               {reviewSearch && (
                 <button
@@ -620,7 +620,7 @@ export default function AdminSurveysPage() {
                   onClick={() => setReviewCategoryFilter(c.id)}
                   className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
                     reviewCategoryFilter === c.id
-                      ? "bg-orange-600 text-white shadow-xs"
+                      ? "bg-[#111111] text-white shadow-xs"
                       : "bg-slate-100 hover:bg-slate-200 text-slate-700"
                   }`}
                 >
@@ -660,7 +660,7 @@ export default function AdminSurveysPage() {
                           className="w-10 h-10 rounded-xl object-cover border border-amber-300 shadow-xs flex-shrink-0"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-700 font-bold flex items-center justify-center text-sm flex-shrink-0 border border-orange-200">
+                        <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 font-bold flex items-center justify-center text-sm flex-shrink-0 border border-slate-200">
                           {rev.customerName.charAt(0).toUpperCase()}
                         </div>
                       )}
@@ -739,10 +739,10 @@ export default function AdminSurveysPage() {
 
                   {/* Admin Reply Section */}
                   {rev.adminReply ? (
-                    <div className="p-3.5 bg-orange-50 border border-orange-200 rounded-xl text-xs space-y-1.5">
+                    <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-orange-950 flex items-center gap-1.5">
-                          <MessageCircle className="w-3.5 h-3.5 text-orange-600" />
+                        <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                          <MessageCircle className="w-3.5 h-3.5 text-slate-800" />
                           <span>Phản hồi từ Tuấn Thái Bình:</span>
                         </span>
                         <button
@@ -750,7 +750,7 @@ export default function AdminSurveysPage() {
                             setReplyingReviewId(rev.id);
                             setReplyText(rev.adminReply || "");
                           }}
-                          className="text-[11px] text-orange-700 font-bold hover:underline cursor-pointer"
+                          className="text-[11px] text-slate-700 font-bold hover:underline cursor-pointer"
                         >
                           Sửa
                         </button>
@@ -760,7 +760,7 @@ export default function AdminSurveysPage() {
                   ) : null}
 
                   {replyingReviewId === rev.id && (
-                    <div className="p-3 bg-slate-50 border border-orange-300 rounded-xl space-y-2">
+                    <div className="p-3 bg-slate-50 border border-slate-300 rounded-xl space-y-2">
                       <label className="text-xs font-bold text-slate-800 block">
                         Viết phản hồi công khai tới khách hàng:
                       </label>
@@ -783,7 +783,7 @@ export default function AdminSurveysPage() {
                         </button>
                         <button
                           onClick={() => handleSaveAdminReply(rev.id)}
-                          className="px-4 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold shadow-xs cursor-pointer"
+                          className="px-4 py-1.5 rounded-lg bg-[#111111] hover:bg-[#222222] text-white text-xs font-bold shadow-xs cursor-pointer"
                         >
                           Lưu Phản Hồi
                         </button>
@@ -805,7 +805,7 @@ export default function AdminSurveysPage() {
                             setReplyingReviewId(rev.id);
                             setReplyText(`Cảm ơn bạn đã ủng hộ Shop TFT Tuấn Thái Bình!`);
                           }}
-                          className="px-3 py-1 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold border border-orange-200 cursor-pointer"
+                          className="px-3 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold border border-slate-200 cursor-pointer"
                         >
                           💬 Trả Lời
                         </button>
@@ -848,7 +848,7 @@ export default function AdminSurveysPage() {
               <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-1">
                 <div className="flex items-center justify-between text-slate-500 text-xs font-bold">
                   <span>Tổng Khảo Sát</span>
-                  <Users className="w-4 h-4 text-orange-600" />
+                  <Users className="w-4 h-4 text-slate-800" />
                 </div>
                 <div className="text-2xl sm:text-3xl font-black text-slate-900 font-mono">
                   {summary.total}
@@ -930,7 +930,7 @@ export default function AdminSurveysPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="🔍 Tìm kiếm theo Tên khách hàng, Số điện thoại / Zalo, nội dung góp ý..."
-                className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-inner"
+                className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 transition-all shadow-inner"
               />
               {searchQuery && (
                 <button
@@ -949,13 +949,13 @@ export default function AdminSurveysPage() {
               {/* Lọc Trạng Thái Trao Quà */}
               <div className="flex flex-wrap items-center gap-1.5">
                 <span className="text-xs font-bold text-slate-500 mr-1 flex items-center gap-1">
-                  <Gift className="w-3.5 h-3.5 text-orange-600" /> Trao quà:
+                  <Gift className="w-3.5 h-3.5 text-slate-800" /> Trao quà:
                 </span>
                 <button
                   onClick={() => setGiftFilter("ALL")}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     giftFilter === "ALL"
-                      ? "bg-orange-600 text-white shadow-xs"
+                      ? "bg-[#111111] text-white shadow-xs"
                       : "bg-slate-100 hover:bg-slate-200 text-slate-700"
                   }`}
                 >
@@ -965,13 +965,13 @@ export default function AdminSurveysPage() {
                   onClick={() => setGiftFilter("PENDING")}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                     giftFilter === "PENDING"
-                      ? "bg-amber-600 text-white shadow-xs"
+                      ? "bg-[#111111] text-white shadow-xs"
                       : "bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200"
                   }`}
                 >
                   <span>🎁 Chưa Trao Quà</span>
                   <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
-                    giftFilter === "PENDING" ? "bg-white text-amber-700" : "bg-amber-200 text-amber-900"
+                    giftFilter === "PENDING" ? "bg-white text-slate-900" : "bg-amber-200 text-amber-900"
                   }`}>
                     {pendingGiftCount}
                   </span>
@@ -980,14 +980,14 @@ export default function AdminSurveysPage() {
                   onClick={() => setGiftFilter("DELIVERED")}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                     giftFilter === "DELIVERED"
-                      ? "bg-emerald-600 text-white shadow-xs"
+                      ? "bg-[#111111] text-white shadow-xs"
                       : "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200"
                   }`}
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>Đã Trao Quà</span>
                   <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
-                    giftFilter === "DELIVERED" ? "bg-white text-emerald-700" : "bg-emerald-200 text-emerald-900"
+                    giftFilter === "DELIVERED" ? "bg-white text-slate-900" : "bg-emerald-200 text-emerald-900"
                   }`}>
                     {deliveredGiftCount}
                   </span>
@@ -1013,7 +1013,7 @@ export default function AdminSurveysPage() {
                   onClick={() => setRatingFilter(5)}
                   className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                     ratingFilter === 5
-                      ? "bg-amber-500 text-white shadow-xs"
+                      ? "bg-slate-900 text-white shadow-xs"
                       : "bg-slate-100 hover:bg-slate-200 text-slate-700"
                   }`}
                 >
@@ -1024,7 +1024,7 @@ export default function AdminSurveysPage() {
                   onClick={() => setRatingFilter(4)}
                   className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                     ratingFilter === 4
-                      ? "bg-amber-500 text-white shadow-xs"
+                      ? "bg-slate-900 text-white shadow-xs"
                       : "bg-slate-100 hover:bg-slate-200 text-slate-700"
                   }`}
                 >
@@ -1035,7 +1035,7 @@ export default function AdminSurveysPage() {
                   onClick={() => setRatingFilter("LOW")}
                   className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     ratingFilter === "LOW"
-                      ? "bg-rose-600 text-white shadow-xs"
+                      ? "bg-rose-700 text-white shadow-xs"
                       : "bg-slate-100 hover:bg-slate-200 text-slate-700"
                   }`}
                 >
@@ -1068,7 +1068,7 @@ export default function AdminSurveysPage() {
                   {/* Card Header: Tên khách, SĐT, Thời gian, Đánh giá & Xóa */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-700 font-black text-sm flex items-center justify-center border border-orange-200">
+                      <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 font-black text-sm flex items-center justify-center border border-slate-200">
                         {(survey.customerName || "K").charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -1150,7 +1150,7 @@ export default function AdminSurveysPage() {
                             {survey.giftDelivered ? "ĐÃ TRAO QUÀ CHO KHÁCH" : "CHƯA TRAO QUÀ TRI ÂN"}
                           </span>
                           {survey.branch && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-orange-800 border border-orange-200">
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200">
                               {survey.branch === "GDTG"
                                 ? "🛡️ GDTG (Free < 1M)"
                                 : survey.branch === "WEBSITE"
@@ -1159,7 +1159,7 @@ export default function AdminSurveysPage() {
                             </span>
                           )}
                           {survey.rewardCode && (
-                            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-white text-orange-600 border border-orange-300">
+                            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-white text-slate-900 border border-slate-300">
                               Mã: {survey.rewardCode}
                             </span>
                           )}
@@ -1220,7 +1220,7 @@ export default function AdminSurveysPage() {
                         🏷️ {srv}
                       </span>
                     ))}
-                    <span className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-orange-50 text-orange-800 border border-orange-200">
+                    <span className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 border border-slate-200">
                       {survey.deliverySpeed}
                     </span>
                     <span className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
@@ -1239,7 +1239,7 @@ export default function AdminSurveysPage() {
                     {survey.requestedAdditions && (
                       <div>
                         <span className="text-slate-500 block font-medium">Tướng tí nị / Sân đấu muốn thêm:</span>
-                        <span className="font-bold text-orange-700">
+                        <span className="font-bold text-slate-800">
                           💡 {survey.requestedAdditions}
                         </span>
                       </div>
@@ -1247,9 +1247,9 @@ export default function AdminSurveysPage() {
                   </div>
 
                   {/* Improvement Suggestion Highlight */}
-                  <div className="p-4 rounded-xl bg-gradient-to-r from-orange-50/70 via-amber-50/50 to-orange-50/70 border border-orange-200/90 space-y-1">
-                    <span className="text-xs font-extrabold text-orange-800 flex items-center gap-1.5 uppercase tracking-wide">
-                      <MessageSquare className="w-3.5 h-3.5 text-orange-600" />
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                    <span className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5 uppercase tracking-wide">
+                      <MessageSquare className="w-3.5 h-3.5 text-slate-700" />
                       <span>Ý Kiến Đóng Góp Cải Tiến Cho Shop:</span>
                     </span>
                     <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-medium">
@@ -1272,7 +1272,7 @@ export default function AdminSurveysPage() {
           <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                <Settings className="w-4 h-4 text-orange-600" />
+                <Settings className="w-4 h-4 text-slate-800" />
                 <span>Trình Quản Lý & Tùy Biến Biểu Mẫu Khảo Sát</span>
               </h3>
               <p className="text-xs text-slate-500">
@@ -1286,7 +1286,7 @@ export default function AdminSurveysPage() {
                 onClick={openAddQuestionModal}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer"
               >
-                <Plus className="w-4 h-4 text-orange-600" />
+                <Plus className="w-4 h-4 text-slate-700" />
                 <span>+ Thêm Câu Hỏi Mới</span>
               </button>
 
@@ -1294,10 +1294,10 @@ export default function AdminSurveysPage() {
                 type="button"
                 onClick={() => handleSaveConfig()}
                 disabled={savingConfig}
-                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-orange-600/20 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#111111] hover:bg-[#222222] text-white text-xs sm:text-sm font-bold shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
-                <span>{savingConfig ? "Đang Lưu..." : "💾 Lưu Cấu Hình Khảo Sát"}</span>
+                <span>{savingConfig ? "Đang Lưu..." : "Lưu Cấu Hình Khảo Sát"}</span>
               </button>
             </div>
           </div>
@@ -1306,7 +1306,7 @@ export default function AdminSurveysPage() {
           <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <Gift className="w-5 h-5 text-orange-600" />
+                <Gift className="w-5 h-5 text-slate-800" />
                 <div>
                   <h3 className="font-bold text-sm sm:text-base text-slate-900">
                     Thiết Lập Quà Tặng / Voucher Theo Từng Nhánh Dịch Vụ
@@ -1335,7 +1335,7 @@ export default function AdminSurveysPage() {
                     };
                     setConfig(updated);
                   }}
-                  className="w-4 h-4 text-orange-600 rounded border-slate-300 focus:ring-orange-500 cursor-pointer accent-orange-600"
+                  className="w-4 h-4 text-slate-900 rounded border-slate-300 focus:ring-slate-900/10 cursor-pointer accent-slate-900"
                 />
                 <span>Bật tặng quà cho nhánh này</span>
               </label>
@@ -1348,7 +1348,7 @@ export default function AdminSurveysPage() {
                 onClick={() => setActiveRewardBranch("THUE_ACC")}
                 className={`flex-1 min-w-[130px] py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   activeRewardBranch === "THUE_ACC"
-                    ? "bg-white text-orange-600 shadow-sm border border-slate-200/80"
+                    ? "bg-white text-slate-900 shadow-sm border border-slate-200/80"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
@@ -1386,7 +1386,7 @@ export default function AdminSurveysPage() {
                 enabled: true,
                 voucherCode: activeRewardBranch === "THUE_ACC" ? "TRIAN-THUE50" : activeRewardBranch === "GDTG" ? "FREE-GDTG1M" : "WEB-TRIAN30",
                 rewardTitle: activeRewardBranch === "THUE_ACC" ? "Voucher Giảm 50.000đ Thuê Acc VIP" : activeRewardBranch === "GDTG" ? "Miễn Phí 1 Lần GDTG (Dưới 1.000.000đ)" : "Voucher Tri Ân Cải Thiện Website 30.000đ",
-                rewardDescription: activeRewardBranch === "THUE_ACC" ? "Giảm ngay 50.000đ khi gửi mã này qua Zalo Tuấn Thái Bình + Tặng 1 Acc Gacha 400 - 2000 Kỉ Vật (áp dụng cho đơn thuê acc VIP)." : activeRewardBranch === "GDTG" ? "Miễn phí 100% phí Giao Dịch Trung Gian cho đơn hàng dưới 1.000.000đ khi gửi mã này qua Zalo Tuấn Thái Bình." : "Voucher tri ân 30.000đ cho đơn hàng tiếp theo qua Zalo Tuấn Thái Bình nhằm cảm ơn sự đóng góp cải thiện hệ thống của bạn.",
+                rewardDescription: activeRewardBranch === "THUE_ACC" ? "Giảm ngay 50.000đ khi gửi mã này qua Zalo Tuấn Thái Bình + Tặng 1 Acc Gacha 400 - 2000 Kỉ Vật (áp dụng cho đơn thuê acc VIP)." : activeRewardBranch === "GDTG" ? "Miễn phí 100% phí Giao Dịch Trung Gian cho đơn hàng dưới 1.000.000đ khi gửi mã này qua Zalo Tuấn Thái Bình." : "Voucher tri ấn 30.000đ cho đơn hàng tiếp theo qua Zalo Tuấn Thái Bình nhằm cảm ơn sự đóng góp cải thiện hệ thống của bạn.",
                 discountValue: activeRewardBranch === "THUE_ACC" ? 50000 : activeRewardBranch === "GDTG" ? 0 : 30000,
               };
 
@@ -1414,7 +1414,7 @@ export default function AdminSurveysPage() {
                       value={bReward.voucherCode}
                       onChange={(e) => updateField("voucherCode", e.target.value.toUpperCase())}
                       placeholder={activeRewardBranch === "GDTG" ? "VD: FREE-GDTG1M" : "VD: TRIAN-THUE50"}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono font-bold text-sm text-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono font-bold text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900"
                     />
                   </div>
 
@@ -1427,7 +1427,7 @@ export default function AdminSurveysPage() {
                       value={bReward.rewardTitle}
                       onChange={(e) => updateField("rewardTitle", e.target.value)}
                       placeholder="VD: Miễn Phí 1 Lần GDTG (Dưới 1.000.000đ)"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900"
                     />
                   </div>
 
@@ -1440,7 +1440,7 @@ export default function AdminSurveysPage() {
                       value={bReward.rewardDescription}
                       onChange={(e) => updateField("rewardDescription", e.target.value)}
                       placeholder="VD: 🛡️ Miễn phí 100% phí Giao Dịch Trung Gian..."
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900"
                     />
                   </div>
 
@@ -1453,7 +1453,7 @@ export default function AdminSurveysPage() {
                       value={bReward.discountValue || 0}
                       onChange={(e) => updateField("discountValue", Number(e.target.value) || 0)}
                       placeholder="VD: 50000 hoặc 0 (nếu là voucher free dịch vụ)"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-medium"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 font-medium"
                     />
                   </div>
 
@@ -1462,7 +1462,7 @@ export default function AdminSurveysPage() {
                       type="button"
                       onClick={() => handleSaveConfig()}
                       disabled={savingConfig}
-                      className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+                      className="px-5 py-2.5 bg-[#111111] hover:bg-[#222222] text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
                     >
                       <Save className="w-3.5 h-3.5" />
                       <span>Lưu Cấu Hình Quà Tặng ({activeRewardBranch === "GDTG" ? "GDTG" : activeRewardBranch === "WEBSITE" ? "Website" : "Thuê Acc"})</span>
@@ -1477,7 +1477,7 @@ export default function AdminSurveysPage() {
           {/* 2. Header & Introduction Text Card */}
           <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4">
             <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-              <Layers className="w-5 h-5 text-orange-600" />
+              <Layers className="w-5 h-5 text-slate-800" />
               <h3 className="font-bold text-sm sm:text-base text-slate-900">
                 Tiêu Đề & Lời Ngỏ Gửi Đến Khách Hàng
               </h3>
@@ -1495,7 +1495,7 @@ export default function AdminSurveysPage() {
                       header: { ...config.header, title: e.target.value },
                     })
                   }
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900"
                 />
               </div>
 
@@ -1510,7 +1510,7 @@ export default function AdminSurveysPage() {
                       header: { ...config.header, subtitle: e.target.value },
                     })
                   }
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900"
                 />
               </div>
 
@@ -1525,7 +1525,7 @@ export default function AdminSurveysPage() {
                       header: { ...config.header, description: e.target.value },
                     })
                   }
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 resize-none"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 resize-none"
                 />
               </div>
 
@@ -1534,7 +1534,7 @@ export default function AdminSurveysPage() {
                   type="button"
                   onClick={() => handleSaveConfig()}
                   disabled={savingConfig}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 bg-[#111111] hover:bg-[#222222] text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
                 >
                   <Save className="w-3.5 h-3.5" />
                   <span>Lưu Lời Dẫn & Tiêu Đề</span>
@@ -1547,7 +1547,7 @@ export default function AdminSurveysPage() {
           <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <ListFilter className="w-5 h-5 text-orange-600" />
+                <ListFilter className="w-5 h-5 text-slate-800" />
                 <h3 className="font-bold text-sm sm:text-base text-slate-900">
                   Danh Sách Câu Hỏi Trong Biểu Mẫu ({config.questions.length} câu)
                 </h3>
@@ -1556,7 +1556,7 @@ export default function AdminSurveysPage() {
               <button
                 type="button"
                 onClick={openAddQuestionModal}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#111111] text-white text-xs font-bold hover:bg-[#222222] transition-colors cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Thêm Câu Hỏi</span>
@@ -1589,7 +1589,7 @@ export default function AdminSurveysPage() {
                             {typeInfo.label}
                           </span>
                           {q.branch && q.branch !== "ALL" && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-orange-100 text-orange-800 border border-orange-200">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 border border-slate-200">
                               {q.branch === "THUE_ACC"
                                 ? "🎮 Thuê Acc"
                                 : q.branch === "GDTG"
@@ -1677,7 +1677,7 @@ export default function AdminSurveysPage() {
                         <button
                           type="button"
                           onClick={() => openEditQuestionModal(q)}
-                          className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-orange-600 hover:border-orange-300 transition-colors cursor-pointer"
+                          className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-slate-900 hover:border-slate-300 transition-colors cursor-pointer"
                           title="Chỉnh sửa câu hỏi"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -1739,7 +1739,7 @@ export default function AdminSurveysPage() {
                       type: e.target.value as SurveyQuestionType,
                     })
                   }
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 bg-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 bg-white"
                 >
                   <option value="SINGLE_CHOICE">Trắc nghiệm (Chỉ chọn 1 đáp án)</option>
                   <option value="MULTIPLE_CHOICE">Tích chọn (Chọn được nhiều đáp án)</option>
@@ -1761,7 +1761,7 @@ export default function AdminSurveysPage() {
                       branch: e.target.value as any,
                     })
                   }
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 bg-white font-medium"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 bg-white font-medium"
                 >
                   <option value="ALL">🌐 Tất cả các nhánh (Câu hỏi chung / Đánh giá cuối)</option>
                   <option value="THUE_ACC">🎮 Nhánh: Thuê Acc TFT (Tí Nị, Sân Đấu, Thời Gian)</option>
@@ -1782,7 +1782,7 @@ export default function AdminSurveysPage() {
                     setEditingQuestion({ ...editingQuestion, title: e.target.value })
                   }
                   placeholder="VD: Bạn biết đến Shop qua kênh truyền thông nào?"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900"
                 />
               </div>
 
@@ -1796,7 +1796,7 @@ export default function AdminSurveysPage() {
                     setEditingQuestion({ ...editingQuestion, section: e.target.value })
                   }
                   placeholder="VD: Phần 1: Trải Nghiệm Dịch Vụ & CSKH"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900"
                 />
               </div>
 
@@ -1814,7 +1814,7 @@ export default function AdminSurveysPage() {
                     })
                   }
                   placeholder="VD: (Có thể chọn nhiều mục)"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900"
                 />
               </div>
 
@@ -1856,12 +1856,12 @@ export default function AdminSurveysPage() {
                         }
                       }}
                       placeholder="Gõ lựa chọn mới rồi bấm Thêm..."
-                      className="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                      className="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900"
                     />
                     <button
                       type="button"
                       onClick={handleAddOptionToQuestion}
-                      className="px-3.5 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-black transition-colors cursor-pointer"
+                      className="px-3.5 py-2 rounded-xl bg-[#111111] text-white font-bold text-xs hover:bg-[#222222] transition-colors cursor-pointer"
                     >
                       + Thêm
                     </button>
@@ -1881,7 +1881,7 @@ export default function AdminSurveysPage() {
                         required: e.target.checked,
                       })
                     }
-                    className="w-4 h-4 text-orange-600 rounded border-slate-300 focus:ring-orange-500 cursor-pointer accent-orange-600"
+                    className="w-4 h-4 text-slate-900 rounded border-slate-300 focus:ring-slate-900/10 cursor-pointer accent-slate-900"
                   />
                   <span>Câu hỏi bắt buộc trả lời (*)</span>
                 </label>
@@ -1900,7 +1900,7 @@ export default function AdminSurveysPage() {
               <button
                 type="button"
                 onClick={handleSaveQuestionModal}
-                className="px-5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold shadow-md shadow-orange-600/20 cursor-pointer"
+                className="px-5 py-2 rounded-xl bg-[#111111] hover:bg-[#222222] text-white text-xs font-bold shadow-xs cursor-pointer"
               >
                 Cập Nhật Câu Hỏi
               </button>

@@ -198,13 +198,13 @@ export default function AdminSettingsPage() {
         {/* ============================================================ */}
         {/* CARD 1: CẤU HÌNH KÊNH HỖ TRỢ & QUỸ BẢO HIỂM                  */}
         {/* ============================================================ */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-5">
           <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-            <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
               <Phone className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-extrabold text-slate-900">
+              <h2 className="text-base font-bold text-slate-900">
                 Kênh Hỗ Trợ & Định Danh Thương Hiệu
               </h2>
               <p className="text-xs text-slate-500 font-normal">
@@ -215,38 +215,38 @@ export default function AdminSettingsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-800 block">
+              <label className="font-semibold text-slate-800 block">
                 Số Điện Thoại / Hotline Zalo:
               </label>
               <input
                 type="text"
                 value={phoneZalo}
                 onChange={(e) => setPhoneZalo(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-orange-500"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-slate-900"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-800 block">
+              <label className="font-semibold text-slate-800 block">
                 Quỹ Bảo Hiểm Checkscam.vn:
               </label>
               <input
                 type="text"
                 value={checkscamFund}
                 onChange={(e) => setCheckscamFund(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-emerald-700 focus:outline-none focus:border-orange-500"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-emerald-700 focus:outline-none focus:border-slate-900"
               />
             </div>
           </div>
 
-          <div className="p-3.5 bg-orange-50/80 border border-orange-200/90 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2 text-orange-900">
-              <Users className="w-4 h-4 text-orange-600 flex-shrink-0" />
+          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2 text-slate-700">
+              <Users className="w-4 h-4 text-slate-500 flex-shrink-0" />
               <span>Quản lý các kênh <strong>TikTok, Nhóm Zalo, Discord, Group Facebook</strong> tại:</span>
             </div>
             <Link
               href="/admin/channels"
-              className="px-3.5 py-2 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 flex-shrink-0"
+              className="px-3.5 py-2 bg-[#111111] hover:bg-[#222222] text-white font-medium rounded-xl transition-all shadow-xs flex items-center gap-1.5 flex-shrink-0"
             >
               <span>Quản Lý Kênh Truyền Thông ➔</span>
             </Link>
@@ -256,13 +256,13 @@ export default function AdminSettingsPage() {
         {/* ============================================================ */}
         {/* CARD 2: CẤU HÌNH TỶ LỆ & PHÍ DỊCH VỤ (TỰ ĐỘNG)               */}
         {/* ============================================================ */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-5">
           <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-            <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
               <Calculator className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-extrabold text-slate-900">
+              <h2 className="text-base font-bold text-slate-900">
                 Cấu Hình Tỷ Lệ & Phí Dịch Vụ
               </h2>
               <p className="text-xs text-slate-500 font-normal">
@@ -274,7 +274,7 @@ export default function AdminSettingsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
             {/* Phí Đổi Pass Cố Định */}
             <div className="space-y-1.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
-              <label className="font-bold text-slate-800 block">
+              <label className="font-semibold text-slate-800 block">
                 Phí Đổi Pass (Cố định):
               </label>
               <div className="relative">
@@ -283,7 +283,7 @@ export default function AdminSettingsPage() {
                   step="1000"
                   value={passChangeFee}
                   onChange={(e) => setPassChangeFee(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-mono font-bold text-slate-900 focus:outline-none focus:border-orange-500 pr-8"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-900 focus:outline-none focus:border-slate-900 pr-8"
                 />
                 <span className="absolute right-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">
                   đ
@@ -294,7 +294,7 @@ export default function AdminSettingsPage() {
 
             {/* Tỷ lệ Gói 2 Giờ */}
             <div className="space-y-1.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
-              <label className="font-bold text-slate-800 block">
+              <label className="font-semibold text-slate-800 block">
                 Tỷ lệ Gói 2 Giờ:
               </label>
               <div className="relative">
@@ -303,7 +303,7 @@ export default function AdminSettingsPage() {
                   step="0.5"
                   value={rate2Hours}
                   onChange={(e) => setRate2Hours(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-mono font-bold text-orange-600 focus:outline-none focus:border-orange-500 pr-8"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-900 focus:outline-none focus:border-slate-900 pr-8"
                 />
                 <span className="absolute right-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">
                   %
@@ -314,7 +314,7 @@ export default function AdminSettingsPage() {
 
             {/* Tỷ lệ Gói 7 Ngày */}
             <div className="space-y-1.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
-              <label className="font-bold text-slate-800 block">
+              <label className="font-semibold text-slate-800 block">
                 Tỷ lệ Gói 7 Ngày:
               </label>
               <div className="relative">
@@ -323,7 +323,7 @@ export default function AdminSettingsPage() {
                   step="1"
                   value={rate7Days}
                   onChange={(e) => setRate7Days(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-mono font-bold text-orange-600 focus:outline-none focus:border-orange-500 pr-8"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-900 focus:outline-none focus:border-slate-900 pr-8"
                 />
                 <span className="absolute right-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">
                   %
@@ -334,7 +334,7 @@ export default function AdminSettingsPage() {
 
             {/* Tỷ lệ Gói 30 Ngày */}
             <div className="space-y-1.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
-              <label className="font-bold text-slate-800 block">
+              <label className="font-semibold text-slate-800 block">
                 Tỷ lệ Gói 30 Ngày:
               </label>
               <div className="relative">
@@ -343,13 +343,13 @@ export default function AdminSettingsPage() {
                   step="1"
                   value={rate30Days}
                   onChange={(e) => setRate30Days(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg font-mono font-bold text-orange-600 focus:outline-none focus:border-orange-500 pr-8"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-900 focus:outline-none focus:border-slate-900 pr-8"
                 />
                 <span className="absolute right-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">
                   %
                 </span>
               </div>
-              <span className="text-[10px] text-slate-500 block">Công thức: Giá acc * 30% (Free pass)</span>
+              <span className="text-[10px] text-slate-500 block">Công thức: Giá acc * 30%</span>
             </div>
           </div>
 
@@ -357,16 +357,16 @@ export default function AdminSettingsPage() {
           <div className="space-y-3 pt-4 border-t border-slate-100">
             <div className="flex items-center justify-between">
               <div>
-                <label className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
-                  <Calculator className="w-4 h-4 text-orange-600" />
+                <label className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                  <Calculator className="w-4 h-4 text-slate-700" />
                   <span>Chế Độ Hiển Thị Giá Thuê Mặc Định Toàn Trang:</span>
                 </label>
                 <p className="text-[11px] text-slate-500 mt-0.5">
                   Quyết định loại giá sẽ ưu tiên xuất hiện trên các thẻ tài khoản ngoài trang chủ
                 </p>
               </div>
-              <span className="text-[10px] font-bold text-orange-700 bg-orange-100 border border-orange-200 px-2 py-0.5 rounded-md uppercase">
-                {defaultPriceDisplayMode === "HOURLY" ? "⚡ Theo Giờ" : defaultPriceDisplayMode === "DAILY" ? "📅 Theo Ngày" : defaultPriceDisplayMode === "LONG_TERM" ? "👑 Lâu Dài (Vô Cực)" : "✨ Tự Động Theo Acc"}
+              <span className="text-[10px] font-semibold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md uppercase">
+                {defaultPriceDisplayMode === "HOURLY" ? "Theo Giờ" : defaultPriceDisplayMode === "DAILY" ? "Theo Ngày" : defaultPriceDisplayMode === "LONG_TERM" ? "Lâu Dài (Vô Cực)" : "Tự Động Theo Acc"}
               </span>
             </div>
 
@@ -382,7 +382,7 @@ export default function AdminSettingsPage() {
                 {
                   id: "HOURLY",
                   title: "Ưu Tiên Theo Giờ",
-                  desc: "Hiển thị giá dạng: 15.000đ / Giờ (Thích hợp đẩy mạnh lượng khách thuê trải nghiệm ngắn hạn)",
+                  desc: "Hiển thị giá dạng: 15.000đ / Giờ (Thích hợp đẩy mạnh lượng khách thuê ngắn hạn)",
                   badge: "/ Giờ",
                   icon: "⚡",
                 },
@@ -396,7 +396,7 @@ export default function AdminSettingsPage() {
                 {
                   id: "LONG_TERM",
                   title: "Ưu Tiên Lâu Dài / Trọn Gói",
-                  desc: "Hiển thị giá dạng: 150.000đ / ∞ hoặc / Tháng (Tạo cảm giác sở hữu vĩnh viễn, hấp dẫn)",
+                  desc: "Hiển thị giá dạng: 150.000đ / ∞ hoặc / Tháng",
                   badge: "/ ∞",
                   icon: "👑",
                 },
@@ -407,35 +407,39 @@ export default function AdminSettingsPage() {
                   onClick={() => setDefaultPriceDisplayMode(opt.id as any)}
                   className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                     defaultPriceDisplayMode === opt.id
-                      ? "bg-orange-50/80 border-orange-600 shadow-sm ring-1 ring-orange-500"
-                      : "bg-slate-50 border-slate-200 hover:bg-slate-100 hover:border-slate-300"
+                      ? "bg-slate-900 border-slate-900 text-white shadow-xs"
+                      : "bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-800"
                   }`}
                 >
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
                       <span className="text-base">{opt.icon}</span>
-                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                      <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${
                         defaultPriceDisplayMode === opt.id
-                          ? "bg-orange-600 text-white"
+                          ? "bg-white/20 text-white"
                           : "bg-slate-200 text-slate-700"
                       }`}>
                         {opt.badge}
                       </span>
                     </div>
-                    <div className={`font-bold text-xs ${
-                      defaultPriceDisplayMode === opt.id ? "text-orange-950" : "text-slate-800"
+                    <div className={`font-semibold text-xs ${
+                      defaultPriceDisplayMode === opt.id ? "text-white" : "text-slate-900"
                     }`}>
                       {opt.title}
                     </div>
-                    <p className="text-[10px] text-slate-500 leading-relaxed">
+                    <p className={`text-[10px] leading-relaxed ${
+                      defaultPriceDisplayMode === opt.id ? "text-slate-300" : "text-slate-500"
+                    }`}>
                       {opt.desc}
                     </p>
                   </div>
-                  <div className="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center gap-1.5 text-[10px] font-bold">
-                    <span className={`w-2 h-2 rounded-full ${
-                      defaultPriceDisplayMode === opt.id ? "bg-orange-600" : "bg-slate-300"
+                  <div className={`mt-2.5 pt-2 border-t flex items-center gap-1.5 text-[10px] font-medium ${
+                    defaultPriceDisplayMode === opt.id ? "border-white/10 text-slate-300" : "border-slate-200 text-slate-500"
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${
+                      defaultPriceDisplayMode === opt.id ? "bg-white" : "bg-slate-300"
                     }`} />
-                    <span className={defaultPriceDisplayMode === opt.id ? "text-orange-700" : "text-slate-500"}>
+                    <span>
                       {defaultPriceDisplayMode === opt.id ? "Đang chọn" : "Bấm để chọn"}
                     </span>
                   </div>
@@ -445,23 +449,23 @@ export default function AdminSettingsPage() {
           </div>
 
           {/* Minh Họa Trực Quan Mức Giá Tự Động */}
-          <div className="p-4 bg-orange-50/70 border border-orange-200/80 rounded-xl space-y-2 text-xs">
-            <div className="flex items-center gap-2 font-bold text-orange-900">
-              <Sparkles className="w-4 h-4 text-orange-600" />
+          <div className="p-4 bg-slate-50 border border-slate-200/90 rounded-xl space-y-2 text-xs">
+            <div className="flex items-center gap-2 font-semibold text-slate-900">
+              <Sparkles className="w-4 h-4 text-slate-600" />
               <span>Xem trước giá mẫu tự động (Đối với Acc giá gốc 850.000đ):</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
-              <div className="bg-white p-2.5 rounded-lg border border-orange-200">
+              <div className="bg-white p-2.5 rounded-lg border border-slate-200">
                 <span className="text-slate-500 block">Gói 2 Giờ:</span>
-                <strong className="text-red-600 font-mono font-bold">{sample2h.toLocaleString("vi-VN")}đ</strong>
+                <strong className="text-slate-900 font-mono font-bold">{sample2h.toLocaleString("vi-VN")}đ</strong>
               </div>
-              <div className="bg-white p-2.5 rounded-lg border border-orange-200">
+              <div className="bg-white p-2.5 rounded-lg border border-slate-200">
                 <span className="text-slate-500 block">Gói 7 Ngày:</span>
-                <strong className="text-red-600 font-mono font-bold">{sample7d.toLocaleString("vi-VN")}đ</strong>
+                <strong className="text-slate-900 font-mono font-bold">{sample7d.toLocaleString("vi-VN")}đ</strong>
               </div>
-              <div className="bg-white p-2.5 rounded-lg border border-orange-200">
+              <div className="bg-white p-2.5 rounded-lg border border-slate-200">
                 <span className="text-slate-500 block">Gói 30 Ngày:</span>
-                <strong className="text-red-600 font-mono font-bold">{sample30d.toLocaleString("vi-VN")}đ</strong>
+                <strong className="text-slate-900 font-mono font-bold">{sample30d.toLocaleString("vi-VN")}đ</strong>
               </div>
             </div>
           </div>
@@ -577,7 +581,7 @@ export default function AdminSettingsPage() {
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:border-blue-500 font-mono"
                 />
                 <p className="text-[11px] text-slate-500">
-                  Khi tạo QR cho acc <code className="bg-slate-100 px-1 py-0.5 rounded text-orange-600 font-mono font-bold">MS: 8899</code>, nội dung QR sẽ tự điền thành:{" "}
+                  Khi tạo QR cho acc <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-800 font-mono font-bold">MS: 8899</code>, nội dung QR sẽ tự điền thành:{" "}
                   <strong className="text-slate-900 font-mono font-bold">
                     {transferSyntax.replace("{CODE}", "8899").replace("{PACKAGE}", "2H")}
                   </strong>
@@ -697,7 +701,7 @@ export default function AdminSettingsPage() {
                 type="button"
                 onClick={() => setIsBannerActive(!isBannerActive)}
                 className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  isBannerActive ? "bg-orange-500" : "bg-slate-300"
+                  isBannerActive ? "bg-emerald-500" : "bg-slate-300"
                 }`}
                 title="Bật/Tắt banner thông báo"
               >
@@ -740,7 +744,7 @@ export default function AdminSettingsPage() {
               value={bannerContent}
               onChange={(e) => setBannerContent(e.target.value)}
               placeholder="Nhập nội dung thông báo hiển thị cho khách hàng..."
-              className={`w-full p-4 border border-slate-200 rounded-lg text-sm transition-all focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
+              className={`w-full p-4 border border-slate-200 rounded-xl text-sm transition-all focus:outline-none focus:border-slate-900 ${
                 isBannerActive
                   ? "bg-white text-slate-900"
                   : "bg-slate-50 text-slate-400 opacity-50 cursor-not-allowed"
@@ -752,16 +756,16 @@ export default function AdminSettingsPage() {
         {/* ============================================================ */}
         {/* CARD 4: BẢO MẬT & ĐỔI MẬT KHẨU QUẢN TRỊ                      */}
         {/* ============================================================ */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs space-y-5">
           <div className="flex items-center gap-3.5 pb-4 border-b border-slate-100">
-            <div className="bg-amber-100 text-amber-700 p-3 rounded-xl flex items-center justify-center flex-shrink-0">
+            <div className="bg-slate-100 text-slate-800 p-3 rounded-xl flex items-center justify-center flex-shrink-0">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-lg text-slate-800">
+              <h3 className="font-bold text-base text-slate-800">
                 Bảo Mật & Đổi Mật Khẩu Quản Trị
               </h3>
-              <p className="text-sm text-slate-500 mt-0.5 font-normal">
+              <p className="text-xs text-slate-500 mt-0.5 font-normal">
                 Mật khẩu bảo mật dùng để đăng nhập vào trang quản trị Admin ShopTFT.
               </p>
             </div>
@@ -769,7 +773,7 @@ export default function AdminSettingsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-800 block">
+              <label className="font-semibold text-slate-800 block">
                 Mật Khẩu Hiện Tại:
               </label>
               <input
@@ -777,12 +781,12 @@ export default function AdminSettingsPage() {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder="Nhập mật khẩu cũ..."
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-slate-900"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-800 block">
+              <label className="font-semibold text-slate-800 block">
                 Mật Khẩu Mới:
               </label>
               <input
@@ -790,12 +794,12 @@ export default function AdminSettingsPage() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Tối thiểu 6 ký tự..."
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-slate-900"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-800 block">
+              <label className="font-semibold text-slate-800 block">
                 Xác Nhận Mật Khẩu Mới:
               </label>
               <input
@@ -803,7 +807,7 @@ export default function AdminSettingsPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Nhập lại mật khẩu mới..."
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-orange-500"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900 focus:outline-none focus:border-slate-900"
               />
             </div>
           </div>
@@ -813,9 +817,9 @@ export default function AdminSettingsPage() {
               type="button"
               disabled={isChangingPass || !newPassword}
               onClick={handleChangePassword}
-              className="px-5 py-2.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-[#111111] hover:bg-[#222222] text-white text-xs font-semibold rounded-xl transition-all shadow-xs flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <ShieldCheck className="w-4 h-4 text-amber-400" />
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
               <span>Cập Nhật Mật Khẩu Mới</span>
             </button>
           </div>
@@ -828,7 +832,7 @@ export default function AdminSettingsPage() {
           <button
             type="submit"
             disabled={isSavingConfig}
-            className="px-7 py-3 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-2xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-orange-600/25 transition-all hover:scale-105 cursor-pointer disabled:opacity-50"
+            className="px-6 py-2.5 bg-[#111111] hover:bg-[#222222] text-white rounded-xl font-semibold text-xs flex items-center gap-2 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
           >
             {isSavingConfig ? (
               <Loader2 className="w-4 h-4 animate-spin" />
