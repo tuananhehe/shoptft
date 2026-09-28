@@ -1,60 +1,415 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { TFTNavbar } from "@/components/tft-navbar";
-import { TFTShop } from "@/components/tft-shop";
-import { TFTAccountModal } from "@/components/tft-account-modal";
 import { TFTFooter } from "@/components/tft-footer";
 import { TFTMobileBottomBar } from "@/components/tft-mobile-bottom-bar";
-import { TFTRentalAccount } from "@/data/tft-data";
+import { TFTAccountModal } from "@/components/tft-account-modal";
+import {
+  CatalogFilterBar,
+  FilterState,
+} from "@/components/catalog-filter-bar";
+import {
+  ProductCard,
+  ProductCardData,
+  ProductCardSkeleton,
+  ProductCardEmptyState,
+  normalizeVipAccount,
+  normalizeCloneAccount,
+} from "@/components/product-card";
+import { getVipAndCloneAccounts } from "@/utils/supabase/accounts-service";
+import { TFTRentalAccount, TFTCloneAccount } from "@/data/tft-data";
+import { ChevronRight, RotateCcw } from "lucide-react";
+
+function removeAccents(str?: string | null): string {
+  if (!str) return "";
+  return str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "d")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 export default function ShopPage() {
-  const [selectedAccount, setSelectedAccount] = useState<TFTRentalAccount | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [vipRaw, setVipRaw] = useState<TFTRentalAccount[]>([]);
+  const [cloneRaw, setCloneRaw] = useState<TFTCloneAccount[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedVipAccount, setSelectedVipAccount] = useState<TFTRentalAccount | null>(null);
+
+  // Parse initial filters from URL
+  const initialType = (searchParams.get("type") || "").toUpperCase();
+  const validType: "ALL" | "VIP" | "CLONE" =
+    initialType === "VIP" ? "VIP" : initialType === "CLONE" ? "CLONE" : "ALL";
+
+  const rawSort = (searchParams.get("sort") || "").toLowerCase();
+  // VIP Default Rule: If type=vip and NO explicit sort in URL -> default to PRICE_DESC
+  let validSort: "NEWEST" | "PRICE_ASC" | "PRICE_DESC" = "NEWEST";
+  if (rawSort === "price_desc") validSort = "PRICE_DESC";
+  else if (rawSort === "price_asc") validSort = "PRICE_ASC";
+  else if (rawSort === "newest") validSort = "NEWEST";
+  else if (validType === "VIP" && !rawSort) validSort = "PRICE_DESC";
+
+  const rawStatus = (searchParams.get("status") || "").toUpperCase();
+  const validStatus: "ALL" | "AVAILABLE" | "RENTED" =
+    rawStatus === "AVAILABLE" ? "AVAILABLE" : rawStatus === "RENTED" ? "RENTED" : "ALL";
+
+  const [filters, setFilters] = useState<FilterState>({
+    search: searchParams.get("search") || "",
+    type: validType,
+    pet: searchParams.get("pet") || "",
+    arena: searchParams.get("arena") || "",
+    price: searchParams.get("price") || "ALL",
+    status: validStatus,
+    sort: validSort,
+  });
+
+  const focusParam = searchParams.get("focus");
+
+  // Load Accounts from database / mock
+  useEffect(() => {
+    let isMounted = true;
+    async function loadData() {
+      try {
+        setIsLoading(true);
+        const { vipAccounts, cloneAccounts } = await getVipAndCloneAccounts();
+        if (isMounted) {
+          setVipRaw(vipAccounts || []);
+          setCloneRaw(cloneAccounts || []);
+        }
+      } catch (err) {
+        console.error("Lỗi tải danh sách tài khoản:", err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Sync state when URL searchParams change (Back / Forward navigation)
+  useEffect(() => {
+    const urlType = (searchParams.get("type") || "").toUpperCase();
+    const curType: "ALL" | "VIP" | "CLONE" =
+      urlType === "VIP" ? "VIP" : urlType === "CLONE" ? "CLONE" : "ALL";
+
+    const s = (searchParams.get("sort") || "").toLowerCase();
+    let curSort: "NEWEST" | "PRICE_ASC" | "PRICE_DESC" = "NEWEST";
+    if (s === "price_desc") curSort = "PRICE_DESC";
+    else if (s === "price_asc") curSort = "PRICE_ASC";
+    else if (s === "newest") curSort = "NEWEST";
+    else if (curType === "VIP" && !s) curSort = "PRICE_DESC";
+
+    const st = (searchParams.get("status") || "").toUpperCase();
+    const curStatus: "ALL" | "AVAILABLE" | "RENTED" =
+      st === "AVAILABLE" ? "AVAILABLE" : st === "RENTED" ? "RENTED" : "ALL";
+
+    setFilters((prev) => ({
+      ...prev,
+      search: searchParams.get("search") || "",
+      type: curType,
+      pet: searchParams.get("pet") || "",
+      arena: searchParams.get("arena") || "",
+      price: searchParams.get("price") || "ALL",
+      status: curStatus,
+      sort: curSort,
+    }));
+  }, [searchParams]);
+
+  // Synchronize state changes to URL parameters
+  const updateUrlParams = useCallback(
+    (newFilters: FilterState) => {
+      const params = new URLSearchParams();
+
+      if (newFilters.search) params.set("search", newFilters.search);
+      if (newFilters.type !== "ALL") params.set("type", newFilters.type.toLowerCase());
+      if (newFilters.pet) params.set("pet", newFilters.pet);
+      if (newFilters.arena) params.set("arena", newFilters.arena);
+      if (newFilters.price && newFilters.price !== "ALL") params.set("price", newFilters.price);
+      if (newFilters.status !== "ALL") params.set("status", newFilters.status.toLowerCase());
+
+      // If VIP and sort is default (PRICE_DESC), or non-VIP and sort is default (NEWEST), keep URL clean or explicit
+      if (newFilters.sort === "PRICE_DESC") {
+        if (newFilters.type !== "VIP") params.set("sort", "price_desc");
+        // For VIP, price_desc is implicit default, but can be explicit
+      } else if (newFilters.sort === "PRICE_ASC") {
+        params.set("sort", "price_asc");
+      } else if (newFilters.sort === "NEWEST") {
+        if (newFilters.type === "VIP") params.set("sort", "newest");
+      }
+
+      const queryString = params.toString();
+      const newPath = queryString ? `/shop?${queryString}` : "/shop";
+      window.history.replaceState(null, "", newPath);
+    },
+    []
+  );
+
+  const handleFilterChange = (updates: Partial<FilterState>) => {
+    setFilters((prev) => {
+      let nextType = updates.type !== undefined ? updates.type : prev.type;
+      let nextSort = updates.sort !== undefined ? updates.sort : prev.sort;
+
+      // When switching to VIP and user didn't explicitly pick a sort in this update:
+      // default VIP sort to PRICE_DESC
+      if (updates.type === "VIP" && updates.sort === undefined && prev.type !== "VIP") {
+        nextSort = "PRICE_DESC";
+      } else if (updates.type && updates.type !== "VIP" && updates.sort === undefined && prev.type === "VIP") {
+        // Switching away from VIP without explicit sort: revert to NEWEST
+        nextSort = "NEWEST";
+      }
+
+      const next = { ...prev, ...updates, type: nextType, sort: nextSort };
+      updateUrlParams(next);
+      return next;
+    });
+  };
+
+  const handleResetAll = () => {
+    const defaultSort = "NEWEST";
+    const resetState: FilterState = {
+      search: "",
+      type: "ALL",
+      pet: "",
+      arena: "",
+      price: "ALL",
+      status: "ALL",
+      sort: defaultSort,
+    };
+    setFilters(resetState);
+    updateUrlParams(resetState);
+  };
+
+  // Convert raw accounts to unified ProductCardData
+  const allNormalizedAccounts = useMemo<ProductCardData[]>(() => {
+    const vips = vipRaw.map((v) => normalizeVipAccount(v));
+    const clones = cloneRaw.map((c) => normalizeCloneAccount(c));
+    return [...vips, ...clones];
+  }, [vipRaw, cloneRaw]);
+
+  // Compute Filter Options data for dropdown lists
+  const filterOptions = useMemo(() => {
+    const petMap = new Map<string, number>();
+    const baseGroupMap = new Map<string, number>();
+    const arenaMap = new Map<string, number>();
+
+    const baseList = [
+      "Ahri", "Gwen", "Yasuo", "Yone", "Jinx", "Irelia", "Lee Sin", "Shyvana",
+      "Aatrox", "Sett", "Kaisa", "Zed", "Akali", "Sona", "Morgana", "Tristana",
+      "Teemo", "Vayne", "Senna", "Riven", "Pyke", "Katarina", "Warwick", "Kayle",
+      "Ashe", "Ezreal", "Lux", "Malphite", "Vi", "Ekko", "Caitlyn", "Annie"
+    ];
+
+    allNormalizedAccounts.forEach((acc) => {
+      // Pet
+      if (acc.mainPet) {
+        petMap.set(acc.mainPet, (petMap.get(acc.mainPet) || 0) + 1);
+        const norm = removeAccents(acc.mainPet);
+        baseList.forEach((base) => {
+          if (norm.includes(removeAccents(base))) {
+            baseGroupMap.set(base, (baseGroupMap.get(base) || 0) + 1);
+          }
+        });
+      }
+      // Arena
+      if (acc.arena) {
+        arenaMap.set(acc.arena, (arenaMap.get(acc.arena) || 0) + 1);
+      }
+    });
+
+    return {
+      baseGroups: Array.from(baseGroupMap.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count),
+      specificPets: Array.from(petMap.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count),
+      arenas: Array.from(arenaMap.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count),
+      stats: {
+        total: allNormalizedAccounts.length,
+        vip: vipRaw.length,
+        clone: cloneRaw.length,
+        available: allNormalizedAccounts.filter((a) => a.status === "AVAILABLE").length,
+        rented: allNormalizedAccounts.filter((a) => a.status === "RENTED").length,
+      },
+    };
+  }, [allNormalizedAccounts, vipRaw, cloneRaw]);
+
+  // Filter and Sort Pipeline
+  const filteredAccounts = useMemo(() => {
+    return allNormalizedAccounts
+      .filter((acc) => {
+        // 1. Type
+        if (filters.type !== "ALL" && acc.type !== filters.type) return false;
+
+        // 2. Status
+        if (filters.status !== "ALL" && acc.status !== filters.status) return false;
+
+        // 3. Search query
+        if (filters.search.trim()) {
+          const queryNorm = removeAccents(filters.search.trim());
+          const textNorm = removeAccents(
+            `${acc.code} ${acc.title} ${acc.mainPet || ""} ${acc.arena || ""} ${acc.rank || ""}`
+          );
+          const words = queryNorm.split(" ").filter(Boolean);
+          const matchAll = words.every((w) => textNorm.includes(w));
+          if (!matchAll) return false;
+        }
+
+        // 4. Pet / Chibi filter
+        if (filters.pet.trim()) {
+          const targetPet = removeAccents(filters.pet.trim());
+          const accPet = removeAccents(`${acc.mainPet || ""} ${acc.title || ""}`);
+          if (!accPet.includes(targetPet)) return false;
+        }
+
+        // 5. Arena filter
+        if (filters.arena.trim()) {
+          const targetArena = removeAccents(filters.arena.trim());
+          const accArena = removeAccents(acc.arena || "");
+          if (!accArena.includes(targetArena)) return false;
+        }
+
+        // 6. Price Preset filter
+        if (filters.price && filters.price !== "ALL") {
+          const price = acc.price;
+          if (filters.type === "VIP") {
+            if (filters.price === "under_15k" && price >= 15000) return false;
+            if (filters.price === "15k_25k" && (price < 15000 || price > 25000)) return false;
+            if (filters.price === "over_25k" && price <= 25000) return false;
+          } else if (filters.type === "CLONE") {
+            if (filters.price === "under_100k" && price >= 100000) return false;
+            if (filters.price === "100k_200k" && (price < 100000 || price > 200000)) return false;
+            if (filters.price === "200k_500k" && (price < 200000 || price > 500000)) return false;
+            if (filters.price === "over_500k" && price <= 500000) return false;
+          }
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        if (filters.sort === "PRICE_ASC") {
+          return a.price - b.price;
+        }
+        if (filters.sort === "PRICE_DESC") {
+          return b.price - a.price;
+        }
+        // "NEWEST": Preserve chronological order or ID order
+        return 0;
+      });
+  }, [allNormalizedAccounts, filters]);
 
   return (
-    <main className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#090909] text-white selection:bg-white selection:text-black flex flex-col justify-between relative pb-16 lg:pb-0">
-      {/* Navigation */}
+    <div className="min-h-screen bg-[#09090b] text-white flex flex-col justify-between selection:bg-white selection:text-black">
+      {/* Header */}
       <TFTNavbar />
 
-      {/* Page Header (Compact & E-commerce Structured) */}
-      <div className="pt-20 sm:pt-24 pb-3 sm:pb-4 bg-[#090909]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Subtle Breadcrumb */}
-          <nav aria-label="Breadcrumb" className="mb-2">
-            <ol className="flex items-center gap-1.5 text-xs text-zinc-500 font-normal">
-              <li>
-                <a href="/" className="hover:text-zinc-300 transition-colors">
-                  Trang chủ
-                </a>
-              </li>
-              <li>/</li>
-              <li className="text-zinc-300 font-medium">Kho Acc</li>
-            </ol>
-          </nav>
+      <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-16 flex-1">
+        {/* Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="mb-3">
+          <ol className="flex items-center gap-1.5 text-xs text-zinc-500 font-normal">
+            <li>
+              <Link href="/" className="hover:text-zinc-300 transition-colors">
+                Trang chủ
+              </Link>
+            </li>
+            <li>
+              <ChevronRight className="w-3 h-3 text-zinc-600" />
+            </li>
+            <li className="text-zinc-300 font-medium">Kho Acc</li>
+          </ol>
+        </nav>
 
+        {/* Page Title & Subtitle */}
+        <div className="mb-6">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold text-white tracking-tight leading-tight">
             Kho Acc TFT
           </h1>
           <p className="mt-1 text-zinc-400 text-xs sm:text-sm max-w-2xl font-normal leading-relaxed">
-            Tìm tài khoản theo Pet, Chibi, Sân Đấu, loại acc và mức giá phù hợp.
+            Tìm kiếm theo Pet, Chibi, Sân Đấu, loại tài khoản và khoảng giá phù hợp.
           </p>
         </div>
-      </div>
 
-      {/* Shop Section */}
-      <TFTShop alwaysExpanded onSelectAccount={(acc) => setSelectedAccount(acc)} />
+        {/* Filter Bar Component */}
+        <CatalogFilterBar
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onResetAll={handleResetAll}
+          totalMatching={filteredAccounts.length}
+          filterOptions={filterOptions}
+          initialFocus={focusParam}
+        />
 
-      {/* Footer */}
-      <TFTFooter />
+        {/* Result Count & Active Filter Summary */}
+        <div className="flex items-center justify-between gap-3 mb-4 text-xs text-zinc-400 border-b border-white/[0.06] pb-3">
+          <div>
+            <span>Tìm thấy </span>
+            <strong className="text-white font-semibold font-mono">
+              {filteredAccounts.length}
+            </strong>
+            <span> tài khoản phù hợp</span>
+          </div>
 
-      {/* Mobile Bottom Bar */}
-      <TFTMobileBottomBar />
+          {(filters.search ||
+            filters.type !== "ALL" ||
+            filters.pet ||
+            filters.arena ||
+            filters.price !== "ALL" ||
+            filters.status !== "ALL") && (
+            <button
+              onClick={handleResetAll}
+              className="inline-flex items-center gap-1 text-[11px] text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Xóa bộ lọc</span>
+            </button>
+          )}
+        </div>
 
-      {/* VIP Account Modal */}
+        {/* Product Grid */}
+        {isLoading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <ProductCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : filteredAccounts.length === 0 ? (
+          <ProductCardEmptyState onReset={handleResetAll} />
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            {filteredAccounts.map((item, idx) => (
+              <ProductCard
+                key={item.id}
+                item={item}
+                priority={idx < 4}
+                onSelectAccount={(vip) => setSelectedVipAccount(vip)}
+              />
+            ))}
+          </div>
+        )}
+      </main>
+
+      {/* Account Order / Detail Modal */}
       <TFTAccountModal
-        account={selectedAccount}
-        onClose={() => setSelectedAccount(null)}
+        account={selectedVipAccount}
+        onClose={() => setSelectedVipAccount(null)}
       />
-    </main>
+
+      {/* Footer & Mobile Bottom Bar */}
+      <TFTFooter />
+      <TFTMobileBottomBar />
+    </div>
   );
 }
