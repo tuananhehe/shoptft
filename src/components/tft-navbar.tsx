@@ -6,7 +6,9 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { PROFILE_INFO } from "@/data/tft-data";
 import { useUserAuth } from "@/context/user-auth-context";
 import { analytics } from "@/utils/analytics";
-import { ChevronDown, Menu, X, User } from "lucide-react";
+import { getFavorites } from "@/utils/product-discovery";
+import { TFTFavoritesModal } from "@/components/tft-favorites-modal";
+import { ChevronDown, Menu, X, User, Heart } from "lucide-react";
 
 export const TFTNavbar: React.FC = () => {
   const pathname = usePathname();
@@ -20,6 +22,19 @@ export const TFTNavbar: React.FC = () => {
   const isShopActive = pathname === "/shop" && sortParam !== "newest";
   const isNewArrivalsActive = pathname === "/shop" && sortParam === "newest";
   const isAboutActive = pathname === "/ve-shop";
+
+  // Favorites state
+  const [favoritesOpen, setFavoritesOpen] = useState(false);
+  const [favoriteCount, setFavoriteCount] = useState(0);
+
+  useEffect(() => {
+    setFavoriteCount(getFavorites().length);
+    const handleFavUpdate = (e: any) => {
+      setFavoriteCount(e.detail?.favorites ? e.detail.favorites.length : getFavorites().length);
+    };
+    window.addEventListener("tft:favorites_updated", handleFavUpdate);
+    return () => window.removeEventListener("tft:favorites_updated", handleFavUpdate);
+  }, []);
 
   // Prevent body scrolling when mobile navigation drawer is open
   useEffect(() => {
@@ -176,6 +191,22 @@ export const TFTNavbar: React.FC = () => {
               </Link>
             )}
 
+            {/* Favorites Icon Button */}
+            <button
+              type="button"
+              onClick={() => setFavoritesOpen(true)}
+              aria-label={`Xem danh sách acc đã lưu (${favoriteCount})`}
+              title="Acc đã lưu"
+              className="relative p-2 rounded-xl text-zinc-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10 transition-colors cursor-pointer"
+            >
+              <Heart className={`w-4 h-4 ${favoriteCount > 0 ? "text-rose-500 fill-rose-500" : ""}`} />
+              {favoriteCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-600 text-white font-mono text-[10px] font-bold flex items-center justify-center shadow-sm">
+                  {favoriteCount}
+                </span>
+              )}
+            </button>
+
             <Link
               href="/shop"
               className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-semibold transition-all active:scale-98 shadow-sm"
@@ -266,6 +297,26 @@ export const TFTNavbar: React.FC = () => {
               <span>Tư Vấn Zalo</span>
               <span className="text-[11px] text-zinc-400">Trực tiếp</span>
             </a>
+            <button
+              type="button"
+              onClick={() => {
+                setMobileOpen(false);
+                setFavoritesOpen(true);
+              }}
+              className="flex items-center justify-between w-full px-3 py-2 text-sm text-zinc-200 hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
+            >
+              <span className="flex items-center gap-2">
+                <Heart className={`w-4 h-4 ${favoriteCount > 0 ? "text-rose-500 fill-rose-500" : "text-zinc-400"}`} />
+                <span>Acc Đã Lưu</span>
+              </span>
+              {favoriteCount > 0 ? (
+                <span className="px-1.5 py-0.5 rounded-full bg-rose-600/20 text-rose-400 font-mono text-xs font-semibold">
+                  {favoriteCount}
+                </span>
+              ) : (
+                <span className="text-[11px] text-zinc-500">Trống</span>
+              )}
+            </button>
           </div>
 
           <div className="pt-3 border-t border-white/10 flex items-center justify-between">
@@ -297,6 +348,12 @@ export const TFTNavbar: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Favorites Modal Drawer */}
+      <TFTFavoritesModal
+        isOpen={favoritesOpen}
+        onClose={() => setFavoritesOpen(false)}
+      />
     </header>
   );
 };

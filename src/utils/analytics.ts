@@ -196,4 +196,18 @@ export const analytics = {
       success: params.success,
     });
   },
+
+  /**
+   * Khách hàng bấm lưu/bỏ lưu yêu thích tài khoản
+   */
+  trackFavoriteProduct: (params: { product_id: string; product_type?: string; action: "add" | "remove" }) => {
+    sendEvent("favorite_product", params);
+  },
+
+  /**
+   * Khách hàng click xem lại sản phẩm từ danh sách đã xem gần đây
+   */
+  trackViewRecentProduct: (params: { product_id: string; product_type?: string }) => {
+    sendEvent("view_recent_product", params);
+  },
 };

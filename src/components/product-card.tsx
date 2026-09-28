@@ -1,11 +1,12 @@
 "use client";
 
 import React from "react";
-import { Eye, KeyRound, Search } from "lucide-react";
+import { Eye, KeyRound, Search, Heart } from "lucide-react";
 import { LazyAccountImage } from "@/components/lazy-account-image";
 import { TFTRentalAccount, TFTCloneAccount } from "@/data/tft-data";
 import { getAccountProductUrl } from "@/utils/account-lookup";
 import { analytics } from "@/utils/analytics";
+import { isFavorite, toggleFavorite } from "@/utils/product-discovery";
 
 /**
  * Định dạng tiền tệ Việt Nam (VNĐ) chuẩn: 15.000đ, 99.000đ, 1.200.000đ
@@ -234,6 +235,25 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     }
   };
 
+  const [isFav, setIsFav] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsFav(isFavorite(item.id));
+    const handleUpdate = (e: any) => {
+      if (!e.detail?.changedId || e.detail.changedId === item.id) {
+        setIsFav(isFavorite(item.id));
+      }
+    };
+    window.addEventListener("tft:favorites_updated", handleUpdate);
+    return () => window.removeEventListener("tft:favorites_updated", handleUpdate);
+  }, [item.id]);
+
+  const handleToggleFav = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const next = toggleFavorite(item);
+    setIsFav(next);
+  };
+
   return (
     <div
       style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}
@@ -293,6 +313,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               #{item.code}
             </span>
           </div>
+
+          {/* Bottom-Right: Favorite Button (♡ / ♥) */}
+          <button
+            type="button"
+            onClick={handleToggleFav}
+            aria-label={isFav ? `Bỏ lưu tài khoản ${item.code}` : `Lưu tài khoản ${item.code}`}
+            title={isFav ? "Bỏ lưu" : "Lưu acc"}
+            className="absolute bottom-1.5 right-1.5 z-10 w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#09090b]/80 hover:bg-[#09090b] border border-white/10 hover:border-white/30 flex items-center justify-center transition-all cursor-pointer backdrop-blur-sm group/fav active:scale-90"
+          >
+            <Heart
+              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-colors ${
+                isFav ? "text-rose-500 fill-rose-500" : "text-zinc-400 group-hover/fav:text-white"
+              }`}
+            />
+          </button>
         </div>
 
         {/* ============================================================ */}

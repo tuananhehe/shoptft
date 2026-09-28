@@ -13,6 +13,8 @@ import { TFTFooter } from "@/components/tft-footer";
 import { LazyAccountImage } from "@/components/lazy-account-image";
 import { TFTImageLightbox } from "@/components/tft-image-lightbox";
 import { ZaloRedirectModal } from "@/components/zalo-redirect-modal";
+import { TFTRecentlyViewed } from "@/components/tft-recently-viewed";
+import { addRecentlyViewed, isFavorite, toggleFavorite } from "@/utils/product-discovery";
 import { Reveal } from "@/components/reveal";
 import toast from "react-hot-toast";
 import {
@@ -27,6 +29,7 @@ import {
   ChevronRight,
   ZoomIn,
   Sparkles,
+  Heart,
 } from "lucide-react";
 
 interface AccountDetailViewProps {
@@ -71,15 +74,34 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
     });
   }, []);
 
+  const [isFav, setIsFav] = useState(false);
+
+  useEffect(() => {
+    setIsFav(isFavorite(account.id));
+    const handleFavUpdate = (e: any) => {
+      if (!e.detail?.changedId || e.detail.changedId === account.id) {
+        setIsFav(isFavorite(account.id));
+      }
+    };
+    window.addEventListener("tft:favorites_updated", handleFavUpdate);
+    return () => window.removeEventListener("tft:favorites_updated", handleFavUpdate);
+  }, [account.id]);
+
+  const handleToggleFav = () => {
+    const nextState = toggleFavorite(account);
+    setIsFav(nextState);
+  };
+
   useEffect(() => {
     setSelectedPackage("perm");
+    addRecentlyViewed(account);
     analytics.trackViewProduct({
       product_id: account.code || account.id,
       product_type: isClone ? "CLONE" : "VIP",
       availability: isRented ? "RENTED" : "AVAILABLE",
       display_price: isClone ? clonePrice : baseAccountValue,
     });
-  }, [account.id, isClone, isRented, clonePrice, baseAccountValue]);
+  }, [account, isClone, isRented, clonePrice, baseAccountValue]);
 
   useEffect(() => {
     if (account.status === "RENTED") {
@@ -298,6 +320,19 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
             >
               <Share2 className="w-3.5 h-3.5" />
               <span>Chia sẻ</span>
+            </button>
+
+            <button
+              onClick={handleToggleFav}
+              aria-label={isFav ? "Bỏ lưu tài khoản" : "Lưu tài khoản yêu thích"}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
+                isFav
+                  ? "bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20"
+                  : "bg-white/[0.05] border-white/10 text-zinc-300 hover:text-white hover:border-white/20"
+              }`}
+            >
+              <Heart className={`w-3.5 h-3.5 ${isFav ? "fill-rose-500 text-rose-500" : ""}`} />
+              <span>{isFav ? "Đã lưu" : "Lưu acc"}</span>
             </button>
           </div>
         </div>
@@ -605,10 +640,12 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg sm:text-xl font-heading font-bold text-white">
-                  Tài khoản tương tự
+                  {isRented ? "Tìm acc tương tự đang còn" : "Tài khoản tương tự"}
                 </h2>
                 <p className="text-zinc-400 text-xs">
-                  Gợi ý cùng phân khúc Tướng Tí Nị và Sân Đấu
+                  {isRented
+                    ? "Gợi ý các tài khoản đang sẵn sàng có Pet và Sân Đấu tương đồng"
+                    : "Gợi ý cùng phân khúc Tướng Tí Nị và Sân Đấu"}
                 </p>
               </div>
 
@@ -679,6 +716,9 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
           </div>
           </Reveal>
         )}
+
+        {/* Recently Viewed Accounts */}
+        <TFTRecentlyViewed excludeId={account.id} />
       </main>
 
       {/* Footer */}

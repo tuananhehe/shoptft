@@ -23,6 +23,7 @@ import { getVipAndCloneAccounts } from "@/utils/supabase/accounts-service";
 import { TFTRentalAccount, TFTCloneAccount } from "@/data/tft-data";
 import { analytics } from "@/utils/analytics";
 import { Reveal } from "@/components/reveal";
+import { TFTRecentlyViewed } from "@/components/tft-recently-viewed";
 import { ChevronRight, RotateCcw } from "lucide-react";
 
 function removeAccents(str?: string | null): string {
@@ -556,6 +557,12 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
             )}
           </>
         )}
+
+        {/* Recently Viewed Shelf (only rendered if user has viewed accounts) */}
+        <TFTRecentlyViewed
+          title="Acc Bạn Đã Xem Gần Đây"
+          subtitle="Tiện lợi so sánh lại các tài khoản bạn vừa tham khảo trên shop"
+        />
       </main>
 
       {/* Account Order / Detail Modal */}
