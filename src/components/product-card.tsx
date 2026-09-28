@@ -434,38 +434,63 @@ export const ProductCardSkeleton: React.FC = () => {
 export const ProductCardEmptyState: React.FC<{
   title?: string;
   description?: string;
+  searchQuery?: string;
+  onClearSearch?: () => void;
   onReset?: () => void;
   onViewAll?: () => void;
   totalCount?: number;
 }> = ({
-  title = "Không tìm thấy tài khoản phù hợp",
-  description = "Bạn có thể thử tìm với từ khóa khác, thay đổi bộ lọc hoặc bấm Đặt lại để xem toàn bộ danh mục.",
+  title,
+  description,
+  searchQuery,
+  onClearSearch,
   onReset,
   onViewAll,
   totalCount,
 }) => {
+  const displayTitle = searchQuery
+    ? `Không tìm thấy acc phù hợp với "${searchQuery}".`
+    : title || "Không tìm thấy tài khoản phù hợp";
+
+  const displayDescription = searchQuery
+    ? "Vui lòng kiểm tra lại từ khóa hoặc xóa tìm kiếm để xem danh sách tài khoản sẵn có."
+    : description || "Bạn có thể thử tìm với từ khóa khác, thay đổi bộ lọc hoặc bấm Đặt lại để xem toàn bộ danh mục.";
+
   return (
     <div className="p-8 sm:p-12 text-center bg-[#141414] rounded-2xl border border-white/[0.08] space-y-3 col-span-full">
       <div className="w-12 h-12 rounded-full bg-white/[0.06] text-zinc-300 flex items-center justify-center mx-auto border border-white/10">
         <Search className="w-5 h-5" />
       </div>
       <h4 className="text-sm sm:text-base font-semibold text-white">
-        {title}
+        {displayTitle}
       </h4>
       <p className="text-xs text-zinc-400 max-w-md mx-auto leading-relaxed">
-        {description}
+        {displayDescription}
       </p>
       <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+        {searchQuery && onClearSearch && (
+          <button
+            type="button"
+            onClick={onClearSearch}
+            className="px-4 py-2 bg-white hover:bg-zinc-200 text-[#090909] rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+          >
+            Xóa tìm kiếm
+          </button>
+        )}
         {onReset && (
           <button
             type="button"
             onClick={onReset}
-            className="px-4 py-2 bg-white hover:bg-zinc-200 text-[#090909] rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+              searchQuery && onClearSearch
+                ? "bg-white/[0.08] hover:bg-white/[0.15] text-white border border-white/15"
+                : "bg-white hover:bg-zinc-200 text-[#090909]"
+            }`}
           >
-            Đặt lại bộ lọc
+            {searchQuery ? "Xem toàn bộ kho" : "Đặt lại bộ lọc"}
           </button>
         )}
-        {onViewAll && (
+        {onViewAll && !searchQuery && (
           <button
             type="button"
             onClick={onViewAll}

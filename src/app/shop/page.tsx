@@ -36,7 +36,7 @@ function removeAccents(str?: string | null): string {
     .trim();
 }
 
-export default function ShopPage() {
+function ShopPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -51,7 +51,6 @@ export default function ShopPage() {
     initialType === "VIP" ? "VIP" : initialType === "CLONE" ? "CLONE" : "ALL";
 
   const rawSort = (searchParams.get("sort") || "").toLowerCase();
-  // VIP Default Rule: If type=vip and NO explicit sort in URL -> default to PRICE_DESC
   let validSort: "NEWEST" | "PRICE_ASC" | "PRICE_DESC" = "NEWEST";
   if (rawSort === "price_desc") validSort = "PRICE_DESC";
   else if (rawSort === "price_asc") validSort = "PRICE_ASC";
@@ -97,34 +96,76 @@ export default function ShopPage() {
     };
   }, []);
 
-  // Sync state when URL searchParams change (Back / Forward navigation)
+  // Sync state when URL searchParams change
+  const searchParamVal = searchParams.get("search") || "";
+  const typeParamVal = searchParams.get("type") || "";
+  const petParamVal = searchParams.get("pet") || "";
+  const arenaParamVal = searchParams.get("arena") || "";
+  const priceParamVal = searchParams.get("price") || "";
+  const statusParamVal = searchParams.get("status") || "";
+  const sortParamVal = searchParams.get("sort") || "";
+
   useEffect(() => {
-    const urlType = (searchParams.get("type") || "").toUpperCase();
+    const urlType = typeParamVal.toUpperCase();
     const curType: "ALL" | "VIP" | "CLONE" =
       urlType === "VIP" ? "VIP" : urlType === "CLONE" ? "CLONE" : "ALL";
 
-    const s = (searchParams.get("sort") || "").toLowerCase();
+    const s = sortParamVal.toLowerCase();
     let curSort: "NEWEST" | "PRICE_ASC" | "PRICE_DESC" = "NEWEST";
     if (s === "price_desc") curSort = "PRICE_DESC";
     else if (s === "price_asc") curSort = "PRICE_ASC";
     else if (s === "newest") curSort = "NEWEST";
     else if (curType === "VIP" && !s) curSort = "PRICE_DESC";
 
-    const st = (searchParams.get("status") || "").toUpperCase();
+    const st = statusParamVal.toUpperCase();
     const curStatus: "ALL" | "AVAILABLE" | "RENTED" =
       st === "AVAILABLE" ? "AVAILABLE" : st === "RENTED" ? "RENTED" : "ALL";
 
     setFilters((prev) => ({
       ...prev,
-      search: searchParams.get("search") || "",
+      search: searchParamVal,
       type: curType,
-      pet: searchParams.get("pet") || "",
-      arena: searchParams.get("arena") || "",
-      price: searchParams.get("price") || "ALL",
+      pet: petParamVal,
+      arena: arenaParamVal,
+      price: priceParamVal || "ALL",
       status: curStatus,
       sort: curSort,
     }));
-  }, [searchParams]);
+  }, [searchParamVal, typeParamVal, petParamVal, arenaParamVal, priceParamVal, statusParamVal, sortParamVal]);
+
+  // Handle browser Back / Forward (popstate)
+  useEffect(() => {
+    const handlePopState = () => {
+      const sp = new URLSearchParams(window.location.search);
+      const urlType = (sp.get("type") || "").toUpperCase();
+      const curType: "ALL" | "VIP" | "CLONE" =
+        urlType === "VIP" ? "VIP" : urlType === "CLONE" ? "CLONE" : "ALL";
+
+      const s = (sp.get("sort") || "").toLowerCase();
+      let curSort: "NEWEST" | "PRICE_ASC" | "PRICE_DESC" = "NEWEST";
+      if (s === "price_desc") curSort = "PRICE_DESC";
+      else if (s === "price_asc") curSort = "PRICE_ASC";
+      else if (s === "newest") curSort = "NEWEST";
+      else if (curType === "VIP" && !s) curSort = "PRICE_DESC";
+
+      const st = (sp.get("status") || "").toUpperCase();
+      const curStatus: "ALL" | "AVAILABLE" | "RENTED" =
+        st === "AVAILABLE" ? "AVAILABLE" : st === "RENTED" ? "RENTED" : "ALL";
+
+      setFilters({
+        search: sp.get("search") || "",
+        type: curType,
+        pet: sp.get("pet") || "",
+        arena: sp.get("arena") || "",
+        price: sp.get("price") || "ALL",
+        status: curStatus,
+        sort: curSort,
+      });
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   // Synchronize state changes to URL parameters
   const updateUrlParams = useCallback(
@@ -138,10 +179,8 @@ export default function ShopPage() {
       if (newFilters.price && newFilters.price !== "ALL") params.set("price", newFilters.price);
       if (newFilters.status !== "ALL") params.set("status", newFilters.status.toLowerCase());
 
-      // If VIP and sort is default (PRICE_DESC), or non-VIP and sort is default (NEWEST), keep URL clean or explicit
       if (newFilters.sort === "PRICE_DESC") {
         if (newFilters.type !== "VIP") params.set("sort", "price_desc");
-        // For VIP, price_desc is implicit default, but can be explicit
       } else if (newFilters.sort === "PRICE_ASC") {
         params.set("sort", "price_asc");
       } else if (newFilters.sort === "NEWEST") {
@@ -155,25 +194,25 @@ export default function ShopPage() {
     []
   );
 
-  const handleFilterChange = (updates: Partial<FilterState>) => {
-    setFilters((prev) => {
-      let nextType = updates.type !== undefined ? updates.type : prev.type;
-      let nextSort = updates.sort !== undefined ? updates.sort : prev.sort;
+  const handleFilterChange = useCallback(
+    (updates: Partial<FilterState>) => {
+      setFilters((prev) => {
+        let nextType = updates.type !== undefined ? updates.type : prev.type;
+        let nextSort = updates.sort !== undefined ? updates.sort : prev.sort;
 
-      // When switching to VIP and user didn't explicitly pick a sort in this update:
-      // default VIP sort to PRICE_DESC
-      if (updates.type === "VIP" && updates.sort === undefined && prev.type !== "VIP") {
-        nextSort = "PRICE_DESC";
-      } else if (updates.type && updates.type !== "VIP" && updates.sort === undefined && prev.type === "VIP") {
-        // Switching away from VIP without explicit sort: revert to NEWEST
-        nextSort = "NEWEST";
-      }
+        if (updates.type === "VIP" && updates.sort === undefined && prev.type !== "VIP") {
+          nextSort = "PRICE_DESC";
+        } else if (updates.type && updates.type !== "VIP" && updates.sort === undefined && prev.type === "VIP") {
+          nextSort = "NEWEST";
+        }
 
-      const next = { ...prev, ...updates, type: nextType, sort: nextSort };
-      updateUrlParams(next);
-      return next;
-    });
-  };
+        const next = { ...prev, ...updates, type: nextType, sort: nextSort };
+        updateUrlParams(next);
+        return next;
+      });
+    },
+    [updateUrlParams]
+  );
 
   const handleResetAll = () => {
     const defaultSort = "NEWEST";
@@ -260,8 +299,13 @@ export default function ShopPage() {
         // 3. Search query
         if (filters.search.trim()) {
           const queryNorm = removeAccents(filters.search.trim());
+          const cleanCode = acc.code.replace(/[^a-zA-Z0-9]/g, " ");
+          const extraVipPets = (acc.rawVip?.allChibi || []).join(" ");
+          const extraVipArenas = (acc.rawVip?.allArenas || []).join(" ");
+          const cloneFeatures = (acc.features || []).join(" ");
+
           const textNorm = removeAccents(
-            `${acc.code} ${acc.title} ${acc.mainPet || ""} ${acc.arena || ""} ${acc.rank || ""}`
+            `${acc.code} ${cleanCode} ${acc.title} ${acc.mainPet || ""} ${extraVipPets} ${acc.arena || ""} ${extraVipArenas} ${acc.rank || ""} ${cloneFeatures} ${acc.description || ""}`
           );
           const words = queryNorm.split(" ").filter(Boolean);
           const matchAll = words.every((w) => textNorm.includes(w));
@@ -386,7 +430,12 @@ export default function ShopPage() {
             ))}
           </div>
         ) : filteredAccounts.length === 0 ? (
-          <ProductCardEmptyState onReset={handleResetAll} />
+          <ProductCardEmptyState
+            searchQuery={filters.search}
+            onClearSearch={() => handleFilterChange({ search: "" })}
+            onReset={handleResetAll}
+            totalCount={allNormalizedAccounts.length}
+          />
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {filteredAccounts.map((item, idx) => (
@@ -411,5 +460,19 @@ export default function ShopPage() {
       <TFTFooter />
       <TFTMobileBottomBar />
     </div>
+  );
+}
+
+export default function ShopPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-screen bg-[#09090b] text-white flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+        </div>
+      }
+    >
+      <ShopPageContent />
+    </React.Suspense>
   );
 }

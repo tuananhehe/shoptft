@@ -14,14 +14,18 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  const executeSearch = () => {
     const query = searchTerm.trim();
     if (query) {
       router.push(`/shop?search=${encodeURIComponent(query)}`);
     } else {
       router.push("/shop");
     }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    executeSearch();
   };
 
   const shortcuts = [
@@ -52,18 +56,30 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
         </p>
 
         {/* Large Search Form */}
-        <form onSubmit={handleSearch} className="mt-8 max-w-2xl mx-auto">
+        <form onSubmit={handleSearch} className="mt-8 max-w-2xl mx-auto" role="search">
           <div className="relative flex items-center">
             <Search className="w-5 h-5 text-zinc-400 absolute left-4 pointer-events-none" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  executeSearch();
+                }
+              }}
               placeholder="Tìm Ahri, Jinx, Gwen, Sân đấu, mã acc..."
+              aria-label="Tìm kiếm tài khoản TFT"
               className="w-full h-12 sm:h-14 pl-12 pr-28 sm:pr-32 rounded-2xl bg-[#141416] border border-white/15 focus:border-white/40 text-white placeholder:text-zinc-500 text-sm focus:outline-none transition-colors shadow-xl"
             />
             <button
               type="submit"
+              onClick={(e) => {
+                e.preventDefault();
+                executeSearch();
+              }}
+              aria-label="Tìm kiếm"
               className="absolute right-2 top-2 bottom-2 px-4 sm:px-5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs sm:text-sm font-semibold transition-all active:scale-98 flex items-center gap-1.5 cursor-pointer"
             >
               <span>Tìm kiếm</span>
