@@ -1,20 +1,35 @@
-"use client";
-
 import React from "react";
+import type { Metadata } from "next";
 import { TFTNavbar } from "@/components/tft-navbar";
 import { TFTAbout } from "@/components/tft-about";
 import { TFTFooter } from "@/components/tft-footer";
 import { TFTMobileBottomBar } from "@/components/tft-mobile-bottom-bar";
 
+export const metadata: Metadata = {
+  title: "Về ShopTFTMobile | Tuấn Thái Bình",
+  description:
+    "Giới thiệu ShopTFTMobile, người vận hành, cách hỗ trợ khách hàng và các thông tin xác minh dịch vụ.",
+  alternates: {
+    canonical: "https://shoptftmobile.net/ve-shop",
+  },
+  openGraph: {
+    title: "Về ShopTFTMobile | Tuấn Thái Bình",
+    description:
+      "Giới thiệu ShopTFTMobile, người vận hành, cách hỗ trợ khách hàng và các thông tin xác minh dịch vụ.",
+    url: "https://shoptftmobile.net/ve-shop",
+    siteName: "ShopTFTMobile",
+    locale: "vi_VN",
+    type: "website",
+  },
+};
+
 export default function VeShopPage() {
   return (
-    <main className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#090909] text-white selection:bg-white selection:text-black flex flex-col justify-between relative pb-16 lg:pb-0">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#09090b] text-white selection:bg-white selection:text-black flex flex-col justify-between relative">
       <TFTNavbar />
-      <div className="pt-8">
-        <TFTAbout />
-      </div>
+      <TFTAbout />
       <TFTFooter />
       <TFTMobileBottomBar />
-    </main>
+    </div>
   );
 }
