@@ -5,6 +5,7 @@ import { Eye, KeyRound, Search } from "lucide-react";
 import { LazyAccountImage } from "@/components/lazy-account-image";
 import { TFTRentalAccount, TFTCloneAccount } from "@/data/tft-data";
 import { getAccountProductUrl } from "@/utils/account-lookup";
+import { analytics } from "@/utils/analytics";
 
 /**
  * Định dạng tiền tệ Việt Nam (VNĐ) chuẩn: 15.000đ, 99.000đ, 1.200.000đ
@@ -184,12 +185,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const handlePrimaryAction = () => {
     if (isVip) {
       if (onSelectAccount && item.rawVip) {
+        analytics.trackOpenRentalModal({
+          product_id: item.code || item.id,
+          product_type: "VIP",
+        });
         onSelectAccount(item.rawVip);
       } else {
         handleViewDetail();
       }
     } else {
       if (onSelectClone && item.rawClone) {
+        analytics.trackOpenRentalModal({
+          product_id: item.code || item.id,
+          product_type: "CLONE",
+        });
         onSelectClone(item.rawClone);
       } else {
         window.location.href = getAccountProductUrl(item);

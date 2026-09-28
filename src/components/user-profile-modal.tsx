@@ -503,7 +503,7 @@ export const UserProfileModal: React.FC = () => {
                   <button
                     onClick={() => {
                       closeProfileModal();
-                      window.location.href = "/#shop";
+                      window.location.href = "/shop";
                     }}
                     className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-md transition-colors cursor-pointer"
                   >
@@ -872,7 +872,7 @@ export const UserProfileModal: React.FC = () => {
                   <button
                     onClick={() => {
                       closeProfileModal();
-                      window.location.href = "/#shop";
+                      window.location.href = "/shop";
                       toast.success("Vui lòng chọn 1 acc trong kho và nhắn Zalo mã TEST2H-VIP để nhận pass miễn phí!");
                     }}
                     className="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"

@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { PROFILE_INFO } from "@/data/tft-data";
+import { analytics } from "@/utils/analytics";
 import {
   ShieldCheck,
   CheckCircle2,
@@ -335,6 +336,7 @@ export const TFTAbout: React.FC = () => {
               href={PROFILE_INFO.zaloUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => analytics.trackClickZalo({ source: "about" })}
               className="px-6 py-2.5 sm:py-3 rounded-xl bg-[#141416] hover:bg-[#1a1a1c] text-white border border-white/15 hover:border-white/30 font-medium text-xs sm:text-sm transition-all active:scale-98 inline-flex items-center gap-1.5"
             >
               <MessageCircle className="w-4 h-4 text-emerald-400" />

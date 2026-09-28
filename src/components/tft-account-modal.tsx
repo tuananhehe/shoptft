@@ -8,6 +8,7 @@ import { formatRentalExpiry } from "@/utils/supabase/accounts-service";
 import { getHomepageConfig, PricingConfig } from "@/utils/homepage-service";
 import { getAccountProductUrl } from "@/utils/account-lookup";
 import { copyToClipboard } from "@/utils/clipboard-helper";
+import { analytics } from "@/utils/analytics";
 import { LazyAccountImage } from "@/components/lazy-account-image";
 import { ZaloRedirectModal } from "@/components/zalo-redirect-modal";
 import toast from "react-hot-toast";
@@ -85,6 +86,13 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
     setSelectedPackage("perm");
     setIsAgreed(true);
     setShowAllChibis(false);
+
+    if (account) {
+      analytics.trackOpenRentalModal({
+        product_id: account.code || account.id,
+        product_type: "VIP",
+      });
+    }
 
     if (account?.status === "RENTED") {
       const info = formatRentalExpiry(account.rentedUntil);
@@ -214,6 +222,13 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
 
     const orderMessage = `Chào Tuấn Thái Bình, mình muốn thuê tài khoản ${account.code} (${account.title}) - Gói ${activePkg.name} (Tổng giá thuê: ${formatMoney(activePkg.totalPrice)}). Link acc: ${linkUrl}${upgradeNote}`;
 
+    analytics.trackClickZalo({
+      source: "rental_modal",
+      product_id: account.code || account.id,
+      product_type: "VIP",
+      rental_package: selectedPackage,
+    });
+
     await copyToClipboard(orderMessage);
     setZaloRedirectMessage(orderMessage);
   };
@@ -221,6 +236,13 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
   const handlePreOrderZalo = async () => {
     const linkUrl = typeof window !== "undefined" ? `${window.location.origin}${getAccountProductUrl(account)}` : "";
     const preOrderMessage = `Chào Tuấn Thái Bình, mình muốn ĐẶT TRƯỚC tài khoản ${account.code} (${account.title}) khi hết giờ thuê. Link: ${linkUrl}`;
+
+    analytics.trackClickZalo({
+      source: "rental_modal",
+      product_id: account.code || account.id,
+      product_type: "VIP",
+      rental_package: "pre_order",
+    });
 
     await copyToClipboard(preOrderMessage);
     setZaloRedirectMessage(preOrderMessage);
@@ -447,7 +469,15 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
                     <button
                       key={key}
                       type="button"
-                      onClick={() => setSelectedPackage(key)}
+                      onClick={() => {
+                        setSelectedPackage(key);
+                        analytics.trackSelectRentalPackage({
+                          product_id: account.code || account.id,
+                          package_name: pkg.name,
+                          duration_hours: key === "2h" ? 2 : key === "7d" ? 168 : 720,
+                          price: pkg.totalPrice,
+                        });
+                      }}
                       className={`p-2.5 sm:p-3 rounded-xl border text-left transition-all relative cursor-pointer ${
                         isSelected
                           ? "bg-white/[0.08] border-white text-white shadow-lg"

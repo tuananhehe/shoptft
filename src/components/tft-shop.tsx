@@ -362,7 +362,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({
               Kho Thuê Acc VIP
             </h2>
             <p className="text-slate-600 text-xs sm:text-base max-w-2xl font-normal line-clamp-2 sm:line-clamp-none">
-              Trải nghiệm acc VIP sở hữu Tướng Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc chỉ từ 6k/giờ. Tự động nhận pass sau khi thanh toán.
+              Trải nghiệm acc VIP sở hữu Tướng Tí Nị Thần Thoại & Sân Đấu Đổi Nhạc chỉ từ 6k/giờ. Hỗ trợ trực tiếp và bàn giao qua Zalo.
             </p>
           </div>
 

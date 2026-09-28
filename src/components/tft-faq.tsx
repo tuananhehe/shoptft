@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { ChevronDown, HelpCircle, MessageCircle } from "lucide-react";
 import { PROFILE_INFO } from "@/utils/profile-info";
+import { analytics } from "@/utils/analytics";
 
 interface FAQItem {
   q: string;
@@ -106,6 +107,7 @@ export const TFTFaq: React.FC<TFTFaqProps> = ({ customFaqs }) => {
             href={PROFILE_INFO.zaloUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => analytics.trackClickZalo({ source: "faq" })}
             className="inline-flex items-center gap-2 text-xs sm:text-sm text-zinc-400 hover:text-white transition-colors"
           >
             <MessageCircle className="w-4 h-4 text-emerald-400" />

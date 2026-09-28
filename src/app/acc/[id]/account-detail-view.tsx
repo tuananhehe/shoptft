@@ -7,6 +7,7 @@ import { PROFILE_INFO } from "@/data/tft-data";
 import { formatRentalExpiry } from "@/utils/supabase/accounts-service";
 import { getHomepageConfig, PricingConfig } from "@/utils/homepage-service";
 import { copyToClipboard } from "@/utils/clipboard-helper";
+import { analytics } from "@/utils/analytics";
 import { TFTNavbar } from "@/components/tft-navbar";
 import { TFTFooter } from "@/components/tft-footer";
 import { LazyAccountImage } from "@/components/lazy-account-image";
@@ -49,6 +50,18 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
     rate30Days: 30,
   });
 
+  const isRented = account.status === "RENTED";
+  const rentalInfo = formatRentalExpiry(account.rentedUntil);
+
+  const baseAccountValue =
+    Number(account.accountValue) ||
+    Number(account.periodPrice) ||
+    Number(account.monthlyPrice) ||
+    (Number(account.hourlyPrice) || 15000) * 50 ||
+    850000;
+
+  const clonePrice = Number(account.price) || Number(account.periodPrice) || Number(account.monthlyPrice) || 150000;
+
   useEffect(() => {
     getHomepageConfig().then((cfg) => {
       if (cfg?.pricing) {
@@ -59,7 +72,13 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
 
   useEffect(() => {
     setSelectedPackage("perm");
-  }, [account.id]);
+    analytics.trackViewProduct({
+      product_id: account.code || account.id,
+      product_type: isClone ? "CLONE" : "VIP",
+      availability: isRented ? "RENTED" : "AVAILABLE",
+      display_price: isClone ? clonePrice : baseAccountValue,
+    });
+  }, [account.id, isClone, isRented, clonePrice, baseAccountValue]);
 
   useEffect(() => {
     if (account.status === "RENTED") {
@@ -75,9 +94,6 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
     }
   }, [account]);
 
-  const isRented = account.status === "RENTED";
-  const rentalInfo = formatRentalExpiry(account.rentedUntil);
-
   const days = Math.floor(countdownSeconds / (24 * 3600));
   const hours = Math.floor((countdownSeconds % (24 * 3600)) / 3600);
   const minutes = Math.floor((countdownSeconds % 3600) / 60);
@@ -92,19 +108,10 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
 
   const roundToThousand = (num: number) => Math.round(num / 1000) * 1000;
 
-  const baseAccountValue =
-    Number(account.accountValue) ||
-    Number(account.periodPrice) ||
-    Number(account.monthlyPrice) ||
-    (Number(account.hourlyPrice) || 15000) * 50 ||
-    850000;
-
   const passFee = pricingRates.passChangeFee || 20000;
   const rate2h = (pricingRates.rate2Hours || 3) / 100;
   const rate7d = (pricingRates.rate7Days || 12) / 100;
   const rate30d = (pricingRates.rate30Days || 30) / 100;
-
-  const clonePrice = Number(account.price) || Number(account.periodPrice) || Number(account.monthlyPrice) || 150000;
 
   const packageConfigs: Record<
     PackageKey,
@@ -213,6 +220,13 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
       `- Link: ${rawUrl}`,
       `Nhờ shop tư vấn và bàn giao tài khoản qua Zalo giúp mình nhé!`,
     ].join("\n");
+
+    analytics.trackClickZalo({
+      source: "product_detail",
+      product_id: account.code || account.id,
+      product_type: isClone ? "CLONE" : "VIP",
+      rental_package: selectedPackage,
+    });
 
     setZaloRedirectMessage(message);
   };
@@ -488,7 +502,15 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                       return (
                         <button
                           key={pkgKey}
-                          onClick={() => setSelectedPackage(pkgKey)}
+                          onClick={() => {
+                            setSelectedPackage(pkgKey);
+                            analytics.trackSelectRentalPackage({
+                              product_id: account.code || account.id,
+                              package_name: pkg.name,
+                              duration_hours: pkgKey === "2h" ? 2 : pkgKey === "7d" ? 168 : 720,
+                              price: pkg.totalPrice,
+                            });
+                          }}
                           className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between min-h-[85px] ${
                             isSelected
                               ? "bg-white/15 border-white text-white shadow-sm"

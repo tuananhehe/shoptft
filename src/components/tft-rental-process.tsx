@@ -1,6 +1,9 @@
+"use client";
+
 import React from "react";
 import { MessageCircle } from "lucide-react";
 import { PROFILE_INFO } from "@/utils/profile-info";
+import { analytics } from "@/utils/analytics";
 
 const steps = [
   {
@@ -86,6 +89,7 @@ export const TFTRentalProcess = () => (
           href={PROFILE_INFO.zaloUrl}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => analytics.trackClickZalo({ source: "rental_process" })}
           className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-white border border-white/[0.15] hover:border-white/30 text-xs sm:text-sm font-medium transition-all cursor-pointer"
         >
           <MessageCircle className="w-4 h-4 text-zinc-300" />

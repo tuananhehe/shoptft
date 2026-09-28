@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { PROFILE_INFO } from "@/data/tft-data";
+import { analytics } from "@/utils/analytics";
 import { ShieldCheck, MessageCircle, ArrowUp } from "lucide-react";
 
 export const TFTFooter: React.FC = () => {
@@ -110,6 +111,7 @@ export const TFTFooter: React.FC = () => {
                   href={PROFILE_INFO.zaloUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => analytics.trackClickZalo({ source: "footer" })}
                   className="hover:text-white transition-colors flex items-center gap-1"
                 >
                   <MessageCircle className="w-3 h-3 text-emerald-400" />

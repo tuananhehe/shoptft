@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { PROFILE_INFO } from "@/data/tft-data";
+import { analytics } from "@/utils/analytics";
 import { Home, Gamepad2, Sparkles, Info, MessageCircle } from "lucide-react";
 
 export const TFTMobileBottomBar: React.FC = () => {
@@ -99,6 +100,7 @@ export const TFTMobileBottomBar: React.FC = () => {
           href={PROFILE_INFO.zaloUrl}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => analytics.trackClickZalo({ source: "mobile_bottom_bar" })}
           className="flex flex-col items-center justify-center py-1 px-1 rounded-xl text-zinc-300 hover:text-white font-semibold transition-all active:scale-95"
         >
           <div className="relative w-7 h-7 rounded-full bg-white text-black flex items-center justify-center shadow-sm">

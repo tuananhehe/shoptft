@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUserAuth } from "@/context/user-auth-context";
 import { PROFILE_INFO } from "@/data/tft-data";
+import { analytics } from "@/utils/analytics";
 import toast from "react-hot-toast";
 import {
   Lock,
@@ -58,10 +59,12 @@ export default function LoginPage() {
 
     if (!res.success) {
       toast.dismiss(toastId);
+      analytics.trackMemberLogin({ success: false });
       setErrorMessage(res.message || "Đăng nhập thất bại. Vui lòng thử lại.");
       return;
     }
 
+    analytics.trackMemberLogin({ success: true });
     toast.success("Đăng nhập thành công!", { id: toastId });
 
     if (res.requiresProfileCompletion) {

@@ -21,6 +21,7 @@ import {
 } from "@/components/product-card";
 import { getVipAndCloneAccounts } from "@/utils/supabase/accounts-service";
 import { TFTRentalAccount, TFTCloneAccount } from "@/data/tft-data";
+import { analytics } from "@/utils/analytics";
 import { ChevronRight, RotateCcw } from "lucide-react";
 
 function removeAccents(str?: string | null): string {
@@ -81,8 +82,10 @@ function ShopPageContent() {
         setIsLoading(true);
         const { vipAccounts, cloneAccounts } = await getVipAndCloneAccounts();
         if (isMounted) {
+          const total = (vipAccounts?.length || 0) + (cloneAccounts?.length || 0);
           setVipRaw(vipAccounts || []);
           setCloneRaw(cloneAccounts || []);
+          analytics.trackViewShop(total);
         }
       } catch (err) {
         console.error("Lỗi tải danh sách tài khoản:", err);
@@ -196,6 +199,28 @@ function ShopPageContent() {
 
   const handleFilterChange = useCallback(
     (updates: Partial<FilterState>) => {
+      if (updates.search !== undefined && updates.search.trim().length > 0) {
+        analytics.trackSearchProduct({ query: updates.search });
+      }
+      if (updates.type !== undefined) {
+        analytics.trackApplyFilter({ filter_type: "type", filter_value: updates.type });
+      }
+      if (updates.pet !== undefined && updates.pet) {
+        analytics.trackApplyFilter({ filter_type: "pet", filter_value: updates.pet });
+      }
+      if (updates.arena !== undefined && updates.arena) {
+        analytics.trackApplyFilter({ filter_type: "arena", filter_value: updates.arena });
+      }
+      if (updates.price !== undefined && updates.price !== "ALL") {
+        analytics.trackApplyFilter({ filter_type: "price", filter_value: updates.price });
+      }
+      if (updates.status !== undefined && updates.status !== "ALL") {
+        analytics.trackApplyFilter({ filter_type: "status", filter_value: updates.status });
+      }
+      if (updates.sort !== undefined) {
+        analytics.trackApplyFilter({ filter_type: "sort", filter_value: updates.sort });
+      }
+
       setFilters((prev) => {
         let nextType = updates.type !== undefined ? updates.type : prev.type;
         let nextSort = updates.sort !== undefined ? updates.sort : prev.sort;
