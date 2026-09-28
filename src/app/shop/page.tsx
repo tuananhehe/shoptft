@@ -439,17 +439,17 @@ function ShopPageContent() {
 
       <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-16 flex-1">
         {/* Breadcrumb */}
-        <nav aria-label="Breadcrumb" className="mb-3">
-          <ol className="flex items-center gap-1.5 text-xs text-zinc-500 font-normal">
+        <nav aria-label="Breadcrumb" className="mb-3.5">
+          <ol className="flex items-center gap-1.5 text-xs text-zinc-400 font-normal">
             <li>
-              <Link href="/" className="hover:text-zinc-300 transition-colors">
+              <Link href="/" className="hover:text-white transition-colors">
                 Trang chủ
               </Link>
             </li>
             <li>
-              <ChevronRight className="w-3 h-3 text-zinc-600" />
+              <ChevronRight className="w-3.5 h-3.5 text-zinc-500" />
             </li>
-            <li className="text-zinc-300 font-medium">Kho Acc</li>
+            <li className="text-white font-medium">Kho Acc</li>
           </ol>
         </nav>
 
@@ -473,11 +473,11 @@ function ShopPageContent() {
           initialFocus={focusParam}
         />
 
-        {/* Result Count & Active Filter Summary */}
-        <div className="flex items-center justify-between gap-3 mb-4 text-xs text-zinc-400 border-b border-white/[0.06] pb-3">
+        {/* Result Count & Active Filter Summary (Single clean count line) */}
+        <div className="flex items-center justify-between gap-3 mb-4 text-xs sm:text-[13px] text-zinc-400 border-b border-white/[0.06] pb-3">
           <div>
             <span>Tìm thấy </span>
-            <strong className="text-white font-semibold font-mono">
+            <strong className="text-white font-bold font-mono px-0.5">
               {filteredAccounts.length}
             </strong>
             <span> tài khoản phù hợp</span>
@@ -491,9 +491,9 @@ function ShopPageContent() {
             filters.status !== "ALL") && (
             <button
               onClick={handleResetAll}
-              className="inline-flex items-center gap-1 text-[11px] text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-white/[0.05]"
             >
-              <RotateCcw className="w-3 h-3" />
+              <RotateCcw className="w-3.5 h-3.5" />
               <span>Xóa bộ lọc</span>
             </button>
           )}

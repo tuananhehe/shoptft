@@ -584,16 +584,11 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
       </div>
 
       {/* ============================================================ */}
-      {/* 2. DÒNG THỐNG KÊ KẾT QUẢ & ACTIVE FILTER CHIPS               */}
+      {/* 2. ACTIVE FILTER CHIPS (KHI CÓ BỘ LỌC ĐƯỢC CHỌN)             */}
       {/* ============================================================ */}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-0.5 px-0.5">
-        <div className="text-zinc-400 font-normal">
-          Tìm thấy <strong className="text-white font-semibold font-mono">{totalMatching}</strong> acc phù hợp
-        </div>
-
-        {hasActiveFiltersOrSearch && (
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {filters.search && (
+      {hasActiveFiltersOrSearch && (
+        <div className="flex items-center gap-1.5 flex-wrap pt-0.5 px-0.5">
+          {filters.search && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/[0.08] text-white text-[11px] font-medium border border-white/10">
                 <span>&quot;{filters.search}&quot;</span>
                 <button
@@ -693,7 +688,6 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
             </button>
           </div>
         )}
-      </div>
 
       {/* ============================================================ */}
       {/* 3. MOBILE FILTER DRAWER (BOTTOM SHEET TRƯỢT LÊN)              */}

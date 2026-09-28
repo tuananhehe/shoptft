@@ -30,8 +30,8 @@ function cleanTftImageUrl(url?: string): string {
 export const LazyAccountImage: React.FC<LazyAccountImageProps> = ({
   src,
   alt,
-  className = "w-full h-full object-cover",
-  containerClassName = "relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-[#141416] border border-white/[0.06]",
+  className = "w-full h-full object-contain",
+  containerClassName = "relative aspect-square w-full overflow-hidden rounded-xl bg-[#0d0d0f] border border-white/[0.06] flex items-center justify-center",
   priority = false,
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -90,7 +90,7 @@ export const LazyAccountImage: React.FC<LazyAccountImageProps> = ({
           src={activeSrc}
           alt={alt}
           width={400}
-          height={300}
+          height={400}
           loading={priority ? "eager" : "lazy"}
           decoding="async"
           referrerPolicy="no-referrer"
@@ -102,7 +102,7 @@ export const LazyAccountImage: React.FC<LazyAccountImageProps> = ({
         />
       ) : (
         /* 3. Fallback sang trọng nếu toàn bộ link ảnh đều hỏng */
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#141416] text-zinc-400 text-xs p-3 text-center gap-1.5 select-none">
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#0d0d0f] text-zinc-400 text-xs p-3 text-center gap-1.5 select-none">
           <Gamepad2 className="w-8 h-8 text-zinc-500 drop-shadow-sm" />
           <span className="text-[11px] font-medium text-zinc-300 line-clamp-1">{alt || "Tài Khoản ĐTCL"}</span>
           <span className="text-[9px] font-mono text-zinc-400 bg-white/[0.04] px-2 py-0.5 rounded border border-white/10">

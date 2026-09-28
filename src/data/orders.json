@@ -1,5 +1,27 @@
 [
   {
+    "id": "ORD-699",
+    "type": "VIP",
+    "customer": "Khách hàng ẩn danh",
+    "deliveredBy": "Admin",
+    "phoneZalo": "0352.867.283",
+    "accountCode": "699",
+    "accountTitle": "Irelia Thánh Kiếm Tí Nị + Huyết Nguyệt Dạ Hành",
+    "package": "Gói Thuê Lâu Dài (Vô Cực ∞)",
+    "durationHours": -1,
+    "amount": 390000,
+    "paymentMethod": "TRANSFER",
+    "status": "RENTING",
+    "createdBy": "ADMIN",
+    "source": "ADMIN",
+    "createdAt": "2026-09-25T15:38:13.957057+00:00",
+    "startedAt": "2026-09-25T15:38:13.957057+00:00",
+    "expiresAt": "2029-06-23T15:18:24.426+00:00",
+    "accountLogin": "tft_699",
+    "accountPass": "TuanTFT@4003",
+    "notes": "Đơn tự động đồng bộ từ kho tài khoản đang cho thuê."
+  },
+  {
     "id": "ORD-751",
     "type": "VIP",
     "customer": "Khách hàng ẩn danh",
