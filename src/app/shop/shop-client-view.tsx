@@ -575,9 +575,9 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
       {/* Header */}
       <TFTNavbar />
 
-      <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-16 flex-1">
-        {/* Breadcrumb */}
-        <nav aria-label="Breadcrumb" className="mb-3.5">
+      <main className="max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-20 sm:pb-16 flex-1">
+        {/* Breadcrumb - Ẩn trên mobile <= 480px để tiết kiệm diện tích màn hình */}
+        <nav aria-label="Breadcrumb" className="hidden sm:block mb-3.5">
           <ol className="flex items-center gap-1.5 text-xs text-zinc-400 font-normal">
             <li>
               <Link href="/" className="hover:text-white transition-colors">
@@ -591,13 +591,14 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
           </ol>
         </nav>
 
-        {/* Page Title & Subtitle */}
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-heading font-bold text-white tracking-tight leading-tight">
+        {/* Page Title & Subtitle - Tinh gọn trên mobile */}
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-3xl lg:text-4xl font-heading font-bold text-white tracking-tight leading-tight">
             Kho Acc TFT
           </h1>
           <p className="mt-1 text-zinc-400 text-xs sm:text-sm max-w-2xl font-normal leading-relaxed">
-            Tìm kiếm theo Pet, Chibi, Sân Đấu, loại tài khoản và khoảng giá phù hợp.
+            <span className="sm:hidden">Tìm acc theo Pet, Sân Đấu và mức giá.</span>
+            <span className="hidden sm:inline">Tìm kiếm theo Pet, Chibi, Sân Đấu, loại tài khoản và khoảng giá phù hợp.</span>
           </p>
         </div>
 
@@ -611,14 +612,15 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
           initialFocus={focusParam}
         />
 
-        {/* Result Count & Active Filter Summary (Single clean count line) */}
-        <div className="flex items-center justify-between gap-3 mb-4 text-xs sm:text-[13px] text-zinc-400 border-b border-white/[0.06] pb-3">
+        {/* Result Count & Active Filter Summary (Mobile: "134 tài khoản", Desktop: "Tìm thấy 134 tài khoản phù hợp") */}
+        <div className="flex items-center justify-between gap-3 mb-3.5 sm:mb-4 text-xs sm:text-[13px] text-zinc-400 border-b border-white/[0.06] pb-2.5 sm:pb-3">
           <div>
-            <span>Tìm thấy </span>
+            <span className="hidden sm:inline">Tìm thấy </span>
             <strong className="text-white font-bold font-mono px-0.5">
               {filteredAccounts.length}
             </strong>
-            <span> tài khoản phù hợp</span>
+            <span className="hidden sm:inline"> tài khoản phù hợp</span>
+            <span className="sm:hidden"> tài khoản</span>
           </div>
 
           {(filters.search ||
@@ -639,7 +641,7 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
 
         {/* Product Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <ProductCardSkeleton key={i} />
             ))}
@@ -657,7 +659,7 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
           />
         ) : (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
               {visibleAccounts.map((item, idx) => (
                 <Reveal key={item.id} delay={Math.min((idx % PAGE_SIZE) * 40, 120)} className="h-full">
                   <ProductCard
@@ -672,7 +674,7 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
             {/* Incremental Loading Sentinel & Skeletons */}
             {hasMore && (
               <div ref={sentinelRef} className="mt-4 pt-2">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 opacity-70">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 opacity-70">
                   {Array.from({ length: 4 }).map((_, i) => (
                     <ProductCardSkeleton key={i} />
                   ))}

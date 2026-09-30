@@ -80,7 +80,7 @@ export const TFTRecentlyViewed: React.FC<TFTRecentlyViewedProps> = ({
         </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {recentAccounts.map((item, idx) => {
           const cardData = {
             id: item.id,
