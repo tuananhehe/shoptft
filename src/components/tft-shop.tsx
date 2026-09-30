@@ -8,6 +8,7 @@ import { getHomepageConfig } from "@/utils/homepage-service";
 import { getAccountProductUrl } from "@/utils/account-lookup";
 import { LazyAccountImage } from "@/components/lazy-account-image";
 import { TFTImageLightbox } from "@/components/tft-image-lightbox";
+import { usePrimaryCtaExperiment } from "@/utils/experiments";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import toast from "react-hot-toast";
 import {
@@ -196,6 +197,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({
   onSelectAccount = () => {},
   alwaysExpanded = false,
 }) => {
+  const { ctaText } = usePrimaryCtaExperiment();
   // Khởi tạo trạng thái đang load, fetch trực tiếp dữ liệu từ Database
   const [vipAccounts, setVipAccounts] = useState<TFTRentalAccount[]>([]);
   const [globalPriceMode, setGlobalPriceMode] = useState<string>("AUTO");
@@ -516,7 +518,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({
                       className="h-8 sm:h-8.5 px-1 sm:px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 active:scale-95 text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider rounded-lg sm:rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 cursor-pointer"
                     >
                       <KeyRound className="w-3.5 h-3.5 flex-shrink-0" />
-                      <span>Thuê Ngay</span>
+                      <span>{ctaText}</span>
                     </button>
                   </div>
                 </div>
@@ -881,7 +883,7 @@ export const TFTShop: React.FC<TFTShopProps> = ({
                           className="h-8 sm:h-9 px-1 sm:px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 active:scale-95 text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider rounded-lg sm:rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 cursor-pointer"
                         >
                           <KeyRound className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span>Thuê Ngay</span>
+                          <span>{ctaText}</span>
                         </button>
                       </div>
                     </div>

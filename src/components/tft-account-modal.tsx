@@ -11,6 +11,7 @@ import { copyToClipboard } from "@/utils/clipboard-helper";
 import { analytics } from "@/utils/analytics";
 import { LazyAccountImage } from "@/components/lazy-account-image";
 import { ZaloRedirectModal } from "@/components/zalo-redirect-modal";
+import { usePrimaryCtaExperiment } from "@/utils/experiments";
 import toast from "react-hot-toast";
 import {
   X,
@@ -41,6 +42,7 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
   const [countdownSeconds, setCountdownSeconds] = useState<number>(0);
   const [zaloRedirectMessage, setZaloRedirectMessage] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const { ctaText } = usePrimaryCtaExperiment();
   const [pricingRates, setPricingRates] = useState<PricingConfig>({
     passChangeFee: 20000,
     rate2Hours: 3,
@@ -620,7 +622,7 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
                 }`}
               >
                 <MessageCircle className="w-3.5 h-3.5" />
-                <span>Thuê Qua Zalo</span>
+                <span>{ctaText}</span>
               </button>
             )}
           </div>

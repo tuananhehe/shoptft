@@ -12,6 +12,7 @@ import { LazyAccountImage } from "@/components/lazy-account-image";
 import { TFTImageLightbox } from "@/components/tft-image-lightbox";
 import { ZaloRedirectModal } from "@/components/zalo-redirect-modal";
 import { analytics } from "@/utils/analytics";
+import { usePrimaryCtaExperiment } from "@/utils/experiments";
 import { motion, Variants } from "framer-motion";
 import {
   KeyRound,
@@ -190,6 +191,7 @@ export const TFTCloneShop: React.FC = () => {
   const [visibleCount, setVisibleCount] = useState(12);
   const [zaloRedirectMessage, setZaloRedirectMessage] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const { ctaText } = usePrimaryCtaExperiment();
   const sliderRef = useRef<HTMLDivElement>(null);
   const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
 
@@ -620,7 +622,7 @@ export const TFTCloneShop: React.FC = () => {
                         className="h-8 sm:h-8.5 px-1 sm:px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 active:scale-95 text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider rounded-lg sm:rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 cursor-pointer font-gaming"
                       >
                         <KeyRound className="w-3.5 h-3.5 flex-shrink-0" />
-                        <span>Thuê Ngay</span>
+                        <span>{ctaText}</span>
                       </button>
                     </div>
                   </div>
@@ -990,7 +992,7 @@ export const TFTCloneShop: React.FC = () => {
                             className="h-8 sm:h-9 px-1 sm:px-2 bg-orange-700 hover:bg-orange-800 active:bg-orange-900 active:scale-95 text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider rounded-lg sm:rounded-xl transition-all shadow-md shadow-orange-700/20 flex items-center justify-center gap-1 cursor-pointer font-gaming"
                           >
                             <KeyRound className="w-3.5 h-3.5 flex-shrink-0" />
-                            <span>Thuê Ngay</span>
+                            <span>{ctaText}</span>
                           </button>
                         </div>
                       </div>

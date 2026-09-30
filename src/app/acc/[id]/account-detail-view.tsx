@@ -15,6 +15,7 @@ import { TFTImageLightbox } from "@/components/tft-image-lightbox";
 import { ZaloRedirectModal } from "@/components/zalo-redirect-modal";
 import { TFTRecentlyViewed } from "@/components/tft-recently-viewed";
 import { addRecentlyViewed, isFavorite, toggleFavorite } from "@/utils/product-discovery";
+import { usePrimaryCtaExperiment } from "@/utils/experiments";
 import { Reveal } from "@/components/reveal";
 import toast from "react-hot-toast";
 import {
@@ -41,6 +42,7 @@ type PackageKey = "2h" | "7d" | "30d" | "perm";
 
 export function AccountDetailView({ account, relatedAccounts }: AccountDetailViewProps) {
   const isClone = account.type === "CLONE";
+  const { ctaText, variant, experimentId } = usePrimaryCtaExperiment();
   const [selectedPackage, setSelectedPackage] = useState<PackageKey>("perm");
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
@@ -282,7 +284,7 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
       <TFTNavbar />
 
       {/* 2. Main Content Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 pb-28 lg:pb-8">
         {/* Breadcrumb */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-3 border-b border-white/[0.08]">
           <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-zinc-400">
@@ -617,7 +619,7 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                     className="w-full py-3.5 px-6 rounded-xl bg-white hover:bg-zinc-200 text-black font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-99 shadow-sm"
                   >
                     <MessageCircle className="w-4 h-4" />
-                    <span>Thuê qua Zalo</span>
+                    <span>{ctaText}</span>
                   </button>
                 )}
 
@@ -751,7 +753,7 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
       />
 
       {/* Mobile Sticky Bottom CTA */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#09090b]/95 backdrop-blur-md border-t border-white/10 p-3 px-4 flex items-center justify-between gap-3 shadow-2xl">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#09090b]/95 backdrop-blur-md border-t border-white/10 p-3 px-4 pb-[max(12px,env(safe-area-inset-bottom))] flex items-center justify-between gap-3 shadow-2xl">
         <div>
           <span className="text-[10px] text-zinc-400 block truncate max-w-[140px]">
             {isRented
@@ -778,7 +780,7 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
             className="py-2.5 px-5 rounded-xl bg-white hover:bg-zinc-200 text-black font-semibold text-xs transition-colors flex items-center gap-1.5"
           >
             <MessageCircle className="w-3.5 h-3.5" />
-            <span>Thuê Qua Zalo</span>
+            <span>{ctaText}</span>
           </button>
         )}
       </div>

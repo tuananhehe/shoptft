@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { getAccountProductUrl } from "@/utils/account-lookup";
+import { usePrimaryCtaExperiment } from "@/utils/experiments";
 
 interface TFTImageLightboxProps {
   isOpen: boolean;
@@ -70,6 +71,7 @@ export const TFTImageLightbox: React.FC<TFTImageLightboxProps> = ({
   onRentNow,
 }) => {
   const [mounted, setMounted] = useState(false);
+  const { ctaText } = usePrimaryCtaExperiment();
   const [copiedLink, setCopiedLink] = useState(false);
   const [scale, setScale] = useState<number>(1);
   const [imgError, setImgError] = useState(false);
@@ -393,7 +395,7 @@ export const TFTImageLightbox: React.FC<TFTImageLightboxProps> = ({
                 className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-semibold uppercase tracking-wider shadow-sm flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
               >
                 <KeyRound className="w-3.5 h-3.5" />
-                <span>Thuê Ngay</span>
+                <span>{ctaText}</span>
               </button>
             )}
           </div>

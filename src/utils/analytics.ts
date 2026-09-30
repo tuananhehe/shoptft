@@ -8,6 +8,8 @@
  * - Non-blocking, deferred execution with deduplication and UTM attribution.
  */
 
+import { getActiveExperimentContext } from "@/utils/experiments";
+
 export interface TrackClickZaloParams {
   source:
     | "header"
@@ -27,6 +29,8 @@ export interface TrackClickZaloParams {
   product_id?: string;
   product_type?: "VIP" | "CLONE" | string;
   rental_package?: string;
+  experiment_name?: string;
+  variant?: string;
 }
 
 export interface TrackSearchProductParams {
@@ -54,11 +58,15 @@ export interface TrackViewProductParams {
   product_type: "VIP" | "CLONE" | string;
   availability: "AVAILABLE" | "RENTED" | string;
   display_price?: number;
+  experiment_name?: string;
+  variant?: string;
 }
 
 export interface TrackOpenRentalModalParams {
   product_id: string;
   product_type: "VIP" | "CLONE" | string;
+  experiment_name?: string;
+  variant?: string;
 }
 
 export interface TrackSelectRentalPackageParams {
@@ -66,6 +74,8 @@ export interface TrackSelectRentalPackageParams {
   package_name: string;
   duration_hours?: number;
   price?: number;
+  experiment_name?: string;
+  variant?: string;
 }
 
 export interface TrackFavoriteProductParams {
@@ -222,6 +232,20 @@ function sendEvent(eventName: string, params: Record<string, any> = {}) {
     if (utm.utm_medium && !cleanParams.utm_medium) cleanParams.utm_medium = utm.utm_medium;
     if (utm.utm_campaign && !cleanParams.utm_campaign) cleanParams.utm_campaign = utm.utm_campaign;
 
+    // Gắn ngữ cảnh A/B Experiment và Phân loại thiết bị (Mobile vs Desktop)
+    if (typeof window !== "undefined") {
+      const exp = getActiveExperimentContext();
+      if (!cleanParams.experiment_name && exp.experiment_name) {
+        cleanParams.experiment_name = exp.experiment_name;
+      }
+      if (!cleanParams.variant && exp.variant) {
+        cleanParams.variant = exp.variant;
+      }
+      if (!cleanParams.device_type) {
+        cleanParams.device_type = window.innerWidth < 768 ? "mobile" : "desktop";
+      }
+    }
+
     // Chống trùng lặp sự kiện
     if (isDuplicateEvent(eventName, cleanParams)) {
       return;
@@ -264,6 +288,8 @@ export const analytics = {
       product_id: params.product_id,
       product_type: params.product_type,
       rental_package: params.rental_package,
+      experiment_name: params.experiment_name,
+      variant: params.variant,
     });
   },
 
@@ -328,6 +354,8 @@ export const analytics = {
       product_type: params.product_type,
       availability: params.availability,
       price: params.display_price,
+      experiment_name: params.experiment_name,
+      variant: params.variant,
     });
   },
 
@@ -338,6 +366,8 @@ export const analytics = {
     sendEvent("open_rental_modal", {
       product_id: params.product_id,
       product_type: params.product_type,
+      experiment_name: params.experiment_name,
+      variant: params.variant,
     });
   },
 
@@ -350,6 +380,8 @@ export const analytics = {
       package_name: params.package_name,
       duration_hours: params.duration_hours,
       price: params.price,
+      experiment_name: params.experiment_name,
+      variant: params.variant,
     });
   },
 

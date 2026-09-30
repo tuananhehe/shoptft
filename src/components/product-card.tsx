@@ -6,6 +6,7 @@ import { LazyAccountImage } from "@/components/lazy-account-image";
 import { TFTRentalAccount, TFTCloneAccount } from "@/data/tft-data";
 import { getAccountProductUrl } from "@/utils/account-lookup";
 import { isFavorite, toggleFavorite } from "@/utils/product-discovery";
+import { usePrimaryCtaExperiment } from "@/utils/experiments";
 
 /**
  * Định dạng tiền tệ Việt Nam (VNĐ) chuẩn: 15.000đ, 99.000đ, 1.200.000đ
@@ -226,6 +227,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     }
   };
 
+  const { ctaText } = usePrimaryCtaExperiment();
   const [isFav, setIsFav] = React.useState(false);
 
   React.useEffect(() => {
@@ -386,10 +388,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               type="button"
               onClick={handlePrimaryAction}
               className="w-full h-10 px-3 bg-white hover:bg-zinc-200 active:scale-98 text-[#09090b] font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
-              aria-label={`Thuê ngay tài khoản ${item.code}`}
+              aria-label={`${ctaText} tài khoản ${item.code}`}
             >
               <KeyRound className="w-3.5 h-3.5 flex-shrink-0 text-[#09090b]" />
-              <span className="truncate">Thuê ngay</span>
+              <span className="truncate">{ctaText}</span>
             </button>
           ) : (
             <button
@@ -423,10 +425,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               type="button"
               onClick={handlePrimaryAction}
               className="h-10 px-2 bg-white hover:bg-zinc-200 active:scale-98 text-[#09090b] font-semibold text-sm rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
-              aria-label={`Thuê ngay tài khoản ${item.code}`}
+              aria-label={`${ctaText} tài khoản ${item.code}`}
             >
               <KeyRound className="w-3.5 h-3.5 flex-shrink-0 text-[#09090b]" />
-              <span className="truncate">Thuê ngay</span>
+              <span className="truncate">{ctaText}</span>
             </button>
           ) : (
             <button
