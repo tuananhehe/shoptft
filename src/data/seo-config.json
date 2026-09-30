@@ -1,0 +1,147 @@
+{
+  "global": {
+    "siteName": "ShopTFTMobile",
+    "brandName": "Tuấn Thái Bình TFT",
+    "canonicalOrigin": "https://www.shoptftmobile.net",
+    "defaultTitle": "Thuê Acc TFT - ĐTCL | ShopTFTMobile - Tuấn Thái Bình TFT",
+    "defaultDescription": "Kho tài khoản TFT/ĐTCL với Pet, Chibi và Sân Đấu đa dạng. Xem acc, lựa chọn nhu cầu và liên hệ ShopTFTMobile - Tuấn Thái Bình TFT để được hỗ trợ trực tiếp qua Zalo.",
+    "defaultOgImage": "/banner-seo.jpg",
+    "googleVerification": "",
+    "bingVerification": "",
+    "twitterHandle": "@ShopTFTMobile"
+  },
+  "pages": {
+    "/": {
+      "path": "/",
+      "name": "Trang chủ",
+      "title": "Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile - Tuấn Thái Bình TFT",
+      "description": "Hệ thống thuê acc TFT / ĐTCL uy tín hàng đầu. Đầy đủ acc VIP, acc Clone, Linh thú Tí Nị, Sân đấu EDM đổi nhạc. Bàn giao trực tiếp qua Zalo Tuấn Thái Bình.",
+      "canonical": "https://www.shoptftmobile.net",
+      "ogTitle": "Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile - Tuấn Thái Bình TFT",
+      "ogDescription": "Kho tài khoản TFT/ĐTCL với Pet, Chibi và Sân Đấu đa dạng. Bàn giao trực tiếp qua Zalo Tuấn Thái Bình.",
+      "ogImage": "/banner-seo.jpg",
+      "robots": {
+        "index": true,
+        "follow": true
+      }
+    },
+    "/shop": {
+      "path": "/shop",
+      "name": "Kho Acc",
+      "title": "Kho Acc TFT - ĐTCL Đa Dạng | ShopTFTMobile",
+      "description": "Tìm tài khoản TFT/ĐTCL theo Pet, Chibi, Sân Đấu, loại acc và mức giá tại ShopTFTMobile. Cập nhật trạng thái liên tục, thuê nhanh qua Zalo.",
+      "canonical": "https://www.shoptftmobile.net/shop",
+      "ogTitle": "Kho Acc TFT - ĐTCL Đa Dạng | ShopTFTMobile",
+      "ogDescription": "Tìm tài khoản TFT/ĐTCL theo Pet, Chibi, Sân Đấu, loại acc và mức giá tại ShopTFTMobile.",
+      "ogImage": "/banner-seo.jpg",
+      "robots": {
+        "index": true,
+        "follow": true
+      }
+    },
+    "/thue-acc-tft-dtcl": {
+      "path": "/thue-acc-tft-dtcl",
+      "name": "Dịch vụ Thuê Acc TFT",
+      "title": "Dịch Vụ Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile",
+      "description": "Dịch vụ thuê tài khoản ĐTCL (TFT Mobile & PC) uy tín bởi cựu Thách Đấu Tuấn Thái Bình. Đầy đủ acc VIP Tí Nị Thần Thoại và Acc Clone giá tốt, bàn giao 1-1.",
+      "canonical": "https://www.shoptftmobile.net/thue-acc-tft-dtcl",
+      "ogTitle": "Dịch Vụ Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile",
+      "ogDescription": "Dịch vụ thuê tài khoản ĐTCL (TFT Mobile & PC) uy tín bởi cựu Thách Đấu Tuấn Thái Bình. Đầy đủ acc VIP Tí Nị Thần Thoại và Acc Clone giá tốt.",
+      "ogImage": "/banner-seo.jpg",
+      "robots": {
+        "index": true,
+        "follow": true
+      }
+    },
+    "/ve-shop": {
+      "path": "/ve-shop",
+      "name": "Về Shop",
+      "title": "Về ShopTFTMobile & Tuấn Thái Bình TFT | Uy Tín & Trách Nhiệm",
+      "description": "ShopTFTMobile vận hành bởi Tuấn Thái Bình - cựu Thách Đấu ĐTCL. Cam kết thông tin minh bạch, bảo hiểm Checkscam 30 triệu, chăm sóc khách hàng chu đáo.",
+      "canonical": "https://www.shoptftmobile.net/ve-shop",
+      "ogTitle": "Về ShopTFTMobile & Tuấn Thái Bình TFT | Uy Tín & Trách Nhiệm",
+      "ogDescription": "ShopTFTMobile vận hành bởi Tuấn Thái Bình - cựu Thách Đấu ĐTCL. Cam kết thông tin minh bạch, bảo hiểm Checkscam 30 triệu.",
+      "ogImage": "/banner-seo.jpg",
+      "robots": {
+        "index": true,
+        "follow": true
+      }
+    },
+    "/huong-dan": {
+      "path": "/huong-dan",
+      "name": "Hướng dẫn tổng hợp",
+      "title": "Hướng Dẫn Dịch Vụ TFT & Riot Games | ShopTFTMobile",
+      "description": "Tổng hợp hướng dẫn đổi thông tin tài khoản Riot Games, bảo mật 2 lớp và lưu ý khi thuê acc TFT tại ShopTFTMobile.",
+      "canonical": "https://www.shoptftmobile.net/huong-dan",
+      "ogTitle": "Hướng Dẫn Dịch Vụ TFT & Riot Games | ShopTFTMobile",
+      "ogDescription": "Tổng hợp hướng dẫn đổi thông tin tài khoản Riot Games, bảo mật 2 lớp và lưu ý khi thuê acc TFT.",
+      "ogImage": "/banner-seo.jpg",
+      "robots": {
+        "index": true,
+        "follow": true
+      }
+    },
+    "/huong-dan/doi-thong-tin-acc-riot": {
+      "path": "/huong-dan/doi-thong-tin-acc-riot",
+      "name": "Hướng dẫn đổi thông tin Riot",
+      "title": "Hướng Dẫn Đổi Thông Tin Acc Riot An Toàn | ShopTFTMobile",
+      "description": "Hướng dẫn chi tiết từng bước đổi mật khẩu, email và bật bảo mật 2FA cho tài khoản Riot Games sau khi nhận acc từ Tuấn Thái Bình TFT.",
+      "canonical": "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot",
+      "ogTitle": "Hướng Dẫn Đổi Thông Tin Acc Riot An Toàn | ShopTFTMobile",
+      "ogDescription": "Hướng dẫn chi tiết từng bước đổi mật khẩu, email và bật bảo mật 2FA cho tài khoản Riot Games sau khi nhận acc từ Tuấn Thái Bình TFT.",
+      "ogImage": "/banner-seo.jpg",
+      "robots": {
+        "index": true,
+        "follow": true
+      }
+    }
+  },
+  "productTemplate": {
+    "titleTemplate": "{product_name} | Thuê Acc TFT - ShopTFTMobile",
+    "descriptionTemplate": "Thuê tài khoản TFT {product_name} ({type}) sở hữu {pet} kèm {arena}. Giá chỉ {price}. Bàn giao trực tiếp qua Zalo Tuấn Thái Bình TFT.",
+    "defaultOgImage": "/banner-seo.jpg"
+  },
+  "redirects": [
+    {
+      "id": "red-1",
+      "source": "/acc-moi",
+      "destination": "/shop?sort=newest",
+      "permanent": true,
+      "enabled": true,
+      "createdAt": "2026-09-30T00:00:00.000Z"
+    }
+  ],
+  "schema": {
+    "organizationName": "ShopTFTMobile",
+    "founderName": "Tuấn Thái Bình",
+    "founderTitle": "Cựu Thách Đấu ĐTCL",
+    "sameAs": [
+      "https://zalo.me/0352867283",
+      "https://checkscam.vn"
+    ]
+  },
+  "robotsConfig": {
+    "allowPaths": [
+      "/",
+      "/shop",
+      "/thue-acc-tft-dtcl",
+      "/ve-shop",
+      "/acc/*",
+      "/huong-dan",
+      "/huong-dan/*"
+    ],
+    "disallowPaths": [
+      "/admin",
+      "/admin/*",
+      "/profile",
+      "/profile/*",
+      "/login",
+      "/register",
+      "/pay/*",
+      "/api/*",
+      "/*?*search=*",
+      "/*?*q=*"
+    ],
+    "crawlDelay": 0
+  }
+}

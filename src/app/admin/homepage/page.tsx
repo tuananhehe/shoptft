@@ -22,6 +22,7 @@ import {
   Sliders,
   Sparkles,
   Zap,
+  ArrowRight,
   Phone,
   HelpCircle,
   Award,
@@ -1496,15 +1497,30 @@ export default function AdminHomepageManagerPage() {
                 </p>
               </div>
 
-              <button
-                type="button"
-                disabled={saving}
-                onClick={handleSaveAll}
-                className="px-5 py-2.5 rounded-xl bg-[#111111] hover:bg-[#222222] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs cursor-pointer self-start sm:self-auto"
+              <Link
+                href="/admin/seo"
+                className="px-4 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs cursor-pointer self-start sm:self-auto"
               >
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                <span>Lưu Cài Đặt SEO</span>
-              </button>
+                <Globe className="w-4 h-4" />
+                <span>Mở Trình Quản Trị SEO Toàn Diện →</span>
+              </Link>
+            </div>
+
+            {/* SEO System Upgrade Notice Banner */}
+            <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <Sparkles className="w-4 h-4 text-blue-700 flex-shrink-0" />
+                <span className="text-xs font-medium text-blue-900">
+                  Hệ thống SEO chuyên sâu (Trang tĩnh, Acc Template, Sitemap, Robots, Schema, Redirects) đã được chuyển sang trang riêng biệt:
+                </span>
+              </div>
+              <Link
+                href="/admin/seo"
+                className="text-xs font-bold text-blue-700 hover:underline flex items-center gap-1 flex-shrink-0"
+              >
+                <span>/admin/seo</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
 
             {/* GOOGLE SEARCH PREVIEW MOCKUP (SERP) */}

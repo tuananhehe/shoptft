@@ -2,6 +2,7 @@ import React from "react";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getAccountByIdOrSlug, getRelatedAccounts } from "@/utils/account-lookup";
+import { getSeoConfig, formatProductSeo } from "@/utils/seo-service";
 import { AccountDetailView } from "./account-detail-view";
 
 interface PageProps {
@@ -26,19 +27,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
+  const seoConfig = await getSeoConfig();
   const cleanCode = account.code.replace(/^MS:\s*/i, "").trim();
-  const canonicalUrl = `https://www.shoptftmobile.net/acc/${encodeURIComponent(cleanCode || account.id)}`;
-  const title = `${account.title} | ShopTFTMobile`;
+  const canonicalOrigin = seoConfig.global.canonicalOrigin.replace(/\/+$/, "");
+  const canonicalUrl = `${canonicalOrigin}/acc/${encodeURIComponent(cleanCode || account.id)}`;
 
-  const accountTypeLabel = account.type === "VIP" ? "Acc VIP" : "Acc Clone";
-  const statusLabel = account.status === "AVAILABLE" ? "Còn acc" : "Đang thuê";
-  const petDetails = account.mainChibi ? `Chibi: ${account.mainChibi}` : (account.allChibi && account.allChibi.length > 0 ? `Chibi: ${account.allChibi[0]}` : "");
-  const arenaDetails = account.mainArena ? `Sân đấu: ${account.mainArena}` : "";
-  const extraDetails = [accountTypeLabel, `Rank ${account.rank}`, petDetails, arenaDetails, statusLabel]
-    .filter(Boolean)
-    .join(" - ");
-
-  const description = `${account.title} (${extraDetails}). Thuê tài khoản TFT hỗ trợ trực tiếp và bàn giao qua Zalo tại ShopTFTMobile.`;
+  const formatted = formatProductSeo(account, seoConfig.productTemplate, seoConfig.global.siteName);
+  const title = formatted.title;
+  const description = formatted.description;
+  const ogImg = account.thumbnail || formatted.ogImage || "/banner-seo.jpg";
 
   return {
     title: {
@@ -55,7 +52,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: "website",
       images: [
         {
-          url: account.thumbnail,
+          url: ogImg,
           width: 800,
           height: 600,
           alt: `${account.code} - ${account.title}`,
@@ -66,7 +63,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       card: "summary_large_image",
       title,
       description,
-      images: [account.thumbnail],
+      images: [ogImg],
     },
   };
 }

@@ -7,22 +7,47 @@ import { TFTFooter } from "@/components/tft-footer";
 import { TFTMobileBottomBar } from "@/components/tft-mobile-bottom-bar";
 import { ProductCardSkeleton } from "@/components/product-card";
 
-export const metadata: Metadata = {
-  title: "Kho Acc TFT - Tìm Thuê Acc Tí Nị, Sân Đấu & Cày Rank",
-  description:
-    "Khám phá kho tài khoản ĐTCL / TFT Mobile đa dạng: Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc EDM, Rank Thách Đấu. Thuê acc nhanh gọn trực tiếp qua Zalo.",
-  alternates: {
-    canonical: "https://www.shoptftmobile.net/shop",
-  },
-  openGraph: {
-    title: "Kho Acc TFT - ShopTFTMobile",
+import { getSeoConfig } from "@/utils/seo-service";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const seoConfig = await getSeoConfig();
+  const pageSeo = seoConfig.pages["/shop"] || {
+    title: "Kho Acc TFT - ĐTCL Đa Dạng | ShopTFTMobile",
     description:
-      "Khám phá kho tài khoản ĐTCL / TFT Mobile đa dạng: Tí Nị Thần Thoại, Sân Đấu Đổi Nhạc EDM, Rank Thách Đấu. Thuê acc nhanh gọn trực tiếp qua Zalo.",
-    url: "https://www.shoptftmobile.net/shop",
-    siteName: "ShopTFTMobile",
-    type: "website",
-  },
-};
+      "Tìm tài khoản TFT/ĐTCL theo Pet, Chibi, Sân Đấu, loại acc và mức giá tại ShopTFTMobile. Cập nhật trạng thái liên tục, thuê nhanh qua Zalo.",
+    canonical: "https://www.shoptftmobile.net/shop",
+  };
+
+  const canonicalUrl = pageSeo.canonical || "https://www.shoptftmobile.net/shop";
+  const ogImg = pageSeo.ogImage || seoConfig.global.defaultOgImage || "/banner-seo.jpg";
+
+  return {
+    title: {
+      absolute: pageSeo.title,
+    },
+    description: pageSeo.description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title: pageSeo.ogTitle || pageSeo.title,
+      description: pageSeo.ogDescription || pageSeo.description,
+      url: canonicalUrl,
+      siteName: seoConfig.global.siteName || "ShopTFTMobile",
+      images: [
+        {
+          url: ogImg.startsWith("http") ? ogImg : `${seoConfig.global.canonicalOrigin}${ogImg}`,
+          width: 1200,
+          height: 630,
+          alt: "Kho Acc TFT ĐTCL - ShopTFTMobile",
+        },
+      ],
+      locale: "vi_VN",
+      type: "website",
+    },
+    robots: pageSeo.robots || { index: true, follow: true },
+  };
+}
 
 function ShopLoadingSkeleton() {
   return (

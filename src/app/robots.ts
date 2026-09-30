@@ -3,6 +3,16 @@ import { MetadataRoute } from "next";
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = "https://www.shoptftmobile.net";
 
+  const allowPatterns = [
+    "/",
+    "/shop",
+    "/thue-acc-tft-dtcl",
+    "/ve-shop",
+    "/acc/*",
+    "/huong-dan",
+    "/huong-dan/*",
+  ];
+
   const disallowPatterns = [
     "/admin",
     "/admin/*",
@@ -20,17 +30,17 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/shop", "/acc/*", "/ve-shop"],
+        allow: allowPatterns,
         disallow: disallowPatterns,
       },
       {
         userAgent: "Googlebot",
-        allow: ["/", "/shop", "/acc/*", "/ve-shop"],
+        allow: allowPatterns,
         disallow: disallowPatterns,
       },
       {
         userAgent: "Bingbot",
-        allow: ["/", "/shop", "/acc/*", "/ve-shop"],
+        allow: allowPatterns,
         disallow: disallowPatterns,
       },
     ],

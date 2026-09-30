@@ -70,92 +70,70 @@ function getLiveSiteData() {
   };
 }
 
-function getLiveSEOConfig() {
-  const { seo } = getLiveSiteData();
-  const rawCanonical = seo.canonicalUrl || process.env.NEXT_PUBLIC_SITE_URL || "https://www.shoptftmobile.net";
-  const canonicalUrl = rawCanonical.trim().replace(/\/+$/, "");
-
-  return {
-    metaTitle:
-      seo.metaTitle || "ShopTFTMobile - Kho Acc TFT, Pet, Chibi & Sân Đấu",
-    metaDescription:
-      seo.metaDescription ||
-      "Tìm tài khoản TFT theo Pet, Chibi, Sân Đấu và nhu cầu sử dụng tại ShopTFTMobile. Hỗ trợ trực tiếp và bàn giao qua Zalo.",
-    metaKeywords:
-      seo.metaKeywords ||
-      "thuê acc tft, shop acc tft, tuấn thái bình tft, acc tí nị, linh thú tft, sân đấu tft, shop tft mobile, tài khoản tft",
-    canonicalUrl,
-    ogTitle:
-      seo.ogTitle || seo.metaTitle || "ShopTFTMobile - Kho Acc TFT, Pet, Chibi & Sân Đấu",
-    ogDescription:
-      seo.ogDescription ||
-      seo.metaDescription ||
-      "Tìm tài khoản TFT theo Pet, Chibi, Sân Đấu và nhu cầu sử dụng tại ShopTFTMobile. Hỗ trợ trực tiếp và bàn giao qua Zalo.",
-    ogImage: seo.ogImage || "/banner-seo.jpg",
-    faviconUrl: seo.faviconUrl || "/favicon.ico",
-    bgImageUrl: seo.bgImageUrl || "",
-    bgColor: seo.bgColor || "#09090b",
-    googleVerification: cleanVerificationCode(seo.googleVerification),
-    bingVerification: cleanVerificationCode(seo.bingVerification),
-    author: seo.author || "Tuấn Thái Bình",
-  };
-}
+import { getSeoConfig } from "@/utils/seo-service";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const seo = getLiveSEOConfig();
-  const keywordsList = seo.metaKeywords
-    ? seo.metaKeywords
-        .split(",")
-        .map((s: string) => s.trim())
-        .filter(Boolean)
-    : [];
-
-  const absoluteOgImage = seo.ogImage.startsWith("http")
-    ? seo.ogImage
-    : `${seo.canonicalUrl}${seo.ogImage.startsWith("/") ? "" : "/"}${seo.ogImage}`;
+  const seoDb = await getSeoConfig();
+  const origin = (seoDb.global.canonicalOrigin || "https://www.shoptftmobile.net").replace(/\/+$/, "");
+  const defaultTitle = seoDb.global.defaultTitle || "Thuê Acc TFT - ĐTCL | ShopTFTMobile - Tuấn Thái Bình TFT";
+  const defaultDesc =
+    seoDb.global.defaultDescription ||
+    "Kho tài khoản TFT/ĐTCL với Pet, Chibi và Sân Đấu đa dạng. Hỗ trợ trực tiếp Zalo Tuấn Thái Bình.";
+  const ogImg = seoDb.global.defaultOgImage || "/banner-seo.jpg";
+  const absOgImage = ogImg.startsWith("http") ? ogImg : `${origin}${ogImg.startsWith("/") ? "" : "/"}${ogImg}`;
 
   const otherMeta: Record<string, string> = {
     bingbot: "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1",
   };
 
-  if (seo.bingVerification) {
-    otherMeta["msvalidate.01"] = seo.bingVerification;
+  const gVer = cleanVerificationCode(seoDb.global.googleVerification);
+  const bVer = cleanVerificationCode(seoDb.global.bingVerification);
+  if (bVer) {
+    otherMeta["msvalidate.01"] = bVer;
   }
-  if (seo.googleVerification) {
-    otherMeta["google-site-verification"] = seo.googleVerification;
+  if (gVer) {
+    otherMeta["google-site-verification"] = gVer;
   }
 
   return {
     title: {
-      default: seo.metaTitle,
-      template: "%s | ShopTFTMobile",
+      default: defaultTitle,
+      template: `%s | ${seoDb.global.siteName || "ShopTFTMobile"}`,
     },
-    description: seo.metaDescription,
-    keywords: keywordsList,
-    authors: [{ name: seo.author }],
-    creator: seo.author,
-    publisher: "ShopTFTMobile - Tuấn Thái Bình",
-    applicationName: "ShopTFTMobile",
-    metadataBase: new URL(seo.canonicalUrl),
+    description: defaultDesc,
+    keywords: [
+      "thuê acc tft",
+      "thuê acc đtcl",
+      "tuấn thái bình tft",
+      "shoptftmobile",
+      "acc tí nị",
+      "linh thú tft",
+      "sân đấu tft",
+    ],
+    authors: [{ name: seoDb.schema.founderName || "Tuấn Thái Bình" }],
+    creator: seoDb.schema.founderName || "Tuấn Thái Bình",
+    publisher: `${seoDb.global.siteName} - ${seoDb.schema.founderName}`,
+    applicationName: seoDb.global.siteName,
+    metadataBase: new URL(origin),
     icons: {
       icon: [
-        { url: seo.faviconUrl || "/favicon.ico" },
-        { url: seo.faviconUrl || "/favicon.ico", sizes: "32x32", type: "image/png" },
+        { url: "/favicon.ico" },
+        { url: "/favicon.ico", sizes: "32x32", type: "image/png" },
       ],
-      shortcut: seo.faviconUrl || "/favicon.ico",
-      apple: seo.faviconUrl || "/apple-touch-icon.png",
+      shortcut: "/favicon.ico",
+      apple: "/apple-touch-icon.png",
     },
     openGraph: {
-      title: seo.ogTitle,
-      description: seo.ogDescription,
-      url: seo.canonicalUrl,
-      siteName: "ShopTFTMobile",
+      title: defaultTitle,
+      description: defaultDesc,
+      url: origin,
+      siteName: seoDb.global.siteName,
       images: [
         {
-          url: absoluteOgImage,
+          url: absOgImage,
           width: 1200,
           height: 630,
-          alt: "ShopTFTMobile - Kho Acc TFT",
+          alt: `${seoDb.global.siteName} - Kho Acc TFT`,
         },
       ],
       locale: "vi_VN",
@@ -163,12 +141,12 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: seo.ogTitle,
-      description: seo.ogDescription,
-      images: [absoluteOgImage],
+      title: defaultTitle,
+      description: defaultDesc,
+      images: [absOgImage],
     },
     verification: {
-      google: seo.googleVerification || undefined,
+      google: gVer || undefined,
       other: otherMeta,
     },
     robots: {
@@ -197,55 +175,54 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const seo = getLiveSEOConfig();
+  const seoDb = await getSeoConfig();
+  const origin = (seoDb.global.canonicalOrigin || "https://www.shoptftmobile.net").replace(/\/+$/, "");
   const { faqs } = getLiveSiteData();
 
   const jsonLdGraph: any[] = [
     {
       "@type": "WebSite",
-      "@id": `${seo.canonicalUrl}/#website`,
-      url: seo.canonicalUrl,
-      name: "ShopTFTMobile",
-      description: seo.metaDescription,
+      "@id": `${origin}/#website`,
+      url: origin,
+      name: seoDb.global.siteName || "ShopTFTMobile",
+      description: seoDb.global.defaultDescription,
       inLanguage: "vi-VN",
       potentialAction: {
         "@type": "SearchAction",
         target: {
           "@type": "EntryPoint",
-          urlTemplate: `${seo.canonicalUrl}/shop?search={search_term_string}`,
+          urlTemplate: `${origin}/shop?search={search_term_string}`,
         },
         "query-input": "required name=search_term_string",
       },
     },
     {
       "@type": "Organization",
-      "@id": `${seo.canonicalUrl}/#organization`,
-      name: "ShopTFTMobile",
-      url: seo.canonicalUrl,
-      logo: `${seo.canonicalUrl}/avatar.jpg`,
+      "@id": `${origin}/#organization`,
+      name: seoDb.schema.organizationName || "ShopTFTMobile",
+      url: origin,
+      logo: `${origin}/avatar.jpg`,
       founder: {
         "@type": "Person",
-        name: "Tuấn Thái Bình",
-        jobTitle: "Cựu Thách Đấu ĐTCL",
-        url: `${seo.canonicalUrl}/ve-shop`,
+        name: seoDb.schema.founderName || "Tuấn Thái Bình",
+        jobTitle: seoDb.schema.founderTitle || "Cựu Thách Đấu ĐTCL",
+        url: `${origin}/ve-shop`,
       },
-      sameAs: [
-        "https://zalo.me/0352867283",
-        "https://checkscam.vn",
-      ],
+      sameAs: Array.isArray(seoDb.schema.sameAs) && seoDb.schema.sameAs.length > 0
+        ? seoDb.schema.sameAs
+        : ["https://zalo.me/0352867283", "https://checkscam.vn"],
     },
   ];
 
-  // Schema FAQPage neu co FAQ cau hinh thuc te
   if (Array.isArray(faqs) && faqs.length > 0) {
     jsonLdGraph.push({
       "@type": "FAQPage",
-      "@id": `${seo.canonicalUrl}/#faq`,
+      "@id": `${origin}/#faq`,
       mainEntity: faqs.map((f: any) => ({
         "@type": "Question",
         name: f.q || "",
@@ -271,8 +248,8 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link rel="preconnect" href="https://doihinhtft.vn" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://doihinhtft.vn" />
-        <link rel="icon" href={seo.faviconUrl || "/favicon.ico"} sizes="any" />
-        <link rel="apple-touch-icon" href={seo.faviconUrl || "/apple-touch-icon.png"} />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

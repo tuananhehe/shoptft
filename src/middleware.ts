@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import seoConfig from "@/data/seo-config.json";
 
 const ADMIN_SESSION_SECRET =
   process.env.ADMIN_SESSION_SECRET ||
@@ -127,6 +128,19 @@ function applySecurityHeaders(res: NextResponse, pathname: string): NextResponse
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // 0. URL REDIRECTS (SEO Rules)
+  const activeRedirects = (seoConfig as any)?.redirects || [];
+  const matchedRedirect = activeRedirects.find(
+    (r: any) => r.enabled && r.source?.trim().toLowerCase() === pathname.toLowerCase()
+  );
+  if (matchedRedirect) {
+    const dest = matchedRedirect.destination?.trim();
+    if (dest) {
+      const destUrl = dest.startsWith("http") ? new URL(dest) : new URL(dest, req.url);
+      return NextResponse.redirect(destUrl, matchedRedirect.permanent ? 301 : 302);
+    }
+  }
 
   // 1. ADMIN AUTHORIZATION (Server-side route gate)
   if (pathname.startsWith("/admin")) {
