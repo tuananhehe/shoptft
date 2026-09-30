@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   ShieldCheck,
@@ -471,44 +472,152 @@ export function GuideRiotClientView() {
       </div>
 
       {/* 8. LIGHTBOX MODAL FOR DETAILED VISUAL PREVIEW */}
-      {zoomedVisual && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200"
-          onClick={() => setZoomedVisual(null)}
-        >
-          <div
-            className="relative w-full max-w-3xl bg-[#141416] border border-white/20 rounded-2xl p-4 sm:p-6 space-y-4 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <div className="space-y-0.5">
-                <span className="font-mono text-xs text-zinc-400">BƯỚC {zoomedVisual.stepNumber}</span>
-                <h4 className="text-base font-bold text-white font-heading">{zoomedVisual.title}</h4>
-              </div>
-              <button
-                type="button"
-                onClick={() => setZoomedVisual(null)}
-                aria-label="Đóng"
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="p-3 sm:p-6 bg-[#09090b] rounded-xl border border-white/10 overflow-hidden">
-              <RiotStepGraphic visualType={zoomedVisual.visualType} isExpanded />
-            </div>
-
-            <p className="text-xs text-zinc-400 text-center font-normal">
-              {zoomedVisual.caption}
-            </p>
-          </div>
-        </div>
-      )}
+      <GuideVisualLightbox
+        step={zoomedVisual}
+        onClose={() => setZoomedVisual(null)}
+      />
     </div>
   );
+}
+
+/**
+ * LIGHTBOX MODAL WITH PORTAL, ZOOM & REALISTIC PREVIEWS
+ */
+function GuideVisualLightbox({
+  step,
+  onClose,
+}: {
+  step: StepGuide | null;
+  onClose: () => void;
+}) {
+  const [mounted, setMounted] = useState(false);
+  const [zoomScale, setZoomScale] = useState<number>(1);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!step) return;
+    setZoomScale(1);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      else if (e.key === "+" || e.key === "=") setZoomScale((prev) => Math.min(prev + 0.25, 2));
+      else if (e.key === "-") setZoomScale((prev) => Math.max(prev - 0.25, 1));
+      else if (e.key === "0") setZoomScale(1);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [step, onClose]);
+
+  if (!step || !mounted) return null;
+
+  const modalContent = (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Ảnh minh họa: ${step.title}`}
+      className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md flex flex-col justify-between p-3 sm:p-6 animate-in fade-in duration-200 select-none"
+      onClick={onClose}
+    >
+      {/* Top Bar */}
+      <div
+        className="flex items-center justify-between w-full max-w-4xl mx-auto z-10 pt-1"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-2">
+          <span className="px-2.5 py-1 rounded-lg bg-red-600/20 text-red-400 border border-red-500/30 text-xs font-mono font-bold">
+            BƯỚC {step.stepNumber}
+          </span>
+          <h4 className="text-white font-bold text-xs sm:text-base font-heading truncate max-w-[200px] sm:max-w-md">
+            {step.title}
+          </h4>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Zoom controls */}
+          <div className="flex items-center bg-white/10 border border-white/15 rounded-xl p-0.5">
+            <button
+              type="button"
+              onClick={() => setZoomScale((prev) => Math.max(prev - 0.25, 1))}
+              disabled={zoomScale <= 1}
+              className="p-1.5 text-zinc-300 hover:text-white disabled:opacity-30 transition-colors"
+              title="Thu nhỏ (-)"
+            >
+              <span className="text-xs font-bold px-1">−</span>
+            </button>
+            <span className="px-1.5 text-[11px] font-mono text-zinc-300">
+              {Math.round(zoomScale * 100)}%
+            </span>
+            <button
+              type="button"
+              onClick={() => setZoomScale((prev) => Math.min(prev + 0.25, 2))}
+              disabled={zoomScale >= 2}
+              className="p-1.5 text-zinc-300 hover:text-white disabled:opacity-30 transition-colors"
+              title="Phóng to (+)"
+            >
+              <span className="text-xs font-bold px-1">+</span>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Đóng xem ảnh"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Main Graphic Content Area */}
+      <div
+        className="flex-1 flex items-center justify-center py-2 sm:py-4 overflow-auto relative touch-manipulation"
+        onClick={onClose}
+      >
+        <div
+          className="relative w-full max-w-4xl max-h-[75vh] overflow-y-auto rounded-2xl border border-white/15 shadow-2xl bg-[#0e0e11] p-3 sm:p-6 transition-transform duration-200"
+          style={{
+            transform: `scale(${zoomScale})`,
+            transformOrigin: "center center",
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <RiotStepGraphic visualType={step.visualType} isExpanded />
+        </div>
+      </div>
+
+      {/* Bottom Caption Bar */}
+      <div
+        className="w-full max-w-4xl mx-auto z-10 pb-1"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="bg-zinc-900/90 border border-white/10 rounded-xl p-3 text-center text-xs text-zinc-300 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <p className="font-normal text-xs text-zinc-400">
+            💡 {step.caption}
+          </p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors cursor-pointer w-full sm:w-auto"
+          >
+            Đóng xem ảnh
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return createPortal(modalContent, document.body);
 }
 
 /**
@@ -521,29 +630,63 @@ function RiotStepGraphic({
   visualType: "login" | "management" | "password" | "email" | "two_factor";
   isExpanded?: boolean;
 }) {
-  const containerHeight = isExpanded ? "min-h-[280px]" : "min-h-[190px]";
+  const containerHeight = isExpanded ? "min-h-[340px]" : "min-h-[220px]";
+
+  // Browser Chrome Frame Top Bar
+  const browserBar = (
+    <div className="w-full bg-[#18181c] border-b border-white/10 px-3 py-2 flex items-center justify-between text-xs rounded-t-xl select-none">
+      <div className="flex items-center gap-1.5">
+        <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block" />
+        <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block" />
+        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block" />
+      </div>
+
+      <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-black/60 border border-white/10 text-[11px] font-mono text-zinc-300 max-w-xs truncate">
+        <Lock className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+        <span className="text-emerald-400 font-semibold">https://</span>
+        <span className="text-zinc-200">account.riotgames.com</span>
+      </div>
+
+      <div className="text-[10px] text-zinc-500 font-mono hidden sm:inline">
+        Riot Security SSL
+      </div>
+    </div>
+  );
 
   if (visualType === "login") {
     return (
-      <div className={`w-full ${containerHeight} bg-[#0f0f12] rounded-xl border border-white/10 p-4 sm:p-6 flex flex-col justify-center items-center text-center space-y-3`}>
-        <div className="w-10 h-10 rounded-full bg-red-600/20 border border-red-500/40 flex items-center justify-center text-red-500 font-bold text-sm tracking-widest font-heading">
-          RIOT
-        </div>
-        <div className="space-y-1">
-          <div className="text-xs font-semibold text-white tracking-wide">CỔNG ĐĂNG NHẬP RIOT GAMES</div>
-          <div className="text-[11px] font-mono text-emerald-400">https://account.riotgames.com</div>
-        </div>
-        <div className="w-full max-w-xs space-y-2 pt-1 text-left text-xs">
-          <div className="p-2.5 rounded-lg bg-black/60 border border-white/15 text-zinc-300 font-mono text-[11px] flex justify-between">
-            <span>Tên đăng nhập (Username):</span>
-            <span className="text-white font-bold">tft_ms***</span>
+      <div className={`w-full ${containerHeight} bg-[#0b0b0e] rounded-xl border border-white/10 flex flex-col overflow-hidden shadow-lg`}>
+        {browserBar}
+        <div className="flex-1 p-4 sm:p-8 flex flex-col justify-center items-center text-center space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-red-600 border border-red-500 flex items-center justify-center text-white font-extrabold text-base tracking-widest font-heading shadow-md">
+            RIOT
           </div>
-          <div className="p-2.5 rounded-lg bg-black/60 border border-white/15 text-zinc-300 font-mono text-[11px] flex justify-between">
-            <span>Mật khẩu (Password):</span>
-            <span className="text-zinc-500">••••••••••••</span>
+          <div className="space-y-1">
+            <h4 className="text-sm font-bold text-white tracking-wide">CỔNG ĐĂNG NHẬP RIOT GAMES</h4>
+            <p className="text-[11px] text-zinc-400">Đăng nhập tài khoản do Shop Tuấn Thái Bình bàn giao</p>
           </div>
-          <div className="w-full py-2 bg-red-600 rounded-lg text-white font-bold text-center text-xs tracking-wider uppercase">
-            Đăng nhập (Sign In) →
+          <div className="w-full max-w-sm space-y-2.5 pt-1 text-left text-xs">
+            <div className="p-3 rounded-xl bg-black/70 border border-white/15 text-zinc-300 font-mono text-xs flex justify-between items-center relative group">
+              <span className="text-zinc-400 text-[11px]">Tên đăng nhập (Username):</span>
+              <span className="text-white font-bold bg-white/10 px-2 py-0.5 rounded">tft_ms***</span>
+              <span className="absolute -top-2 right-2 px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[9px] font-sans font-bold">
+                1. Nhập Username Shop cấp
+              </span>
+            </div>
+            <div className="p-3 rounded-xl bg-black/70 border border-white/15 text-zinc-300 font-mono text-xs flex justify-between items-center relative group">
+              <span className="text-zinc-400 text-[11px]">Mật khẩu (Password):</span>
+              <span className="text-zinc-400">••••••••••••</span>
+              <span className="absolute -top-2 right-2 px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[9px] font-sans font-bold">
+                2. Nhập Pass Shop cấp
+              </span>
+            </div>
+            <button
+              type="button"
+              className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-center text-xs tracking-wider uppercase rounded-xl transition-all shadow-md shadow-red-600/30 flex items-center justify-center gap-1.5 cursor-default"
+            >
+              <span>ĐĂNG NHẬP (SIGN IN)</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </div>
@@ -552,29 +695,45 @@ function RiotStepGraphic({
 
   if (visualType === "management") {
     return (
-      <div className={`w-full ${containerHeight} bg-[#0f0f12] rounded-xl border border-white/10 p-4 sm:p-6 flex flex-col justify-center space-y-3`}>
-        <div className="flex items-center justify-between border-b border-white/10 pb-2 text-xs">
-          <div className="font-heading font-bold text-white flex items-center gap-2">
-            <span>QUẢN LÝ TÀI KHOẢN (RIOT ACCOUNT)</span>
+      <div className={`w-full ${containerHeight} bg-[#0b0b0e] rounded-xl border border-white/10 flex flex-col overflow-hidden shadow-lg`}>
+        {browserBar}
+        <div className="flex-1 p-4 sm:p-6 flex flex-col justify-center space-y-4">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="font-heading font-bold text-white text-xs sm:text-sm flex items-center gap-2">
+              <UserCheck className="w-4 h-4 text-emerald-400" />
+              <span>QUẢN LÝ TÀI KHOẢN (RIOT ACCOUNT MANAGEMENT)</span>
+            </div>
+            <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              ĐÃ ĐĂNG NHẬP
+            </span>
           </div>
-          <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-mono">Đã Đăng Nhập</span>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-          <div className="p-3 bg-black/50 rounded-lg border border-white/10 space-y-1">
-            <span className="text-[10px] text-zinc-400 block">Riot ID:</span>
-            <span className="font-bold text-white block">TuanThaiBinh#VN2</span>
-          </div>
-          <div className="p-3 bg-black/50 rounded-lg border border-white/10 space-y-1">
-            <span className="text-[10px] text-zinc-400 block">Tên người dùng:</span>
-            <span className="font-bold text-white block font-mono">tft_ms8899</span>
-          </div>
-          <div className="p-3 bg-black/50 rounded-lg border border-white/10 space-y-1">
-            <span className="text-[10px] text-zinc-400 block">Mật khẩu:</span>
-            <span className="text-zinc-400 font-mono block">•••••••• [Thay đổi]</span>
-          </div>
-          <div className="p-3 bg-black/50 rounded-lg border border-white/10 space-y-1">
-            <span className="text-[10px] text-zinc-400 block">Địa chỉ Email:</span>
-            <span className="text-zinc-400 font-mono block truncate">shop***@gmail.com</span>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div className="p-3.5 bg-black/60 rounded-xl border border-white/10 space-y-1 relative">
+              <span className="text-[10px] text-zinc-400 block font-medium">Riot ID & Tagline:</span>
+              <span className="font-bold text-white block text-sm">TuanThaiBinh#VN2</span>
+              <span className="text-[10px] text-emerald-400 block">Được đổi miễn phí 90 ngày/lần</span>
+            </div>
+            <div className="p-3.5 bg-black/60 rounded-xl border border-white/10 space-y-1">
+              <span className="text-[10px] text-zinc-400 block font-medium">Tên người dùng (Username):</span>
+              <span className="font-bold text-white block font-mono text-sm">tft_ms8899</span>
+              <span className="text-[10px] text-zinc-500 block">Dùng đăng nhập client</span>
+            </div>
+            <div className="p-3.5 bg-black/60 rounded-xl border border-amber-500/30 space-y-1 relative">
+              <span className="text-[10px] text-amber-300 block font-bold">Mật khẩu (Password):</span>
+              <span className="text-zinc-300 font-mono block text-sm">••••••••••••</span>
+              <span className="inline-block text-[10px] text-amber-400 font-semibold bg-amber-500/10 px-1.5 py-0.5 rounded">
+                ⚡ Cần đổi tại Bước 3
+              </span>
+            </div>
+            <div className="p-3.5 bg-black/60 rounded-xl border border-amber-500/30 space-y-1 relative">
+              <span className="text-[10px] text-amber-300 block font-bold">Địa chỉ Email:</span>
+              <span className="text-zinc-300 font-mono block text-sm truncate">shop***@gmail.com</span>
+              <span className="inline-block text-[10px] text-amber-400 font-semibold bg-amber-500/10 px-1.5 py-0.5 rounded">
+                ⚡ Cần đổi tại Bước 4
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -583,28 +742,50 @@ function RiotStepGraphic({
 
   if (visualType === "password") {
     return (
-      <div className={`w-full ${containerHeight} bg-[#0f0f12] rounded-xl border border-white/10 p-4 sm:p-6 flex flex-col justify-center space-y-3`}>
-        <div className="flex items-center gap-2 text-xs font-heading font-bold text-white border-b border-white/10 pb-2">
-          <KeyRound className="w-4 h-4 text-zinc-400" />
-          <span>THAY ĐỔI MẬT KHẨU (CHANGE PASSWORD)</span>
-        </div>
-        <div className="space-y-2 text-xs max-w-md">
-          <div className="space-y-1">
-            <span className="text-[10px] text-zinc-400">Mật khẩu hiện tại (Shop cấp):</span>
-            <div className="p-2 bg-black/60 rounded border border-white/15 text-zinc-400 font-mono text-[11px]">••••••••••••</div>
+      <div className={`w-full ${containerHeight} bg-[#0b0b0e] rounded-xl border border-white/10 flex flex-col overflow-hidden shadow-lg`}>
+        {browserBar}
+        <div className="flex-1 p-4 sm:p-6 flex flex-col justify-center space-y-4">
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-heading font-bold text-white border-b border-white/10 pb-3">
+            <KeyRound className="w-4 h-4 text-emerald-400" />
+            <span>THAY ĐỔI MẬT KHẨU RIOT GAMES (CHANGE PASSWORD)</span>
           </div>
-          <div className="space-y-1">
-            <span className="text-[10px] text-zinc-400">Mật khẩu mới của bạn:</span>
-            <div className="p-2 bg-black/60 rounded border border-white/15 text-white font-mono text-[11px]">MatKhauMoiCuaBan@2026</div>
-          </div>
-          <div className="space-y-1">
-            <span className="text-[10px] text-zinc-400">Xác nhận mật khẩu mới:</span>
-            <div className="p-2 bg-black/60 rounded border border-white/15 text-white font-mono text-[11px]">MatKhauMoiCuaBan@2026</div>
-          </div>
-          <div className="pt-1">
-            <span className="px-4 py-1.5 bg-white text-black font-bold text-xs rounded-lg inline-block">
-              Lưu thay đổi (Save Changes) ✓
-            </span>
+
+          <div className="space-y-3 text-xs max-w-lg">
+            <div className="space-y-1">
+              <span className="text-[11px] text-zinc-400 flex items-center justify-between">
+                <span>1. Mật khẩu hiện tại (Do Shop Tuấn cấp):</span>
+                <span className="text-[10px] text-zinc-500 font-mono">Current Password</span>
+              </span>
+              <div className="p-2.5 bg-black/70 rounded-xl border border-white/15 text-zinc-400 font-mono text-xs">
+                ••••••••••••
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <span className="text-[11px] text-zinc-300 flex items-center justify-between font-semibold">
+                <span className="text-white">2. Mật khẩu mới của bạn:</span>
+                <span className="text-[10px] text-emerald-400">Tối thiểu 8 ký tự</span>
+              </span>
+              <div className="p-2.5 bg-black/70 rounded-xl border border-emerald-500/40 text-emerald-400 font-mono text-xs flex justify-between items-center">
+                <span>MatKhauMoiCuaBan@2026</span>
+                <Check className="w-4 h-4 text-emerald-400" />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <span className="text-[11px] text-zinc-400">3. Nhập lại mật khẩu mới để xác nhận:</span>
+              <div className="p-2.5 bg-black/70 rounded-xl border border-emerald-500/40 text-emerald-400 font-mono text-xs flex justify-between items-center">
+                <span>MatKhauMoiCuaBan@2026</span>
+                <Check className="w-4 h-4 text-emerald-400" />
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <span className="px-5 py-2.5 bg-white text-black font-bold text-xs rounded-xl inline-flex items-center gap-1.5 shadow-md">
+                <span>LƯU THAY ĐỔI (SAVE CHANGES)</span>
+                <Check className="w-3.5 h-3.5 text-black" />
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -613,26 +794,36 @@ function RiotStepGraphic({
 
   if (visualType === "email") {
     return (
-      <div className={`w-full ${containerHeight} bg-[#0f0f12] rounded-xl border border-white/10 p-4 sm:p-6 flex flex-col justify-center space-y-3`}>
-        <div className="flex items-center gap-2 text-xs font-heading font-bold text-white border-b border-white/10 pb-2">
-          <Mail className="w-4 h-4 text-zinc-400" />
-          <span>ĐỔI EMAIL CHÍNH CHỦ (EMAIL ADDRESS)</span>
-        </div>
-        <div className="space-y-2.5 text-xs max-w-md">
-          <div className="space-y-1">
-            <span className="text-[10px] text-zinc-400">Nhập địa chỉ Gmail/Email cá nhân của bạn:</span>
-            <div className="p-2.5 bg-black/60 rounded border border-emerald-500/40 text-emerald-400 font-mono text-xs flex justify-between items-center">
-              <span>email.cuaban@gmail.com</span>
-              <Check className="w-4 h-4 text-emerald-400" />
-            </div>
+      <div className={`w-full ${containerHeight} bg-[#0b0b0e] rounded-xl border border-white/10 flex flex-col overflow-hidden shadow-lg`}>
+        {browserBar}
+        <div className="flex-1 p-4 sm:p-6 flex flex-col justify-center space-y-4">
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-heading font-bold text-white border-b border-white/10 pb-3">
+            <Mail className="w-4 h-4 text-emerald-400" />
+            <span>ĐỔI EMAIL CHÍNH CHỦ (EMAIL ADDRESS SETTINGS)</span>
           </div>
-          <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs space-y-1">
-            <div className="font-semibold flex items-center gap-1.5">
-              <span>📩 Đã gửi thư xác minh từ Riot Games!</span>
+
+          <div className="space-y-3 text-xs max-w-lg">
+            <div className="space-y-1">
+              <span className="text-[11px] text-zinc-300 font-medium">
+                Nhập địa chỉ Email cá nhân của bạn (Gmail, Outlook...):
+              </span>
+              <div className="p-3 bg-black/70 rounded-xl border border-emerald-500/40 text-emerald-400 font-mono text-xs flex justify-between items-center">
+                <span>email.chinhchu@gmail.com</span>
+                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">
+                  Bấm Lưu & Xác Minh
+                </span>
+              </div>
             </div>
-            <p className="text-[11px] text-zinc-300">
-              Mở hộp thư email.cuaban@gmail.com và bấm nút <strong className="text-white">Verify Email</strong> để hoàn tất.
-            </p>
+
+            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs space-y-2">
+              <div className="font-bold text-white flex items-center gap-2">
+                <Mail className="w-4 h-4 text-emerald-400" />
+                <span>Thư xác minh từ Riot Games đã được gửi!</span>
+              </div>
+              <p className="text-zinc-300 text-[11px] leading-relaxed">
+                Mở hòm thư Gmail của bạn, tìm email từ <strong className="text-white">Riot Games</strong> và bấm nút <span className="underline font-bold text-emerald-400">VERIFY EMAIL</span> để hoàn tất chuyển chủ sở hữu 100%.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -641,25 +832,31 @@ function RiotStepGraphic({
 
   // Two factor
   return (
-    <div className={`w-full ${containerHeight} bg-[#0f0f12] rounded-xl border border-white/10 p-4 sm:p-6 flex flex-col justify-center space-y-3`}>
-      <div className="flex items-center justify-between border-b border-white/10 pb-2 text-xs">
-        <span className="font-heading font-bold text-white flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>XÁC THỰC HAI YẾU TỐ (2FA)</span>
-        </span>
-        <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold">
-          BẬT (ENABLED)
-        </span>
-      </div>
-      <div className="p-4 bg-black/50 rounded-xl border border-emerald-500/30 space-y-2 text-xs">
-        <div className="flex items-center gap-2 text-white font-semibold">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-          <span>Tài khoản đã được bảo vệ an toàn 100%!</span>
+    <div className={`w-full ${containerHeight} bg-[#0b0b0e] rounded-xl border border-white/10 flex flex-col overflow-hidden shadow-lg`}>
+      {browserBar}
+      <div className="flex-1 p-4 sm:p-6 flex flex-col justify-center space-y-4">
+        <div className="flex items-center justify-between border-b border-white/10 pb-3 text-xs sm:text-sm">
+          <span className="font-heading font-bold text-white flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-emerald-400" />
+            <span>XÁC THỰC HAI YẾU TỐ (TWO-FACTOR AUTHENTICATION)</span>
+          </span>
+          <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold border border-emerald-500/30 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            TRẠNG THÁI: BẬT (ON)
+          </span>
         </div>
-        <p className="text-zinc-400 text-xs leading-relaxed">
-          Mỗi khi đăng nhập trên máy tính mới hoặc thiết bị lạ, Riot Games sẽ tự động gửi mã OTP 6 số về email chính chủ của bạn để bảo vệ tài khoản không bị truy cập trái phép.
-        </p>
+
+        <div className="p-5 bg-black/60 rounded-xl border border-emerald-500/30 space-y-2.5 text-xs">
+          <div className="flex items-center gap-2 text-white font-bold text-sm">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+            <span>Tài khoản Riot đã được kích hoạt bảo vệ 2 lớp tối đa!</span>
+          </div>
+          <p className="text-zinc-400 text-xs leading-relaxed">
+            Mỗi khi bạn hoặc bất kỳ ai đăng nhập trên máy tính mới hoặc thiết bị lạ, Riot Games sẽ tự động gửi mã OTP 6 số về địa chỉ Email chính chủ của bạn để phê duyệt. Không ai có thể vào acc nếu không có email của bạn!
+          </p>
+        </div>
       </div>
     </div>
   );
 }
+
