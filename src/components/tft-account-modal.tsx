@@ -592,13 +592,23 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
             </button>
 
             {isRented ? (
-              <button
-                onClick={handlePreOrderZalo}
-                className="px-4 py-2 bg-white hover:bg-zinc-200 text-[#09090b] rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer shadow-sm"
-              >
-                <MessageCircle className="w-3.5 h-3.5" />
-                <span>Liên Hệ Zalo Đặt Trước</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/shop?search=${encodeURIComponent(account.mainChibi || (account.allChibi && account.allChibi[0]) || account.title.split(" ")[0] || "")}&status=available`}
+                  onClick={onClose}
+                  className="px-3 py-2 bg-white/[0.08] hover:bg-white/[0.15] text-white border border-white/20 rounded-xl font-medium text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>Tìm acc tương tự đang còn</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </Link>
+                <button
+                  onClick={handlePreOrderZalo}
+                  className="px-4 py-2 bg-white hover:bg-zinc-200 text-[#09090b] rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer shadow-sm"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>Đặt Trước Qua Zalo</span>
+                </button>
+              </div>
             ) : (
               <button
                 onClick={handleOrderZalo}

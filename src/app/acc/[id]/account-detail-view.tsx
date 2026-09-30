@@ -599,17 +599,15 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
               <div className="pt-2 space-y-2">
                 {isRented ? (
                   <div className="space-y-2">
-                    <button
-                      disabled
-                      className="w-full py-3 px-5 rounded-xl bg-white/10 text-zinc-400 font-semibold text-sm cursor-not-allowed text-center"
-                    >
-                      Tài khoản đang có khách thuê
-                    </button>
+                    <div className="w-full py-2.5 px-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 font-semibold text-xs sm:text-sm text-center flex items-center justify-center gap-1.5">
+                      <Clock className="w-4 h-4 text-amber-400" />
+                      <span>Tài khoản đang có khách thuê</span>
+                    </div>
                     <Link
-                      href={`/shop?search=${encodeURIComponent(primarySearchTarget)}`}
-                      className="w-full py-3 px-5 rounded-xl bg-white hover:bg-zinc-200 text-black font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      href={`/shop?search=${encodeURIComponent(primarySearchTarget)}&status=available`}
+                      className="w-full py-3.5 px-5 rounded-xl bg-white hover:bg-zinc-200 text-black font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-99"
                     >
-                      <span>Xem acc tương tự trong kho</span>
+                      <span>Tìm acc tương tự đang còn</span>
                       <ArrowLeft className="w-4 h-4 rotate-180" />
                     </Link>
                   </div>
@@ -666,8 +664,8 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-              {relatedAccounts.slice(0, 4).map((rel) => {
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
+              {relatedAccounts.slice(0, 6).map((rel) => {
                 const relUrl = getAccountProductUrl(rel);
                 const relPrice =
                   rel.type === "CLONE"
@@ -769,10 +767,10 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
 
         {isRented ? (
           <Link
-            href={`/shop?search=${encodeURIComponent(primarySearchTarget)}`}
+            href={`/shop?search=${encodeURIComponent(primarySearchTarget)}&status=available`}
             className="py-2.5 px-4 rounded-xl bg-white text-black font-semibold text-xs transition-colors"
           >
-            Xem acc tương tự
+            Tìm acc tương tự đang còn
           </Link>
         ) : (
           <button

@@ -522,25 +522,26 @@ function calculateSimilarityScore(
   const priceCand = candidate.hourlyPrice || candidate.price || 15000;
   const priceDiffRatio = Math.abs(priceCurr - priceCand) / Math.max(priceCurr, 1);
   if (priceDiffRatio < 0.25) {
-    score += 15;
+    score += 20;
   } else if (priceDiffRatio < 0.5) {
-    score += 8;
+    score += 10;
   }
 
-  // 6. Ưu tiên tài khoản đang SẴN SÀNG (AVAILABLE) hơn RENTED
+  // 6. Ưu tiên tài khoản đang SẴN SÀNG (AVAILABLE):
+  // Rented Product Recovery (Phase 10): Nếu acc hiện tại ĐANG THUÊ, ưu tiên cực cao cho acc AVAILABLE
   if (candidate.status === "AVAILABLE") {
-    score += 6;
+    score += current.status === "RENTED" ? 50 : 20;
   }
 
   return score;
 }
 
 /**
- * Lấy danh sách tài khoản liên quan / tương tự dựa trên điểm số tương đồng thông minh (Bounded Query)
+ * Lấy danh sách tài khoản liên quan / tương tự dựa trên điểm số tương đồng thông minh (Bounded Query - Phase 10)
  */
 export async function getRelatedAccounts(
   currentId: string,
-  limit = 4
+  limit = 6
 ): Promise<UnifiedProductAccount[]> {
   const current = await getAccountByIdOrSlug(currentId);
   if (!current) {
@@ -555,7 +556,7 @@ export async function getRelatedAccounts(
       .eq("type", current.type)
       .neq("id", current.id)
       .order("created_at", { ascending: false })
-      .limit(16);
+      .limit(24);
 
     let candidates: UnifiedProductAccount[] = [];
     if (!error && data && data.length > 0) {

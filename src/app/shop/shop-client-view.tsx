@@ -25,6 +25,11 @@ import { analytics } from "@/utils/analytics";
 import { Reveal } from "@/components/reveal";
 import { TFTRecentlyViewed } from "@/components/tft-recently-viewed";
 import { ChevronRight, RotateCcw } from "lucide-react";
+import {
+  calculateSearchRelevance,
+  getSmartSearchSuggestions,
+  normalizeSearchQuery,
+} from "@/utils/search-discovery";
 
 function removeAccents(str?: string | null): string {
   if (!str) return "";
@@ -309,6 +314,24 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
     updateUrlParams(resetState);
   };
 
+  const handleSelectSuggestion = (suggestionQuery: string) => {
+    analytics.trackSearchSuggestionClick({
+      original_query: filters.search,
+      suggestion: suggestionQuery,
+    });
+    handleFilterChange({ search: suggestionQuery });
+  };
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (filters.type !== "ALL") count++;
+    if (filters.pet) count++;
+    if (filters.arena) count++;
+    if (filters.price !== "ALL") count++;
+    if (filters.status !== "ALL") count++;
+    return count;
+  }, [filters.type, filters.pet, filters.arena, filters.price, filters.status]);
+
   // Compute Filter Options data for dropdown lists
   const filterOptions = useMemo(() => {
     const petMap = new Map<string, number>();
@@ -437,12 +460,73 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
         if (filters.sort === "PRICE_DESC") {
           return Number(b.price) - Number(a.price);
         }
+        // Khi có search query, xếp hạng theo điểm liên quan (relevance) trước
+        if (filters.search.trim()) {
+          const scoreA = calculateSearchRelevance(
+            {
+              id: a.id,
+              code: a.code,
+              title: a.title,
+              rank: a.rank,
+              mainPet: a.mainPet,
+              allPets: a.rawVip?.allChibi,
+              arena: a.arena,
+              allArenas: a.rawVip?.allArenas,
+              features: a.features,
+              description: a.description,
+              status: a.status,
+              type: a.type,
+            },
+            filters.search
+          );
+          const scoreB = calculateSearchRelevance(
+            {
+              id: b.id,
+              code: b.code,
+              title: b.title,
+              rank: b.rank,
+              mainPet: b.mainPet,
+              allPets: b.rawVip?.allChibi,
+              arena: b.arena,
+              allArenas: b.rawVip?.allArenas,
+              features: b.features,
+              description: b.description,
+              status: b.status,
+              type: b.type,
+            },
+            filters.search
+          );
+          if (scoreB !== scoreA) {
+            return scoreB - scoreA;
+          }
+        }
         // "NEWEST": Sort by creation timestamp descending
         const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
         const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
         return timeB - timeA;
       });
   }, [allNormalizedAccounts, filters]);
+
+  // Track search no-result events (Phase 10)
+  const lastNoResultQueryRef = useRef<string>("");
+  useEffect(() => {
+    if (!isLoading && filteredAccounts.length === 0 && filters.search.trim()) {
+      const q = filters.search.trim();
+      if (lastNoResultQueryRef.current !== q) {
+        lastNoResultQueryRef.current = q;
+        analytics.trackSearchNoResult({
+          query: q,
+          active_filters: {
+            type: filters.type,
+            pet: filters.pet,
+            arena: filters.arena,
+            price: filters.price,
+            status: filters.status,
+          },
+        });
+      }
+    }
+  }, [isLoading, filteredAccounts.length, filters]);
 
   // Reset pagination when filters change
   useEffect(() => {
@@ -563,8 +647,12 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
         ) : filteredAccounts.length === 0 ? (
           <ProductCardEmptyState
             searchQuery={filters.search}
+            activeFilterCount={activeFilterCount}
+            suggestions={getSmartSearchSuggestions(filters.search)}
+            onSelectSuggestion={handleSelectSuggestion}
             onClearSearch={() => handleFilterChange({ search: "" })}
             onReset={handleResetAll}
+            onSwitchType={(type) => handleFilterChange({ type, search: "" })}
             totalCount={allNormalizedAccounts.length}
           />
         ) : (

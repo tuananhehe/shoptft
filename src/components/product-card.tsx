@@ -490,23 +490,31 @@ export const ProductCardSkeleton: React.FC = () => {
 };
 
 /**
- * COMPONENT EMPTY STATE CHUẨN (DARK MONOCHROME)
+ * COMPONENT EMPTY STATE CHUẨN (SMART NO-RESULT RECOVERY - PHASE 10)
  */
 export const ProductCardEmptyState: React.FC<{
   title?: string;
   description?: string;
   searchQuery?: string;
+  activeFilterCount?: number;
+  suggestions?: string[];
+  onSelectSuggestion?: (query: string) => void;
   onClearSearch?: () => void;
   onReset?: () => void;
   onViewAll?: () => void;
+  onSwitchType?: (type: "VIP" | "CLONE") => void;
   totalCount?: number;
 }> = ({
   title,
   description,
   searchQuery,
+  activeFilterCount = 0,
+  suggestions = ["Gwen", "Yasuo", "Yone", "Hàng Hiệu", "Sân Đấu"],
+  onSelectSuggestion,
   onClearSearch,
   onReset,
   onViewAll,
+  onSwitchType,
   totalCount,
 }) => {
   const displayTitle = searchQuery
@@ -514,21 +522,47 @@ export const ProductCardEmptyState: React.FC<{
     : title || "Không tìm thấy tài khoản phù hợp";
 
   const displayDescription = searchQuery
-    ? "Vui lòng kiểm tra lại từ khóa hoặc xóa tìm kiếm để xem danh sách tài khoản sẵn có."
+    ? activeFilterCount > 0
+      ? `Từ khóa "${searchQuery}" kết hợp với các bộ lọc hiện tại không có tài khoản phù hợp. Bạn có thể thử bỏ bớt bộ lọc hoặc chọn từ khóa gợi ý.`
+      : "Vui lòng kiểm tra lại từ khóa hoặc chọn các gợi ý bên dưới để xem tài khoản có sẵn trong kho."
     : description || "Bạn có thể thử tìm với từ khóa khác, thay đổi bộ lọc hoặc bấm Đặt lại để xem toàn bộ danh mục.";
 
   return (
-    <div className="p-8 sm:p-12 text-center bg-[#141414] rounded-2xl border border-white/[0.08] space-y-3 col-span-full">
+    <div className="p-6 sm:p-10 text-center bg-[#141414] rounded-2xl border border-white/[0.08] space-y-4 col-span-full animate-in fade-in duration-200">
       <div className="w-12 h-12 rounded-full bg-white/[0.06] text-zinc-300 flex items-center justify-center mx-auto border border-white/10">
-        <Search className="w-5 h-5" />
+        <Search className="w-5 h-5 text-zinc-400" />
       </div>
-      <h4 className="text-sm sm:text-base font-semibold text-white">
-        {displayTitle}
-      </h4>
-      <p className="text-xs text-zinc-400 max-w-md mx-auto leading-relaxed">
-        {displayDescription}
-      </p>
-      <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+
+      <div className="space-y-1">
+        <h4 className="text-sm sm:text-base font-semibold text-white">
+          {displayTitle}
+        </h4>
+        <p className="text-xs text-zinc-400 max-w-md mx-auto leading-relaxed">
+          {displayDescription}
+        </p>
+      </div>
+
+      {/* Gợi ý từ khóa hot có cơ sở thật trong kho */}
+      {suggestions && suggestions.length > 0 && onSelectSuggestion && (
+        <div className="pt-1 pb-2">
+          <div className="text-[11px] text-zinc-500 mb-2 font-medium">Có thể bạn đang tìm:</div>
+          <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+            {suggestions.slice(0, 5).map((sug) => (
+              <button
+                key={sug}
+                type="button"
+                onClick={() => onSelectSuggestion(sug)}
+                className="px-2.5 py-1 text-xs rounded-lg bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white transition-all cursor-pointer"
+              >
+                {sug}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Các nút hành động phục hồi không để dead-end */}
+      <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
         {searchQuery && onClearSearch && (
           <button
             type="button"
@@ -538,24 +572,41 @@ export const ProductCardEmptyState: React.FC<{
             Xóa tìm kiếm
           </button>
         )}
-        {onReset && (
+
+        {activeFilterCount > 0 && onReset && (
           <button
             type="button"
             onClick={onReset}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
-              searchQuery && onClearSearch
-                ? "bg-white/[0.08] hover:bg-white/[0.15] text-white border border-white/15"
-                : "bg-white hover:bg-zinc-200 text-[#090909]"
-            }`}
+            className="px-4 py-2 bg-white/[0.08] hover:bg-white/[0.15] text-white border border-white/15 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
           >
-            {searchQuery ? "Xem toàn bộ kho" : "Đặt lại bộ lọc"}
+            Xóa {activeFilterCount} bộ lọc
           </button>
         )}
-        {onViewAll && !searchQuery && (
+
+        {onSwitchType && (
+          <>
+            <button
+              type="button"
+              onClick={() => onSwitchType("VIP")}
+              className="px-3 py-2 bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white border border-white/10 rounded-xl text-xs font-medium transition-colors cursor-pointer"
+            >
+              Xem Kho VIP
+            </button>
+            <button
+              type="button"
+              onClick={() => onSwitchType("CLONE")}
+              className="px-3 py-2 bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white border border-white/10 rounded-xl text-xs font-medium transition-colors cursor-pointer"
+            >
+              Xem Kho Clone
+            </button>
+          </>
+        )}
+
+        {onReset && !activeFilterCount && (
           <button
             type="button"
-            onClick={onViewAll}
-            className="px-4 py-2 bg-white/[0.06] hover:bg-white/[0.12] text-white border border-white/15 rounded-xl text-xs font-medium transition-colors cursor-pointer"
+            onClick={onReset}
+            className="px-4 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer bg-white/[0.08] hover:bg-white/[0.15] text-white border border-white/15"
           >
             Xem toàn bộ kho {totalCount ? `(${totalCount} acc)` : ""}
           </button>

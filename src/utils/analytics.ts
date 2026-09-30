@@ -34,6 +34,16 @@ export interface TrackSearchProductParams {
   results_count?: number;
 }
 
+export interface TrackSearchNoResultParams {
+  query: string;
+  active_filters?: Record<string, any>;
+}
+
+export interface TrackSearchSuggestionClickParams {
+  original_query: string;
+  suggestion: string;
+}
+
 export interface TrackApplyFilterParams {
   filter_type: "type" | "pet" | "arena" | "price" | "status" | "sort" | string;
   filter_value: string;
@@ -273,6 +283,28 @@ export const analytics = {
     sendEvent("search_product", {
       search_term: trimmed,
       results_count: params.results_count,
+    });
+  },
+
+  /**
+   * Khách hàng tìm kiếm nhưng không trả về kết quả nào (Phase 10)
+   */
+  trackSearchNoResult: (params: TrackSearchNoResultParams) => {
+    const trimmed = (params.query || "").trim();
+    if (!trimmed) return;
+    sendEvent("search_no_result", {
+      search_term: trimmed,
+      ...(params.active_filters || {}),
+    });
+  },
+
+  /**
+   * Khách hàng click vào từ khóa đề xuất khi kết quả rỗng (Phase 10)
+   */
+  trackSearchSuggestionClick: (params: TrackSearchSuggestionClickParams) => {
+    sendEvent("search_suggestion_click", {
+      search_term: (params.original_query || "").trim(),
+      suggestion: params.suggestion,
     });
   },
 

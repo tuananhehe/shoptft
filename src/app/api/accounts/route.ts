@@ -4,6 +4,11 @@ import path from "path";
 import { supabase } from "@/utils/supabase/client";
 import { verifyAdminSessionToken, ADMIN_COOKIE_NAME } from "@/utils/admin-auth";
 import { determinePackageFromAccount, OrderItem } from "@/utils/orders-service";
+import {
+  normalizeSearchQuery,
+  expandSearchKeywords,
+  calculateSearchRelevance,
+} from "@/utils/search-discovery";
 
 const ORDERS_FILE_PATH = path.join(process.cwd(), "src", "data", "orders.json");
 
@@ -111,49 +116,28 @@ const LISTING_COLUMNS =
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const rawSearch = (searchParams.get("search") || "").trim();
+    const rawSearch = normalizeSearchQuery(searchParams.get("search"));
     const type = searchParams.get("type");
     const status = searchParams.get("status");
+    const sortParam = (searchParams.get("sort") || "").toLowerCase();
     const rawLimit = searchParams.get("limit");
     const rawOffset = searchParams.get("offset");
 
     let query = supabase
       .from("accounts")
-      .select(LISTING_COLUMNS, { count: "exact" })
-      .order("created_at", { ascending: false });
+      .select(LISTING_COLUMNS, { count: "exact" });
+
+    // Explicit user sort or default date sort
+    if (sortParam === "price_asc") {
+      query = query.order("price", { ascending: true });
+    } else if (sortParam === "price_desc") {
+      query = query.order("price", { ascending: false });
+    } else {
+      query = query.order("created_at", { ascending: false });
+    }
 
     if (rawSearch) {
-      const q = rawSearch.toLowerCase();
-      const terms = new Set<string>([rawSearch]);
-      if (q.includes("chibi") || q.includes("pet") || q.includes("linh thu") || q.includes("linh thú")) {
-        terms.add("Tí Nị");
-      }
-      if (q.includes("smurf")) {
-        terms.add("Clone");
-        terms.add("Unranked");
-      }
-      if (q.includes("hang hieu") || q.includes("prestige")) {
-        terms.add("Hàng Hiệu");
-      }
-      if (q.includes("san dau") || q.includes("san") || q.includes("map")) {
-        terms.add("Sân Đấu");
-      }
-      if (q.includes("thach dau") || q.includes("challenger")) {
-        terms.add("Thách Đấu");
-      }
-      if (q.includes("dai cao thu")) {
-        terms.add("Đại Cao Thủ");
-      }
-      if (q.includes("cao thu")) {
-        terms.add("Cao Thủ");
-      }
-      if (q.includes("kim cuong")) {
-        terms.add("Kim Cương");
-      }
-      if (q.includes("luc bao")) {
-        terms.add("Lục Bảo");
-      }
-
+      const terms = expandSearchKeywords(rawSearch);
       const orClauses: string[] = [];
       for (const t of terms) {
         const clean = t.replace(/[%,()]/g, " ").trim();
@@ -161,7 +145,8 @@ export async function GET(req: NextRequest) {
           orClauses.push(
             `title.ilike.%${clean}%`,
             `code.ilike.%${clean}%`,
-            `rank.ilike.%${clean}%`
+            `rank.ilike.%${clean}%`,
+            `description.ilike.%${clean}%`
           );
         }
       }
@@ -178,12 +163,12 @@ export async function GET(req: NextRequest) {
       query = query.eq("status", status.toUpperCase());
     }
 
-    if (rawLimit) {
-      const limit = parseInt(rawLimit, 10);
-      const offset = rawOffset ? parseInt(rawOffset, 10) : 0;
-      if (!isNaN(limit) && limit > 0) {
-        query = query.range(offset, offset + limit - 1);
-      }
+    // Nếu không có search query, phân trang trực tiếp ở database
+    const limit = rawLimit ? parseInt(rawLimit, 10) : 0;
+    const offset = rawOffset ? parseInt(rawOffset, 10) : 0;
+
+    if (!rawSearch && limit > 0) {
+      query = query.range(offset, offset + limit - 1);
     }
 
     const { data, error, count } = await query;
@@ -197,14 +182,68 @@ export async function GET(req: NextRequest) {
           data: [],
           total: 0,
         },
-        { status: 200 } // Trả về 200 kèm data rỗng để frontend không crash nếu chưa tạo bảng
+        { status: 200 }
       );
+    }
+
+    let resultList = data || [];
+
+    // Nếu có search query và user KHÔNG chọn explicit sort theo giá, sắp xếp theo relevance score
+    if (rawSearch && sortParam !== "price_asc" && sortParam !== "price_desc") {
+      resultList = [...resultList].sort((a: any, b: any) => {
+        const scoreA = calculateSearchRelevance(
+          {
+            id: a.id,
+            code: a.code,
+            title: a.title,
+            rank: a.rank,
+            mainPet: a.champions?.[0],
+            allPets: a.champions || [],
+            arena: a.arenas?.[0],
+            allArenas: a.arenas || [],
+            features: a.features || [],
+            description: a.description,
+            status: a.status,
+            type: a.type,
+          },
+          rawSearch
+        );
+        const scoreB = calculateSearchRelevance(
+          {
+            id: b.id,
+            code: b.code,
+            title: b.title,
+            rank: b.rank,
+            mainPet: b.champions?.[0],
+            allPets: b.champions || [],
+            arena: b.arenas?.[0],
+            allArenas: b.arenas || [],
+            features: b.features || [],
+            description: b.description,
+            status: b.status,
+            type: b.type,
+          },
+          rawSearch
+        );
+        if (scoreB !== scoreA) {
+          return scoreB - scoreA;
+        }
+        const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return timeB - timeA;
+      });
+    }
+
+    // Áp dụng limit / offset sau khi relevance ranking
+    const totalCount = count || resultList.length;
+    if (rawSearch && limit > 0) {
+      resultList = resultList.slice(offset, offset + limit);
     }
 
     const response = NextResponse.json({
       success: true,
-      data: data || [],
-      total: count || (data ? data.length : 0),
+      data: resultList,
+      total: totalCount,
     });
 
     response.headers.set(

@@ -79,7 +79,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const relatedAccounts = await getRelatedAccounts(account.id, 4);
+  const relatedAccounts = await getRelatedAccounts(account.id, 6);
   const cleanCode = account.code.replace(/^MS:\s*/i, "").trim();
   const accountUrl = `https://www.shoptftmobile.net/acc/${encodeURIComponent(cleanCode || account.id)}`;
 
