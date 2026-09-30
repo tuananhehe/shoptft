@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     siteName: "ShopTFTMobile",
     images: [
       {
-        url: "https://doihinhtft.vn/wp-content/uploads/2026/07/image-15-1536x864.png",
+        url: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Xayah_8.jpg",
         width: 1200,
         height: 630,
         alt: "TFT Mùa 18 Đại Ngàn Kỳ Bí Hub",

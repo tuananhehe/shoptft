@@ -244,10 +244,10 @@ export default async function RootLayout({
       <head>
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
-        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://images.unsplash.com" />
-        <link rel="preconnect" href="https://doihinhtft.vn" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://doihinhtft.vn" />
+        <link rel="preconnect" href="https://ddragon.leagueoflegends.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://ddragon.leagueoflegends.com" />
+        <link rel="preconnect" href="https://raw.communitydragon.org" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://raw.communitydragon.org" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <script

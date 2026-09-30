@@ -54,6 +54,41 @@ export interface BlogPost {
   featured?: boolean;
   faqs?: BlogFaqItem[];
   seo: BlogPostSeo;
+  generatedByAi?: boolean;
+  suggestedCoverPrompt?: string;
+}
+
+export type AiArticleLength = "short" | "standard" | "deep";
+
+export interface AiGenerateArticleRequest {
+  topic: string;
+  category?: BlogPostCategory | "auto";
+  contentType?: BlogContentType | "auto";
+  patch?: string;
+  length?: AiArticleLength;
+  mode?: "full" | "rewrite" | "seo_only";
+  existingContent?: string;
+  existingTitle?: string;
+  apiKey?: string;
+}
+
+export interface AiArticleStructuredOutput {
+  title: string;
+  slug: string;
+  category: BlogPostCategory;
+  contentType: BlogContentType;
+  patch?: string | null;
+  excerpt: string;
+  tags: string[];
+  contentMarkdown: string;
+  seo: {
+    metaTitle: string;
+    metaDescription: string;
+    canonicalPath: string;
+    index: boolean;
+  };
+  suggestedCoverPrompt?: string;
+  internalLinks?: Array<{ text: string; url: string }>;
 }
 
 export const DEFAULT_AUTHOR: BlogAuthor = {

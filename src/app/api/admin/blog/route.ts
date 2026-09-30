@@ -113,6 +113,8 @@ export async function POST(req: NextRequest) {
       readingTime: calculateReadingTime(content),
       featured: Boolean(body.featured),
       faqs: Array.isArray(body.faqs) ? body.faqs : [],
+      generatedByAi: Boolean(body.generatedByAi),
+      suggestedCoverPrompt: sanitizeString(body.suggestedCoverPrompt),
       seo: {
         title: sanitizeString(body.seo?.title) || `${title} | ShopTFTMobile`,
         description: sanitizeString(body.seo?.description) || sanitizeString(body.excerpt),
@@ -187,6 +189,8 @@ export async function PUT(req: NextRequest) {
       readingTime: calculateReadingTime(content),
       featured: body.featured !== undefined ? Boolean(body.featured) : current.featured,
       faqs: Array.isArray(body.faqs) ? body.faqs : current.faqs,
+      generatedByAi: body.generatedByAi !== undefined ? Boolean(body.generatedByAi) : current.generatedByAi,
+      suggestedCoverPrompt: body.suggestedCoverPrompt !== undefined ? sanitizeString(body.suggestedCoverPrompt) : current.suggestedCoverPrompt,
       seo: {
         ...current.seo,
         ...(body.seo || {}),

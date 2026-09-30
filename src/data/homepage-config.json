@@ -40,13 +40,13 @@
     ]
   },
   "images": {
-    "heroCardImage": "https://doihinhtft.vn/wp-content/uploads/2026/07/image-15-1536x864.png",
+    "heroCardImage": "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Xayah_8.jpg",
     "heroCardCode": "MS: 9966",
     "heroCardChibi": "MÙA 18 TFT",
     "heroCardArena": "Thuê ngay Pet xịn, trải nghiệm đỉnh cao",
     "heroCardPrice": "3.600đ/h",
     "avatarUrl": "/avatar.jpg",
-    "coverUrl": "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1600&auto=format&fit=crop"
+    "coverUrl": "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Ahri_27.jpg"
   },
   "alertBanner": {
     "active": true,

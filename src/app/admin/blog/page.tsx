@@ -26,6 +26,10 @@ import {
   Globe,
   Loader2,
   RefreshCw,
+  ChevronDown,
+  ChevronUp,
+  Key,
+  Wand2,
 } from "lucide-react";
 import {
   BlogPost,
@@ -37,6 +41,9 @@ import {
   CURRENT_TFT_PATCH,
   slugify,
   calculateReadingTime,
+  AiArticleLength,
+  AiGenerateArticleRequest,
+  AiArticleStructuredOutput,
 } from "@/utils/blog-shared";
 
 type FilterTab = "all" | "published" | "draft" | "set18" | "patch" | "missing_seo";
@@ -52,6 +59,154 @@ export default function AdminBlogManagerPage() {
   const [editingPost, setEditingPost] = useState<Partial<BlogPost> | null>(null);
   const [saving, setSaving] = useState(false);
   const [editorTab, setEditorTab] = useState<"content" | "seo">("content");
+
+  // AI Generator Modal state
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [aiMode, setAiMode] = useState<"full" | "rewrite" | "seo_only">("full");
+  const [aiTopic, setAiTopic] = useState("");
+  const [aiCategory, setAiCategory] = useState<BlogPostCategory | "auto">("auto");
+  const [aiContentType, setAiContentType] = useState<BlogContentType | "auto">("auto");
+  const [aiPatch, setAiPatch] = useState("");
+  const [aiLength, setAiLength] = useState<AiArticleLength>("standard");
+  const [aiApiKey, setAiApiKey] = useState("");
+  const [showAiKeyInput, setShowAiKeyInput] = useState(false);
+  const [aiShowAdvanced, setAiShowAdvanced] = useState(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiProgressStep, setAiProgressStep] = useState("");
+  const [aiGeneratedNotice, setAiGeneratedNotice] = useState(false);
+
+  // Load saved API key on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedKey = localStorage.getItem("admin_ai_api_key") || localStorage.getItem("admin_gemini_api_key") || "";
+      if (savedKey) setAiApiKey(savedKey);
+    }
+  }, []);
+
+  const handleOpenAiModal = (mode: "full" | "rewrite" | "seo_only" = "full") => {
+    setAiMode(mode);
+    if (mode === "rewrite") {
+      setAiTopic(editingPost?.title ? `Viết lại bài viết: ${editingPost.title}` : "");
+    } else if (mode === "seo_only") {
+      setAiTopic(editingPost?.title ? `Tối ưu SEO cho bài: ${editingPost.title}` : "");
+    } else {
+      setAiTopic("");
+    }
+    setAiModalOpen(true);
+  };
+
+  const handleAiGenerate = async () => {
+    if (!aiTopic.trim()) {
+      toast.error("Vui lòng nhập chủ đề bài viết bạn muốn tạo!");
+      return;
+    }
+
+    // Overwrite safety confirmation
+    if (editingPost && (editingPost.title || (editingPost.content && editingPost.content.length > 50))) {
+      const confirmed = window.confirm("Tạo lại sẽ thay thế nội dung hiện tại trong form. Bạn có chắc chắn muốn tiếp tục?");
+      if (!confirmed) return;
+    }
+
+    // Save API key if updated
+    if (typeof window !== "undefined" && aiApiKey.trim()) {
+      localStorage.setItem("admin_ai_api_key", aiApiKey.trim());
+    }
+
+    setAiGenerating(true);
+    setAiProgressStep("Đang phân tích chủ đề & cấu trúc meta...");
+
+    const timer1 = setTimeout(() => {
+      setAiProgressStep("Đang viết nội dung chi tiết & bảng chiến thuật...");
+    }, 1200);
+
+    const timer2 = setTimeout(() => {
+      setAiProgressStep("Đang tối ưu tiêu đề, meta description & liên kết SEO...");
+    }, 2800);
+
+    try {
+      const localToken = typeof window !== "undefined" ? localStorage.getItem("shoptft_admin_token") : null;
+      const res = await fetch("/api/admin/blog/ai-generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(localToken ? { "x-admin-token": localToken } : {}),
+        },
+        body: JSON.stringify({
+          topic: aiTopic,
+          category: aiCategory === "auto" ? undefined : aiCategory,
+          contentType: aiContentType === "auto" ? undefined : aiContentType,
+          patch: aiPatch.trim() || undefined,
+          length: aiLength,
+          mode: aiMode,
+          existingTitle: editingPost?.title,
+          existingContent: editingPost?.content,
+          apiKey: aiApiKey || undefined,
+        }),
+      });
+
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+
+      const json = await res.json();
+      if (!json.success || !json.data) {
+        throw new Error(json.error || "Không thể tạo bài lúc này. Nội dung hiện tại chưa bị thay đổi.");
+      }
+
+      const out: AiArticleStructuredOutput = json.data;
+
+      if (aiMode === "seo_only") {
+        setEditingPost((prev) => ({
+          ...prev,
+          tags: out.tags && out.tags.length > 0 ? out.tags : prev?.tags,
+          seo: {
+            ...prev?.seo,
+            title: out.seo.metaTitle,
+            description: out.seo.metaDescription,
+            canonical: `https://www.shoptftmobile.net${out.seo.canonicalPath}`,
+            noindex: false,
+          },
+        }));
+        toast.success("✨ Đã tối ưu thẻ SEO bằng AI thành công!");
+        setEditorTab("seo");
+      } else {
+        setEditingPost({
+          id: editingPost?.id,
+          title: out.title,
+          slug: out.slug,
+          excerpt: out.excerpt,
+          content: out.contentMarkdown,
+          category: out.category,
+          contentType: out.contentType,
+          patch: out.patch || "",
+          tags: out.tags,
+          coverImage: "",
+          suggestedCoverPrompt: out.suggestedCoverPrompt,
+          generatedByAi: true,
+          status: "draft", // Always Draft
+          author: DEFAULT_AUTHOR,
+          seo: {
+            title: out.seo.metaTitle,
+            description: out.seo.metaDescription,
+            canonical: `https://www.shoptftmobile.net${out.seo.canonicalPath}`,
+            noindex: false,
+          },
+        });
+        setAiGeneratedNotice(true);
+        setEditorTab("content");
+        setEditorOpen(true);
+        toast.success("✨ Đã tạo bài viết bằng AI thành công! Mời bạn duyệt nội dung trước khi xuất bản.");
+      }
+
+      setAiModalOpen(false);
+    } catch (err: any) {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      toast.error(err.message || "Không thể tạo bài lúc này. Nội dung hiện tại chưa bị thay đổi.");
+    } finally {
+      setAiGenerating(false);
+      setAiProgressStep("");
+    }
+  };
 
   // Fetch posts from API
   const fetchPosts = async () => {
@@ -250,6 +405,15 @@ export default function AdminBlogManagerPage() {
           </Link>
 
           <button
+            type="button"
+            onClick={() => handleOpenAiModal("full")}
+            className="px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-600 hover:from-purple-700 hover:via-indigo-700 hover:to-amber-700 transition-all flex items-center gap-1.5 shadow-sm active:scale-98 cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+            <span>✨ Tạo bằng AI</span>
+          </button>
+
+          <button
             onClick={handleCreateNew}
             className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-gray-950 hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-xs cursor-pointer"
           >
@@ -392,9 +556,16 @@ export default function AdminBlogManagerPage() {
                             className="w-12 h-8 rounded-lg object-cover border border-gray-200 flex-shrink-0"
                           />
                           <div className="min-w-0">
-                            <h4 className="font-semibold text-gray-900 truncate" title={post.title}>
-                              {post.title}
-                            </h4>
+                            <div className="flex items-center gap-1.5">
+                              <h4 className="font-semibold text-gray-900 truncate" title={post.title}>
+                                {post.title}
+                              </h4>
+                              {post.generatedByAi && (
+                                <span className="px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200 font-mono text-[9px] font-bold flex-shrink-0">
+                                  AI
+                                </span>
+                              )}
+                            </div>
                             <span className="text-[10px] font-mono text-gray-400 truncate block">
                               /blog/{post.slug}
                             </span>
@@ -565,6 +736,32 @@ export default function AdminBlogManagerPage() {
             <div className="p-5 overflow-y-auto space-y-4 flex-1 custom-scrollbar">
               {editorTab === "content" && (
                 <div className="space-y-4">
+                  {/* AI Banner Notice if generated by AI */}
+                  {(editingPost.generatedByAi || aiGeneratedNotice) && (
+                    <div className="p-3.5 rounded-2xl bg-gradient-to-r from-purple-50 via-amber-50 to-indigo-50 border border-purple-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-2 text-purple-900 font-medium">
+                        <Sparkles className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                        <span>✨ Bài viết được tạo bằng AI — hãy kiểm tra nội dung trước khi xuất bản.</span>
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenAiModal("rewrite")}
+                          className="px-2.5 py-1 rounded-lg bg-white border border-purple-200 text-purple-700 hover:bg-purple-50 text-[11px] font-semibold transition-colors cursor-pointer"
+                        >
+                          Viết lại bằng AI
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenAiModal("seo_only")}
+                          className="px-2.5 py-1 rounded-lg bg-amber-100 border border-amber-300 text-amber-800 hover:bg-amber-200 text-[11px] font-semibold transition-colors cursor-pointer"
+                        >
+                          Tối ưu SEO
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Title & Slug */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-gray-700">Tiêu đề bài viết (H1)</label>
@@ -710,6 +907,12 @@ export default function AdminBlogManagerPage() {
                         placeholder="/banner-seo.jpg hoặc https://..."
                         className="w-full px-3.5 py-2 text-xs border border-gray-200 rounded-xl focus:outline-hidden focus:border-gray-900"
                       />
+                      {editingPost.suggestedCoverPrompt && (
+                        <p className="text-[11px] text-purple-700 bg-purple-50 p-2 rounded-lg border border-purple-100 flex items-start gap-1.5 leading-relaxed mt-1">
+                          <Sparkles className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-purple-600" />
+                          <span><strong>Gợi ý AI cho ảnh bìa:</strong> {editingPost.suggestedCoverPrompt}</span>
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-1.5">
@@ -895,6 +1098,233 @@ export default function AdminBlogManagerPage() {
                   <span>Lưu bài viết</span>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* AI BLOG GENERATOR MODAL                                        */}
+      {/* ============================================================== */}
+      {aiModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+          <div className="bg-white rounded-3xl border border-gray-200 shadow-2xl w-full max-w-xl flex flex-col overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-purple-50 text-purple-700 border border-purple-100">
+                  <Sparkles className="w-5 h-5 text-purple-600 animate-pulse" />
+                </span>
+                <div>
+                  <h3 className="font-heading font-bold text-base text-gray-900">
+                    {aiMode === "rewrite"
+                      ? "Viết lại bài viết bằng AI"
+                      : aiMode === "seo_only"
+                      ? "Tối ưu SEO bằng AI"
+                      : "Tạo bài viết bằng AI"}
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    Mô tả nội dung bạn muốn viết, AI sẽ tạo bài và tự điền toàn bộ form.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => !aiGenerating && setAiModalOpen(false)}
+                disabled={aiGenerating}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-xl hover:bg-gray-100 cursor-pointer disabled:opacity-30"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+              {/* Main Topic Input */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-gray-700">
+                    {aiMode === "seo_only" ? "Gợi ý định hướng SEO:" : "Bạn muốn viết bài gì?"}
+                  </label>
+                  <span className="text-[10px] text-gray-400 font-mono">
+                    {aiTopic.length}/1000 ký tự
+                  </span>
+                </div>
+                <textarea
+                  rows={4}
+                  value={aiTopic}
+                  onChange={(e) => setAiTopic(e.target.value.slice(0, 1000))}
+                  disabled={aiGenerating}
+                  placeholder="VD: Viết bài hướng dẫn đội hình Ahri TFT Mùa 18 patch 18.3, gồm đội hình, trang bị, cách chơi đầu/trận/late game, ưu nhược điểm và FAQ."
+                  className="w-full px-3.5 py-2.5 text-xs border border-gray-200 rounded-2xl focus:outline-hidden focus:border-purple-600 focus:ring-1 focus:ring-purple-600/30 leading-relaxed disabled:bg-gray-50"
+                />
+              </div>
+
+              {/* Advanced Options Accordion */}
+              <div className="border border-gray-100 rounded-2xl overflow-hidden bg-gray-50/60">
+                <button
+                  type="button"
+                  onClick={() => setAiShowAdvanced(!aiShowAdvanced)}
+                  className="w-full px-4 py-2.5 flex items-center justify-between text-xs font-semibold text-gray-700 hover:text-gray-900 cursor-pointer"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Wand2 className="w-3.5 h-3.5 text-purple-600" />
+                    <span>Tùy chọn nâng cao</span>
+                  </span>
+                  {aiShowAdvanced ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                </button>
+
+                {aiShowAdvanced && (
+                  <div className="p-4 pt-1 border-t border-gray-100 space-y-3 bg-white">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {/* Chuyên mục */}
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-semibold text-gray-600">Chuyên mục</label>
+                        <select
+                          value={aiCategory}
+                          onChange={(e) => setAiCategory(e.target.value as any)}
+                          disabled={aiGenerating}
+                          className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-xl bg-gray-50 focus:outline-hidden"
+                        >
+                          <option value="auto">Tự động nhận diện</option>
+                          {BLOG_CATEGORIES.map((c) => (
+                            <option key={c} value={c}>
+                              {c}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Loại nội dung */}
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-semibold text-gray-600">Loại nội dung</label>
+                        <select
+                          value={aiContentType}
+                          onChange={(e) => setAiContentType(e.target.value as any)}
+                          disabled={aiGenerating}
+                          className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-xl bg-gray-50 focus:outline-hidden"
+                        >
+                          <option value="auto">Tự động nhận diện</option>
+                          <option value="seasonal">Seasonal (Theo Mùa 18)</option>
+                          <option value="patch-sensitive">Patch-sensitive (Theo Bản vá)</option>
+                          <option value="evergreen">Evergreen (Vĩnh viễn/Hướng dẫn)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {/* Patch */}
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-semibold text-gray-600">Phiên bản Patch</label>
+                        <input
+                          type="text"
+                          value={aiPatch}
+                          onChange={(e) => setAiPatch(e.target.value)}
+                          disabled={aiGenerating}
+                          placeholder="Auto hoặc nhập VD: 18.3b"
+                          className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-xl font-mono focus:outline-hidden"
+                        />
+                      </div>
+
+                      {/* Độ dài bài viết */}
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-semibold text-gray-600">Độ dài bài viết</label>
+                        <select
+                          value={aiLength}
+                          onChange={(e) => setAiLength(e.target.value as any)}
+                          disabled={aiGenerating}
+                          className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-xl bg-gray-50 focus:outline-hidden"
+                        >
+                          <option value="short">Ngắn (~800 - 1.200 từ)</option>
+                          <option value="standard">Tiêu chuẩn (~1.500 - 2.000 từ)</option>
+                          <option value="deep">Chuyên sâu (~2.500+ từ)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Optional API Key Override */}
+                    <div className="pt-2 border-t border-gray-100 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-semibold text-gray-600 flex items-center gap-1.5">
+                          <Key className="w-3.5 h-3.5 text-amber-500" />
+                          <span>AI API Key (Tùy chọn ghi đè Gemini / OpenAI / Groq)</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowAiKeyInput(!showAiKeyInput)}
+                          className="text-[10px] text-purple-600 hover:underline cursor-pointer"
+                        >
+                          {showAiKeyInput ? "Ẩn" : "Nhập key riêng"}
+                        </button>
+                      </div>
+                      {showAiKeyInput && (
+                        <input
+                          type="password"
+                          value={aiApiKey}
+                          onChange={(e) => setAiApiKey(e.target.value)}
+                          placeholder="Nhập AIzaSy... hoặc sk-... (tự động lưu vào trình duyệt)"
+                          className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-xl font-mono focus:outline-hidden"
+                        />
+                      )}
+                      <p className="text-[10px] text-gray-400">
+                        Hệ thống mặc định sử dụng server AI key hoặc bộ tổng hợp tự động nếu chưa cấu hình key riêng.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Progress Indicator */}
+              {aiGenerating && (
+                <div className="p-4 rounded-2xl bg-purple-50/80 border border-purple-200/80 space-y-2 animate-in fade-in duration-150">
+                  <div className="flex items-center gap-2.5">
+                    <Loader2 className="w-4 h-4 text-purple-600 animate-spin" />
+                    <span className="text-xs font-semibold text-purple-900">
+                      {aiProgressStep || "Đang khởi tạo tiến trình tạo bài..."}
+                    </span>
+                  </div>
+                  <div className="w-full bg-purple-200/50 rounded-full h-1.5 overflow-hidden">
+                    <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-500 h-full w-full animate-pulse" />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 sm:p-5 border-t border-gray-100 flex items-center justify-end gap-2.5 bg-gray-50/50">
+              <button
+                type="button"
+                onClick={() => setAiModalOpen(false)}
+                disabled={aiGenerating}
+                className="px-4 py-2 rounded-xl text-xs font-medium text-gray-600 hover:text-gray-900 border border-gray-200 hover:bg-white transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Hủy
+              </button>
+
+              <button
+                type="button"
+                onClick={handleAiGenerate}
+                disabled={aiGenerating || !aiTopic.trim()}
+                className="px-5 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-600 hover:from-purple-700 hover:via-indigo-700 hover:to-amber-700 transition-all flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50 active:scale-98"
+              >
+                {aiGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Đang tạo nội dung...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 text-amber-300" />
+                    <span>
+                      {aiMode === "rewrite"
+                        ? "✨ Viết lại bài viết"
+                        : aiMode === "seo_only"
+                        ? "✨ Tối ưu SEO"
+                        : "✨ Tạo bài viết"}
+                    </span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
