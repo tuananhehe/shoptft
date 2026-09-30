@@ -44,9 +44,9 @@ export default function GuideRiotPage() {
       },
       {
         "@type": "HowToStep",
-        "name": "Vào mục Quản lý tài khoản",
-        "text": "Vào phần cài đặt Riot Account để kiểm tra thông tin hiện tại.",
-        "url": "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot#buoc-2-cai-dat-tai-khoan"
+        "name": "Đổi Email chính chủ",
+        "text": "Nhập địa chỉ Email cá nhân của bạn, bấm Lưu & Xác minh, sau đó mở hòm thư bấm Verify Email.",
+        "url": "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot#buoc-2-doi-email"
       },
       {
         "@type": "HowToStep",
@@ -56,9 +56,9 @@ export default function GuideRiotPage() {
       },
       {
         "@type": "HowToStep",
-        "name": "Đổi Email chính chủ",
-        "text": "Nhập địa chỉ Email cá nhân của bạn, bấm Lưu & Xác minh, sau đó mở hòm thư bấm Verify Email.",
-        "url": "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot#buoc-4-doi-email"
+        "name": "Kiểm tra Quản lý tài khoản",
+        "text": "Vào phần cài đặt Riot Account để kiểm tra thông tin và đổi Riot ID miễn phí.",
+        "url": "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot#buoc-4-cai-dat-tai-khoan"
       },
       {
         "@type": "HowToStep",

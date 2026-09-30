@@ -62,17 +62,19 @@ const GUIDE_STEPS: StepGuide[] = [
     visualType: "login",
   },
   {
-    id: "buoc-2-cai-dat-tai-khoan",
+    id: "buoc-2-doi-email",
     stepNumber: "02",
-    title: "Vào mục Quản lý tài khoản (Riot Account)",
-    shortDesc: "Sau khi đăng nhập thành công, bạn sẽ vào trang tổng quan thông tin tài khoản.",
+    title: "Đổi Email chính chủ & Bấm xác minh",
+    shortDesc: "Chuyển địa chỉ email liên kết về hòm thư Gmail/Outlook cá nhân của bạn.",
     details: [
-      { text: "Tại thanh menu chính, chọn mục:", highlight: "RIOT ACCOUNT (hoặc Quản Lý Tài Khoản)" },
-      { text: "Kiểm tra 4 mục quan trọng: Riot ID, Tên người dùng, Mật khẩu và Địa chỉ Email." },
-      { text: "Xác nhận các thông tin hiển thị đã đúng với tài khoản bạn vừa nhận từ Shop." },
+      { text: "Tại mục ĐỊA CHỈ EMAIL, nhập địa chỉ Email cá nhân của bạn." },
+      { text: "Bấm nút:", highlight: "LƯU & XÁC MINH (Save & Verify)" },
+      { text: "Nếu Riot gửi mã xác minh về email cũ của Shop, nhắn ngay Zalo để Tuấn đọc OTP trong 30 giây." },
+      { text: "Mở hòm thư cá nhân của bạn, tìm email do Riot Games gửi về và bấm VERIFY EMAIL để hoàn tất 100%." },
     ],
-    caption: "Trang cài đặt tổng quan hiển thị Riot ID, Mật khẩu và Email liên kết.",
-    visualType: "management",
+    importantNote: "Bắt buộc phải mở mail và bấm nút xác minh thì việc đổi email mới chính thức có hiệu lực.",
+    caption: "Giao diện nhập Email mới và thông báo thư xác minh từ Riot Games.",
+    visualType: "email",
   },
   {
     id: "buoc-3-doi-mat-khau",
@@ -90,29 +92,27 @@ const GUIDE_STEPS: StepGuide[] = [
     visualType: "password",
   },
   {
-    id: "buoc-4-doi-email",
+    id: "buoc-4-cai-dat-tai-khoan",
     stepNumber: "04",
-    title: "Đổi Email chính chủ & Bấm xác minh",
-    shortDesc: "Chuyển địa chỉ email liên kết về hòm thư Gmail/Outlook cá nhân của bạn.",
+    title: "Kiểm tra Quản lý tài khoản (Riot Account)",
+    shortDesc: "Kiểm tra lại toàn bộ thông tin tài khoản và đổi tên hiển thị Riot ID trong game nếu muốn.",
     details: [
-      { text: "Tại mục ĐỊA CHỈ EMAIL, nhập địa chỉ Email cá nhân của bạn." },
-      { text: "Bấm nút:", highlight: "LƯU & XÁC MINH (Save & Verify)" },
-      { text: "Mở hòm thư Gmail/Outlook của bạn, tìm email do Riot Games gửi về." },
-      { text: "Bấm vào nút VERIFY EMAIL trong thư để hoàn tất chuyển chủ sở hữu 100%." },
+      { text: "Tại trang Quản lý tài khoản, kiểm tra lại: Email mới đã xác minh, Mật khẩu đã cập nhật." },
+      { text: "Tên người dùng (Username) là cố định dùng để đăng nhập vào Client game." },
+      { text: "Tại mục Riot ID, bạn có thể tự do đặt Tên nhân vật và Tagline (#VN2, #TFT...) miễn phí 90 ngày/lần." },
     ],
-    importantNote: "Bắt buộc phải mở mail và bấm nút xác minh thì việc đổi email mới chính thức có hiệu lực.",
-    caption: "Giao diện nhập Email mới và thông báo thư xác minh từ Riot Games.",
-    visualType: "email",
+    caption: "Trang cài đặt tổng quan hiển thị Riot ID, Mật khẩu và Email liên kết.",
+    visualType: "management",
   },
   {
     id: "buoc-5-kiem-tra-bao-mat",
     stepNumber: "05",
-    title: "Bật bảo mật 2 lớp (2FA) & Đổi Riot ID",
-    shortDesc: "Kích hoạt xác thực 2 bước nhận OTP và đổi tên hiển thị trong game hoàn toàn miễn phí.",
+    title: "Bật bảo mật 2 lớp (2FA) & Hoàn tất",
+    shortDesc: "Kích hoạt xác thực 2 bước để nhận mã OTP về email mỗi khi đăng nhập thiết bị mới.",
     details: [
       { text: "Tại mục XÁC THỰC HAI YẾU TỐ (2FA), gạt công tắc sang:", highlight: "BẬT (ON)" },
       { text: "Mỗi khi đăng nhập trên thiết bị lạ, Riot sẽ gửi mã OTP 6 số về Email của bạn để phê duyệt." },
-      { text: "Tại mục Riot ID, bạn có thể tự do đổi Tên nhân vật và Tagline (#VN2, #TFT...) miễn phí 90 ngày/lần." },
+      { text: "Không ai có thể xâm nhập tài khoản nếu không có quyền truy cập vào Email của bạn." },
     ],
     caption: "Hệ thống xác thực hai bước (2FA) đã được kích hoạt thành công.",
     visualType: "two_factor",
@@ -253,9 +253,9 @@ export function GuideRiotClientView() {
             <span className="text-zinc-500 font-medium whitespace-nowrap pl-1 hidden sm:inline text-xs">Mục lục:</span>
             {[
               { id: "buoc-1-dang-nhap", num: "01", label: "Đăng nhập" },
-              { id: "buoc-2-cai-dat-tai-khoan", num: "02", label: "Quản lý acc" },
+              { id: "buoc-2-doi-email", num: "02", label: "Đổi Email" },
               { id: "buoc-3-doi-mat-khau", num: "03", label: "Đổi Pass" },
-              { id: "buoc-4-doi-email", num: "04", label: "Đổi Email" },
+              { id: "buoc-4-cai-dat-tai-khoan", num: "04", label: "Quản lý acc" },
               { id: "buoc-5-kiem-tra-bao-mat", num: "05", label: "Bật 2FA" },
               { id: "security-rules", num: "★", label: "Lưu ý" },
               { id: "faq-section", num: "?", label: "Hỏi đáp" },
@@ -306,9 +306,9 @@ export function GuideRiotClientView() {
 
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center flex-shrink-0 text-zinc-400">
                   {idx === 0 && <UserCheck className="w-4 h-4 sm:w-5 sm:h-5 text-white" />}
-                  {idx === 1 && <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />}
+                  {idx === 1 && <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-white" />}
                   {idx === 2 && <KeyRound className="w-4 h-4 sm:w-5 sm:h-5 text-white" />}
-                  {idx === 3 && <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-white" />}
+                  {idx === 3 && <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />}
                   {idx === 4 && <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />}
                 </div>
               </div>
@@ -742,18 +742,18 @@ function RiotStepGraphic({
               <span className="font-bold text-white block font-mono text-xs sm:text-sm">tft_ms8899</span>
               <span className="text-[9px] text-zinc-500 block">Dùng đăng nhập client</span>
             </div>
-            <div className="p-2.5 sm:p-3 bg-black/60 rounded-xl border border-amber-500/30 space-y-0.5">
-              <span className="text-[10px] text-amber-300 block font-bold">Mật khẩu (Password):</span>
-              <span className="text-zinc-300 font-mono block text-xs">••••••••••••</span>
-              <span className="inline-block text-[9px] text-amber-400 font-semibold bg-amber-500/10 px-1 py-0.5 rounded">
-                ⚡ Cần đổi tại Bước 3
+            <div className="p-2.5 sm:p-3 bg-black/60 rounded-xl border border-emerald-500/30 space-y-0.5">
+              <span className="text-[10px] text-zinc-400 block font-medium">Địa chỉ Email:</span>
+              <span className="text-emerald-400 font-mono block text-xs truncate">email.chinhchu@gmail.com</span>
+              <span className="inline-block text-[9px] text-emerald-400 font-semibold bg-emerald-500/10 px-1 py-0.5 rounded">
+                ✓ Đã đổi & xác minh
               </span>
             </div>
-            <div className="p-2.5 sm:p-3 bg-black/60 rounded-xl border border-amber-500/30 space-y-0.5">
-              <span className="text-[10px] text-amber-300 block font-bold">Địa chỉ Email:</span>
-              <span className="text-zinc-300 font-mono block text-xs truncate">shop***@gmail.com</span>
-              <span className="inline-block text-[9px] text-amber-400 font-semibold bg-amber-500/10 px-1 py-0.5 rounded">
-                ⚡ Cần đổi tại Bước 4
+            <div className="p-2.5 sm:p-3 bg-black/60 rounded-xl border border-emerald-500/30 space-y-0.5">
+              <span className="text-[10px] text-zinc-400 block font-medium">Mật khẩu (Password):</span>
+              <span className="text-zinc-300 font-mono block text-xs">••••••••••••</span>
+              <span className="inline-block text-[9px] text-emerald-400 font-semibold bg-emerald-500/10 px-1 py-0.5 rounded">
+                ✓ Đã cập nhật mật khẩu mới
               </span>
             </div>
           </div>
