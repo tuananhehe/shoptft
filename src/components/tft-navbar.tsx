@@ -2,28 +2,22 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { PROFILE_INFO } from "@/data/tft-data";
 import { useUserAuth } from "@/context/user-auth-context";
-import { analytics } from "@/utils/analytics";
 import { getFavorites } from "@/utils/product-discovery";
 import { TFTFavoritesModal } from "@/components/tft-favorites-modal";
-import { ChevronDown, Menu, X, User, Heart } from "lucide-react";
+import { Menu, X, User, Heart } from "lucide-react";
 
 export const TFTNavbar: React.FC = () => {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [shopDropdown, setShopDropdown] = useState(false);
-  const [guideDropdown, setGuideDropdown] = useState(false);
   const { user } = useUserAuth();
 
-  // Active navigation states
-  const sortParam = searchParams.get("sort");
-  const isShopActive = pathname === "/shop" && sortParam !== "newest";
-  const isNewArrivalsActive = pathname === "/shop" && sortParam === "newest";
-  const isAboutActive = pathname === "/ve-shop";
+  // Active navigation states (Navigation UX Patch)
+  const isShopActive = pathname.startsWith("/shop") || pathname.startsWith("/acc");
   const isGuideActive = pathname.startsWith("/huong-dan");
+  const isAboutActive = pathname === "/ve-shop";
 
   // Favorites state
   const [favoritesOpen, setFavoritesOpen] = useState(false);
@@ -53,7 +47,7 @@ export const TFTNavbar: React.FC = () => {
   // Close mobile drawer on route change
   useEffect(() => {
     setMobileOpen(false);
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   // Subtle header transition on scroll
   const [scrolled, setScrolled] = useState(false);
@@ -98,115 +92,48 @@ export const TFTNavbar: React.FC = () => {
             </div>
           </Link>
 
-          {/* 2. Center: Clean Navigation */}
-          <nav className="hidden md:flex items-center gap-6 text-xs sm:text-sm font-medium text-zinc-300">
-            {/* Kho Acc Dropdown */}
-            <div
-              className="relative"
-              onMouseEnter={() => setShopDropdown(true)}
-              onMouseLeave={() => setShopDropdown(false)}
-            >
-              <Link
-                href="/shop"
-                className={`inline-flex items-center gap-1 transition-colors py-2 ${
-                  isShopActive
-                    ? "text-white font-semibold"
-                    : "text-zinc-300 hover:text-white"
-                }`}
-              >
-                <span>Kho Acc</span>
-                <ChevronDown className="w-3.5 h-3.5 opacity-60" />
-              </Link>
-
-              {shopDropdown && (
-                <div className="absolute top-full left-0 w-48 py-1.5 rounded-xl bg-[#121214] border border-white/10 shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150 z-50">
-                  <Link
-                    href="/shop"
-                    className="block px-3.5 py-2 text-xs text-zinc-300 hover:text-white hover:bg-white/5 transition-colors"
-                  >
-                    Tất cả tài khoản
-                  </Link>
-                  <Link
-                    href="/shop?type=vip"
-                    className="block px-3.5 py-2 text-xs text-zinc-300 hover:text-white hover:bg-white/5 transition-colors"
-                  >
-                    Kho VIP (Chibi & Sân)
-                  </Link>
-                  <Link
-                    href="/shop?type=clone"
-                    className="block px-3.5 py-2 text-xs text-zinc-300 hover:text-white hover:bg-white/5 transition-colors"
-                  >
-                    Kho Clone (Sở hữu)
-                  </Link>
-                </div>
-              )}
-            </div>
-
+          {/* 2. Center: Clean Navigation (Logo | Kho Acc | Hướng Dẫn | Về Shop) */}
+          <nav className="hidden md:flex items-center gap-7 lg:gap-8 text-xs sm:text-sm font-medium">
             <Link
-              href="/shop?sort=newest"
+              href="/shop"
               className={`transition-colors py-2 ${
-                isNewArrivalsActive
+                isShopActive
                   ? "text-white font-semibold"
-                  : "text-zinc-300 hover:text-white"
+                  : "text-zinc-400 hover:text-white"
               }`}
             >
-              Acc Mới
+              Kho Acc
             </Link>
 
-            {/* Hướng Dẫn Dropdown */}
-            <div
-              className="relative"
-              onMouseEnter={() => setGuideDropdown(true)}
-              onMouseLeave={() => setGuideDropdown(false)}
+            <Link
+              href="/huong-dan/doi-thong-tin-acc-riot"
+              className={`transition-colors py-2 ${
+                isGuideActive
+                  ? "text-white font-semibold"
+                  : "text-zinc-400 hover:text-white"
+              }`}
             >
-              <Link
-                href="/huong-dan/doi-thong-tin-acc-riot"
-                className={`inline-flex items-center gap-1 transition-colors py-2 ${
-                  isGuideActive
-                    ? "text-white font-semibold"
-                    : "text-zinc-300 hover:text-white"
-                }`}
-              >
-                <span>Hướng Dẫn</span>
-                <ChevronDown className="w-3.5 h-3.5 opacity-60" />
-              </Link>
-
-              {guideDropdown && (
-                <div className="absolute top-full left-0 w-56 py-1.5 rounded-xl bg-[#121214] border border-white/10 shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150 z-50">
-                  <Link
-                    href="/huong-dan/doi-thong-tin-acc-riot"
-                    className="block px-3.5 py-2 text-xs text-zinc-300 hover:text-white hover:bg-white/5 transition-colors"
-                  >
-                    Đổi thông tin acc Riot
-                  </Link>
-                  <Link
-                    href="/#huong-dan"
-                    className="block px-3.5 py-2 text-xs text-zinc-300 hover:text-white hover:bg-white/5 transition-colors"
-                  >
-                    Quy trình thuê tài khoản
-                  </Link>
-                </div>
-              )}
-            </div>
+              Hướng Dẫn
+            </Link>
 
             <Link
               href="/ve-shop"
               className={`transition-colors py-2 ${
                 isAboutActive
                   ? "text-white font-semibold"
-                  : "text-zinc-300 hover:text-white"
+                  : "text-zinc-400 hover:text-white"
               }`}
             >
               Về Shop
             </Link>
           </nav>
 
-          {/* 3. Right: Member Login / Profile + Primary CTA */}
-          <div className="flex items-center gap-3">
+          {/* 3. Right: Member Login / Profile + Favorites + Primary CTA */}
+          <div className="flex items-center gap-2.5 sm:gap-3">
             {user ? (
               <Link
                 href="/profile"
-                className="inline-flex items-center gap-2 text-xs text-zinc-300 hover:text-white px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-all"
+                className="inline-flex items-center gap-1.5 text-xs text-zinc-300 hover:text-white px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-all"
               >
                 <User className="w-3.5 h-3.5 text-zinc-400" />
                 <span className="font-medium max-w-[120px] truncate">
@@ -238,9 +165,10 @@ export const TFTNavbar: React.FC = () => {
               )}
             </button>
 
+            {/* Desktop Primary Action: Thuê Ngay */}
             <Link
               href="/shop"
-              className="px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-semibold transition-all active:scale-98 shadow-sm"
+              className="hidden sm:inline-flex px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs font-semibold transition-all active:scale-98 shadow-sm"
             >
               Thuê Ngay
             </Link>
@@ -257,7 +185,7 @@ export const TFTNavbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Drawer Menu */}
       {mobileOpen && (
         <div className="md:hidden border-t border-white/[0.08] bg-[#09090b] px-4 py-4 space-y-3 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-150">
           <div className="space-y-1">
@@ -270,40 +198,9 @@ export const TFTNavbar: React.FC = () => {
                   : "text-zinc-200 hover:text-white hover:bg-white/5"
               }`}
             >
-              Kho Acc (Tất cả)
+              Kho Acc
             </Link>
-            <Link
-              href="/shop?type=vip"
-              onClick={() => setMobileOpen(false)}
-              className="block pl-6 pr-3 py-1.5 text-xs text-zinc-400 hover:text-white transition-colors"
-            >
-              • Kho VIP (Chibi & Sân)
-            </Link>
-            <Link
-              href="/shop?type=clone"
-              onClick={() => setMobileOpen(false)}
-              className="block pl-6 pr-3 py-1.5 text-xs text-zinc-400 hover:text-white transition-colors"
-            >
-              • Kho Clone (Sở hữu)
-            </Link>
-            <Link
-              href="/shop?sort=newest"
-              onClick={() => setMobileOpen(false)}
-              className={`block px-3 py-2 text-sm rounded-lg transition-colors ${
-                isNewArrivalsActive
-                  ? "text-white font-semibold bg-white/10"
-                  : "text-zinc-200 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              Acc Mới
-            </Link>
-            <Link
-              href="/#huong-dan"
-              onClick={() => setMobileOpen(false)}
-              className="block px-3 py-2 text-sm text-zinc-200 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-            >
-              Quy Trình Thuê Acc
-            </Link>
+
             <Link
               href="/huong-dan/doi-thong-tin-acc-riot"
               onClick={() => setMobileOpen(false)}
@@ -313,8 +210,9 @@ export const TFTNavbar: React.FC = () => {
                   : "text-zinc-200 hover:text-white hover:bg-white/5"
               }`}
             >
-              Đổi Thông Tin Acc Riot
+              Hướng Dẫn Đổi Thông Tin Riot
             </Link>
+
             <Link
               href="/ve-shop"
               onClick={() => setMobileOpen(false)}
@@ -324,21 +222,9 @@ export const TFTNavbar: React.FC = () => {
                   : "text-zinc-200 hover:text-white hover:bg-white/5"
               }`}
             >
-              Về ShopTFTMobile
+              Về Shop
             </Link>
-            <a
-              href={PROFILE_INFO.zaloUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => {
-                setMobileOpen(false);
-                analytics.trackClickZalo({ source: "header" });
-              }}
-              className="flex items-center justify-between px-3 py-2 text-sm text-zinc-200 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-            >
-              <span>Tư Vấn Zalo</span>
-              <span className="text-[11px] text-zinc-400">Trực tiếp</span>
-            </a>
+
             <button
               type="button"
               onClick={() => {
@@ -385,7 +271,7 @@ export const TFTNavbar: React.FC = () => {
               onClick={() => setMobileOpen(false)}
               className="px-4 py-2 rounded-lg bg-white text-black text-xs font-semibold"
             >
-              Xem kho acc
+              Thuê Ngay
             </Link>
           </div>
         </div>
