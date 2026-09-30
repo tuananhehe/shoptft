@@ -346,24 +346,30 @@ export async function getInitialShopAccountsServer(): Promise<{
 export async function getVipAndCloneAccounts(): Promise<{
   vipAccounts: TFTRentalAccount[];
   cloneAccounts: TFTCloneAccount[];
+  error?: string | null;
 }> {
   try {
-    const res = await fetch("/api/accounts", {
+    const { fetchWithTimeout } = await import("@/utils/api-client");
+    const res = await fetchWithTimeout("/api/accounts", {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       next: { revalidate: 15 },
+      timeoutMs: 8000,
     });
 
     if (!res.ok) {
-      console.warn("Lỗi fetch /api/accounts:", res.statusText);
-      return { vipAccounts: [], cloneAccounts: [] };
+      return {
+        vipAccounts: [],
+        cloneAccounts: [],
+        error: `Không thể kết nối máy chủ (${res.status}). Vui lòng thử lại.`,
+      };
     }
 
     const result = await res.json();
     const data: AccountDbRow[] = result.data || [];
 
     if (!data || data.length === 0) {
-      return { vipAccounts: [], cloneAccounts: [] };
+      return { vipAccounts: [], cloneAccounts: [], error: null };
     }
 
     const vipRows = data.filter((row: AccountDbRow) => row.type === "VIP");
@@ -372,10 +378,13 @@ export async function getVipAndCloneAccounts(): Promise<{
     const vipAccounts: TFTRentalAccount[] = vipRows.map((row: AccountDbRow, idx: number) => mapRowToVipAccount(row, idx));
     const cloneAccounts: TFTCloneAccount[] = cloneRows.map((row: AccountDbRow, idx: number) => mapRowToCloneAccount(row, idx));
 
-    return { vipAccounts, cloneAccounts };
-  } catch (err) {
-    console.error("Lỗi khi kết nối API /api/accounts:", err);
-    return { vipAccounts: [], cloneAccounts: [] };
+    return { vipAccounts, cloneAccounts, error: null };
+  } catch (err: any) {
+    const isTimeout = err?.name === "AbortError" || err?.message?.includes("timed out");
+    const errorMsg = isTimeout
+      ? "Không tải được dữ liệu do kết nối quá chậm. Vui lòng thử lại."
+      : "Không thể kết nối đến máy chủ. Vui lòng thử lại.";
+    return { vipAccounts: [], cloneAccounts: [], error: errorMsg };
   }
 }
 

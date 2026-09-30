@@ -241,14 +241,18 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
 
     const orderMessage = `Chào Tuấn Thái Bình, mình muốn thuê tài khoản ${account.code} (${account.title}) - Gói ${activePkg.name} (Tổng giá thuê: ${formatMoney(activePkg.totalPrice)}). Link acc: ${linkUrl}${upgradeNote}`;
 
-    analytics.trackClickZalo({
-      source: "rental_modal",
-      product_id: account.code || account.id,
-      product_type: "VIP",
-      rental_package: selectedPackage,
-    });
+    try {
+      analytics.trackClickZalo({
+        source: "rental_modal",
+        product_id: account.code || account.id,
+        product_type: "VIP",
+        rental_package: selectedPackage,
+      });
+    } catch {}
 
-    await copyToClipboard(orderMessage);
+    try {
+      await copyToClipboard(orderMessage);
+    } catch {}
     setZaloRedirectMessage(orderMessage);
   };
 
@@ -256,14 +260,18 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
     const linkUrl = typeof window !== "undefined" ? `${window.location.origin}${getAccountProductUrl(account)}` : "";
     const preOrderMessage = `Chào Tuấn Thái Bình, mình muốn ĐẶT TRƯỚC tài khoản ${account.code} (${account.title}) khi hết giờ thuê. Link: ${linkUrl}`;
 
-    analytics.trackClickZalo({
-      source: "rental_modal",
-      product_id: account.code || account.id,
-      product_type: "VIP",
-      rental_package: "pre_order",
-    });
+    try {
+      analytics.trackClickZalo({
+        source: "rental_modal",
+        product_id: account.code || account.id,
+        product_type: "VIP",
+        rental_package: "pre_order",
+      });
+    } catch {}
 
-    await copyToClipboard(preOrderMessage);
+    try {
+      await copyToClipboard(preOrderMessage);
+    } catch {}
     setZaloRedirectMessage(preOrderMessage);
   };
 

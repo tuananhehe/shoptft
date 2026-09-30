@@ -17,6 +17,7 @@ import { TFTRecentlyViewed } from "@/components/tft-recently-viewed";
 import { addRecentlyViewed, isFavorite, toggleFavorite } from "@/utils/product-discovery";
 import { usePrimaryCtaExperiment } from "@/utils/experiments";
 import { Reveal } from "@/components/reveal";
+import { SectionErrorBoundary } from "@/components/error-boundary";
 import toast from "react-hot-toast";
 import {
   ArrowLeft,
@@ -252,12 +253,14 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
       `Nhờ shop tư vấn và bàn giao tài khoản qua Zalo giúp mình nhé!`,
     ].join("\n");
 
-    analytics.trackClickZalo({
-      source: "product_detail",
-      product_id: account.code || account.id,
-      product_type: isClone ? "CLONE" : "VIP",
-      rental_package: selectedPackage,
-    });
+    try {
+      analytics.trackClickZalo({
+        source: "product_detail",
+        product_id: account.code || account.id,
+        product_type: isClone ? "CLONE" : "VIP",
+        rental_package: selectedPackage,
+      });
+    } catch {}
 
     setZaloRedirectMessage(message);
   };
@@ -640,93 +643,97 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
 
         {/* Similar Accounts Section */}
         {relatedAccounts && relatedAccounts.length > 0 && (
-          <Reveal>
-            <div
-              style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}
-              className="mt-12 pt-8 border-t border-white/[0.08] space-y-4"
-            >
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg sm:text-xl font-heading font-bold text-white">
-                  {isRented ? "Tìm acc tương tự đang còn" : "Tài khoản tương tự"}
-                </h2>
-                <p className="text-zinc-400 text-xs">
-                  {isRented
-                    ? "Gợi ý các tài khoản đang sẵn sàng có Pet và Sân Đấu tương đồng"
-                    : "Gợi ý cùng phân khúc Tướng Tí Nị và Sân Đấu"}
-                </p>
+          <SectionErrorBoundary sectionName="RelatedAccounts" silent>
+            <Reveal>
+              <div
+                style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}
+                className="mt-12 pt-8 border-t border-white/[0.08] space-y-4"
+              >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg sm:text-xl font-heading font-bold text-white">
+                    {isRented ? "Tìm acc tương tự đang còn" : "Tài khoản tương tự"}
+                  </h2>
+                  <p className="text-zinc-400 text-xs">
+                    {isRented
+                      ? "Gợi ý các tài khoản đang sẵn sàng có Pet và Sân Đấu tương đồng"
+                      : "Gợi ý cùng phân khúc Tướng Tí Nị và Sân Đấu"}
+                  </p>
+                </div>
+
+                <Link
+                  href="/shop"
+                  className="text-xs text-zinc-400 hover:text-white flex items-center gap-1 transition-colors"
+                >
+                  <span>Xem tất cả kho acc</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
               </div>
 
-              <Link
-                href="/shop"
-                className="text-xs text-zinc-400 hover:text-white flex items-center gap-1 transition-colors"
-              >
-                <span>Xem tất cả kho acc</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
+                {relatedAccounts.slice(0, 6).map((rel) => {
+                  const relUrl = getAccountProductUrl(rel);
+                  const relPrice =
+                    rel.type === "CLONE"
+                      ? Number(rel.price) || 150000
+                      : rel.hourlyPrice || 15000;
+                  const relUnit =
+                    rel.type === "CLONE" ? " / Sở hữu" : " / Giờ";
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
-              {relatedAccounts.slice(0, 6).map((rel) => {
-                const relUrl = getAccountProductUrl(rel);
-                const relPrice =
-                  rel.type === "CLONE"
-                    ? Number(rel.price) || 150000
-                    : rel.hourlyPrice || 15000;
-                const relUnit =
-                  rel.type === "CLONE" ? " / Sở hữu" : " / Giờ";
+                  return (
+                    <Link
+                      key={rel.id}
+                      href={relUrl}
+                      className="bg-[#121214] rounded-2xl border border-white/[0.08] hover:border-white/20 p-3 transition-all flex flex-col justify-between group"
+                    >
+                      <div>
+                        <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-[#09090b] mb-2.5">
+                          <LazyAccountImage
+                            src={rel.thumbnail}
+                            alt={rel.title}
+                            containerClassName="w-full h-full flex items-center justify-center"
+                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute top-1.5 right-1.5">
+                            <span className="px-1.5 py-0.5 rounded bg-black/80 text-[10px] font-mono text-white">
+                              {rel.code}
+                            </span>
+                          </div>
+                        </div>
 
-                return (
-                  <Link
-                    key={rel.id}
-                    href={relUrl}
-                    className="bg-[#121214] rounded-2xl border border-white/[0.08] hover:border-white/20 p-3 transition-all flex flex-col justify-between group"
-                  >
-                    <div>
-                      <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-[#09090b] mb-2.5">
-                        <LazyAccountImage
-                          src={rel.thumbnail}
-                          alt={rel.title}
-                          containerClassName="w-full h-full flex items-center justify-center"
-                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute top-1.5 right-1.5">
-                          <span className="px-1.5 py-0.5 rounded bg-black/80 text-[10px] font-mono text-white">
-                            {rel.code}
-                          </span>
+                        <h3 className="text-xs sm:text-sm font-semibold text-white line-clamp-1 group-hover:text-zinc-200 transition-colors">
+                          {rel.title}
+                        </h3>
+
+                        <div className="mt-1 text-[11px] text-zinc-400 line-clamp-1">
+                          {rel.mainChibi || (rel.allChibi && rel.allChibi[0]) || rel.rank}
                         </div>
                       </div>
 
-                      <h3 className="text-xs sm:text-sm font-semibold text-white line-clamp-1 group-hover:text-zinc-200 transition-colors">
-                        {rel.title}
-                      </h3>
-
-                      <div className="mt-1 text-[11px] text-zinc-400 line-clamp-1">
-                        {rel.mainChibi || (rel.allChibi && rel.allChibi[0]) || rel.rank}
-                      </div>
-                    </div>
-
-                    <div className="pt-2 mt-2 border-t border-white/[0.06] flex items-center justify-between text-xs">
-                      <span className="font-heading font-bold text-white">
-                        {formatMoney(relPrice)}
-                        <span className="text-[10px] text-zinc-400 font-normal">
-                          {relUnit}
+                      <div className="pt-2 mt-2 border-t border-white/[0.06] flex items-center justify-between text-xs">
+                        <span className="font-heading font-bold text-white">
+                          {formatMoney(relPrice)}
+                          <span className="text-[10px] text-zinc-400 font-normal">
+                            {relUnit}
+                          </span>
                         </span>
-                      </span>
-                      <span className="text-[11px] text-zinc-400 group-hover:text-white transition-colors">
-                        Chi tiết →
-                      </span>
-                    </div>
-                  </Link>
-                );
-              })}
+                        <span className="text-[11px] text-zinc-400 group-hover:text-white transition-colors">
+                          Chi tiết →
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-          </Reveal>
+            </Reveal>
+          </SectionErrorBoundary>
         )}
 
         {/* Recently Viewed Accounts */}
-        <TFTRecentlyViewed excludeId={account.id} />
+        <SectionErrorBoundary sectionName="RecentlyViewed" silent>
+          <TFTRecentlyViewed excludeId={account.id} />
+        </SectionErrorBoundary>
       </main>
 
       {/* Footer */}

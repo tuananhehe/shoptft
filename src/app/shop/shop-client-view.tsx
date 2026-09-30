@@ -24,7 +24,8 @@ import { TFTRentalAccount, TFTCloneAccount } from "@/data/tft-data";
 import { analytics } from "@/utils/analytics";
 import { Reveal } from "@/components/reveal";
 import { TFTRecentlyViewed } from "@/components/tft-recently-viewed";
-import { ChevronRight, RotateCcw } from "lucide-react";
+import { ChevronRight, RotateCcw, AlertCircle } from "lucide-react";
+import { SectionErrorBoundary } from "@/components/error-boundary";
 import {
   calculateSearchRelevance,
   getSmartSearchSuggestions,
@@ -56,6 +57,7 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
   const [vipRaw, setVipRaw] = useState<TFTRentalAccount[]>(initialVip);
   const [cloneRaw, setCloneRaw] = useState<TFTCloneAccount[]>(initialClone);
   const [isLoading, setIsLoading] = useState(initialVip.length === 0 && initialClone.length === 0);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedVipAccount, setSelectedVipAccount] = useState<TFTRentalAccount | null>(null);
 
   // Progressive Scroll Loading State (Batch 12 items)
@@ -102,30 +104,35 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
   }, [initialVip?.length, initialClone?.length]);
 
   // Load remaining/fresh Accounts from database in background
-  useEffect(() => {
-    let isMounted = true;
-    async function loadData() {
-      try {
-        const { vipAccounts, cloneAccounts } = await getVipAndCloneAccounts();
-        if (isMounted) {
-          if (vipAccounts && vipAccounts.length > 0) {
-            setVipRaw(vipAccounts);
-          }
-          if (cloneAccounts && cloneAccounts.length > 0) {
-            setCloneRaw(cloneAccounts);
-          }
+  const loadData = useCallback(async () => {
+    try {
+      setLoadError(null);
+      const { vipAccounts, cloneAccounts, error } = await getVipAndCloneAccounts();
+      if (error && (!vipAccounts || vipAccounts.length === 0) && (!cloneAccounts || cloneAccounts.length === 0)) {
+        // Only set blocking error if we don't have any accounts (not even initial)
+        if (vipRaw.length === 0 && cloneRaw.length === 0) {
+          setLoadError(error);
         }
-      } catch (err) {
-        console.warn("Lỗi tải danh sách tài khoản:", err);
-      } finally {
-        if (isMounted) setIsLoading(false);
+      } else {
+        if (vipAccounts && vipAccounts.length > 0) {
+          setVipRaw(vipAccounts);
+        }
+        if (cloneAccounts && cloneAccounts.length > 0) {
+          setCloneRaw(cloneAccounts);
+        }
       }
+    } catch (err: any) {
+      if (vipRaw.length === 0 && cloneRaw.length === 0) {
+        setLoadError("Không tải được dữ liệu. Thử lại.");
+      }
+    } finally {
+      setIsLoading(false);
     }
+  }, [vipRaw.length, cloneRaw.length]);
+
+  useEffect(() => {
     loadData();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  }, [loadData]);
 
   // Sync state when URL searchParams change
   const searchParamVal = searchParams.get("search") || "";
@@ -646,6 +653,28 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
               <ProductCardSkeleton key={i} />
             ))}
           </div>
+        ) : allNormalizedAccounts.length === 0 && loadError ? (
+          <div className="rounded-2xl border border-red-500/20 bg-gradient-to-b from-red-500/5 to-transparent p-8 sm:p-12 text-center my-6 max-w-lg mx-auto">
+            <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-6 h-6 text-red-400" />
+            </div>
+            <h3 className="text-base sm:text-lg font-bold text-white mb-2">
+              Không tải được dữ liệu
+            </h3>
+            <p className="text-xs sm:text-sm text-zinc-400 mb-6 font-normal leading-relaxed">
+              {loadError || "Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng và thử lại."}
+            </p>
+            <button
+              onClick={() => {
+                setIsLoading(true);
+                loadData();
+              }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-black text-xs sm:text-sm font-semibold hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 active:scale-95 cursor-pointer"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Thử lại
+            </button>
+          </div>
         ) : filteredAccounts.length === 0 ? (
           <ProductCardEmptyState
             searchQuery={filters.search}
@@ -693,10 +722,12 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
         )}
 
         {/* Recently Viewed Shelf (only rendered if user has viewed accounts) */}
-        <TFTRecentlyViewed
-          title="Acc Bạn Đã Xem Gần Đây"
-          subtitle="Tiện lợi so sánh lại các tài khoản bạn vừa tham khảo trên shop"
-        />
+        <SectionErrorBoundary sectionName="RecentlyViewed" silent>
+          <TFTRecentlyViewed
+            title="Acc Bạn Đã Xem Gần Đây"
+            subtitle="Tiện lợi so sánh lại các tài khoản bạn vừa tham khảo trên shop"
+          />
+        </SectionErrorBoundary>
       </main>
 
       {/* Account Order / Detail Modal */}

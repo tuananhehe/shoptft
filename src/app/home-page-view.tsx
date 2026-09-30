@@ -15,6 +15,8 @@ import { TFTMobileBottomBar } from "@/components/tft-mobile-bottom-bar";
 import { TFTAccountModal } from "@/components/tft-account-modal";
 import { TFTRentalAccount } from "@/data/tft-data";
 
+import { SectionErrorBoundary } from "@/components/error-boundary";
+
 interface HomePageViewProps {
   initialNewAccounts?: TFTRentalAccount[];
 }
@@ -28,31 +30,47 @@ export function HomePageView({ initialNewAccounts = [] }: HomePageViewProps) {
       <TFTNavbar />
 
       {/* 2. Compact Modern Hero with single H1 */}
-      <TFTHero />
+      <SectionErrorBoundary sectionName="Hero">
+        <TFTHero />
+      </SectionErrorBoundary>
 
       {/* 3. Acc Mới Về (4 recent accounts, sort=newest) */}
-      <TFTNewArrivals
-        initialAccounts={initialNewAccounts}
-        onSelectAccount={(acc) => setSelectedAccount(acc)}
-      />
+      <SectionErrorBoundary sectionName="NewArrivals">
+        <TFTNewArrivals
+          initialAccounts={initialNewAccounts}
+          onSelectAccount={(acc) => setSelectedAccount(acc)}
+        />
+      </SectionErrorBoundary>
 
       {/* 4. Khám Phá Theo Nhu Cầu */}
-      <TFTCategoryDiscovery />
+      <SectionErrorBoundary sectionName="CategoryDiscovery">
+        <TFTCategoryDiscovery />
+      </SectionErrorBoundary>
 
       {/* 5. Tại Sao Chọn ShopTFTMobile (Minimal Trust) */}
-      <TFTWhyChoose />
+      <SectionErrorBoundary sectionName="WhyChoose">
+        <TFTWhyChoose />
+      </SectionErrorBoundary>
 
       {/* 6. Quy Trình Thuê Acc (Manual Zalo) */}
-      <TFTRentalProcess />
+      <SectionErrorBoundary sectionName="RentalProcess">
+        <TFTRentalProcess />
+      </SectionErrorBoundary>
 
       {/* 7. Short Admin Intro */}
-      <TFTAdminIntro />
+      <SectionErrorBoundary sectionName="AdminIntro">
+        <TFTAdminIntro />
+      </SectionErrorBoundary>
 
       {/* 9. FAQ */}
-      <TFTFaq />
+      <SectionErrorBoundary sectionName="Faq">
+        <TFTFaq />
+      </SectionErrorBoundary>
 
       {/* 10. Final CTA */}
-      <TFTFinalCTA />
+      <SectionErrorBoundary sectionName="FinalCTA">
+        <TFTFinalCTA />
+      </SectionErrorBoundary>
 
       {/* 11. Footer */}
       <TFTFooter />
