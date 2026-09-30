@@ -15,6 +15,7 @@ export const TFTNavbar: React.FC = () => {
   const searchParams = useSearchParams();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [shopDropdown, setShopDropdown] = useState(false);
+  const [guideDropdown, setGuideDropdown] = useState(false);
   const { user } = useUserAuth();
 
   // Active navigation states
@@ -22,6 +23,7 @@ export const TFTNavbar: React.FC = () => {
   const isShopActive = pathname === "/shop" && sortParam !== "newest";
   const isNewArrivalsActive = pathname === "/shop" && sortParam === "newest";
   const isAboutActive = pathname === "/ve-shop";
+  const isGuideActive = pathname.startsWith("/huong-dan");
 
   // Favorites state
   const [favoritesOpen, setFavoritesOpen] = useState(false);
@@ -151,12 +153,41 @@ export const TFTNavbar: React.FC = () => {
               Acc Mới
             </Link>
 
-            <Link
-              href="/#huong-dan"
-              className="text-zinc-300 hover:text-white transition-colors py-2"
+            {/* Hướng Dẫn Dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => setGuideDropdown(true)}
+              onMouseLeave={() => setGuideDropdown(false)}
             >
-              Hướng Dẫn
-            </Link>
+              <Link
+                href="/huong-dan/doi-thong-tin-acc-riot"
+                className={`inline-flex items-center gap-1 transition-colors py-2 ${
+                  isGuideActive
+                    ? "text-white font-semibold"
+                    : "text-zinc-300 hover:text-white"
+                }`}
+              >
+                <span>Hướng Dẫn</span>
+                <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+              </Link>
+
+              {guideDropdown && (
+                <div className="absolute top-full left-0 w-56 py-1.5 rounded-xl bg-[#121214] border border-white/10 shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150 z-50">
+                  <Link
+                    href="/huong-dan/doi-thong-tin-acc-riot"
+                    className="block px-3.5 py-2 text-xs text-zinc-300 hover:text-white hover:bg-white/5 transition-colors"
+                  >
+                    Đổi thông tin acc Riot
+                  </Link>
+                  <Link
+                    href="/#huong-dan"
+                    className="block px-3.5 py-2 text-xs text-zinc-300 hover:text-white hover:bg-white/5 transition-colors"
+                  >
+                    Quy trình thuê tài khoản
+                  </Link>
+                </div>
+              )}
+            </div>
 
             <Link
               href="/ve-shop"
@@ -271,7 +302,18 @@ export const TFTNavbar: React.FC = () => {
               onClick={() => setMobileOpen(false)}
               className="block px-3 py-2 text-sm text-zinc-200 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
             >
-              Hướng Dẫn Thuê
+              Quy Trình Thuê Acc
+            </Link>
+            <Link
+              href="/huong-dan/doi-thong-tin-acc-riot"
+              onClick={() => setMobileOpen(false)}
+              className={`block px-3 py-2 text-sm rounded-lg transition-colors ${
+                isGuideActive
+                  ? "text-white font-semibold bg-white/10"
+                  : "text-zinc-200 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              Đổi Thông Tin Acc Riot
             </Link>
             <Link
               href="/ve-shop"

@@ -127,6 +127,11 @@ export const TFTFooter: React.FC = () => {
                 </Link>
               </li>
               <li>
+                <Link href="/huong-dan/doi-thong-tin-acc-riot" className="hover:text-white transition-colors">
+                  Đổi Thông Tin Acc Riot
+                </Link>
+              </li>
+              <li>
                 <Link href="/#faq" className="hover:text-white transition-colors">
                   Câu Hỏi Thường Gặp
                 </Link>
