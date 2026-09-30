@@ -121,11 +121,14 @@ export const BlogClientView: React.FC<BlogClientViewProps> = ({ initialPosts }) 
               <div className="flex items-center gap-4 text-xs text-zinc-400 pt-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <img
-                    src={featuredPost.author.avatar}
-                    alt={featuredPost.author.name}
+                    src={featuredPost.author?.avatar || "/avatar.jpg"}
+                    alt={featuredPost.author?.name || "Tuấn Thái Bình"}
                     className="w-6 h-6 rounded-full object-cover border border-white/10"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = "/avatar.jpg";
+                    }}
                   />
-                  <span className="text-zinc-200 font-medium">{featuredPost.author.name}</span>
+                  <span className="text-zinc-200 font-medium">{featuredPost.author?.name || "Tuấn Thái Bình"}</span>
                 </div>
                 <span>•</span>
                 <span className="flex items-center gap-1">
@@ -147,9 +150,12 @@ export const BlogClientView: React.FC<BlogClientViewProps> = ({ initialPosts }) 
 
             <div className="lg:col-span-5 relative aspect-video rounded-2xl overflow-hidden border border-white/[0.08] bg-zinc-950">
               <img
-                src={featuredPost.coverImage}
+                src={featuredPost.coverImage || "/banner-seo.jpg"}
                 alt={featuredPost.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = "/banner-seo.jpg";
+                }}
               />
             </div>
           </div>
@@ -210,10 +216,13 @@ export const BlogClientView: React.FC<BlogClientViewProps> = ({ initialPosts }) 
                     {/* Cover Thumbnail */}
                     <Link href={`/blog/${post.slug}`} className="block relative aspect-video overflow-hidden bg-zinc-950">
                       <img
-                        src={post.coverImage}
+                        src={post.coverImage || "/banner-seo.jpg"}
                         alt={post.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = "/banner-seo.jpg";
+                        }}
                       />
                       <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 flex-wrap">
                         <span className="px-2.5 py-0.5 rounded-md bg-black/70 backdrop-blur-xs text-[11px] font-semibold text-zinc-200 border border-white/10">

@@ -58,7 +58,10 @@ export function detectTftAttributes(promptText: string): {
     lower.includes("bảo mật") ||
     lower.includes("2fa") ||
     lower.includes("riot id") ||
-    lower.includes("cách tạo tài khoản")
+    lower.includes("cách tạo tài khoản") ||
+    lower.includes("thuê acc") ||
+    lower.includes("lưu ý") ||
+    lower.includes("lừa đảo")
   ) {
     contentType = "evergreen";
   } else if (lower.includes("mùa 18") || lower.includes("set 18") || lower.includes("đại ngàn")) {
@@ -103,7 +106,10 @@ export function detectTftAttributes(promptText: string): {
     lower.includes("lên cấp") ||
     lower.includes("người mới") ||
     lower.includes("leo rank") ||
-    lower.includes("kinh nghiệm")
+    lower.includes("kinh nghiệm") ||
+    lower.includes("thuê acc") ||
+    lower.includes("lưu ý") ||
+    lower.includes("lừa đảo")
   ) {
     category = "Kinh nghiệm TFT";
   } else {
@@ -512,6 +518,8 @@ async function fallbackSynthesisEngine(
     formattedTitle = `Hướng Dẫn ${formattedTitle} An Toàn & Chuẩn Xác`;
   } else if (category === "Meta & Đội Hình" && !formattedTitle.toLowerCase().includes("đội hình") && !formattedTitle.toLowerCase().includes("giáo án")) {
     formattedTitle = `Đội Hình ${formattedTitle}`;
+  } else if (category === "Kinh nghiệm TFT" && !formattedTitle.toLowerCase().includes("lưu ý") && !formattedTitle.toLowerCase().includes("kinh nghiệm") && !formattedTitle.toLowerCase().includes("thuê acc")) {
+    formattedTitle = `Kinh Nghiệm ${formattedTitle} Chuẩn Xác & An Toàn`;
   } else if (!formattedTitle.toLowerCase().includes("tft") && !formattedTitle.toLowerCase().includes("đtcl")) {
     formattedTitle = `${formattedTitle} – ĐTCL Mùa 18`;
   }
@@ -614,6 +622,109 @@ A: Có! Toàn bộ chưởng lực, sàn đấu và tướng Tí Nị trong acc 
 ## Kết Luận
 
 Một bộ sưu tập Tí Nị đẹp mắt và sân đấu hoành tráng sẽ tiếp thêm rất nhiều cảm hứng cho hành trình leo rank của bạn. Đừng quên ghé thăm [Kho Acc](/shop) để chọn ngay cho mình tài khoản ưng ý nhất!`;
+  } else if (category === "Kinh nghiệm TFT" || cleanTitle.toLowerCase().includes("thuê acc") || cleanTitle.toLowerCase().includes("lưu ý")) {
+    markdownBody = `## Những Điều Quan Trọng Cần Biết Khi ${cleanTitle}
+
+Thị trường tài khoản Đấu Trường Chân Lý (TFT) ngày càng sôi động với hàng trăm mẫu tài khoản sở hữu Linh Thú Tí Nị Thần Thoại, Sân Đấu EDM và bậc rank cao. Tuy nhiên, nếu không nắm vững các nguyên tắc an toàn, người chơi rất dễ gặp phải tình trạng lừa đảo, mất cắp hoặc tài khoản bị tranh chấp đăng nhập giữa chừng.
+
+Dưới đây là cẩm nang tổng hợp kinh nghiệm và lưu ý cốt lõi từ cựu Thách Đấu Tuấn Thái Bình (ShopTFTMobile).
+
+---
+
+## 4 Nguyên Tắc Vàng Giúp Bạn An Tâm Tuyệt Đối
+
+### 1. Chỉ Chọn Đơn Vị Uy Tín, Có Định Danh Rõ Ràng
+Tránh xa các hội nhóm trôi nổi hoặc tài khoản mạng xã hội ảo không có địa chỉ, số điện thoại hoặc Zalo công khai. Một đơn vị uy tín luôn có website rõ ràng, cập nhật kho acc theo thời gian thực và hỗ trợ khách hàng trực tiếp.
+
+### 2. Kiểm Tra Tài Khoản Ngay Sau Khi Nhận Bàn Giao
+Khi nhận thông tin đăng nhập từ shop, bạn nên đăng nhập vào Riot Client hoặc TFT Mobile ngay lập tức để kiểm tra:
+* Bậc Rank hiện tại có đúng với mô tả trên web không.
+* Danh sách Tướng Tí Nị, Sân Đấu và Chưởng lực có đầy đủ không.
+* Trạng thái kết nối và lịch sử trận đấu gần nhất.
+
+### 3. Tuyệt Đối Không Sử Dụng Phần Mềm Gian Lận (Tool / Hack)
+Khi trải nghiệm tài khoản thuê, mọi hành vi can thiệp vào tệp game hoặc sử dụng phần mềm thứ ba đều bị hệ thống Riot Vanguard phát hiện và cấm vĩnh viễn. Hãy luôn chơi văn minh và công bằng.
+
+### 4. Bàn Giao Và Đăng Xuất Đúng Giờ
+Trước khi hết hạn thuê, hãy hoàn thành trận đấu đang dở dang và chủ động đăng xuất khỏi Riot Client. Điều này giúp hệ thống bàn giao tài khoản trơn tru cho người thuê tiếp theo mà không xảy ra xung đột đăng nhập.
+
+---
+
+## Bảng Tiêu Chí Nhận Biết Shop Uy Tín vs Cá Nhân Trôi Nổi
+
+| Tiêu Chí | ShopTFTMobile (Tuấn Thái Bình) | Cá Nhân / Nhóm Trôi Nổi |
+| :--- | :--- | :--- |
+| **Quy Trình Bàn Giao** | Bàn giao nhanh 1-1 qua Zalo chính chủ | Qua trung gian hoặc nick clone |
+| **Bảo Mật Thông Tin** | Cam kết không lộ dữ liệu khách hàng | Nguy cơ lộ số điện thoại, mail |
+| **Hỗ Trợ Sự Cố** | Đổi acc ngay lập tức nếu phát sinh lỗi | Thường né tránh, không bảo hành |
+| **Minh Bạch Giá Cả** | Niêm yết công khai trên website | Báo giá tùy hứng, phát sinh phí ẩn |
+
+> [!TIP]
+> **Lời khuyên từ Tuấn Thái Bình**: Để tiết kiệm tối đa thời gian và chi phí, bạn có thể tham khảo trực tiếp [Kho Acc](/shop) tại ShopTFTMobile với đầy đủ ảnh chụp thực tế và liên hệ trực tiếp Zalo để nhận tài khoản chỉ trong 3 - 5 phút.
+
+---
+
+## Câu Hỏi Thường Gặp (FAQ)
+
+**Q: Thuê acc TFT có cần đặt cọc hay giữ giấy tờ tùy thân không?**  
+A: Tại ShopTFTMobile, quy trình thuê acc hoàn toàn minh bạch, bạn chỉ cần thanh toán đúng gói giờ hoặc ngày muốn trải nghiệm mà không cần cọc giấy tờ phức tạp.
+
+**Q: Nếu đang chơi mà bị mất mạng hoặc mất điện thì xử lý thế nào?**  
+A: Bạn hãy nhắn tin ngay cho hỗ trợ qua Zalo để được hỗ trợ bảo lưu thời gian hoặc bù giờ hợp lý tùy theo tình huống.
+
+---
+
+## Kết Luận
+
+Nắm vững những lưu ý trên sẽ giúp bạn có những giờ phút giải trí trọn vẹn và an toàn cùng bạn bè. Đừng ngần ngại khám phá danh mục [Thuê Acc TFT](/thue-acc-tft-dtcl) hoặc tìm hiểu thêm tại [Hướng Dẫn](/huong-dan) của chúng tôi!`;
+  } else if (category === "TFT Mùa 18" && (cleanTitle.toLowerCase().includes("mới") || cleanTitle.toLowerCase().includes("có gì") || cleanTitle.toLowerCase().includes("tổng quan"))) {
+    markdownBody = `## Khám Phá Chi Tiết: ${cleanTitle}
+
+**${CURRENT_TFT_SET}** (Đại Ngàn Kỳ Bí) đã chính thức cập bến và tạo nên một làn sóng mới trong cộng đồng cờ thủ Đấu Trường Chân Lý. Với sự xuất hiện của hệ thống Tinh Linh hộ mệnh hoàn toàn mới, dàn tướng độc lạ cùng các cơ chế nâng cấp đột phá, Mùa 18 đòi hỏi người chơi phải thay đổi hoàn toàn tư duy xếp bài và tối ưu kinh tế.
+
+Dưới đây là tổng hợp toàn bộ điểm nhấn quan trọng nhất do Tuấn Thái Bình đúc kết.
+
+---
+
+## 3 Cơ Chế Đột Phá Tại Mùa 18
+
+### 1. Hệ Thống Tinh Linh Hộ Mệnh (Guardian Spirits)
+Khác với các mùa giải trước, người chơi có thể lựa chọn Tinh Linh đồng hành ngay từ đầu trận. Mỗi Tinh Linh cung cấp một loại buff chỉ số riêng biệt và có thể nâng cấp cấp độ theo các mốc giai đoạn (stage) trận đấu.
+
+### 2. Dàn Tướng Đa Dụng & Tộc Hệ Biến Hóa
+Các tộc hệ chủ lực Mùa 18 như Dị Thú, Tinh Linh Đại Ngàn, Ma Thuật mang lại khả năng biến chuyển lối chơi linh hoạt, cho phép người chơi kết hợp đa dạng giữa lối chơi Fast 8 tìm carry 4 vàng và lối chơi Reroll tướng 1-2 vàng 3 sao.
+
+### 3. Cải Tiến Hệ Thống Lõi Nâng Cấp & Kho Vũ Khí
+Các lõi nâng cấp Mùa 18 được phân loại rõ ràng hơn theo phong cách chiến đấu, giúp người chơi dễ dàng xây dựng chiến lược đường dài mà không bị phụ thuộc quá nhiều vào yếu tố may rủi.
+
+---
+
+## So Sánh TFT Mùa 18 vs Các Mùa Trước
+
+| Điểm Khác Biệt | TFT Mùa 18 (Đại Ngàn) | Các Mùa Trước |
+| :--- | :--- | :--- |
+| **Cơ Chế Trung Tâm** | Tinh Linh Hộ Mệnh nâng cấp | Lõi biến dị / Cổng dịch chuyển |
+| **Tốc Độ Trận Đấu** | Cân bằng, ưu tiên giữ máu | Nghiêng nhiều về Fast 9 |
+| **Độ Đa Dạng Bài** | Rất cao, nhiều biến thể flex | Thường bó hẹp trong 2-3 bài meta |
+
+> [!NOTE]
+> **Nhận định từ cựu Thách Đấu Tuấn Thái Bình**: Ở Mùa 18, việc giữ chuỗi thắng hoặc chuỗi thua có kiểm soát quan trọng hơn bao giờ hết. Đừng cố chấp giữ vàng nếu máu dưới 50 ở vòng 3-5, hãy roll nhẹ để ổn định bộ khung.
+
+---
+
+## Câu Hỏi Thường Gặp (FAQ)
+
+**Q: Người mới chơi nên bắt đầu với tộc hệ nào ở Mùa 18?**  
+A: Bạn nên khởi đầu với các tộc hệ đơn giản, dễ kích hoạt mốc như Can Trường kết hợp Xạ Thủ hoặc Dị Thú reroll để làm quen nhịp độ trận đấu.
+
+**Q: Làm thế nào để trải nghiệm sớm các Tướng Tí Nị và Sân Đấu Mùa 18?**  
+A: Bạn có thể ghé thăm [Kho Acc](/shop) của ShopTFTMobile để chọn ngay acc có sẵn full skin Mùa 18 trải nghiệm với giá cực rẻ.
+
+---
+
+## Kết Luận
+
+TFT Mùa 18 hứa hẹn sẽ là một trong những mùa giải hấp dẫn và giàu tính chiến thuật nhất. Hãy theo dõi thường xuyên [Cổng Thông Tin TFT Mùa 18](/blog/tft-mua-18) để cập nhật liên tục các meta mới nhất!`;
   } else {
     // Default Meta / Comp / Strategy guide
     markdownBody = `## Tổng Quan Đội Hình: ${cleanTitle}
@@ -673,7 +784,16 @@ A: Sử dụng tạm một tướng 4 vàng giữ đồ tương đồng và gi�
 Hy vọng cẩm nang phân tích này sẽ giúp bạn làm chủ chiến thuật và bứt phá rank thần tốc. Để cập nhật thêm nhiều giáo án đỉnh cao khác, hãy theo dõi chuyên mục [Cẩm Nang TFT Mùa 18](/blog/tft-mua-18) hoặc tham khảo [Kho Acc](/shop) để tự do test đội hình nhé!`;
   }
 
-  const excerpt = `Phân tích chi tiết ${cleanTitle} trong ${CURRENT_TFT_SET}. Hướng dẫn xây dựng đội hình, trang bị chuẩn và kinh nghiệm leo rank chuẩn Thách Đấu.`;
+  let excerpt = `Phân tích chi tiết ${cleanTitle} trong ${CURRENT_TFT_SET}. Hướng dẫn xây dựng đội hình, trang bị chuẩn và kinh nghiệm leo rank chuẩn Thách Đấu.`;
+  if (category === "Hướng Dẫn Riot") {
+    excerpt = `Hướng dẫn từng bước ${cleanTitle} an toàn, bảo mật 2 lớp chính chủ và các lưu ý bảo vệ tài khoản ĐTCL / LMHT chuẩn xác nhất.`;
+  } else if (category === "Kinh nghiệm TFT") {
+    excerpt = `Tổng hợp kinh nghiệm và các lưu ý quan trọng khi ${cleanTitle}. Hướng dẫn kiểm tra tài khoản, phòng ngừa rủi ro từ Tuấn Thái Bình.`;
+  } else if (category === "Pet / Chibi / Sân Đấu") {
+    excerpt = `Khám phá các Tướng Tí Nị, Linh Thú Thần Thoại và Sân Đấu EDM hot nhất ${CURRENT_TFT_SET}. Bảng giá và cách trải nghiệm tiết kiệm.`;
+  } else if (category === "TFT Mùa 18" && (cleanTitle.toLowerCase().includes("mới") || cleanTitle.toLowerCase().includes("có gì"))) {
+    excerpt = `Tổng quan các cơ chế mới nhất của ${CURRENT_TFT_SET}: Tinh Linh hộ mệnh, tộc hệ biến hóa và thay đổi meta ĐTCL.`;
+  }
 
   return {
     title: formattedTitle,

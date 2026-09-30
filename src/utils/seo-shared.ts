@@ -67,7 +67,7 @@ export interface SeoConfigDatabase {
 export interface SeoAuditIssue {
   id: string;
   type: "error" | "warning" | "passed";
-  category: "meta" | "canonical" | "product" | "redirect" | "robots" | "schema";
+  category: "meta" | "canonical" | "product" | "redirect" | "robots" | "schema" | "blog";
   title: string;
   detail: string;
   page?: string;

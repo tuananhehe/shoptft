@@ -85,7 +85,10 @@ export default function AdminBlogManagerPage() {
 
   const handleOpenAiModal = (mode: "full" | "rewrite" | "seo_only" = "full") => {
     setAiMode(mode);
-    if (mode === "rewrite") {
+    if (mode === "full" && !editorOpen) {
+      setEditingPost(null);
+      setAiTopic("");
+    } else if (mode === "rewrite") {
       setAiTopic(editingPost?.title ? `Viết lại bài viết: ${editingPost.title}` : "");
     } else if (mode === "seo_only") {
       setAiTopic(editingPost?.title ? `Tối ưu SEO cho bài: ${editingPost.title}` : "");
@@ -170,7 +173,7 @@ export default function AdminBlogManagerPage() {
         setEditorTab("seo");
       } else {
         setEditingPost({
-          id: editingPost?.id,
+          id: aiMode === "rewrite" ? editingPost?.id : undefined,
           title: out.title,
           slug: out.slug,
           excerpt: out.excerpt,
@@ -179,7 +182,7 @@ export default function AdminBlogManagerPage() {
           contentType: out.contentType,
           patch: out.patch || "",
           tags: out.tags,
-          coverImage: "",
+          coverImage: (aiMode === "rewrite") ? (editingPost?.coverImage || "") : "",
           suggestedCoverPrompt: out.suggestedCoverPrompt,
           generatedByAi: true,
           status: "draft", // Always Draft

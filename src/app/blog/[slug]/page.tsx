@@ -2,9 +2,11 @@ import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { TFTNavbar } from "@/components/tft-navbar";
 import { TFTFooter } from "@/components/tft-footer";
 import { TFTMobileBottomBar } from "@/components/tft-mobile-bottom-bar";
+import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from "@/utils/admin-auth";
 import {
   getBlogPosts,
   getPostBySlug,
@@ -50,6 +52,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: "Bài viết không tồn tại hoặc đã được cập nhật.",
       robots: { index: false, follow: false },
     };
+  }
+
+  // Draft protection: If article is draft and visitor is not authorized admin, do not leak metadata
+  if (post.status !== "published") {
+    let isAdmin = false;
+    try {
+      const cookieStore = await cookies();
+      const token = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
+      isAdmin = Boolean(verifyAdminSessionToken(token));
+    } catch {
+      isAdmin = false;
+    }
+
+    if (!isAdmin) {
+      return {
+        title: "Không tìm thấy bài viết | ShopTFTMobile",
+        description: "Bài viết không tồn tại hoặc đã được cập nhật.",
+        robots: { index: false, follow: false },
+      };
+    }
   }
 
   const title = post.seo?.title || `${post.title} | ShopTFTMobile`;
@@ -125,6 +147,62 @@ function extractHeadings(content: string): Array<{ id: string; text: string; lev
 }
 
 /**
+ * Render an toàn các thẻ nội dòng: **in đậm**, [liên kết](url), `code`
+ */
+function formatInlineMarkdown(text: string): React.ReactNode {
+  const regex = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\)|`[^`]+`)/g;
+  const parts = text.split(regex);
+
+  if (parts.length === 1) return text;
+
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return (
+        <strong key={i} className="font-bold text-white">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    if (part.startsWith("`") && part.endsWith("`")) {
+      return (
+        <code key={i} className="px-1.5 py-0.5 rounded bg-zinc-800 text-amber-300 text-xs font-mono">
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (linkMatch) {
+      const label = linkMatch[1];
+      const href = linkMatch[2];
+      const isExternal = href.startsWith("http://") || href.startsWith("https://");
+      if (isExternal) {
+        return (
+          <a
+            key={i}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors font-medium"
+          >
+            {label}
+          </a>
+        );
+      }
+      return (
+        <Link
+          key={i}
+          href={href}
+          className="text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors font-medium"
+        >
+          {label}
+        </Link>
+      );
+    }
+    return part;
+  });
+}
+
+/**
  * Render Markdown đơn giản và an toàn với định dạng bảng, tiêu đề, callout và danh sách
  */
 function renderMarkdown(content: string) {
@@ -165,7 +243,7 @@ function renderMarkdown(content: string) {
           key={idx}
           className="text-base sm:text-lg font-heading font-bold text-zinc-100 mt-6 mb-3"
         >
-          {text}
+          {formatInlineMarkdown(text)}
         </h3>
       );
     }
@@ -183,9 +261,9 @@ function renderMarkdown(content: string) {
             <Sparkles className="w-4 h-4 text-amber-400" />
             <span>Mẹo & Lời Khuyên Từ Tuấn Thái Bình:</span>
           </div>
-          <div className="text-zinc-300">
+          <div className="text-zinc-300 space-y-1">
             {cleanLines.map((cl, i) => (
-              <p key={i}>{cl}</p>
+              <p key={i}>{formatInlineMarkdown(cl)}</p>
             ))}
           </div>
         </div>
@@ -213,7 +291,7 @@ function renderMarkdown(content: string) {
               <tr>
                 {headerRow.map((h, i) => (
                   <th key={i} className="px-4 py-3">
-                    {h}
+                    {formatInlineMarkdown(h)}
                   </th>
                 ))}
               </tr>
@@ -223,7 +301,7 @@ function renderMarkdown(content: string) {
                 <tr key={rowIdx} className="hover:bg-zinc-900/50">
                   {r.map((cell, cellIdx) => (
                     <td key={cellIdx} className="px-4 py-3 leading-relaxed">
-                      {cell}
+                      {formatInlineMarkdown(cell)}
                     </td>
                   ))}
                 </tr>
@@ -242,7 +320,7 @@ function renderMarkdown(content: string) {
           {items.map((it, itemIdx) => (
             <li key={itemIdx} className="flex items-start gap-2.5">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 flex-shrink-0" />
-              <span className="leading-relaxed">{it}</span>
+              <span className="leading-relaxed">{formatInlineMarkdown(it)}</span>
             </li>
           ))}
         </ul>
@@ -259,7 +337,7 @@ function renderMarkdown(content: string) {
               <span className="font-bold text-amber-400 flex-shrink-0">
                 {itemIdx + 1}.
               </span>
-              <span className="leading-relaxed">{it}</span>
+              <span className="leading-relaxed">{formatInlineMarkdown(it)}</span>
             </li>
           ))}
         </ol>
@@ -269,7 +347,7 @@ function renderMarkdown(content: string) {
     // Standard Paragraph
     return (
       <p key={idx} className="my-4 text-xs sm:text-base text-zinc-300 leading-relaxed font-normal">
-        {trimmed}
+        {formatInlineMarkdown(trimmed)}
       </p>
     );
   });
@@ -281,6 +359,22 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
 
   if (!post) {
     notFound();
+  }
+
+  // Draft security: Only authorized admin can preview draft articles
+  let isAdmin = false;
+  if (post.status !== "published") {
+    try {
+      const cookieStore = await cookies();
+      const token = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
+      isAdmin = Boolean(verifyAdminSessionToken(token));
+    } catch {
+      isAdmin = false;
+    }
+
+    if (!isAdmin) {
+      notFound();
+    }
   }
 
   const relatedPosts = await getRelatedPosts(post, 3);
@@ -321,7 +415,7 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
       "@type": "Article",
       "headline": post.title,
       "description": post.excerpt,
-      "image": post.coverImage,
+      "image": post.coverImage || "https://www.shoptftmobile.net/banner-seo.jpg",
       "datePublished": post.publishedAt,
       "dateModified": post.updatedAt,
       "author": {
@@ -367,6 +461,24 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
       <TFTNavbar />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        {/* Admin Draft Preview Notice */}
+        {post.status !== "published" && (
+          <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+              <div className="text-xs">
+                <span className="font-bold">ĐANG XEM BẢN NHÁP (DRAFT PREVIEW):</span> Bài viết này chưa được xuất bản công khai. Chỉ Quản Trị Viên mới thấy trang này.
+              </div>
+            </div>
+            <Link
+              href="/admin/blog"
+              className="px-3 py-1.5 rounded-xl bg-amber-400 text-zinc-950 font-bold text-xs hover:bg-amber-300 transition-colors whitespace-nowrap self-start sm:self-auto"
+            >
+              Về Quản Trị Blog
+            </Link>
+          </div>
+        )}
+
         {/* Breadcrumb */}
         <nav
           aria-label="Breadcrumb"
@@ -441,13 +553,13 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
           <div className="pt-4 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <img
-                src={post.author.avatar}
-                alt={post.author.name}
+                src={post.author?.avatar || "/avatar.jpg"}
+                alt={post.author?.name || "Tuấn Thái Bình"}
                 className="w-10 h-10 rounded-full object-cover border border-white/10"
               />
               <div>
-                <p className="text-xs font-bold text-white">{post.author.name}</p>
-                <p className="text-[11px] text-zinc-400">{post.author.role}</p>
+                <p className="text-xs font-bold text-white">{post.author?.name || "Tuấn Thái Bình"}</p>
+                <p className="text-[11px] text-zinc-400">{post.author?.role || "Cựu Thách Đấu ĐTCL"}</p>
               </div>
             </div>
 
@@ -463,7 +575,7 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
         {/* Featured Cover Image */}
         <div className="relative aspect-video rounded-3xl overflow-hidden border border-white/[0.08] mb-8 bg-zinc-950">
           <img
-            src={post.coverImage}
+            src={post.coverImage || "/banner-seo.jpg"}
             alt={post.title}
             className="w-full h-full object-cover"
           />
@@ -522,13 +634,13 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
         {/* Author Bio Box */}
         <section className="my-10 p-6 rounded-2xl bg-gradient-to-r from-zinc-900 via-zinc-900/70 to-black border border-white/[0.08] flex flex-col sm:flex-row items-center sm:items-start gap-4">
           <img
-            src={post.author.avatar}
-            alt={post.author.name}
+            src={post.author?.avatar || "/avatar.jpg"}
+            alt={post.author?.name || "Tuấn Thái Bình"}
             className="w-16 h-16 rounded-full object-cover border-2 border-amber-500/40 flex-shrink-0"
           />
           <div className="space-y-1.5 text-center sm:text-left">
             <div className="flex items-center justify-center sm:justify-start gap-2">
-              <h4 className="font-bold text-sm text-white">{post.author.name}</h4>
+              <h4 className="font-bold text-sm text-white">{post.author?.name || "Tuấn Thái Bình"}</h4>
               <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold border border-emerald-500/20">
                 Chủ Shop
               </span>
@@ -589,7 +701,7 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
                 >
                   <div className="aspect-video rounded-lg overflow-hidden bg-zinc-950 mb-2">
                     <img
-                      src={rel.coverImage}
+                      src={rel.coverImage || "/banner-seo.jpg"}
                       alt={rel.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                     />

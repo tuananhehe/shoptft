@@ -13,6 +13,7 @@ import {
   DEFAULT_SEO_CONFIG,
   detectRedirectLoop,
 } from "@/utils/seo-shared";
+import { BlogPost } from "@/utils/blog-shared";
 
 export * from "@/utils/seo-shared";
 
@@ -68,7 +69,8 @@ export async function saveSeoConfig(cfg: SeoConfigDatabase): Promise<boolean> {
  */
 export function runSeoAudit(
   cfg: SeoConfigDatabase,
-  sampleAccountCount: number = 0
+  sampleAccountCount: number = 0,
+  blogPosts: BlogPost[] = []
 ): SeoAuditReport {
   const issues: SeoAuditIssue[] = [];
   const canonicalOrigin = cfg.global.canonicalOrigin.trim().replace(/\/+$/, "");
@@ -318,6 +320,112 @@ export function runSeoAudit(
       title: "Robots.txt cấu hình an toàn & mở đường cho bot",
       detail: `Cho phép ${cfg.robotsConfig.allowPaths.length} tuyến đường chính, chặn ${cfg.robotsConfig.disallowPaths.length} trang nhạy cảm.`,
     });
+  }
+
+  // 7. Blog Posts SEO Audit
+  if (blogPosts && blogPosts.length > 0) {
+    const seenBlogTitles = new Map<string, string>();
+    const seenBlogSlugs = new Set<string>();
+
+    for (const post of blogPosts) {
+      const pagePath = `/blog/${post.slug}`;
+      const postTitle = (post.seo?.title || post.title || "").trim();
+      const postDesc = (post.seo?.description || post.excerpt || "").trim();
+
+      // Check duplicate slug
+      if (seenBlogSlugs.has(post.slug)) {
+        issues.push({
+          id: `blog-slug-duplicate-${post.slug}`,
+          type: "error",
+          category: "blog",
+          page: pagePath,
+          title: `Đường dẫn tĩnh trùng lặp: /blog/${post.slug}`,
+          detail: `Có nhiều bài viết đang sử dụng chung slug "${post.slug}". Cần chỉnh sửa để tránh xung đột URL.`,
+        });
+      } else {
+        seenBlogSlugs.add(post.slug);
+      }
+
+      // Check title
+      if (!postTitle) {
+        issues.push({
+          id: `blog-title-missing-${post.id}`,
+          type: "error",
+          category: "blog",
+          page: pagePath,
+          title: `Bài viết "${post.title || post.id}" thiếu Tiêu đề SEO`,
+          detail: "Bài viết cần có Tiêu đề hoặc SEO Title để xếp hạng tìm kiếm.",
+        });
+      } else if (postTitle.length < 25) {
+        issues.push({
+          id: `blog-title-short-${post.id}`,
+          type: "warning",
+          category: "blog",
+          page: pagePath,
+          title: `Tiêu đề bài viết "${post.title}" hơi ngắn (${postTitle.length} ký tự)`,
+          detail: "Khuyến nghị tiêu đề từ 35 - 65 ký tự để đủ từ khóa và thu hút người đọc.",
+        });
+      } else {
+        // Check duplicate title
+        const lower = postTitle.toLowerCase();
+        if (seenBlogTitles.has(lower)) {
+          issues.push({
+            id: `blog-title-duplicate-${post.id}`,
+            type: "error",
+            category: "blog",
+            page: pagePath,
+            title: `Tiêu đề bài viết trùng lặp với "${seenBlogTitles.get(lower)}"`,
+            detail: `Cả hai bài viết đều có tiêu đề: "${postTitle}".`,
+          });
+        } else {
+          seenBlogTitles.set(lower, post.title);
+        }
+      }
+
+      // Check meta description
+      if (!postDesc) {
+        issues.push({
+          id: `blog-desc-missing-${post.id}`,
+          type: "error",
+          category: "blog",
+          page: pagePath,
+          title: `Bài viết "${post.title}" thiếu Meta Description`,
+          detail: "Thẻ mô tả hoặc tóm tắt excerpt bị trống, sẽ làm giảm tỷ lệ click từ Google.",
+        });
+      } else if (postDesc.length < 50) {
+        issues.push({
+          id: `blog-desc-short-${post.id}`,
+          type: "warning",
+          category: "blog",
+          page: pagePath,
+          title: `Mô tả bài viết "${post.title}" quá ngắn (${postDesc.length} ký tự)`,
+          detail: "Khuyên dùng đoạn tóm tắt từ 120 - 160 ký tự.",
+        });
+      }
+
+      // Canonical check
+      if (post.seo?.canonical && !post.seo.canonical.startsWith(canonicalOrigin)) {
+        issues.push({
+          id: `blog-canonical-mismatch-${post.id}`,
+          type: "warning",
+          category: "blog",
+          page: pagePath,
+          title: `Canonical bài viết "${post.title}" khác domain chính`,
+          detail: `Canonical đang là "${post.seo.canonical}", khác Origin "${canonicalOrigin}".`,
+        });
+      }
+    }
+
+    const blogErrors = issues.filter((i) => i.category === "blog" && i.type === "error").length;
+    if (blogErrors === 0) {
+      issues.push({
+        id: "blog-seo-healthy",
+        type: "passed",
+        category: "blog",
+        title: `Hệ thống ${blogPosts.length} bài viết Blog có cấu hình SEO chuẩn`,
+        detail: "Mọi bài viết đều có tiêu đề, mô tả tóm tắt và đường dẫn tĩnh hợp lệ.",
+      });
+    }
   }
 
   const errors = issues.filter((i) => i.type === "error").length;

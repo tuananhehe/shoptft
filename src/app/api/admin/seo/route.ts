@@ -9,6 +9,7 @@ import {
   SeoConfigDatabase,
   RedirectRule,
 } from "@/utils/seo-service";
+import { getBlogPosts } from "@/utils/blog-service";
 
 function isAuthorizedAdmin(req: NextRequest): boolean {
   const cookieVal = req.cookies.get(ADMIN_COOKIE_NAME)?.value;
@@ -42,7 +43,8 @@ export async function GET(req: NextRequest) {
 
   try {
     const config = await getSeoConfig();
-    const audit = runSeoAudit(config);
+    const blogPosts = await getBlogPosts({ status: "all" });
+    const audit = runSeoAudit(config, 0, blogPosts);
 
     return NextResponse.json({
       success: true,
@@ -225,7 +227,8 @@ export async function PUT(req: NextRequest) {
     };
 
     await saveSeoConfig(finalDatabase);
-    const audit = runSeoAudit(finalDatabase);
+    const blogPosts = await getBlogPosts({ status: "all" });
+    const audit = runSeoAudit(finalDatabase, 0, blogPosts);
 
     return NextResponse.json({
       success: true,

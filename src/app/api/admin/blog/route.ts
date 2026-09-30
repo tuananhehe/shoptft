@@ -170,12 +170,20 @@ export async function PUT(req: NextRequest) {
     const content = body.content !== undefined ? body.content : current.content;
     const now = new Date().toISOString();
 
+    const requestedSlug = sanitizeString(body.slug) || current.slug;
+    if (posts.some((p) => p.slug === requestedSlug && p.id !== id)) {
+      return NextResponse.json(
+        { success: false, error: `Đường dẫn tĩnh (slug) "${requestedSlug}" đã được sử dụng bởi bài viết khác!` },
+        { status: 400 }
+      );
+    }
+
     const updatedPost: BlogPost = {
       ...current,
       ...body,
       id,
       title,
-      slug: sanitizeString(body.slug) || current.slug,
+      slug: requestedSlug,
       excerpt: sanitizeString(body.excerpt) || current.excerpt,
       content,
       coverImage: sanitizeString(body.coverImage) || current.coverImage,
