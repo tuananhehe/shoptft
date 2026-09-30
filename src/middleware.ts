@@ -1,21 +1,77 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+const ADMIN_SESSION_SECRET =
+  process.env.ADMIN_SESSION_SECRET ||
+  "shoptft_secure_master_key_2026_tuanthaibinh";
+
 const MEMBER_SESSION_SECRET =
   process.env.MEMBER_SESSION_SECRET ||
   "shoptft_member_secure_key_2026_tuanthaibinh_secret";
 
 /**
- * Edge-compatible session token decoder and verifier
+ * Standard Web Crypto HMAC-SHA256 signature verification (Edge & Node compatible)
  */
-function parseMemberSessionToken(token?: string | null): {
+async function verifyHmacSha256(secret: string, data: string, signatureHex: string): Promise<boolean> {
+  try {
+    const enc = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      "raw",
+      enc.encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["verify"]
+    );
+    const match = signatureHex.match(/.{1,2}/g);
+    if (!match) return false;
+    const sigBytes = new Uint8Array(match.map((byte) => parseInt(byte, 16)));
+    return await crypto.subtle.verify("HMAC", key, sigBytes, enc.encode(data));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Edge-compatible Admin session token verifier
+ */
+async function verifyAdminSession(token?: string | null): Promise<boolean> {
+  if (!token || typeof token !== "string" || !token.includes(".")) {
+    return false;
+  }
+
+  try {
+    const [encodedPayload, receivedSignature] = token.split(".");
+    if (!encodedPayload || !receivedSignature) return false;
+
+    const payloadStr = atob(encodedPayload);
+    const data = JSON.parse(payloadStr);
+
+    if (
+      !data ||
+      data.role !== "ADMIN" ||
+      typeof data.expiresAt !== "number" ||
+      data.expiresAt < Date.now()
+    ) {
+      return false;
+    }
+
+    return await verifyHmacSha256(ADMIN_SESSION_SECRET, payloadStr, receivedSignature);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Edge-compatible Member session token verifier
+ */
+async function verifyMemberSession(token?: string | null): Promise<{
   id: string;
   username: string;
   role: "MEMBER";
   hasCompletedProfile: boolean;
   issuedAt: number;
   expiresAt: number;
-} | null {
+} | null> {
   if (!token || typeof token !== "string" || !token.includes(".")) {
     return null;
   }
@@ -24,9 +80,8 @@ function parseMemberSessionToken(token?: string | null): {
     const [encodedPayload, receivedSignature] = token.split(".");
     if (!encodedPayload || !receivedSignature) return null;
 
-    // Decode base64 payload
-    const jsonStr = atob(encodedPayload);
-    const data = JSON.parse(jsonStr);
+    const payloadStr = atob(encodedPayload);
+    const data = JSON.parse(payloadStr);
 
     if (
       !data ||
@@ -37,56 +92,121 @@ function parseMemberSessionToken(token?: string | null): {
       return null;
     }
 
+    const isValid = await verifyHmacSha256(MEMBER_SESSION_SECRET, payloadStr, receivedSignature);
+    if (!isValid) return null;
+
     return data;
   } catch {
     return null;
   }
 }
 
-export function middleware(req: NextRequest) {
+function applySecurityHeaders(res: NextResponse, pathname: string): NextResponse {
+  // Prevent clickjacking
+  res.headers.set("X-Frame-Options", "SAMEORIGIN");
+  // Prevent MIME type sniffing
+  res.headers.set("X-Content-Type-Options", "nosniff");
+  // Referrer policy
+  res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  // Restrict sensitive browser features
+  res.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+
+  // Robots meta tag for private paths (defense-in-depth)
+  if (
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/profile") ||
+    pathname.startsWith("/api") ||
+    pathname === "/login" ||
+    pathname === "/register"
+  ) {
+    res.headers.set("X-Robots-Tag", "noindex, nofollow");
+  }
+
+  return res;
+}
+
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Protect member profile pages (/profile, /profile/complete)
+  // 1. ADMIN AUTHORIZATION (Server-side route gate)
+  if (pathname.startsWith("/admin")) {
+    const isLoginPage = pathname === "/admin/login";
+    const adminToken =
+      req.cookies.get("admin_session")?.value ||
+      req.cookies.get("shoptft_admin_session")?.value;
+    const isValidAdmin = await verifyAdminSession(adminToken);
+
+    if (isLoginPage) {
+      if (isValidAdmin) {
+        const adminUrl = new URL("/admin", req.url);
+        return applySecurityHeaders(NextResponse.redirect(adminUrl), pathname);
+      }
+      return applySecurityHeaders(NextResponse.next(), pathname);
+    }
+
+    // All /admin/* routes require valid admin session
+    if (!isValidAdmin) {
+      const loginUrl = new URL("/admin/login", req.url);
+      loginUrl.searchParams.set("redirect", pathname);
+      const res = NextResponse.redirect(loginUrl);
+      if (adminToken) {
+        res.cookies.delete("admin_session");
+        res.cookies.delete("shoptft_admin_session");
+      }
+      return applySecurityHeaders(res, pathname);
+    }
+
+    return applySecurityHeaders(NextResponse.next(), pathname);
+  }
+
+  // 2. MEMBER PROFILE PERMISSIONS & ROUTING
   if (pathname.startsWith("/profile")) {
     const token = req.cookies.get("member_session")?.value;
 
-    // If not logged in, redirect to login
     if (!token) {
       const loginUrl = new URL("/login", req.url);
       loginUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(loginUrl);
+      return applySecurityHeaders(NextResponse.redirect(loginUrl), pathname);
     }
 
-    const session = parseMemberSessionToken(token);
+    const session = await verifyMemberSession(token);
     if (!session) {
       const loginUrl = new URL("/login", req.url);
       loginUrl.searchParams.set("redirect", pathname);
       const res = NextResponse.redirect(loginUrl);
       res.cookies.delete("member_session");
-      return res;
+      return applySecurityHeaders(res, pathname);
     }
 
-    // Incomplete profile handling
+    // Incomplete profile flow
     const isCompletePage = pathname === "/profile/complete";
 
     if (!session.hasCompletedProfile) {
-      // Missing full_name or zalo: must complete profile
+      // Incomplete: redirect to /profile/complete
       if (!isCompletePage) {
-        return NextResponse.redirect(new URL("/profile/complete", req.url));
+        return applySecurityHeaders(
+          NextResponse.redirect(new URL("/profile/complete", req.url)),
+          pathname
+        );
       }
-      return NextResponse.next();
+      return applySecurityHeaders(NextResponse.next(), pathname);
     } else {
-      // Profile is already completed: cannot stay on /profile/complete
+      // Completed: cannot access /profile/complete again
       if (isCompletePage) {
-        return NextResponse.redirect(new URL("/profile", req.url));
+        return applySecurityHeaders(
+          NextResponse.redirect(new URL("/profile", req.url)),
+          pathname
+        );
       }
-      return NextResponse.next();
+      return applySecurityHeaders(NextResponse.next(), pathname);
     }
   }
 
-  return NextResponse.next();
+  return applySecurityHeaders(NextResponse.next(), pathname);
 }
 
 export const config = {
-  matcher: ["/profile", "/profile/complete", "/profile/:path*"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico)$).*)",
+  ],
 };

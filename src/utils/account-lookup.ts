@@ -338,10 +338,12 @@ export async function getAllProductAccounts(): Promise<UnifiedProductAccount[]> 
     const { data, error } = await supabase
       .from("accounts")
       .select("*")
+      .neq("status", "HIDDEN")
       .order("created_at", { ascending: false });
 
     if (!error && data && data.length > 0) {
-      const dbAccounts = data.map((row: AccountDbRow, idx: number) => transformDbRowToUnified(row, idx));
+      const visibleData = data.filter((row: AccountDbRow) => String(row.status || "").toUpperCase() !== "HIDDEN");
+      const dbAccounts = visibleData.map((row: AccountDbRow, idx: number) => transformDbRowToUnified(row, idx));
       const existingCodes = new Set(dbAccounts.map((a) => normalizeAccountCode(a.code)));
       const existingIds = new Set(dbAccounts.map((a) => a.id.toLowerCase()));
       

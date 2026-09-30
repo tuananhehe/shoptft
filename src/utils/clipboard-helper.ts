@@ -39,10 +39,14 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 }
 
 /**
- * Sinh link Zalo kèm query params tin nhắn
+ * Sinh link Zalo kèm query params tin nhắn (An toàn, ngăn chặn javascript: và protocol độc hại)
  */
 export function buildZaloOrderUrl(baseUrl: string, message: string): string {
-  const cleanBase = baseUrl.trim();
+  const cleanBase = (baseUrl || "").trim();
+  // Ngăn chặn triệt để javascript:, data:, vbscript: protocol injection
+  if (!cleanBase.startsWith("https://") && !cleanBase.startsWith("http://")) {
+    return `https://zalo.me/0352867283?text=${encodeURIComponent(message)}&msg=${encodeURIComponent(message)}`;
+  }
   const sep = cleanBase.includes("?") ? "&" : "?";
   return `${cleanBase}${sep}text=${encodeURIComponent(message)}&msg=${encodeURIComponent(message)}`;
 }

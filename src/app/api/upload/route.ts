@@ -21,7 +21,8 @@ export async function POST(req: NextRequest) {
     // 2. Parse FormData
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
-    const uploadType = (formData.get("type") as string) || "general"; // favicon | background | accounts | general
+    const rawType = (formData.get("type") as string) || "general";
+    const uploadType = rawType.replace(/[^a-zA-Z0-9_-]/g, "") || "general";
 
     if (!file) {
       return NextResponse.json(
@@ -30,13 +31,29 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Kiểm tra định dạng & kích thước file (tối đa 10MB)
+    // 3. Kiểm tra định dạng MIME & phần mở rộng & kích thước file (tối đa 10MB)
     const allowedExtensions = [".png", ".jpg", ".jpeg", ".webp", ".svg", ".ico", ".gif"];
     const ext = path.extname(file.name).toLowerCase();
 
     if (!allowedExtensions.includes(ext)) {
       return NextResponse.json(
         { success: false, error: `Định dạng ${ext} không được hỗ trợ! Chỉ chấp nhận: PNG, JPG, WEBP, SVG, ICO.` },
+        { status: 400 }
+      );
+    }
+
+    const allowedMimeTypes = [
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+      "image/svg+xml",
+      "image/x-icon",
+      "image/vnd.microsoft.icon",
+      "image/gif",
+    ];
+    if (file.type && !allowedMimeTypes.includes(file.type.toLowerCase())) {
+      return NextResponse.json(
+        { success: false, error: "Định dạng MIME không hợp lệ! Chỉ cho phép upload file ảnh." },
         { status: 400 }
       );
     }
@@ -115,7 +132,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error("Lỗi upload file:", error);
     return NextResponse.json(
-      { success: false, error: error.message || "Lỗi xử lý tải file lên!" },
+      { success: false, error: "Đã xảy ra sự cố khi tải file lên. Vui lòng thử lại sau." },
       { status: 500 }
     );
   }

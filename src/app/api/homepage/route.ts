@@ -61,6 +61,26 @@ export async function GET() {
   }
 }
 
+function sanitizeCmsValue(val: any): any {
+  if (typeof val === "string") {
+    return val
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+      .replace(/javascript:/gi, "")
+      .replace(/on\w+\s*=\s*["'][^"']*["']/gi, "");
+  }
+  if (Array.isArray(val)) {
+    return val.map(sanitizeCmsValue);
+  }
+  if (val && typeof val === "object") {
+    const cleaned: Record<string, any> = {};
+    for (const k of Object.keys(val)) {
+      cleaned[k] = sanitizeCmsValue(val[k]);
+    }
+    return cleaned;
+  }
+  return val;
+}
+
 /**
  * PUT /api/homepage
  * Cập nhật cấu hình trang chủ (Admin)
@@ -85,7 +105,8 @@ export async function PUT(req: NextRequest) {
       });
     }
 
-    const body = await req.json();
+    const rawBody = await req.json();
+    const body = sanitizeCmsValue(rawBody);
     const current = await readConfig();
 
     const updatedConfig: HomepageConfig = {
@@ -133,7 +154,7 @@ export async function PUT(req: NextRequest) {
     });
   } catch (err: any) {
     return NextResponse.json(
-      { success: false, error: err.message || "Lỗi khi lưu cấu hình trang chủ" },
+      { success: false, error: "Lỗi khi lưu cấu hình trang chủ" },
       { status: 500 }
     );
   }

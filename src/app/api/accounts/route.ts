@@ -155,6 +155,11 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    const isAdmin = isAuthorizedAdmin(req);
+    if (!isAdmin) {
+      query = query.neq("status", "HIDDEN");
+    }
+
     if (type && type.toUpperCase() !== "ALL") {
       query = query.eq("type", type.toUpperCase());
     }

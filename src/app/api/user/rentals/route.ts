@@ -55,19 +55,26 @@ export async function GET(req: NextRequest) {
     allOrders.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
     const memberZalo = (member.zalo || "").trim().toLowerCase();
-    const memberName = (member.full_name || "").trim().toLowerCase();
+    const cleanMemberZalo = memberZalo.replace(/[^0-9]/g, "");
     const memberUser = (member.username || "").trim().toLowerCase();
 
     const userOrders = allOrders.filter((ord) => {
-      const cust = (ord.customer || "").toLowerCase().trim();
-      const pz = (ord.phoneZalo || "").toLowerCase().trim();
-      const notes = (ord.notes || "").toLowerCase();
+      // 1. Direct member ID match (100% accurate)
+      if (ord.memberId && ord.memberId === member.id) return true;
 
-      const matchZalo = memberZalo && memberZalo.length >= 6 && (pz.includes(memberZalo) || notes.includes(memberZalo));
-      const matchName = memberName && memberName.length >= 2 && cust.includes(memberName);
-      const matchUser = memberUser && (cust.includes(memberUser) || notes.includes(memberUser));
+      // 2. Exact phone/Zalo match (at least 9 digits to prevent collision)
+      const cleanPz = (ord.phoneZalo || "").replace(/[^0-9]/g, "");
+      if (cleanMemberZalo && cleanMemberZalo.length >= 9 && cleanPz === cleanMemberZalo) {
+        return true;
+      }
 
-      return matchZalo || matchName || matchUser;
+      // 3. Exact username match
+      const cust = (ord.customer || "").trim().toLowerCase();
+      if (memberUser && cust === memberUser) {
+        return true;
+      }
+
+      return false;
     });
 
     const mappedRentals = userOrders.map((ord) => ({
@@ -82,7 +89,9 @@ export async function GET(req: NextRequest) {
       startedAt: ord.startedAt || ord.createdAt,
       expiresAt: ord.expiresAt,
       status: ord.status,
-      notes: ord.notes,
+      notes: ord.notes?.includes("[Admin") || ord.notes?.includes("Ghi chú nội bộ")
+        ? "Tài khoản đang thuê"
+        : ord.notes,
     }));
 
     const totalOrders = userOrders.length;
