@@ -94,6 +94,34 @@
         "index": true,
         "follow": true
       }
+    },
+    "/blog": {
+      "path": "/blog",
+      "name": "Blog & Tin Tức TFT",
+      "title": "Blog TFT Mùa 18, Giáo Án Meta & Tin Tức ĐTCL | ShopTFTMobile",
+      "description": "Chuyên mục chia sẻ giáo án meta TFT Mùa 18, phân tích đội hình chuẩn Thách Đấu, cập nhật Pet Chibi Tí Nị và cẩm nang thuê acc an toàn từ Tuấn Thái Bình TFT.",
+      "canonical": "https://www.shoptftmobile.net/blog",
+      "ogTitle": "Blog TFT Mùa 18, Giáo Án Meta & Tin Tức ĐTCL | ShopTFTMobile",
+      "ogDescription": "Chuyên mục chia sẻ giáo án meta TFT Mùa 18, phân tích đội hình chuẩn Thách Đấu, cập nhật Pet Chibi Tí Nị và cẩm nang thuê acc an toàn.",
+      "ogImage": "/banner-seo.jpg",
+      "robots": {
+        "index": true,
+        "follow": true
+      }
+    },
+    "/blog/tft-mua-18": {
+      "path": "/blog/tft-mua-18",
+      "name": "Cẩm Nang TFT Mùa 18",
+      "title": "TFT Mùa 18: Đại Ngàn Kỳ Bí – Giáo Án, Tộc Hệ & Meta Patch Mới Nhất | ShopTFTMobile",
+      "description": "Trang tổng hợp toàn diện về ĐTCL Mùa 18 (Đại Ngàn Kỳ Bí): cơ chế Wisps, giáo án Ahri Hồ Ly, Thần Thú Reroll, tổng hợp Chibi và mẹo thuê acc leo rank.",
+      "canonical": "https://www.shoptftmobile.net/blog/tft-mua-18",
+      "ogTitle": "TFT Mùa 18: Đại Ngàn Kỳ Bí – Giáo Án, Tộc Hệ & Meta Patch Mới Nhất | ShopTFTMobile",
+      "ogDescription": "Trang tổng hợp toàn diện về ĐTCL Mùa 18: cơ chế Wisps, giáo án Ahri Hồ Ly, Thần Thú Reroll, tổng hợp Chibi và mẹo thuê acc leo rank.",
+      "ogImage": "/banner-seo.jpg",
+      "robots": {
+        "index": true,
+        "follow": true
+      }
     }
   },
   "productTemplate": {
@@ -128,7 +156,9 @@
       "/ve-shop",
       "/acc/*",
       "/huong-dan",
-      "/huong-dan/*"
+      "/huong-dan/*",
+      "/blog",
+      "/blog/*"
     ],
     "disallowPaths": [
       "/admin",

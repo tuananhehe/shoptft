@@ -11,6 +11,8 @@ export default function robots(): MetadataRoute.Robots {
     "/acc/*",
     "/huong-dan",
     "/huong-dan/*",
+    "/blog",
+    "/blog/*",
   ];
 
   const disallowPatterns = [

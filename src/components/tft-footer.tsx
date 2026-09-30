@@ -55,15 +55,25 @@ export const TFTFooter: React.FC = () => {
             </div>
           </div>
 
-          {/* Col 2: SHOP */}
+          {/* Col 2: SHOP & BLOG */}
           <div className="space-y-3">
             <h5 className="font-mono text-xs font-semibold text-white uppercase tracking-wider">
-              SHOP
+              NỘI DUNG & SHOP
             </h5>
             <ul className="space-y-2 text-xs">
               <li>
                 <Link href="/ve-shop" className="hover:text-white transition-colors">
                   Về ShopTFTMobile
+                </Link>
+              </li>
+              <li>
+                <Link href="/blog" className="hover:text-white transition-colors font-medium text-zinc-300">
+                  Blog TFT Mùa 18
+                </Link>
+              </li>
+              <li>
+                <Link href="/blog/tft-mua-18" className="hover:text-white transition-colors">
+                  Cẩm Nang Mùa 18
                 </Link>
               </li>
               <li>
@@ -83,6 +93,11 @@ export const TFTFooter: React.FC = () => {
               <li>
                 <Link href="/shop" className="hover:text-white transition-colors">
                   Kho Acc
+                </Link>
+              </li>
+              <li>
+                <Link href="/thue-acc-tft-dtcl" className="hover:text-white transition-colors">
+                  Thuê Acc TFT Uy Tín
                 </Link>
               </li>
               <li>

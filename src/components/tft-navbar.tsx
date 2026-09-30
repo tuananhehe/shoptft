@@ -18,6 +18,7 @@ export const TFTNavbar: React.FC = () => {
   const isShopActive = pathname.startsWith("/shop") || pathname.startsWith("/acc");
   const isGuideActive = pathname.startsWith("/huong-dan");
   const isAboutActive = pathname === "/ve-shop";
+  const isBlogActive = pathname.startsWith("/blog");
 
   // Favorites state
   const [favoritesOpen, setFavoritesOpen] = useState(false);
@@ -103,6 +104,17 @@ export const TFTNavbar: React.FC = () => {
               }`}
             >
               Kho Acc
+            </Link>
+
+            <Link
+              href="/blog"
+              className={`transition-colors py-2 ${
+                isBlogActive
+                  ? "text-white font-semibold"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              Blog Mùa 18
             </Link>
 
             <Link
@@ -199,6 +211,18 @@ export const TFTNavbar: React.FC = () => {
               }`}
             >
               Kho Acc
+            </Link>
+
+            <Link
+              href="/blog"
+              onClick={() => setMobileOpen(false)}
+              className={`block px-3 py-2 text-sm rounded-lg transition-colors ${
+                isBlogActive
+                  ? "text-white font-semibold bg-white/10"
+                  : "text-zinc-200 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              Blog Mùa 18
             </Link>
 
             <Link

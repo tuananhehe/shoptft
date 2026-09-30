@@ -20,6 +20,7 @@ import {
   Loader2,
   ChevronRight,
   Globe,
+  BookOpen,
 } from "lucide-react";
 
 export default function AdminLayout({
@@ -153,6 +154,12 @@ export default function AdminLayout({
             pathname.startsWith("/admin/channels"),
         },
         {
+          title: "Bài Viết / Blog",
+          href: "/admin/blog",
+          icon: BookOpen,
+          active: pathname.startsWith("/admin/blog"),
+        },
+        {
           title: "SEO Website",
           href: "/admin/seo",
           icon: Globe,
@@ -183,6 +190,7 @@ export default function AdminLayout({
     if (pathname.startsWith("/admin/homepage")) return "CMS Website";
     if (pathname.startsWith("/admin/cms")) return "CMS Website";
     if (pathname.startsWith("/admin/channels")) return "CMS Website";
+    if (pathname.startsWith("/admin/blog")) return "Quản lý Blog";
     if (pathname.startsWith("/admin/seo")) return "Quản lý SEO";
     if (pathname.startsWith("/admin/surveys")) return "Phản Hồi & Khảo Sát";
     if (pathname.startsWith("/admin/settings")) return "Cài Đặt";
