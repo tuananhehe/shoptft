@@ -34,13 +34,13 @@ interface SearchResultItem {
 }
 
 const POPULAR_KEYWORDS = [
-  { label: "Ahri Tí Nị", query: "Ahri" },
-  { label: "Jinx Tí Nị", query: "Jinx" },
   { label: "Gwen Tí Nị", query: "Gwen" },
-  { label: "Sân Đấu EDM", query: "Sân đấu" },
-  { label: "Kho VIP", query: "VIP" },
+  { label: "Yasuo Tí Nị", query: "Yasuo" },
+  { label: "Yone Tí Nị", query: "Yone" },
+  { label: "Ahri Tí Nị", query: "Ahri" },
+  { label: "Tí Nị Hàng Hiệu", query: "Hàng Hiệu" },
+  { label: "Sân Đấu Thần Thoại", query: "Sân Đấu" },
   { label: "Kho Clone", query: "Clone" },
-  { label: "Dưới 200K", query: "Dưới 200K" },
 ];
 
 interface TFTSearchModalProps {

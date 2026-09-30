@@ -244,9 +244,12 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
         if (query.length > 0 && query !== prev.search.trim()) {
           const queryNorm = removeAccents(query);
           const resultsCount = allNormalizedAccounts.filter((acc) => {
-            const textNorm = removeAccents(
-              `${acc.title} ${acc.code} ${acc.mainPet || ""} ${(acc.rawVip?.allChibi || []).join(" ")} ${acc.arena || ""}`
-            );
+            let enriched = `${acc.title} ${acc.code} ${acc.mainPet || ""} ${(acc.rawVip?.allChibi || []).join(" ")} ${acc.arena || ""}`;
+            if (enriched.toLowerCase().includes("tí nị")) enriched += " chibi pet linh thu";
+            if (acc.type === "CLONE") enriched += " smurf clone";
+            if (enriched.toLowerCase().includes("hàng hiệu")) enriched += " prestige";
+            if (enriched.toLowerCase().includes("sân đấu")) enriched += " map arena";
+            const textNorm = removeAccents(enriched);
             return textNorm.includes(queryNorm);
           }).length;
           analytics.trackSearchProduct({ query, results_count: resultsCount });
@@ -372,9 +375,25 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
           const extraVipArenas = (acc.rawVip?.allArenas || []).join(" ");
           const cloneFeatures = (acc.features || []).join(" ");
 
-          const textNorm = removeAccents(
-            `${acc.code} ${cleanCode} ${acc.title} ${acc.mainPet || ""} ${extraVipPets} ${acc.arena || ""} ${extraVipArenas} ${acc.rank || ""} ${cloneFeatures} ${acc.description || ""}`
-          );
+          let enrichedText = `${acc.code} ${cleanCode} ${acc.title} ${acc.mainPet || ""} ${extraVipPets} ${acc.arena || ""} ${extraVipArenas} ${acc.rank || ""} ${cloneFeatures} ${acc.description || ""}`;
+          const rawLower = enrichedText.toLowerCase();
+          if (rawLower.includes("tí nị") || rawLower.includes("ti ni")) {
+            enrichedText += " chibi pet linh thu";
+          }
+          if (acc.type === "CLONE" || rawLower.includes("unranked")) {
+            enrichedText += " smurf clone trang thong tin";
+          }
+          if (rawLower.includes("hàng hiệu") || rawLower.includes("hang hieu")) {
+            enrichedText += " prestige";
+          }
+          if (rawLower.includes("sân đấu") || rawLower.includes("san dau") || acc.arena) {
+            enrichedText += " map arena san dau";
+          }
+          if (rawLower.includes("thách đấu") || rawLower.includes("thach dau")) {
+            enrichedText += " challenger";
+          }
+
+          const textNorm = removeAccents(enrichedText);
           const words = queryNorm.split(" ").filter(Boolean);
           const matchAll = words.every((w) => textNorm.includes(w));
           if (!matchAll) return false;

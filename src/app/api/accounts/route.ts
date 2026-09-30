@@ -111,6 +111,7 @@ const LISTING_COLUMNS =
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
+    const rawSearch = (searchParams.get("search") || "").trim();
     const type = searchParams.get("type");
     const status = searchParams.get("status");
     const rawLimit = searchParams.get("limit");
@@ -120,6 +121,54 @@ export async function GET(req: NextRequest) {
       .from("accounts")
       .select(LISTING_COLUMNS, { count: "exact" })
       .order("created_at", { ascending: false });
+
+    if (rawSearch) {
+      const q = rawSearch.toLowerCase();
+      const terms = new Set<string>([rawSearch]);
+      if (q.includes("chibi") || q.includes("pet") || q.includes("linh thu") || q.includes("linh thú")) {
+        terms.add("Tí Nị");
+      }
+      if (q.includes("smurf")) {
+        terms.add("Clone");
+        terms.add("Unranked");
+      }
+      if (q.includes("hang hieu") || q.includes("prestige")) {
+        terms.add("Hàng Hiệu");
+      }
+      if (q.includes("san dau") || q.includes("san") || q.includes("map")) {
+        terms.add("Sân Đấu");
+      }
+      if (q.includes("thach dau") || q.includes("challenger")) {
+        terms.add("Thách Đấu");
+      }
+      if (q.includes("dai cao thu")) {
+        terms.add("Đại Cao Thủ");
+      }
+      if (q.includes("cao thu")) {
+        terms.add("Cao Thủ");
+      }
+      if (q.includes("kim cuong")) {
+        terms.add("Kim Cương");
+      }
+      if (q.includes("luc bao")) {
+        terms.add("Lục Bảo");
+      }
+
+      const orClauses: string[] = [];
+      for (const t of terms) {
+        const clean = t.replace(/[%,()]/g, " ").trim();
+        if (clean) {
+          orClauses.push(
+            `title.ilike.%${clean}%`,
+            `code.ilike.%${clean}%`,
+            `rank.ilike.%${clean}%`
+          );
+        }
+      }
+      if (orClauses.length > 0) {
+        query = query.or(orClauses.join(","));
+      }
+    }
 
     if (type && type.toUpperCase() !== "ALL") {
       query = query.eq("type", type.toUpperCase());

@@ -32,13 +32,13 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
   };
 
   const shortcuts = [
-    { label: "Ahri", href: "/shop?search=Ahri" },
-    { label: "Jinx", href: "/shop?search=Jinx" },
     { label: "Gwen", href: "/shop?search=Gwen" },
-    { label: "Pet / Chibi", href: "/shop?focus=pet" },
+    { label: "Yasuo", href: "/shop?search=Yasuo" },
+    { label: "Yone", href: "/shop?search=Yone" },
+    { label: "Ahri", href: "/shop?search=Ahri" },
+    { label: "Hàng Hiệu", href: "/shop?search=H%C3%A0ng%20Hi%E1%BB%87u" },
     { label: "Sân Đấu", href: "/shop?focus=arena" },
-    { label: "VIP", href: "/shop?type=vip" },
-    { label: "Clone", href: "/shop?type=clone" },
+    { label: "Acc Clone", href: "/shop?type=clone" },
   ];
 
   return (
