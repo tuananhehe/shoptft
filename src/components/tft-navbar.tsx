@@ -1,24 +1,57 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PROFILE_INFO } from "@/data/tft-data";
 import { useUserAuth } from "@/context/user-auth-context";
 import { getFavorites } from "@/utils/product-discovery";
 import { TFTFavoritesModal } from "@/components/tft-favorites-modal";
-import { Menu, X, User, Heart } from "lucide-react";
+import { Menu, X, User, Heart, ChevronDown } from "lucide-react";
 
 export const TFTNavbar: React.FC = () => {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user } = useUserAuth();
 
-  // Active navigation states (Navigation UX Patch)
+  // Active navigation states (Supports parent active during sub-routes)
   const isShopActive = pathname.startsWith("/shop") || pathname.startsWith("/acc");
   const isGuideActive = pathname.startsWith("/huong-dan");
   const isAboutActive = pathname === "/ve-shop";
   const isBlogActive = pathname.startsWith("/blog");
+
+  // Desktop hover dropdown state with 150ms bridge delay to prevent flickering
+  const [desktopDropdown, setDesktopDropdown] = useState<"shop" | "guide" | null>(null);
+  const closeTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = (menu: "shop" | "guide") => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    setDesktopDropdown(menu);
+  };
+
+  const handleMouseLeave = () => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = setTimeout(() => {
+      setDesktopDropdown(null);
+    }, 150);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setDesktopDropdown(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    setDesktopDropdown(null);
+  }, [pathname]);
 
   // Favorites state
   const [favoritesOpen, setFavoritesOpen] = useState(false);
@@ -93,41 +126,140 @@ export const TFTNavbar: React.FC = () => {
             </div>
           </Link>
 
-          {/* 2. Center: Clean Navigation (Logo | Kho Acc | Hướng Dẫn | Về Shop) */}
-          <nav className="hidden md:flex items-center gap-7 lg:gap-8 text-xs sm:text-sm font-medium">
-            <Link
-              href="/shop"
-              className={`transition-colors py-2 ${
-                isShopActive
-                  ? "text-white font-semibold"
-                  : "text-zinc-400 hover:text-white"
-              }`}
+          {/* 2. Center: Clean Navigation (Logo | Kho Acc ▼ | Hướng Dẫn ▼ | Về Shop) */}
+          <nav className="hidden md:flex items-center gap-6 lg:gap-8 text-xs sm:text-sm font-medium">
+            {/* Kho Acc Dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => handleMouseEnter("shop")}
+              onMouseLeave={handleMouseLeave}
             >
-              Kho Acc
-            </Link>
+              <Link
+                href="/shop"
+                onFocus={() => handleMouseEnter("shop")}
+                className={`transition-colors py-2 flex items-center gap-1.5 ${
+                  isShopActive
+                    ? "text-white font-semibold"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+                aria-expanded={desktopDropdown === "shop"}
+                aria-haspopup="true"
+              >
+                <span>Kho Acc</span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                    desktopDropdown === "shop" ? "rotate-180 text-white" : "text-zinc-400"
+                  }`}
+                />
+              </Link>
 
-            <Link
-              href="/blog"
-              className={`transition-colors py-2 ${
-                isBlogActive
-                  ? "text-white font-semibold"
-                  : "text-zinc-400 hover:text-white"
-              }`}
+              {desktopDropdown === "shop" && (
+                <div
+                  className="absolute left-0 top-full pt-1.5 z-50 animate-in fade-in zoom-in-95 duration-150"
+                  onMouseEnter={() => handleMouseEnter("shop")}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  <div className="w-52 rounded-xl bg-[#141416]/98 backdrop-blur-md border border-white/10 shadow-2xl p-1.5 text-xs space-y-0.5">
+                    <Link
+                      href="/shop"
+                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors"
+                    >
+                      <span className="font-medium">Tất cả Acc</span>
+                      <span className="text-[10px] text-zinc-500 font-mono">/shop</span>
+                    </Link>
+                    <Link
+                      href="/shop?type=vip"
+                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors"
+                    >
+                      <span className="font-medium">Acc VIP</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-white font-mono font-bold">VIP</span>
+                    </Link>
+                    <Link
+                      href="/shop?type=clone"
+                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors"
+                    >
+                      <span className="font-medium">Acc Clone</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-zinc-400 font-mono">CLONE</span>
+                    </Link>
+                    <Link
+                      href="/shop?sort=newest"
+                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors"
+                    >
+                      <span className="font-medium">Acc Mới Về</span>
+                      <span className="text-[10px] text-amber-400 font-mono">Mới</span>
+                    </Link>
+                    <div className="my-1 border-t border-white/[0.08]" />
+                    <Link
+                      href="/shop?focus=pet"
+                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors"
+                    >
+                      <span className="font-medium">Linh Thú / Chibi</span>
+                      <span className="text-[10px] text-zinc-500">Tướng</span>
+                    </Link>
+                    <Link
+                      href="/shop?focus=arena"
+                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors"
+                    >
+                      <span className="font-medium">Sân Đấu</span>
+                      <span className="text-[10px] text-zinc-500">Bản đồ</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Hướng Dẫn Dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => handleMouseEnter("guide")}
+              onMouseLeave={handleMouseLeave}
             >
-              Blog Mùa 18
-            </Link>
+              <Link
+                href="/huong-dan"
+                onFocus={() => handleMouseEnter("guide")}
+                className={`transition-colors py-2 flex items-center gap-1.5 ${
+                  isGuideActive
+                    ? "text-white font-semibold"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+                aria-expanded={desktopDropdown === "guide"}
+                aria-haspopup="true"
+              >
+                <span>Hướng Dẫn</span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                    desktopDropdown === "guide" ? "rotate-180 text-white" : "text-zinc-400"
+                  }`}
+                />
+              </Link>
 
-            <Link
-              href="/huong-dan/doi-thong-tin-acc-riot"
-              className={`transition-colors py-2 ${
-                isGuideActive
-                  ? "text-white font-semibold"
-                  : "text-zinc-400 hover:text-white"
-              }`}
-            >
-              Hướng Dẫn
-            </Link>
+              {desktopDropdown === "guide" && (
+                <div
+                  className="absolute left-0 top-full pt-1.5 z-50 animate-in fade-in zoom-in-95 duration-150"
+                  onMouseEnter={() => handleMouseEnter("guide")}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  <div className="w-60 rounded-xl bg-[#141416]/98 backdrop-blur-md border border-white/10 shadow-2xl p-1.5 text-xs space-y-0.5">
+                    <Link
+                      href="/huong-dan"
+                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors"
+                    >
+                      <span className="font-medium">Tất cả hướng dẫn</span>
+                      <span className="text-[10px] text-zinc-500 font-mono">Hub</span>
+                    </Link>
+                    <Link
+                      href="/huong-dan/doi-thong-tin-acc-riot"
+                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors"
+                    >
+                      <span className="font-medium">Đổi thông tin Acc Riot</span>
+                      <span className="text-[10px] text-emerald-400 font-mono font-medium">Bảo mật</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
 
+            {/* Về Shop */}
             <Link
               href="/ve-shop"
               className={`transition-colors py-2 ${

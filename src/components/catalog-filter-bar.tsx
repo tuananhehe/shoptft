@@ -203,7 +203,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
                 }
               }}
               placeholder="Tìm theo tên, Pet, mã số, Sân Đấu..."
-              className="w-full pl-9 pr-8 py-2 bg-[#181818] border border-white/[0.08] rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 transition-colors"
+              className="w-full h-10 pl-9 pr-8 bg-[#181818] border border-white/[0.08] rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 transition-colors"
             />
             {searchInput && (
               <button
@@ -225,7 +225,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
             <button
               type="button"
               onClick={() => setOpenDropdown(openDropdown === "type" ? null : "type")}
-              className={`px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer border ${
+              className={`h-10 px-3 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer border ${
                 filters.type !== "ALL"
                   ? "bg-white text-black font-semibold border-white"
                   : "bg-[#181818] text-zinc-300 border-white/[0.08] hover:border-white/[0.18]"
@@ -268,7 +268,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
             <button
               type="button"
               onClick={() => setOpenDropdown(openDropdown === "pet" ? null : "pet")}
-              className={`px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer border ${
+              className={`h-10 px-3 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer border ${
                 filters.pet
                   ? "bg-white text-black font-semibold border-white"
                   : "bg-[#181818] text-zinc-300 border-white/[0.08] hover:border-white/[0.18]"
@@ -341,7 +341,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
             <button
               type="button"
               onClick={() => setOpenDropdown(openDropdown === "arena" ? null : "arena")}
-              className={`px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer border ${
+              className={`h-10 px-3 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer border ${
                 filters.arena
                   ? "bg-white text-black font-semibold border-white"
                   : "bg-[#181818] text-zinc-300 border-white/[0.08] hover:border-white/[0.18]"
@@ -405,7 +405,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
             <button
               type="button"
               onClick={() => setOpenDropdown(openDropdown === "price" ? null : "price")}
-              className={`px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer border ${
+              className={`h-10 px-3 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer border ${
                 filters.price && filters.price !== "ALL"
                   ? "bg-white text-black font-semibold border-white"
                   : "bg-[#181818] text-zinc-300 border-white/[0.08] hover:border-white/[0.18]"
@@ -447,7 +447,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
             <button
               type="button"
               onClick={() => setOpenDropdown(openDropdown === "status" ? null : "status")}
-              className={`px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer border ${
+              className={`h-10 px-3 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer border ${
                 filters.status !== "ALL"
                   ? "bg-white text-black font-semibold border-white"
                   : "bg-[#181818] text-zinc-300 border-white/[0.08] hover:border-white/[0.18]"
@@ -494,7 +494,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
             <button
               type="button"
               onClick={() => setOpenDropdown(openDropdown === "sort" ? null : "sort")}
-              className={`px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer border ${
+              className={`h-10 px-3 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer border ${
                 (filters.type === "VIP" ? filters.sort !== "PRICE_DESC" : filters.sort !== "NEWEST")
                   ? "bg-white text-black font-semibold border-white"
                   : "bg-[#181818] text-zinc-300 border-white/[0.08] hover:border-white/[0.18]"
