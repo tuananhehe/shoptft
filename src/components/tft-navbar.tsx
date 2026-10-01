@@ -95,13 +95,14 @@ export const TFTNavbar: React.FC = () => {
   }, []);
 
   return (
-    <header
-      className={`sticky top-0 z-50 backdrop-blur-md transition-colors duration-200 text-white ${
-        scrolled
-          ? "bg-[#09090b]/95 border-b border-white/[0.12] shadow-sm"
-          : "bg-[#09090b]/80 border-b border-white/[0.06]"
-      }`}
-    >
+    <>
+      <header
+        className={`sticky top-0 z-50 backdrop-blur-md transition-colors duration-200 text-white ${
+          scrolled
+            ? "bg-[#09090b]/95 border-b border-white/[0.12] shadow-sm"
+            : "bg-[#09090b]/80 border-b border-white/[0.06]"
+        }`}
+      >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="h-16 flex items-center justify-between gap-4">
           {/* 1. Left: Brand & Operator */}
@@ -144,6 +145,7 @@ export const TFTNavbar: React.FC = () => {
                 }`}
                 aria-expanded={desktopDropdown === "shop"}
                 aria-haspopup="true"
+                aria-controls="desktop-nav-shop-panel"
               >
                 <span>Kho Acc</span>
                 <ChevronDown
@@ -155,54 +157,97 @@ export const TFTNavbar: React.FC = () => {
 
               {desktopDropdown === "shop" && (
                 <div
-                  className="absolute left-0 top-full pt-2.5 z-[60] animate-in fade-in slide-in-from-top-1.5 duration-150 ease-out"
+                  id="desktop-nav-shop-panel"
+                  className="absolute left-0 top-full pt-2 z-[60] animate-in fade-in-0 slide-in-from-top-1.5 duration-200 ease-out"
                   onMouseEnter={() => handleMouseEnter("shop")}
                   onMouseLeave={handleMouseLeave}
                 >
-                  <div className="w-56 rounded-xl bg-[#0c0d12] border border-white/12 shadow-[0_20px_45px_rgba(0,0,0,0.9)] p-1.5 text-xs select-none">
-                    <Link
-                      href="/shop"
-                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors group whitespace-nowrap"
-                    >
-                      <span className="font-medium">Tất cả Acc</span>
-                      <span className="text-[10px] text-zinc-500 font-mono tracking-wider">/shop</span>
-                    </Link>
-                    <Link
-                      href="/shop?type=vip"
-                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors group whitespace-nowrap"
-                    >
-                      <span className="font-medium">Acc VIP</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-400/10 text-amber-300 font-mono font-semibold border border-amber-400/20">VIP</span>
-                    </Link>
-                    <Link
-                      href="/shop?type=clone"
-                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors group whitespace-nowrap"
-                    >
-                      <span className="font-medium">Acc Clone</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-zinc-400 font-mono border border-white/5">CLONE</span>
-                    </Link>
-                    <Link
-                      href="/shop?sort=newest"
-                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors group whitespace-nowrap"
-                    >
-                      <span className="font-medium">Acc Mới</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-400/10 text-emerald-400 font-mono font-medium border border-emerald-400/20">MỚI</span>
-                    </Link>
-                    <div className="my-1 border-t border-white/[0.08]" />
-                    <Link
-                      href="/shop?focus=pet"
-                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors group whitespace-nowrap"
-                    >
-                      <span className="font-medium">Linh Thú / Chibi</span>
-                      <span className="text-[11px] text-zinc-500">Tướng</span>
-                    </Link>
-                    <Link
-                      href="/shop?focus=arena"
-                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors group whitespace-nowrap"
-                    >
-                      <span className="font-medium">Sân Đấu</span>
-                      <span className="text-[11px] text-zinc-500">Bản đồ</span>
-                    </Link>
+                  <div className="w-[440px] rounded-2xl bg-[#0A0A0C] border border-white/10 shadow-[0_24px_50px_-12px_rgba(0,0,0,0.85)] p-4 text-xs select-none">
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Cột 1: Phân Loại Tài Khoản */}
+                      <div className="space-y-1">
+                        <div className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-semibold">
+                          Loại Tài Khoản
+                        </div>
+                        <Link
+                          href="/shop"
+                          className="flex items-center justify-between p-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group"
+                        >
+                          <div>
+                            <div className="font-semibold text-zinc-200 group-hover:text-white transition-colors">Tất cả Acc</div>
+                            <div className="text-[11px] text-zinc-400 leading-tight">Kho tổng ĐTCL</div>
+                          </div>
+                          <span className="text-[10px] text-zinc-500 font-mono tracking-wider ml-2">/shop</span>
+                        </Link>
+                        <Link
+                          href="/shop?type=vip"
+                          className="flex items-center justify-between p-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group"
+                        >
+                          <div>
+                            <div className="font-semibold text-zinc-200 group-hover:text-white transition-colors">Acc VIP</div>
+                            <div className="text-[11px] text-zinc-400 leading-tight">Nhiều Pet & Sân hiếm</div>
+                          </div>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-400/10 text-amber-300 font-mono font-semibold border border-amber-400/20 ml-2">VIP</span>
+                        </Link>
+                        <Link
+                          href="/shop?type=clone"
+                          className="flex items-center justify-between p-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group"
+                        >
+                          <div>
+                            <div className="font-semibold text-zinc-200 group-hover:text-white transition-colors">Acc Clone</div>
+                            <div className="text-[11px] text-zinc-400 leading-tight">Acc cày rank, giá tốt</div>
+                          </div>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-zinc-400 font-mono border border-white/5 ml-2">CLONE</span>
+                        </Link>
+                        <Link
+                          href="/shop?sort=newest"
+                          className="flex items-center justify-between p-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group"
+                        >
+                          <div>
+                            <div className="font-semibold text-zinc-200 group-hover:text-white transition-colors">Acc Mới</div>
+                            <div className="text-[11px] text-zinc-400 leading-tight">Vừa lên kệ hôm nay</div>
+                          </div>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-400/10 text-emerald-400 font-mono font-medium border border-emerald-400/20 ml-2">MỚI</span>
+                        </Link>
+                      </div>
+
+                      {/* Cột 2: Bộ Sưu Tập & Nhu Cầu */}
+                      <div className="space-y-1">
+                        <div className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-semibold">
+                          Khám Phá Theo Đồ
+                        </div>
+                        <Link
+                          href="/shop?focus=pet"
+                          className="flex items-center justify-between p-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group"
+                        >
+                          <div>
+                            <div className="font-semibold text-zinc-200 group-hover:text-white transition-colors">Pet / Chibi</div>
+                            <div className="text-[11px] text-zinc-400 leading-tight">Linh Thú Tí Nị hot</div>
+                          </div>
+                          <span className="text-[11px] text-zinc-500 ml-2">Tướng</span>
+                        </Link>
+                        <Link
+                          href="/shop?focus=arena"
+                          className="flex items-center justify-between p-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group"
+                        >
+                          <div>
+                            <div className="font-semibold text-zinc-200 group-hover:text-white transition-colors">Sân Đấu</div>
+                            <div className="text-[11px] text-zinc-400 leading-tight">Sân Đấu Thần Thoại</div>
+                          </div>
+                          <span className="text-[11px] text-zinc-500 ml-2">Bản đồ</span>
+                        </Link>
+                        <Link
+                          href="/thue-acc-tft-dtcl"
+                          className="flex items-center justify-between p-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group"
+                        >
+                          <div>
+                            <div className="font-semibold text-zinc-200 group-hover:text-white transition-colors">Thuê Acc TFT</div>
+                            <div className="text-[11px] text-zinc-400 leading-tight">Bảng giá & quy trình</div>
+                          </div>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-zinc-400 font-mono ml-2">Hub</span>
+                        </Link>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -224,6 +269,7 @@ export const TFTNavbar: React.FC = () => {
                 }`}
                 aria-expanded={desktopDropdown === "guide"}
                 aria-haspopup="true"
+                aria-controls="desktop-nav-guide-panel"
               >
                 <span>Hướng Dẫn</span>
                 <ChevronDown
@@ -235,25 +281,47 @@ export const TFTNavbar: React.FC = () => {
 
               {desktopDropdown === "guide" && (
                 <div
-                  className="absolute left-0 top-full pt-2.5 z-[60] animate-in fade-in slide-in-from-top-1.5 duration-150 ease-out"
+                  id="desktop-nav-guide-panel"
+                  className="absolute left-0 top-full pt-2 z-[60] animate-in fade-in-0 slide-in-from-top-1.5 duration-200 ease-out"
                   onMouseEnter={() => handleMouseEnter("guide")}
                   onMouseLeave={handleMouseLeave}
                 >
-                  <div className="w-64 rounded-xl bg-[#0c0d12] border border-white/12 shadow-[0_20px_45px_rgba(0,0,0,0.9)] p-1.5 text-xs select-none">
-                    <Link
-                      href="/huong-dan"
-                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors group whitespace-nowrap"
-                    >
-                      <span className="font-medium">Tất cả hướng dẫn</span>
-                      <span className="text-[10px] text-zinc-500 font-mono">Hub</span>
-                    </Link>
-                    <Link
-                      href="/huong-dan/doi-thong-tin-acc-riot"
-                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors group whitespace-nowrap"
-                    >
-                      <span className="font-medium">Đổi thông tin Acc Riot</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-400/10 text-emerald-400 font-mono font-medium border border-emerald-400/20">Bảo mật</span>
-                    </Link>
+                  <div className="w-[380px] rounded-2xl bg-[#0A0A0C] border border-white/10 shadow-[0_24px_50px_-12px_rgba(0,0,0,0.85)] p-4 text-xs select-none">
+                    <div className="space-y-1">
+                      <div className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-semibold">
+                        Cẩm Nang & An Toàn
+                      </div>
+                      <Link
+                        href="/huong-dan"
+                        className="flex items-center justify-between p-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group"
+                      >
+                        <div>
+                          <div className="font-semibold text-zinc-200 group-hover:text-white transition-colors">Tất cả hướng dẫn</div>
+                          <div className="text-[11px] text-zinc-400 leading-tight">Trung tâm cẩm nang TFT & ĐTCL</div>
+                        </div>
+                        <span className="text-[10px] text-zinc-500 font-mono ml-2">Hub</span>
+                      </Link>
+                      <Link
+                        href="/huong-dan/doi-thong-tin-acc-riot"
+                        className="flex items-center justify-between p-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group"
+                      >
+                        <div>
+                          <div className="font-semibold text-zinc-200 group-hover:text-white transition-colors">Đổi thông tin Acc Riot</div>
+                          <div className="text-[11px] text-zinc-400 leading-tight">Bảo mật tài khoản, đổi mail & pass</div>
+                        </div>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-400/10 text-emerald-400 font-mono font-medium border border-emerald-400/20 ml-2">Bảo mật</span>
+                      </Link>
+                      <Link
+                        href="/ve-shop"
+                        className="flex items-center justify-between p-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group"
+                      >
+                        <div>
+                          <div className="font-semibold text-zinc-200 group-hover:text-white transition-colors">Quy trình & Cam kết</div>
+                          <div className="text-[11px] text-zinc-400 leading-tight">Bàn giao 2 phút, hỗ trợ Zalo 24/7</div>
+                        </div>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-zinc-400 font-mono ml-2">Uy tín</span>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               )}
@@ -439,5 +507,15 @@ export const TFTNavbar: React.FC = () => {
         onClose={() => setFavoritesOpen(false)}
       />
     </header>
-  );
+
+    {/* Apple-style Desktop Submenu Backdrop (covers the entire page below the 64px header) */}
+    <div
+      className={`fixed inset-x-0 bottom-0 top-16 bg-black/40 backdrop-blur-[2px] z-40 transition-opacity duration-200 hidden md:block ${
+        desktopDropdown ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+      }`}
+      onClick={() => setDesktopDropdown(null)}
+      aria-hidden="true"
+    />
+  </>
+);
 };

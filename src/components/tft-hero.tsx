@@ -44,7 +44,7 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
   ];
 
   return (
-    <section className="relative bg-[#09090b] text-white border-b border-white/[0.08] overflow-hidden pt-10 sm:pt-12 md:pt-14 lg:pt-16 pb-8 sm:pb-10 lg:pb-12">
+    <section className="relative bg-[#09090b] text-white border-b border-white/[0.08] overflow-hidden py-8 sm:py-10 lg:py-12">
       {/* Subtle radial glow & clean grid background */}
       <div className="absolute inset-0 pointer-events-none opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_70%,transparent_100%)]" />
 
