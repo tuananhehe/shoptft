@@ -85,6 +85,27 @@ export interface SeoAuditReport {
   issues: SeoAuditIssue[];
 }
 
+export interface ImageHealthItem {
+  id: string;
+  source: "product" | "blog" | "page";
+  title: string;
+  url: string;
+  issue: "missing_alt" | "broken" | "missing_og" | "oversized" | "invalid_aspect_ratio";
+  severity: "error" | "warning";
+  message: string;
+}
+
+export interface ImageHealthReport {
+  timestamp: string;
+  totalChecked: number;
+  missingAlt: number;
+  brokenImage: number;
+  missingOg: number;
+  oversizedImage: number;
+  invalidAspectRatio: number;
+  items: ImageHealthItem[];
+}
+
 export const PRODUCTION_ORIGIN = "https://www.shoptftmobile.net";
 
 /**

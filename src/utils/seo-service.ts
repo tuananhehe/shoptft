@@ -10,6 +10,8 @@ import {
   SeoConfigDatabase,
   SeoAuditIssue,
   SeoAuditReport,
+  ImageHealthItem,
+  ImageHealthReport,
   DEFAULT_SEO_CONFIG,
   detectRedirectLoop,
 } from "@/utils/seo-shared";
@@ -545,5 +547,145 @@ export function runSeoAudit(
       passed,
     },
     issues,
+  };
+}
+
+/**
+ * Kiểm tra toàn diện chất lượng Image SEO, OpenGraph & Fallback trên toàn hệ sinh thái
+ */
+export function runImageAudit(
+  cfg: SeoConfigDatabase,
+  accounts: any[] = [],
+  blogPosts: BlogPost[] = []
+): ImageHealthReport {
+  const items: ImageHealthItem[] = [];
+
+  // 1. Audit Core Pages OG Image
+  for (const [pathKey, page] of Object.entries(cfg.pages)) {
+    const og = page.ogImage || cfg.global.defaultOgImage;
+    if (!og || og.trim() === "") {
+      items.push({
+        id: `page-og-missing-${pathKey}`,
+        source: "page",
+        title: `Trang ${page.name || pathKey}`,
+        url: pathKey,
+        issue: "missing_og",
+        severity: "error",
+        message: "Chưa cấu hình ảnh đại diện chia sẻ mạng xã hội (OpenGraph Image).",
+      });
+    }
+  }
+
+  // 2. Audit Product Account Images
+  for (const acc of accounts) {
+    const thumb = (acc.thumbnail || "").trim();
+    const title = (acc.title || "").trim();
+
+    if (!thumb) {
+      items.push({
+        id: `product-broken-${acc.id}`,
+        source: "product",
+        title: title || acc.code || acc.id,
+        url: `/acc/${acc.id}`,
+        issue: "broken",
+        severity: "error",
+        message: "Tài khoản thiếu URL ảnh đại diện thumbnail.",
+      });
+    }
+
+    if (!title) {
+      items.push({
+        id: `product-alt-missing-${acc.id}`,
+        source: "product",
+        title: acc.code || acc.id,
+        url: `/acc/${acc.id}`,
+        issue: "missing_alt",
+        severity: "error",
+        message: "Thiếu tiêu đề tài khoản để tự động sinh thuộc tính Alt cho ảnh.",
+      });
+    }
+
+    if (thumb.includes("images.unsplash.com") && thumb.includes("w=3000")) {
+      items.push({
+        id: `product-oversized-${acc.id}`,
+        source: "product",
+        title: title,
+        url: `/acc/${acc.id}`,
+        issue: "oversized",
+        severity: "warning",
+        message: "Ảnh Unsplash kích thước gốc quá lớn (3000px). Cần tối ưu về kích thước hiển thị card 450px.",
+      });
+    }
+  }
+
+  // 3. Audit Blog Post Images
+  for (const post of blogPosts) {
+    const cover = (post.coverImage || "").trim();
+    const postTitle = (post.title || "").trim();
+
+    if (!cover) {
+      items.push({
+        id: `blog-cover-missing-${post.id}`,
+        source: "blog",
+        title: postTitle || post.slug,
+        url: `/blog/${post.slug}`,
+        issue: "broken",
+        severity: "error",
+        message: "Bài viết thiếu ảnh bìa đại diện (Cover Image).",
+      });
+    }
+
+    if (!postTitle) {
+      items.push({
+        id: `blog-alt-missing-${post.id}`,
+        source: "blog",
+        title: post.slug,
+        url: `/blog/${post.slug}`,
+        issue: "missing_alt",
+        severity: "error",
+        message: "Thiếu tiêu đề bài viết làm mô tả thuộc tính Alt cho ảnh bìa.",
+      });
+    }
+
+    if (!post.seo?.ogImage && !cover) {
+      items.push({
+        id: `blog-og-missing-${post.id}`,
+        source: "blog",
+        title: postTitle,
+        url: `/blog/${post.slug}`,
+        issue: "missing_og",
+        severity: "warning",
+        message: "Chưa cấu hình OpenGraph image chuyên biệt, đang sử dụng fallback toàn trang.",
+      });
+    }
+
+    if (cover.includes("images.unsplash.com") && cover.includes("w=3000")) {
+      items.push({
+        id: `blog-oversized-${post.id}`,
+        source: "blog",
+        title: postTitle,
+        url: `/blog/${post.slug}`,
+        issue: "oversized",
+        severity: "warning",
+        message: "Ảnh bìa Unsplash có kích thước gốc quá lớn, cần tối ưu cho desktop 1200px.",
+      });
+    }
+  }
+
+  const missingAlt = items.filter((i) => i.issue === "missing_alt").length;
+  const brokenImage = items.filter((i) => i.issue === "broken").length;
+  const missingOg = items.filter((i) => i.issue === "missing_og").length;
+  const oversizedImage = items.filter((i) => i.issue === "oversized").length;
+  const invalidAspectRatio = items.filter((i) => i.issue === "invalid_aspect_ratio").length;
+
+  return {
+    timestamp: new Date().toISOString(),
+    totalChecked: Object.keys(cfg.pages).length + accounts.length + blogPosts.length,
+    missingAlt,
+    brokenImage,
+    missingOg,
+    oversizedImage,
+    invalidAspectRatio,
+    items,
   };
 }

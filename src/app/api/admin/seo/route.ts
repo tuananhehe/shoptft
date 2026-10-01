@@ -4,6 +4,7 @@ import {
   getSeoConfig,
   saveSeoConfig,
   runSeoAudit,
+  runImageAudit,
   detectRedirectLoop,
   DEFAULT_SEO_CONFIG,
   SeoConfigDatabase,
@@ -56,9 +57,11 @@ export async function GET(req: NextRequest) {
       hiddenRisk: 0,
     };
 
+    let allAccounts: any[] = [];
+
     try {
-      const accounts = await getAllProductAccounts();
-      const indexable = accounts.filter(
+      allAccounts = await getAllProductAccounts();
+      const indexable = allAccounts.filter(
         (a) => a.status === "AVAILABLE" || a.status === "RENTED"
       );
       productMetrics.totalIndexable = indexable.length;
@@ -90,11 +93,14 @@ export async function GET(req: NextRequest) {
       };
     }
 
+    const imageHealth = runImageAudit(config, allAccounts, blogPosts);
+
     return NextResponse.json({
       success: true,
       data: config,
       audit,
       productMetrics,
+      imageHealth,
     });
   } catch (err: any) {
     return NextResponse.json(

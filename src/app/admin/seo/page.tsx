@@ -25,6 +25,8 @@ import {
   Shield,
   ArrowRight,
   Sparkles,
+  ImageIcon,
+  Share2,
 } from "lucide-react";
 import {
   SeoConfigDatabase,
@@ -32,6 +34,7 @@ import {
   DEFAULT_SEO_CONFIG,
   RedirectRule,
   formatProductSeo,
+  ImageHealthReport,
 } from "@/utils/seo-shared";
 import { ContentRefreshTab } from "@/components/admin/content-refresh-tab";
 
@@ -92,6 +95,8 @@ export default function AdminSeoPage() {
   const [selectedPageKey, setSelectedPageKey] = useState<string>("/");
   const [selectedSampleIndex, setSelectedSampleIndex] = useState<number>(0);
   const [auditFilter, setAuditFilter] = useState<"all" | "error" | "warning" | "passed">("all");
+  const [imageHealth, setImageHealth] = useState<ImageHealthReport | null>(null);
+  const [socialNetworkPreview, setSocialNetworkPreview] = useState<"facebook" | "twitter">("facebook");
 
   // Fetch SEO configuration from API
   const fetchSeoData = async () => {
@@ -106,6 +111,7 @@ export default function AdminSeoPage() {
         setConfig(data.data);
         if (data.audit) setAudit(data.audit);
         if (data.productMetrics) setProductMetrics(data.productMetrics);
+        if (data.imageHealth) setImageHealth(data.imageHealth);
       } else {
         toast.error(data.error || "Không thể tải dữ liệu SEO!");
       }
@@ -571,6 +577,152 @@ export default function AdminSeoPage() {
               )}
             </div>
           </div>
+
+          {/* Image SEO & Social Preview Health Section */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-purple-50 text-purple-700">
+                  <ImageIcon className="w-5 h-5" />
+                </span>
+                <div>
+                  <h3 className="font-heading font-bold text-sm text-gray-900">
+                    Sức Khỏe Hình Ảnh & Social Preview (Image Health)
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Kiểm tra thẻ Alt text, kích thước tải, tỷ lệ khung hình và ảnh đại diện chia sẻ mạng xã hội (OpenGraph).
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="text-[11px] text-gray-500 block">Tỉ lệ ảnh đạt chuẩn</span>
+                <span className="text-sm font-bold text-emerald-600">
+                  {imageHealth && imageHealth.totalChecked > 0
+                    ? Math.round(
+                        (Math.max(0, imageHealth.totalChecked - imageHealth.items.length) /
+                          imageHealth.totalChecked) *
+                          100
+                      )
+                    : 100}
+                  %
+                </span>
+              </div>
+            </div>
+
+            {/* Image Metrics Grid */}
+            <div className="p-4 sm:p-5 grid grid-cols-2 sm:grid-cols-5 gap-3 border-b border-gray-100 bg-gray-50/50">
+              <div className="p-3 bg-white rounded-xl border border-gray-200">
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block">
+                  Tổng ảnh quét
+                </span>
+                <span className="text-lg font-bold text-gray-900 mt-0.5 block">
+                  {imageHealth?.totalChecked || 0}
+                </span>
+              </div>
+
+              <div className="p-3 bg-white rounded-xl border border-gray-200">
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block">
+                  Thiếu Alt text
+                </span>
+                <span
+                  className={`text-lg font-bold mt-0.5 block ${
+                    (imageHealth?.missingAlt || 0) > 0 ? "text-amber-600" : "text-emerald-600"
+                  }`}
+                >
+                  {imageHealth?.missingAlt || 0}
+                </span>
+              </div>
+
+              <div className="p-3 bg-white rounded-xl border border-gray-200">
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block">
+                  Thiếu OpenGraph
+                </span>
+                <span
+                  className={`text-lg font-bold mt-0.5 block ${
+                    (imageHealth?.missingOg || 0) > 0 ? "text-amber-600" : "text-emerald-600"
+                  }`}
+                >
+                  {imageHealth?.missingOg || 0}
+                </span>
+              </div>
+
+              <div className="p-3 bg-white rounded-xl border border-gray-200">
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block">
+                  Ảnh lỗi / Trống
+                </span>
+                <span
+                  className={`text-lg font-bold mt-0.5 block ${
+                    (imageHealth?.brokenImage || 0) > 0 ? "text-red-600" : "text-emerald-600"
+                  }`}
+                >
+                  {imageHealth?.brokenImage || 0}
+                </span>
+              </div>
+
+              <div className="p-3 bg-white rounded-xl border border-gray-200">
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block">
+                  Vượt dung lượng
+                </span>
+                <span
+                  className={`text-lg font-bold mt-0.5 block ${
+                    (imageHealth?.oversizedImage || 0) > 0 ? "text-amber-600" : "text-emerald-600"
+                  }`}
+                >
+                  {imageHealth?.oversizedImage || 0}
+                </span>
+              </div>
+            </div>
+
+            {/* List of Image Audit Findings */}
+            <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+              {!imageHealth || imageHealth.items.length === 0 ? (
+                <div className="p-8 text-center text-xs text-gray-500">
+                  <CheckCircle2 className="w-6 h-6 text-emerald-500 mx-auto mb-2" />
+                  <span>Toàn bộ hình ảnh hệ thống đã có Alt text và OpenGraph đầy đủ!</span>
+                </div>
+              ) : (
+                imageHealth.items.map((item, idx) => (
+                  <div key={idx} className="p-3.5 sm:p-4 flex items-start justify-between gap-4 hover:bg-gray-50/70 transition-colors">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="mt-0.5 p-2 rounded-xl bg-gray-100 border border-gray-200 text-gray-500 flex-shrink-0">
+                        <ImageIcon className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-semibold text-gray-900 truncate max-w-xs sm:max-w-md">
+                            {item.title}
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-mono bg-gray-100 text-gray-600">
+                            {item.source}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-500 truncate mt-0.5 font-mono">
+                          {item.url}
+                        </p>
+                        <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                          {item.message}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {item.severity === "error" ? (
+                        <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-700 text-[10px] font-semibold border border-red-200 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          <span>Lỗi</span>
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-semibold border border-amber-200 flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" />
+                          <span>Khuyến nghị</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -753,6 +905,108 @@ export default function AdminSeoPage() {
                   {selectedPage.description || "Mô tả trang của bạn sẽ hiển thị tại đây khi người dùng tìm kiếm trên Google."}
                 </p>
               </div>
+            </div>
+
+            {/* Social Share Preview (Facebook / Zalo & Twitter / X) */}
+            <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span>Mô phỏng hiển thị chia sẻ MXH (Facebook / Zalo / Twitter)</span>
+                </span>
+                <div className="flex items-center gap-1 p-0.5 bg-gray-100 rounded-lg text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setSocialNetworkPreview("facebook")}
+                    className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
+                      socialNetworkPreview === "facebook" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500"
+                    }`}
+                  >
+                    Facebook / Zalo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSocialNetworkPreview("twitter")}
+                    className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${
+                      socialNetworkPreview === "twitter" ? "bg-white text-gray-900 shadow-xs" : "text-gray-500"
+                    }`}
+                  >
+                    Twitter / X
+                  </button>
+                </div>
+              </div>
+
+              {socialNetworkPreview === "facebook" ? (
+                /* Facebook / Zalo Card Simulation */
+                <div className="rounded-xl border border-gray-200 overflow-hidden bg-white max-w-lg shadow-xs">
+                  <div className="relative aspect-[1.91/1] w-full bg-gray-900 flex items-center justify-center overflow-hidden">
+                    <img
+                      src={
+                        selectedPage.ogImage ||
+                        config.global.defaultOgImage ||
+                        "/banner-seo.jpg"
+                      }
+                      alt="OpenGraph Preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "/banner-seo.jpg";
+                      }}
+                    />
+                  </div>
+                  <div className="p-3 bg-[#f0f2f5] border-t border-gray-200">
+                    <span className="text-[10px] uppercase font-mono text-gray-500 tracking-wider block">
+                      {(() => {
+                        try {
+                          return new URL(config.global.canonicalOrigin || "https://www.shoptftmobile.net").hostname;
+                        } catch {
+                          return "shoptftmobile.net";
+                        }
+                      })()}
+                    </span>
+                    <h5 className="text-xs font-bold text-gray-900 line-clamp-1 mt-0.5">
+                      {selectedPage.ogTitle || selectedPage.title || "Tiêu đề chia sẻ mạng xã hội"}
+                    </h5>
+                    <p className="text-[11px] text-gray-600 line-clamp-2 mt-0.5">
+                      {selectedPage.description || "Mô tả ngắn gọn hiển thị khi gửi link qua tin nhắn Zalo hoặc chia sẻ trên Facebook feed."}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                /* Twitter / X Large Summary Card Simulation */
+                <div className="rounded-2xl border border-gray-800 overflow-hidden bg-black text-white max-w-lg shadow-xs">
+                  <div className="relative aspect-[2/1] w-full bg-zinc-900 flex items-center justify-center overflow-hidden">
+                    <img
+                      src={
+                        selectedPage.ogImage ||
+                        config.global.defaultOgImage ||
+                        "/banner-seo.jpg"
+                      }
+                      alt="Twitter Preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "/banner-seo.jpg";
+                      }}
+                    />
+                  </div>
+                  <div className="p-3 bg-zinc-950 border-t border-zinc-800">
+                    <span className="text-[10px] text-zinc-400 block font-mono">
+                      {(() => {
+                        try {
+                          return new URL(config.global.canonicalOrigin || "https://www.shoptftmobile.net").hostname;
+                        } catch {
+                          return "shoptftmobile.net";
+                        }
+                      })()}
+                    </span>
+                    <h5 className="text-xs font-bold text-white line-clamp-1 mt-0.5">
+                      {selectedPage.ogTitle || selectedPage.title || "Tiêu đề thẻ Twitter"}
+                    </h5>
+                    <p className="text-[11px] text-zinc-400 line-clamp-2 mt-0.5">
+                      {selectedPage.description}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

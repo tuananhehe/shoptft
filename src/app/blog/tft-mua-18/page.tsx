@@ -47,6 +47,13 @@ export const metadata: Metadata = {
     locale: "vi_VN",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "TFT Mùa 18 – Tổng hợp hướng dẫn, meta và cập nhật | ShopTFTMobile",
+    description:
+      "Cổng thông tin toàn diện về TFT Mùa 18 (Đại Ngàn Kỳ Bí): tổng hợp hướng dẫn, meta patch mới nhất, giáo án đội hình, cẩm nang Pet Chibi Sân Đấu và kinh nghiệm leo rank.",
+    images: ["https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Xayah_8.jpg"],
+  },
 };
 
 export default async function TftSet18HubPage() {

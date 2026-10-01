@@ -22,12 +22,21 @@ export const metadata: Metadata = {
     siteName: "ShopTFTMobile",
     locale: "vi_VN",
     type: "article",
+    images: [
+      {
+        url: "https://www.shoptftmobile.net/banner-seo.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Hướng Dẫn Đổi Thông Tin Acc Riot An Toàn ShopTFTMobile",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Hướng dẫn đổi thông tin acc Riot | ShopTFTMobile",
     description:
       "Hướng dẫn chi tiết cách đổi mật khẩu, email và thông tin tài khoản Riot sau khi nhận acc tại ShopTFTMobile.",
+    images: ["https://www.shoptftmobile.net/banner-seo.jpg"],
   },
 };
 

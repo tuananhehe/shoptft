@@ -47,6 +47,12 @@ export async function generateMetadata({ searchParams }: ShopPageProps): Promise
       locale: "vi_VN",
       type: "website",
     },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImg],
+    },
     robots: hasFilterParams
       ? { index: false, follow: true }
       : { index: true, follow: true },

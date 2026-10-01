@@ -43,6 +43,12 @@ export async function generateMetadata(): Promise<Metadata> {
       locale: "vi_VN",
       type: "website",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: pageSeo.ogTitle || pageSeo.title,
+      description: pageSeo.ogDescription || pageSeo.description,
+      images: [ogImg.startsWith("http") ? ogImg : `${seoConfig.global.canonicalOrigin}${ogImg}`],
+    },
     robots: pageSeo.robots || { index: true, follow: true },
   };
 }

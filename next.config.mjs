@@ -11,6 +11,7 @@ const nextConfig = {
   },
   images: {
     formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 2592000,
     remotePatterns: [
       {
         protocol: 'https',
@@ -27,6 +28,22 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'wbeealitshckxjtfozsp.supabase.co',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ddragon.leagueoflegends.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'encrypted-tbn0.gstatic.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'raw.communitydragon.org',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.communitydragon.org',
       },
     ],
   },

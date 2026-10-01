@@ -31,7 +31,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Kiểm tra định dạng MIME & phần mở rộng & kích thước file (tối đa 10MB)
+    // Kiểm tra ký tự bất thường hoặc nguy cơ Path Traversal trong tên file
+    if (file.name.includes("..") || file.name.includes("/") || file.name.includes("\\") || file.name.includes("\0")) {
+      return NextResponse.json(
+        { success: false, error: "Tên file chứa ký tự không hợp lệ!" },
+        { status: 400 }
+      );
+    }
+
+    // 3. Kiểm tra định dạng MIME & phần mở rộng & kích thước file (tối đa 5MB)
     const allowedExtensions = [".png", ".jpg", ".jpeg", ".webp", ".svg", ".ico", ".gif"];
     const ext = path.extname(file.name).toLowerCase();
 
@@ -58,9 +66,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > 5 * 1024 * 1024) {
       return NextResponse.json(
-        { success: false, error: "File quá lớn! Dung lượng tối đa là 10MB." },
+        { success: false, error: "File quá lớn! Dung lượng tối đa là 5MB để đảm bảo hiệu năng tải trang." },
         { status: 400 }
       );
     }

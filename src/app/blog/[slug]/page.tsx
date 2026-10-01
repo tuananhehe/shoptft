@@ -216,6 +216,31 @@ function renderMarkdown(content: string) {
   return sections.map((sec, idx) => {
     const trimmed = sec.trim();
 
+    // Markdown Image: ![Alt text](image_url)
+    const imgMatch = trimmed.match(/^!\[(.*?)\]\((.*?)\)$/);
+    if (imgMatch) {
+      const alt = imgMatch[1]?.trim() || "Hình ảnh bài viết";
+      const src = imgMatch[2]?.trim();
+      return (
+        <figure key={idx} className="my-6 rounded-2xl overflow-hidden border border-white/[0.08] bg-zinc-950">
+          <div className="relative w-full aspect-video bg-zinc-900 flex items-center justify-center">
+            <img
+              src={src}
+              alt={alt}
+              loading="lazy"
+              decoding="async"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          {alt && (
+            <figcaption className="px-4 py-2 bg-zinc-900/60 text-center text-xs text-zinc-400 italic border-t border-white/[0.04]">
+              {alt}
+            </figcaption>
+          )}
+        </figure>
+      );
+    }
+
     // H2 Heading
     if (trimmed.startsWith("## ")) {
       const text = trimmed.replace("## ", "");
@@ -603,6 +628,10 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
           <img
             src={post.coverImage || "/banner-seo.jpg"}
             alt={post.title}
+            width={1200}
+            height={675}
+            loading="eager"
+            decoding="async"
             className="w-full h-full object-cover"
           />
         </div>

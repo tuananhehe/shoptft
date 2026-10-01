@@ -36,6 +36,13 @@ export const metadata: Metadata = {
     locale: "vi_VN",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Blog TFT Mùa 18 & Cẩm Nang ĐTCL | ShopTFTMobile",
+    description:
+      "Chuyên trang kiến thức ĐTCL / TFT Mùa 18: phân tích meta patch 18.3, giáo án đội hình Ahri, Dị Thú, mẹo reroll và cẩm nang chọn tướng Tí Nị từ cựu Thách Đấu Tuấn Thái Bình.",
+    images: ["https://www.shoptftmobile.net/banner-seo.jpg"],
+  },
 };
 
 export default async function BlogIndexPage() {
