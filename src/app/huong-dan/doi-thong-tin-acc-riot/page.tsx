@@ -6,14 +6,16 @@ import { TFTMobileBottomBar } from "@/components/tft-mobile-bottom-bar";
 import { GuideRiotClientView } from "./guide-riot-client-view";
 
 export const metadata: Metadata = {
-  title: "Hướng dẫn đổi thông tin acc Riot | ShopTFTMobile",
+  title: {
+    absolute: "Hướng Dẫn Đổi Thông Tin Acc Riot An Toàn | ShopTFTMobile",
+  },
   description:
     "Hướng dẫn chi tiết cách đổi mật khẩu, email và thông tin tài khoản Riot sau khi nhận acc tại ShopTFTMobile. Hướng dẫn trực quan từng bước, bảo mật tuyệt đối.",
   alternates: {
     canonical: "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot",
   },
   openGraph: {
-    title: "Hướng dẫn đổi thông tin acc Riot | ShopTFTMobile",
+    title: "Hướng Dẫn Đổi Thông Tin Acc Riot An Toàn | ShopTFTMobile",
     description:
       "Hướng dẫn chi tiết cách đổi mật khẩu, email và thông tin tài khoản Riot sau khi nhận acc tại ShopTFTMobile. Hướng dẫn trực quan từng bước, bảo mật tuyệt đối.",
     url: "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot",

@@ -219,21 +219,6 @@ export default async function RootLayout({
     },
   ];
 
-  if (Array.isArray(faqs) && faqs.length > 0) {
-    jsonLdGraph.push({
-      "@type": "FAQPage",
-      "@id": `${origin}/#faq`,
-      mainEntity: faqs.map((f: any) => ({
-        "@type": "Question",
-        name: f.q || "",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: f.a || "",
-        },
-      })),
-    });
-  }
-
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": jsonLdGraph,

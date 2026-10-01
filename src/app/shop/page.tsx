@@ -55,8 +55,12 @@ function ShopLoadingSkeleton() {
       <TFTNavbar />
       <main className="max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-20 sm:pb-16 flex-1">
         <div className="mb-4 sm:mb-6 space-y-2">
-          <div className="h-7 sm:h-8 bg-zinc-800/60 rounded-lg w-36 sm:w-48 animate-pulse" />
-          <div className="h-3.5 sm:h-4 bg-zinc-800/40 rounded w-52 sm:w-72 animate-pulse" />
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight font-heading text-white">
+            Kho Acc TFT
+          </h1>
+          <p className="text-xs sm:text-sm text-zinc-400">
+            Tìm kiếm và lựa chọn tài khoản ĐTCL theo Linh Thú Tí Nị, Sân Đấu, loại acc VIP hoặc Clone giá tốt tại ShopTFTMobile.
+          </p>
         </div>
         <div className="h-12 sm:h-14 bg-[#141414] border border-white/[0.08] rounded-2xl mb-4 animate-pulse" />
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">

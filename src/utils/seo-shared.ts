@@ -85,6 +85,23 @@ export interface SeoAuditReport {
   issues: SeoAuditIssue[];
 }
 
+export const PRODUCTION_ORIGIN = "https://www.shoptftmobile.net";
+
+/**
+ * Chuẩn hóa canonical URL tuyệt đối cho production
+ * Không query string, không hash, không trailing slash bất thường, luôn dùng PRODUCTION_ORIGIN
+ */
+export function buildCanonicalUrl(path: string): string {
+  if (!path || path === "/") return PRODUCTION_ORIGIN;
+  const cleanPath = path.split("?")[0].split("#")[0].trim();
+  const withLeading = cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`;
+  const noTrailing =
+    withLeading.length > 1 && withLeading.endsWith("/")
+      ? withLeading.slice(0, -1)
+      : withLeading;
+  return `${PRODUCTION_ORIGIN}${noTrailing === "/" ? "" : noTrailing}`;
+}
+
 export const DEFAULT_SEO_CONFIG: SeoConfigDatabase = {
   global: {
     siteName: "ShopTFTMobile",
@@ -92,7 +109,7 @@ export const DEFAULT_SEO_CONFIG: SeoConfigDatabase = {
     canonicalOrigin: "https://www.shoptftmobile.net",
     defaultTitle: "Thuê Acc TFT - ĐTCL | ShopTFTMobile - Tuấn Thái Bình TFT",
     defaultDescription:
-      "Kho tài khoản TFT/ĐTCL với Pet, Chibi và Sân Đấu đa dạng. Xem acc, lựa chọn nhu cầu và liên hệ ShopTFTMobile - Tuấn Thái Bình TFT để được hỗ trợ trực tiếp qua Zalo.",
+      "Tìm acc TFT/ĐTCL theo Pet, Chibi và Sân Đấu tại ShopTFTMobile. Xem kho acc và liên hệ Tuấn Thái Bình TFT để được hỗ trợ trực tiếp.",
     defaultOgImage: "/banner-seo.jpg",
     googleVerification: "",
     bingVerification: "",
@@ -102,24 +119,24 @@ export const DEFAULT_SEO_CONFIG: SeoConfigDatabase = {
     "/": {
       path: "/",
       name: "Trang chủ",
-      title: "Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile - Tuấn Thái Bình TFT",
+      title: "Thuê Acc TFT - ĐTCL | ShopTFTMobile - Tuấn Thái Bình TFT",
       description:
-        "Hệ thống thuê acc TFT / ĐTCL uy tín hàng đầu. Đầy đủ acc VIP, acc Clone, Linh thú Tí Nị, Sân đấu EDM đổi nhạc. Bàn giao trực tiếp qua Zalo Tuấn Thái Bình.",
+        "Tìm acc TFT/ĐTCL theo Pet, Chibi và Sân Đấu tại ShopTFTMobile. Xem kho acc và liên hệ Tuấn Thái Bình TFT để được hỗ trợ trực tiếp.",
       canonical: "https://www.shoptftmobile.net",
-      ogTitle: "Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile - Tuấn Thái Bình TFT",
+      ogTitle: "Thuê Acc TFT - ĐTCL | ShopTFTMobile - Tuấn Thái Bình TFT",
       ogDescription:
-        "Kho tài khoản TFT/ĐTCL với Pet, Chibi và Sân Đấu đa dạng. Bàn giao trực tiếp qua Zalo Tuấn Thái Bình.",
+        "Tìm acc TFT/ĐTCL theo Pet, Chibi và Sân Đấu tại ShopTFTMobile. Xem kho acc và liên hệ Tuấn Thái Bình TFT để được hỗ trợ trực tiếp.",
       ogImage: "/banner-seo.jpg",
       robots: { index: true, follow: true },
     },
     "/shop": {
       path: "/shop",
       name: "Kho Acc",
-      title: "Kho Acc TFT - ĐTCL Đa Dạng | ShopTFTMobile",
+      title: "Kho Acc TFT - ĐTCL | ShopTFTMobile",
       description:
-        "Tìm tài khoản TFT/ĐTCL theo Pet, Chibi, Sân Đấu, loại acc và mức giá tại ShopTFTMobile. Cập nhật trạng thái liên tục, thuê nhanh qua Zalo.",
+        "Tìm tài khoản TFT/ĐTCL theo Pet, Chibi, Sân Đấu, loại acc và mức giá tại ShopTFTMobile.",
       canonical: "https://www.shoptftmobile.net/shop",
-      ogTitle: "Kho Acc TFT - ĐTCL Đa Dạng | ShopTFTMobile",
+      ogTitle: "Kho Acc TFT - ĐTCL | ShopTFTMobile",
       ogDescription:
         "Tìm tài khoản TFT/ĐTCL theo Pet, Chibi, Sân Đấu, loại acc và mức giá tại ShopTFTMobile.",
       ogImage: "/banner-seo.jpg",
@@ -128,11 +145,11 @@ export const DEFAULT_SEO_CONFIG: SeoConfigDatabase = {
     "/thue-acc-tft-dtcl": {
       path: "/thue-acc-tft-dtcl",
       name: "Dịch vụ Thuê Acc TFT",
-      title: "Dịch Vụ Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile",
+      title: "Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile",
       description:
         "Dịch vụ thuê tài khoản ĐTCL (TFT Mobile & PC) uy tín bởi cựu Thách Đấu Tuấn Thái Bình. Đầy đủ acc VIP Tí Nị Thần Thoại và Acc Clone giá tốt, bàn giao 1-1.",
       canonical: "https://www.shoptftmobile.net/thue-acc-tft-dtcl",
-      ogTitle: "Dịch Vụ Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile",
+      ogTitle: "Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile",
       ogDescription:
         "Dịch vụ thuê tài khoản ĐTCL (TFT Mobile & PC) uy tín bởi cựu Thách Đấu Tuấn Thái Bình. Đầy đủ acc VIP Tí Nị Thần Thoại và Acc Clone giá tốt.",
       ogImage: "/banner-seo.jpg",

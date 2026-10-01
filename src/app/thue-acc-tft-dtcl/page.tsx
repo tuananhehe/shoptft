@@ -24,14 +24,16 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Dịch Vụ Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile",
+  title: {
+    absolute: "Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile",
+  },
   description:
     "Dịch vụ thuê tài khoản ĐTCL (TFT Mobile & PC) uy tín bởi cựu Thách Đấu Tuấn Thái Bình. Đầy đủ acc VIP Tí Nị Thần Thoại và Acc Clone giá tốt, bàn giao 1-1 qua Zalo.",
   alternates: {
     canonical: "https://www.shoptftmobile.net/thue-acc-tft-dtcl",
   },
   openGraph: {
-    title: "Dịch Vụ Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile",
+    title: "Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile",
     description:
       "Dịch vụ thuê tài khoản ĐTCL (TFT Mobile & PC) uy tín bởi cựu Thách Đấu Tuấn Thái Bình. Đầy đủ acc VIP Tí Nị Thần Thoại và Acc Clone giá tốt, bàn giao 1-1 qua Zalo.",
     url: "https://www.shoptftmobile.net/thue-acc-tft-dtcl",
@@ -49,7 +51,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Dịch Vụ Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile",
+    title: "Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile",
     description:
       "Dịch vụ thuê tài khoản ĐTCL uy tín bởi Tuấn Thái Bình TFT. Bàn giao 1-1 trực tiếp qua Zalo.",
     images: ["https://www.shoptftmobile.net/banner-seo.jpg"],
@@ -165,7 +167,7 @@ export default function ThueAccTftLandingPage() {
             </div>
 
             <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black font-heading tracking-tight text-white leading-tight">
-              Thuê Acc TFT - ĐTCL Uy Tín Tại ShopTFTMobile | Tuấn Thái Bình TFT
+              Thuê Acc TFT - ĐTCL
             </h1>
 
             <p className="text-sm sm:text-base text-zinc-300 leading-relaxed font-normal">
@@ -418,7 +420,7 @@ export default function ThueAccTftLandingPage() {
             Sẵn Sàng Trải Nghiệm Trận Đấu Đỉnh Cao?
           </h2>
           <p className="text-xs sm:text-sm text-zinc-400 max-w-xl mx-auto leading-relaxed">
-            Xem ngay danh sách tài khoản còn trống hôm nay tại ShopTFTMobile hoặc kết nối Zalo Tuấn Thái Bình để được hỗ trợ 24/7.
+            Xem ngay danh sách tài khoản còn trống hôm nay tại ShopTFTMobile hoặc kết nối Zalo Tuấn Thái Bình để được hỗ trợ trực tiếp.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">

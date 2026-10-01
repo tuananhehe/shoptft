@@ -22,7 +22,7 @@ const DEFAULT_CHANNELS: CommunityChannelItem[] = [
     id: "zalo",
     platform: "zalo",
     title: "Nhóm Zalo Trao Đổi Acc",
-    subtitle: "Giao lưu, mua bán & hỗ trợ 24/7",
+    subtitle: "Giao lưu, mua bán & hỗ trợ trực tiếp",
     badge: "1,000+ Thành viên",
     link: "https://zalo.me/g/shoptftmobile",
     buttonText: "Tham Gia Zalo ➔",

@@ -241,9 +241,9 @@ export function mapRowToCloneAccount(row: AccountDbRow, idx: number): TFTCloneAc
   const features = Array.isArray(row.features) && row.features.length > 0
     ? row.features
     : [
-        "Tài Khoản An Toàn 100%",
-        "Hỗ Trợ Bàn Giao Thông Về Khách",
-        "Sẵn Sản Phẩm Như Mô Tả 100%",
+        "Tài Khoản Minh Bạch, Sạch Sẽ",
+        "Hỗ Trợ Bàn Giao Trực Tiếp",
+        "Sẵn Sản Phẩm Đúng Như Mô Tả",
       ];
   const price = Number(row.price) || Number(row.period_price) || 150000;
   const periodPrice = Number(row.period_price) || price;

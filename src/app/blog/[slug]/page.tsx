@@ -48,7 +48,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!post) {
     return {
-      title: "Không tìm thấy bài viết | ShopTFTMobile",
+      title: {
+        absolute: "Không tìm thấy bài viết | ShopTFTMobile",
+      },
       description: "Bài viết không tồn tại hoặc đã được cập nhật.",
       robots: { index: false, follow: false },
     };
@@ -67,7 +69,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
     if (!isAdmin) {
       return {
-        title: "Không tìm thấy bài viết | ShopTFTMobile",
+        title: {
+          absolute: "Không tìm thấy bài viết | ShopTFTMobile",
+        },
         description: "Bài viết không tồn tại hoặc đã được cập nhật.",
         robots: { index: false, follow: false },
       };

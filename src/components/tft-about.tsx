@@ -310,6 +310,18 @@ export const TFTAbout: React.FC = () => {
               </div>
             ))}
           </div>
+
+          <div className="mt-8 text-center text-xs sm:text-sm text-zinc-400">
+            <span>Tìm hiểu chi tiết về </span>
+            <Link href="/thue-acc-tft-dtcl" className="text-amber-400 hover:underline font-medium">
+              Dịch vụ Thuê Acc TFT - ĐTCL
+            </Link>
+            <span> hoặc xem </span>
+            <Link href="/huong-dan" className="text-amber-400 hover:underline font-medium">
+              Hướng Dẫn Dịch Vụ & Bảo Mật Riot
+            </Link>
+            <span>.</span>
+          </div>
         </div>
       </section>
 
@@ -323,13 +335,20 @@ export const TFTAbout: React.FC = () => {
             Duyệt kho tài khoản đang có sẵn hoặc liên hệ trực tiếp qua Zalo để được tư vấn nhanh chóng.
           </p>
 
-          <div className="pt-3 flex flex-row items-center justify-center gap-3">
+          <div className="pt-3 flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/shop"
               className="px-6 py-2.5 sm:py-3 rounded-xl bg-white hover:bg-zinc-200 text-black font-semibold text-xs sm:text-sm transition-all active:scale-98 inline-flex items-center gap-1.5 shadow-sm"
             >
               <span>Xem kho acc</span>
               <ArrowRight className="w-4 h-4" />
+            </Link>
+
+            <Link
+              href="/thue-acc-tft-dtcl"
+              className="px-5 py-2.5 sm:py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-medium text-xs sm:text-sm transition-all inline-flex items-center gap-1.5"
+            >
+              <span>Dịch vụ thuê</span>
             </Link>
 
             <a

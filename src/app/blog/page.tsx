@@ -11,7 +11,9 @@ import { ChevronRight, BookOpen } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Blog TFT Mùa 18 & Cẩm Nang ĐTCL | ShopTFTMobile",
+  title: {
+    absolute: "Blog TFT Mùa 18 & Cẩm Nang ĐTCL | ShopTFTMobile",
+  },
   description:
     "Chuyên trang kiến thức ĐTCL / TFT Mùa 18: phân tích meta patch 18.3, giáo án đội hình Ahri, Dị Thú, mẹo reroll và cẩm nang chọn tướng Tí Nị từ cựu Thách Đấu Tuấn Thái Bình.",
   alternates: {

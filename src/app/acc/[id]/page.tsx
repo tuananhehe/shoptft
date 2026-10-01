@@ -18,7 +18,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!account) {
     return {
-      title: "Không tìm thấy tài khoản | ShopTFTMobile",
+      title: {
+        absolute: "Không tìm thấy tài khoản | ShopTFTMobile",
+      },
       description: "Tài khoản Đấu Trường Chân Lý không tồn tại hoặc đã được cập nhật.",
       robots: {
         index: false,
