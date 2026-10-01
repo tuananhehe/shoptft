@@ -123,7 +123,7 @@ export const TFTNavbar: React.FC = () => {
                   TFT
                 </span>
               </div>
-              <p className="text-[11px] text-zinc-400">ShopTFT Mobile</p>
+              <p className="text-[11px] text-zinc-400">ShopTFTMobile</p>
             </div>
           </Link>
 

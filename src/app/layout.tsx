@@ -198,6 +198,7 @@ export default async function RootLayout({
       "@type": "Organization",
       "@id": `${origin}/#organization`,
       name: seoDb.schema.organizationName || "ShopTFTMobile",
+      alternateName: "Tuấn Thái Bình TFT",
       url: origin,
       logo: `${origin}/avatar.jpg`,
       founder: {
@@ -206,9 +207,20 @@ export default async function RootLayout({
         jobTitle: seoDb.schema.founderTitle || "Cựu Thách Đấu ĐTCL",
         url: `${origin}/ve-shop`,
       },
+      contactPoint: {
+        "@type": "ContactPoint",
+        telephone: "+84352867283",
+        contactType: "customer service",
+        availableLanguage: ["Vietnamese"],
+        url: "https://zalo.me/0352867283",
+      },
       sameAs: Array.isArray(seoDb.schema.sameAs) && seoDb.schema.sameAs.length > 0
         ? seoDb.schema.sameAs
-        : ["https://zalo.me/0352867283", "https://checkscam.vn"],
+        : [
+            "https://zalo.me/0352867283",
+            "https://tiktok.com/@shoptftmobile",
+            "https://checkscam.vn/?qh_ss=0352867283",
+          ],
     },
   ];
 

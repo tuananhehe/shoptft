@@ -10,9 +10,9 @@ import { getSeoConfig } from "@/utils/seo-service";
 export async function generateMetadata(): Promise<Metadata> {
   const seoConfig = await getSeoConfig();
   const pageSeo = seoConfig.pages["/ve-shop"] || {
-    title: "Về ShopTFTMobile & Tuấn Thái Bình TFT | Uy Tín & Trách Nhiệm",
+    title: "Tuấn Thái Bình TFT | Về ShopTFTMobile",
     description:
-      "ShopTFTMobile vận hành bởi Tuấn Thái Bình - cựu Thách Đấu ĐTCL. Cam kết thông tin minh bạch, bảo hiểm Checkscam 30 triệu, chăm sóc khách hàng chu đáo.",
+      "Giới thiệu ShopTFTMobile và Tuấn Thái Bình TFT, cách shop hỗ trợ khách tìm acc TFT/ĐTCL, quy trình bàn giao và kênh liên hệ chính thức.",
     canonical: "https://www.shoptftmobile.net/ve-shop",
   };
 
@@ -53,7 +53,10 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function VeShopPage() {
+export default async function VeShopPage() {
+  const seoDb = await getSeoConfig();
+  const origin = (seoDb.global.canonicalOrigin || "https://www.shoptftmobile.net").replace(/\/+$/, "");
+
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -62,15 +65,57 @@ export default function VeShopPage() {
         "@type": "ListItem",
         "position": 1,
         "name": "Trang chủ",
-        "item": "https://www.shoptftmobile.net",
+        "item": origin,
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Về Shop",
-        "item": "https://www.shoptftmobile.net/ve-shop",
+        "item": `${origin}/ve-shop`,
       },
     ],
+  };
+
+  const aboutPageJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "@id": `${origin}/ve-shop#webpage`,
+    "url": `${origin}/ve-shop`,
+    "name": "Tuấn Thái Bình TFT | Về ShopTFTMobile",
+    "description":
+      "Giới thiệu ShopTFTMobile và Tuấn Thái Bình TFT, cách shop hỗ trợ khách tìm acc TFT/ĐTCL, quy trình bàn giao và kênh liên hệ chính thức.",
+    "isPartOf": {
+      "@type": "WebSite",
+      "@id": `${origin}/#website`,
+      "name": seoDb.global.siteName || "ShopTFTMobile",
+      "url": origin,
+    },
+    "about": {
+      "@type": "Organization",
+      "@id": `${origin}/#organization`,
+      "name": seoDb.schema.organizationName || "ShopTFTMobile",
+      "alternateName": "Tuấn Thái Bình TFT",
+      "url": origin,
+      "logo": `${origin}/avatar.jpg`,
+      "founder": {
+        "@type": "Person",
+        "name": seoDb.schema.founderName || "Tuấn Thái Bình",
+        "jobTitle": seoDb.schema.founderTitle || "Cựu Thách Đấu ĐTCL",
+        "url": `${origin}/ve-shop`,
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+84352867283",
+        "contactType": "customer service",
+        "availableLanguage": ["Vietnamese"],
+        "url": "https://zalo.me/0352867283",
+      },
+      "sameAs": [
+        "https://zalo.me/0352867283",
+        "https://tiktok.com/@shoptftmobile",
+        "https://checkscam.vn/?qh_ss=0352867283",
+      ],
+    },
   };
 
   return (
@@ -78,6 +123,10 @@ export default function VeShopPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutPageJsonLd) }}
       />
       <TFTNavbar />
       <TFTAbout />

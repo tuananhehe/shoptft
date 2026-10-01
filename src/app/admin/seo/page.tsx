@@ -1639,11 +1639,21 @@ export default function AdminSeoPage() {
                       "@type": "Organization",
                       "@id": `${config.global.canonicalOrigin}/#organization`,
                       name: config.schema.organizationName,
+                      alternateName: config.global.secondaryBrandName || "Tuấn Thái Bình TFT",
                       url: config.global.canonicalOrigin,
+                      logo: `${config.global.canonicalOrigin}/avatar.jpg`,
                       founder: {
                         "@type": "Person",
                         name: config.schema.founderName,
                         jobTitle: config.schema.founderTitle,
+                        url: `${config.global.canonicalOrigin}/ve-shop`,
+                      },
+                      contactPoint: {
+                        "@type": "ContactPoint",
+                        telephone: "+84352867283",
+                        contactType: "customer service",
+                        availableLanguage: ["Vietnamese"],
+                        url: config.global.zaloUrl || "https://zalo.me/0352867283",
                       },
                       sameAs: config.schema.sameAs,
                     },
@@ -1688,7 +1698,7 @@ export default function AdminSeoPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-700">Tên Thương Hiệu (Brand Name)</label>
+              <label className="text-xs font-semibold text-gray-700">Tên Thương Hiệu Chính (Primary Brand)</label>
               <input
                 type="text"
                 value={config.global.brandName}
@@ -1698,6 +1708,105 @@ export default function AdminSeoPage() {
                     global: { ...prev.global, brandName: e.target.value },
                   }))
                 }
+                placeholder="ShopTFTMobile"
+                className="w-full px-3.5 py-2 text-xs border border-gray-200 rounded-xl focus:outline-hidden focus:border-gray-900"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-gray-700">Định Danh Phụ (Secondary Identity)</label>
+              <input
+                type="text"
+                value={config.global.secondaryBrandName || ""}
+                onChange={(e) =>
+                  setConfig((prev) => ({
+                    ...prev,
+                    global: { ...prev.global, secondaryBrandName: e.target.value },
+                  }))
+                }
+                placeholder="Tuấn Thái Bình TFT"
+                className="w-full px-3.5 py-2 text-xs border border-gray-200 rounded-xl focus:outline-hidden focus:border-gray-900"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-gray-700">Đường dẫn Logo (Logo URL)</label>
+              <input
+                type="text"
+                value={config.global.logoUrl || ""}
+                onChange={(e) =>
+                  setConfig((prev) => ({
+                    ...prev,
+                    global: { ...prev.global, logoUrl: e.target.value },
+                  }))
+                }
+                placeholder="/images/logo.png"
+                className="w-full px-3.5 py-2 text-xs border border-gray-200 rounded-xl font-mono focus:outline-hidden focus:border-gray-900"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-gray-100">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-gray-700">Hotline / Zalo Hỗ Trợ</label>
+              <input
+                type="text"
+                value={config.global.phoneZalo || ""}
+                onChange={(e) =>
+                  setConfig((prev) => ({
+                    ...prev,
+                    global: { ...prev.global, phoneZalo: e.target.value },
+                  }))
+                }
+                placeholder="0352867283"
+                className="w-full px-3.5 py-2 text-xs border border-gray-200 rounded-xl font-mono focus:outline-hidden focus:border-gray-900"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-gray-700">Khung Giờ Hỗ Trợ (Support Hours)</label>
+              <input
+                type="text"
+                value={config.global.supportHours || ""}
+                onChange={(e) =>
+                  setConfig((prev) => ({
+                    ...prev,
+                    global: { ...prev.global, supportHours: e.target.value },
+                  }))
+                }
+                placeholder="11:00 - 24:00 hàng ngày"
+                className="w-full px-3.5 py-2 text-xs border border-gray-200 rounded-xl focus:outline-hidden focus:border-gray-900"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-gray-700">Link Tra Cứu Bảo Hiểm Checkscam</label>
+              <input
+                type="text"
+                value={config.global.trustVerificationUrl || ""}
+                onChange={(e) =>
+                  setConfig((prev) => ({
+                    ...prev,
+                    global: { ...prev.global, trustVerificationUrl: e.target.value },
+                  }))
+                }
+                placeholder="https://checkscam.vn/?qh_ss=0352867283"
+                className="w-full px-3.5 py-2 text-xs border border-gray-200 rounded-xl font-mono focus:outline-hidden focus:border-gray-900"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-gray-700">Số Tiền Bảo Hiểm Ký Quỹ</label>
+              <input
+                type="text"
+                value={config.global.insuranceAmount || ""}
+                onChange={(e) =>
+                  setConfig((prev) => ({
+                    ...prev,
+                    global: { ...prev.global, insuranceAmount: e.target.value },
+                  }))
+                }
+                placeholder="30.000.000 VNĐ"
                 className="w-full px-3.5 py-2 text-xs border border-gray-200 rounded-xl focus:outline-hidden focus:border-gray-900"
               />
             </div>

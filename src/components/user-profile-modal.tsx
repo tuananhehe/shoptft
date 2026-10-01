@@ -531,7 +531,7 @@ export const UserProfileModal: React.FC = () => {
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <span className="text-[10px] sm:text-xs uppercase font-black tracking-widest text-amber-300 block mb-1">
-                        THẺ HỘI VIÊN VIP SHOPTFT MOBILE
+                        THẺ HỘI VIÊN VIP SHOPTFTMOBILE
                       </span>
                       <h3 className="text-xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-2">
                         {vipInfo.currentTier.name}
@@ -682,7 +682,7 @@ export const UserProfileModal: React.FC = () => {
                 <Star className="w-5 h-5 text-amber-500 fill-amber-500 flex-shrink-0 mt-0.5" />
                 <div>
                   <h5 className="font-extrabold text-sm text-orange-950">
-                    Gửi Đánh Giá & Góp Ý Tới ShopTFT Mobile
+                    Gửi Đánh Giá & Góp Ý Tới ShopTFTMobile
                   </h5>
                   <p className="text-slate-600 mt-0.5">
                     Ý kiến của bạn sẽ được lưu trực tiếp vào hệ thống và hiển thị công khai trên trang chủ kèm huy hiệu VIP của bạn!

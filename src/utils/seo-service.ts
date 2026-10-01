@@ -546,6 +546,218 @@ export function runSeoAudit(
     }
   }
 
+  // 9. Brand Authority & Trust Signals Audit
+  // Check 1: Inconsistent Brand Name
+  const brandName = (cfg.global.brandName || "").trim();
+  let hasInconsistentBrand = false;
+  if (brandName !== "ShopTFTMobile") {
+    hasInconsistentBrand = true;
+    issues.push({
+      id: "brand-name-inconsistent",
+      type: "warning",
+      category: "brand",
+      title: "Tên thương hiệu chính chưa chuẩn hóa",
+      detail: `Tên thương hiệu chính hiện tại là "${brandName}", khuyến nghị chuẩn hóa thành "ShopTFTMobile" (viết liền không dấu cách).`,
+    });
+  }
+
+  // Check prohibited brand variants in core page titles
+  for (const [pathKey, page] of Object.entries(cfg.pages)) {
+    const t = page.title || "";
+    if (t.includes("Shop TFT Mobile") || t.includes("TFT Mobile Shop")) {
+      hasInconsistentBrand = true;
+      issues.push({
+        id: `brand-variant-mismatch-${pathKey}`,
+        type: "warning",
+        category: "brand",
+        page: pathKey,
+        title: `Phát hiện biến thể thương hiệu chưa chuẩn hóa trên trang ${pathKey}`,
+        detail: `Tiêu đề trang "${t}" chứa biến thể cũ. Chuẩn hóa thành "ShopTFTMobile".`,
+      });
+    }
+  }
+
+  if (!hasInconsistentBrand) {
+    issues.push({
+      id: "brand-name-consistent",
+      type: "passed",
+      category: "brand",
+      title: "Thương hiệu chính ShopTFTMobile đồng nhất",
+      detail: `Thương hiệu chính "ShopTFTMobile" và định danh phụ "${cfg.global.secondaryBrandName || "Tuấn Thái Bình TFT"}" được định nghĩa chuẩn xác.`,
+    });
+  }
+
+  // Check 2: Missing Logo
+  const logoUrl = (cfg.global.logoUrl || "").trim();
+  if (!logoUrl) {
+    issues.push({
+      id: "brand-logo-missing",
+      type: "warning",
+      category: "brand",
+      title: "Chưa cấu hình Logo thương hiệu chính thức",
+      detail: "Khuyến nghị thêm đường dẫn logoUrl để công cụ tìm kiếm và Schema hiển thị thương hiệu.",
+    });
+  } else {
+    issues.push({
+      id: "brand-logo-valid",
+      type: "passed",
+      category: "brand",
+      title: "Logo thương hiệu hợp lệ",
+      detail: `Đường dẫn logo: ${logoUrl}`,
+    });
+  }
+
+  // Check 3: Old Domain Reference
+  let hasOldDomain = false;
+  if (cfg.global.canonicalOrigin.includes("shoptftmobile.com")) {
+    hasOldDomain = true;
+    issues.push({
+      id: "brand-old-domain-canonical",
+      type: "error",
+      category: "brand",
+      title: "Phát hiện domain cũ .com trong Canonical Origin",
+      detail: `Canonical Origin đang trỏ tới domain cũ "${cfg.global.canonicalOrigin}". Bắt buộc phải là "https://www.shoptftmobile.net".`,
+    });
+  }
+
+  for (const [pathKey, page] of Object.entries(cfg.pages)) {
+    if (page.canonical?.includes("shoptftmobile.com")) {
+      hasOldDomain = true;
+      issues.push({
+        id: `brand-old-domain-${pathKey}`,
+        type: "error",
+        category: "brand",
+        page: pathKey,
+        title: `Trang ${pathKey} tham chiếu tên miền cũ shoptftmobile.com`,
+        detail: `Canonical URL "${page.canonical}" dùng tên miền cũ .com thay vì .net.`,
+      });
+    }
+  }
+
+  if (!hasOldDomain) {
+    issues.push({
+      id: "brand-no-old-domain",
+      type: "passed",
+      category: "brand",
+      title: "Không còn tham chiếu tên miền cũ .com",
+      detail: "Toàn bộ cấu hình hệ thống và canonical đều trỏ chuẩn xác về shoptftmobile.net.",
+    });
+  }
+
+  // Check 4: Inconsistent Support Hours
+  const supportHours = (cfg.global.supportHours || "").trim();
+  if (!supportHours) {
+    issues.push({
+      id: "brand-hours-missing",
+      type: "warning",
+      category: "brand",
+      title: "Chưa công bố khung giờ hỗ trợ khách hàng",
+      detail: 'Cần thiết lập khung giờ hỗ trợ đồng nhất (chuẩn: "11:00 - 24:00 hàng ngày").',
+    });
+  } else if (supportHours.toLowerCase().includes("24/7")) {
+    issues.push({
+      id: "brand-hours-24-7",
+      type: "warning",
+      category: "brand",
+      title: "Khung giờ hỗ trợ chứa cam kết 24/7 chưa sát thực tế",
+      detail: 'Shop hoạt động thực tế 11:00 - 24:00. Không nên quảng bá "24/7" để tránh gây thất vọng cho khách thuê đêm muộn.',
+    });
+  } else {
+    issues.push({
+      id: "brand-hours-valid",
+      type: "passed",
+      category: "brand",
+      title: "Khung giờ hỗ trợ khách hàng đồng nhất & sát thực tế",
+      detail: `Khung giờ hiện tại: ${supportHours}`,
+    });
+  }
+
+  // Check 5: Broken or Empty Social Links in Schema
+  const sameAsList = cfg.schema.sameAs || [];
+  let brokenSocial = false;
+  if (sameAsList.length === 0) {
+    issues.push({
+      id: "brand-social-empty",
+      type: "warning",
+      category: "brand",
+      title: "Chưa có liên kết mạng xã hội chính thức trong sameAs",
+      detail: "Cần tối thiểu liên kết Zalo hoặc TikTok chính thức để kết nối thực thể thương hiệu.",
+    });
+  } else {
+    for (const url of sameAsList) {
+      if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        brokenSocial = true;
+        issues.push({
+          id: `brand-social-invalid-${encodeURIComponent(url.slice(0, 20))}`,
+          type: "error",
+          category: "brand",
+          title: `Đường dẫn mạng xã hội không hợp lệ: "${url}"`,
+          detail: "Mỗi URL trong danh sách sameAs phải bắt đầu bằng http:// hoặc https://.",
+        });
+      }
+    }
+    if (!brokenSocial) {
+      issues.push({
+        id: "brand-social-valid",
+        type: "passed",
+        category: "brand",
+        title: `Hồ sơ mạng xã hội xác thực (${sameAsList.length} kênh)`,
+        detail: sameAsList.join(", "),
+      });
+    }
+  }
+
+  // Check 6: Unverified Trust Claim & Buzzwords
+  const trustUrl = (cfg.global.trustVerificationUrl || "").trim();
+  let hasBuzzword = false;
+  const buzzwords = ["uy tín số 1", "số 1 việt nam", "an toàn 100%", "rẻ nhất thị trường", "tốt nhất vịnh bắc bộ"];
+
+  for (const [pathKey, page] of Object.entries(cfg.pages)) {
+    const combined = `${page.title} ${page.description}`.toLowerCase();
+    for (const bw of buzzwords) {
+      if (combined.includes(bw)) {
+        hasBuzzword = true;
+        issues.push({
+          id: `trust-buzzword-${pathKey}`,
+          type: "warning",
+          category: "brand",
+          page: pathKey,
+          title: `Phát hiện từ ngữ tâng bốc quá mức trên trang ${pathKey}`,
+          detail: `Nội dung chứa cụm "${bw}". Nên thay bằng số liệu hoặc quy trình xác thực minh bạch.`,
+        });
+        break;
+      }
+    }
+  }
+
+  if (!trustUrl || !trustUrl.includes("checkscam.vn")) {
+    issues.push({
+      id: "trust-checkscam-missing",
+      type: "warning",
+      category: "brand",
+      title: "Chưa cấu hình liên kết xác minh bảo hiểm Checkscam",
+      detail: "Nên bổ sung link tra cứu bảo hiểm Checkscam để tăng độ uy tín với người dùng mới.",
+    });
+  } else {
+    issues.push({
+      id: "trust-checkscam-valid",
+      type: "passed",
+      category: "brand",
+      title: "Bảo hiểm giao dịch Checkscam minh bạch",
+      detail: `Đã xác thực liên kết bảo hiểm: ${trustUrl}`,
+    });
+  }
+
+  if (!hasBuzzword) {
+    issues.push({
+      id: "trust-tone-honest",
+      type: "passed",
+      category: "brand",
+      title: "Văn phong thương hiệu chân thực, không tâng bốc ảo",
+      detail: "Không phát hiện các cụm từ phóng đại như 'uy tín số 1', '100% an toàn', tuân thủ tiêu chuẩn E-E-A-T.",
+    });
+  }
+
   const errors = issues.filter((i) => i.type === "error").length;
   const warnings = issues.filter((i) => i.type === "warning").length;
   const passed = issues.filter((i) => i.type === "passed").length;
@@ -1074,11 +1286,11 @@ export function generateAiRankingProposal(
   const cleanQ = query.trim().toLowerCase();
 
   let proposedTitle = `${query} | ShopTFTMobile`;
-  let proposedMetaDescription = `Xem và lựa chọn tài khoản ${query} uy tín, minh bạch tại ShopTFTMobile. Hỗ trợ giao dịch nhanh và an toàn.`;
+  let proposedMetaDescription = `Xem và lựa chọn tài khoản ${query} minh bạch tại ShopTFTMobile. Hỗ trợ giao dịch nhanh và an toàn.`;
   let missingSections = [
     "FAQ giải đáp các thắc mắc phổ biến về dịch vụ",
     "Bảng giá chi tiết theo giờ, ngày và combo thuê",
-    "Cam kết bảo mật tài khoản và hỗ trợ qua Zalo 24/7",
+    "Cam kết bảo mật tài khoản và hỗ trợ trực tiếp qua Zalo (11:00 - 24:00)",
   ];
   let internalLinkAnchors = [
     { sourcePage: "/", anchorText: `dịch vụ ${query}` },

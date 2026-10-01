@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { PROFILE_INFO } from "@/data/tft-data";
+import { OFFICIAL_BRAND } from "@/utils/brand-constants";
 import { analytics } from "@/utils/analytics";
 import {
   ShieldCheck,
@@ -14,6 +15,10 @@ import {
   Trophy,
   UserCheck,
   ChevronRight,
+  Clock,
+  Phone,
+  Globe,
+  Share2,
 } from "lucide-react";
 
 export const TFTAbout: React.FC = () => {
@@ -120,11 +125,11 @@ export const TFTAbout: React.FC = () => {
           </h1>
 
           <p className="text-zinc-300 text-base sm:text-lg font-medium max-w-xl mx-auto">
-            Được vận hành trực tiếp bởi Tuấn Thái Bình.
+            Hệ thống hỗ trợ tìm & thuê acc TFT/ĐTCL vận hành bởi Tuấn Thái Bình TFT.
           </p>
 
           <p className="text-zinc-400 text-sm sm:text-base max-w-2xl mx-auto font-normal leading-relaxed">
-            Một hệ thống dịch vụ TFT/ĐTCL được vận hành trực tiếp bởi Tuấn Thái Bình, tập trung vào thông tin rõ ràng, hỗ trợ trực tiếp và bàn giao qua Zalo.
+            ShopTFTMobile là điểm đến tìm và trải nghiệm các tài khoản Đấu Trường Chân Lý theo Pet Chibi và Sân Đấu mong muốn. Thông tin tài khoản minh bạch, hỗ trợ trực tiếp 1-1 qua Zalo trong khung giờ cố định 11:00 - 24:00 hàng ngày.
           </p>
         </div>
       </section>
@@ -151,7 +156,7 @@ export const TFTAbout: React.FC = () => {
                   {PROFILE_INFO.realName}
                 </h2>
                 <p className="text-xs sm:text-sm text-zinc-400">
-                  {PROFILE_INFO.brandName} • {PROFILE_INFO.role}
+                  Tuấn Thái Bình TFT • ShopTFTMobile • {PROFILE_INFO.role}
                 </p>
               </div>
 
@@ -338,6 +343,124 @@ export const TFTAbout: React.FC = () => {
               Cẩm Nang Blog TFT
             </Link>
             <span>.</span>
+          </div>
+        </div>
+      </section>
+
+      {/* 6.5 OFFICIAL CONTACT & TRUST CHANNELS */}
+      <section className="py-10 sm:py-14 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08]">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-8">
+            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-400">
+              KÊNH LIÊN HỆ CHÍNH THỨC
+            </span>
+            <h2 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-white mt-1.5">
+              Hệ Thống Kênh & Cộng Đồng
+            </h2>
+            <p className="text-xs sm:text-sm text-zinc-400 mt-2 max-w-lg mx-auto">
+              Chỉ giao dịch và trao đổi qua các kênh chính chủ bên dưới để đảm bảo an toàn tuyệt đối.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="p-5 rounded-2xl bg-[#121214] border border-white/[0.08] space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
+                  <Phone className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-white">Hotline & Zalo Cá Nhân</h4>
+                  <p className="text-xs text-zinc-400">{OFFICIAL_BRAND.phoneZalo}</p>
+                </div>
+              </div>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                Tư vấn chọn acc, kiểm tra trạng thái và bàn giao mật khẩu 1-1 trực tiếp bởi chủ shop.
+              </p>
+              <div className="pt-2">
+                <a
+                  href={OFFICIAL_BRAND.zaloUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 font-medium"
+                >
+                  <span>Mở Zalo chat</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-[#121214] border border-white/[0.08] space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0">
+                  <Clock className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-white">Giờ Hỗ Trợ Khách Hàng</h4>
+                  <p className="text-xs text-zinc-400">{OFFICIAL_BRAND.supportHours}</p>
+                </div>
+              </div>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                Hỗ trợ phản hồi nhanh chóng trong khung giờ cố định mỗi ngày, cam kết có mặt khi khách cần.
+              </p>
+              <div className="pt-2">
+                <span className="text-xs text-zinc-500 font-mono">11:00 - 24:00 (Thứ 2 - CN)</span>
+              </div>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-[#121214] border border-white/[0.08] space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center flex-shrink-0">
+                  <Globe className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-white">Website & Domain Chính Thức</h4>
+                  <p className="text-xs text-zinc-400">{OFFICIAL_BRAND.officialDomain}</p>
+                </div>
+              </div>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                Trang web chính thức duy nhất, có chứng chỉ SSL bảo mật và liên kết ký quỹ Checkscam.
+              </p>
+              <div className="pt-2">
+                <a
+                  href={OFFICIAL_BRAND.checkscamUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 font-medium"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Tra cứu bảo hiểm 30M</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Social Community Channels */}
+          <div className="mt-4 p-4 sm:p-5 rounded-2xl bg-[#121214] border border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3 text-center sm:text-left">
+              <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center flex-shrink-0">
+                <Share2 className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-white">Kênh Mạng Xã Hội Chính Thức</h4>
+                <p className="text-xs text-zinc-400">Tham gia để xem highlight, cập nhật acc mới và giáo án</p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              {OFFICIAL_BRAND.socialChannels.map((c) => (
+                <a
+                  key={c.platform}
+                  href={c.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/10 border border-white/10 text-xs text-zinc-300 hover:text-white transition-colors flex items-center gap-1.5"
+                >
+                  <span>{c.label}</span>
+                  <ExternalLink className="w-3 h-3 text-zinc-500" />
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       </section>

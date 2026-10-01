@@ -39,10 +39,10 @@ export const TFTFooter: React.FC = () => {
             </div>
 
             <p className="text-xs text-zinc-400 font-normal leading-relaxed max-w-sm">
-              Hệ thống duyệt và thuê tài khoản ĐTCL uy tín. Bàn giao và hỗ trợ trực tiếp qua Zalo bởi cựu Thách Đấu Tuấn Thái Bình.
+              Hệ thống duyệt và thuê tài khoản TFT/ĐTCL theo Pet, Chibi & Sân Đấu. Bàn giao và hỗ trợ trực tiếp 1-1 qua Zalo bởi Tuấn Thái Bình TFT.
             </p>
 
-            <div className="pt-1 flex items-center gap-2">
+            <div className="pt-1 flex flex-wrap items-center gap-2">
               <a
                 href={PROFILE_INFO.checkscamUrl}
                 target="_blank"
@@ -52,6 +52,9 @@ export const TFTFooter: React.FC = () => {
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>Bảo hiểm 30M Checkscam</span>
               </a>
+              <span className="text-[11px] text-zinc-500 font-mono">
+                Domain: shoptftmobile.net
+              </span>
             </div>
           </div>
 
@@ -162,7 +165,7 @@ export const TFTFooter: React.FC = () => {
 
         {/* Bottom Bar */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
-          <p>© {new Date().getFullYear()} ShopTFTMobile • Vận hành bởi Tuấn Thái Bình</p>
+          <p>© {new Date().getFullYear()} ShopTFTMobile • Vận hành bởi Tuấn Thái Bình TFT • Website chính thức: shoptftmobile.net</p>
 
           <button
             onClick={scrollToTop}

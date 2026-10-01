@@ -1,10 +1,17 @@
 export interface GlobalSeoConfig {
   siteName: string;
   brandName: string;
+  secondaryBrandName?: string;
   canonicalOrigin: string;
   defaultTitle: string;
   defaultDescription: string;
   defaultOgImage: string;
+  logoUrl?: string;
+  phoneZalo?: string;
+  zaloUrl?: string;
+  supportHours?: string;
+  trustVerificationUrl?: string;
+  insuranceAmount?: string;
   googleVerification?: string;
   bingVerification?: string;
   twitterHandle?: string;
@@ -67,7 +74,7 @@ export interface SeoConfigDatabase {
 export interface SeoAuditIssue {
   id: string;
   type: "error" | "warning" | "passed";
-  category: "meta" | "canonical" | "product" | "redirect" | "robots" | "schema" | "blog";
+  category: "meta" | "canonical" | "product" | "redirect" | "robots" | "schema" | "blog" | "brand";
   title: string;
   detail: string;
   page?: string;
@@ -318,12 +325,19 @@ export function buildCanonicalUrl(path: string): string {
 export const DEFAULT_SEO_CONFIG: SeoConfigDatabase = {
   global: {
     siteName: "ShopTFTMobile",
-    brandName: "Tuấn Thái Bình TFT",
+    brandName: "ShopTFTMobile",
+    secondaryBrandName: "Tuấn Thái Bình TFT",
     canonicalOrigin: "https://www.shoptftmobile.net",
     defaultTitle: "Thuê Acc TFT - ĐTCL | Pet, Chibi & Sân Đấu | ShopTFTMobile",
     defaultDescription:
       "Thuê acc TFT/ĐTCL theo Pet, Chibi, Sân Đấu, VIP hoặc Clone. Xem trạng thái acc, giá thuê và thông tin rõ ràng tại ShopTFTMobile, hỗ trợ trực tiếp qua Zalo.",
     defaultOgImage: "/banner-seo.jpg",
+    logoUrl: "/images/logo.png",
+    phoneZalo: "0352867283",
+    zaloUrl: "https://zalo.me/0352867283",
+    supportHours: "11:00 - 24:00 hàng ngày",
+    trustVerificationUrl: "https://checkscam.vn/?qh_ss=0352867283",
+    insuranceAmount: "30.000.000 VNĐ",
     googleVerification: "",
     bingVerification: "",
     twitterHandle: "@ShopTFTMobile",
@@ -371,13 +385,13 @@ export const DEFAULT_SEO_CONFIG: SeoConfigDatabase = {
     "/ve-shop": {
       path: "/ve-shop",
       name: "Về Shop",
-      title: "Về ShopTFTMobile & Tuấn Thái Bình TFT | Uy Tín & Trách Nhiệm",
+      title: "Tuấn Thái Bình TFT | Về ShopTFTMobile",
       description:
-        "ShopTFTMobile vận hành bởi Tuấn Thái Bình - cựu Thách Đấu ĐTCL. Cam kết thông tin minh bạch, bảo hiểm Checkscam 30 triệu, chăm sóc khách hàng chu đáo.",
+        "Giới thiệu ShopTFTMobile và Tuấn Thái Bình TFT, cách shop hỗ trợ khách tìm acc TFT/ĐTCL, quy trình bàn giao và kênh liên hệ chính thức.",
       canonical: "https://www.shoptftmobile.net/ve-shop",
-      ogTitle: "Về ShopTFTMobile & Tuấn Thái Bình TFT | Uy Tín & Trách Nhiệm",
+      ogTitle: "Tuấn Thái Bình TFT | Về ShopTFTMobile",
       ogDescription:
-        "ShopTFTMobile vận hành bởi Tuấn Thái Bình - cựu Thách Đấu ĐTCL. Cam kết thông tin minh bạch, bảo hiểm Checkscam 30 triệu.",
+        "Giới thiệu ShopTFTMobile và Tuấn Thái Bình TFT, cách shop hỗ trợ khách tìm acc TFT/ĐTCL, quy trình bàn giao và kênh liên hệ chính thức.",
       ogImage: "/banner-seo.jpg",
       robots: { index: true, follow: true },
     },
@@ -451,7 +465,8 @@ export const DEFAULT_SEO_CONFIG: SeoConfigDatabase = {
     founderTitle: "Cựu Thách Đấu ĐTCL",
     sameAs: [
       "https://zalo.me/0352867283",
-      "https://checkscam.vn",
+      "https://tiktok.com/@shoptftmobile",
+      "https://checkscam.vn/?qh_ss=0352867283",
     ],
   },
   robotsConfig: {
