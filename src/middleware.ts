@@ -129,6 +129,19 @@ function applySecurityHeaders(res: NextResponse, pathname: string): NextResponse
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // -1. DOMAIN CANONICALIZATION (Apex -> WWW, and shoptftmobile.com -> shoptftmobile.net)
+  const host = (req.headers.get("x-forwarded-host") || req.headers.get("host") || "").toLowerCase().split(":")[0];
+  if (
+    host === "shoptftmobile.com" ||
+    host === "www.shoptftmobile.com" ||
+    host === "shoptftmobile.net"
+  ) {
+    const canonicalUrl = new URL(req.url);
+    canonicalUrl.protocol = "https:";
+    canonicalUrl.host = "www.shoptftmobile.net";
+    return NextResponse.redirect(canonicalUrl, 301);
+  }
+
   // 0. URL REDIRECTS (SEO Rules)
   const activeRedirects = (seoConfig as any)?.redirects || [];
   const matchedRedirect = activeRedirects.find(
