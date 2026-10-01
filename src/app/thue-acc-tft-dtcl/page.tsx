@@ -25,17 +25,17 @@ import {
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile",
+    absolute: "Thuê Acc TFT - Thuê Acc ĐTCL | ShopTFTMobile",
   },
   description:
-    "Dịch vụ thuê tài khoản ĐTCL (TFT Mobile & PC) uy tín bởi cựu Thách Đấu Tuấn Thái Bình. Đầy đủ acc VIP Tí Nị Thần Thoại và Acc Clone giá tốt, bàn giao 1-1 qua Zalo.",
+    "Dịch vụ thuê acc TFT, thuê acc ĐTCL chính chủ Tuấn Thái Bình. Đầy đủ acc VIP Tí Nị, acc Clone cày rank, Sân Đấu Thần Thoại. Bàn giao 1-1 nhanh chóng qua Zalo.",
   alternates: {
     canonical: "https://www.shoptftmobile.net/thue-acc-tft-dtcl",
   },
   openGraph: {
-    title: "Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile",
+    title: "Thuê Acc TFT - Thuê Acc ĐTCL | ShopTFTMobile",
     description:
-      "Dịch vụ thuê tài khoản ĐTCL (TFT Mobile & PC) uy tín bởi cựu Thách Đấu Tuấn Thái Bình. Đầy đủ acc VIP Tí Nị Thần Thoại và Acc Clone giá tốt, bàn giao 1-1 qua Zalo.",
+      "Dịch vụ thuê acc TFT, thuê acc ĐTCL chính chủ Tuấn Thái Bình. Đầy đủ acc VIP Tí Nị, acc Clone cày rank, Sân Đấu Thần Thoại. Bàn giao 1-1 nhanh chóng qua Zalo.",
     url: "https://www.shoptftmobile.net/thue-acc-tft-dtcl",
     siteName: "ShopTFTMobile",
     images: [
@@ -51,9 +51,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile",
+    title: "Thuê Acc TFT - Thuê Acc ĐTCL | ShopTFTMobile",
     description:
-      "Dịch vụ thuê tài khoản ĐTCL uy tín bởi Tuấn Thái Bình TFT. Bàn giao 1-1 trực tiếp qua Zalo.",
+      "Dịch vụ thuê acc TFT, thuê acc ĐTCL chính chủ Tuấn Thái Bình TFT. Bàn giao 1-1 trực tiếp qua Zalo.",
     images: ["https://www.shoptftmobile.net/banner-seo.jpg"],
   },
 };
@@ -279,7 +279,7 @@ export default function ThueAccTftLandingPage() {
               <div className="pt-6 mt-6 border-t border-white/[0.08] flex items-center justify-between">
                 <span className="text-xs text-zinc-400">Đầy đủ hiệu ứng cao cấp</span>
                 <Link
-                  href="/shop?type=VIP"
+                  href="/shop?type=vip"
                   className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-400 hover:text-amber-300"
                 >
                   <span>Xem danh sách Acc VIP</span>
@@ -319,7 +319,7 @@ export default function ThueAccTftLandingPage() {
               <div className="pt-6 mt-6 border-t border-white/[0.08] flex items-center justify-between">
                 <span className="text-xs text-zinc-400">Chi phí tiết kiệm nhất</span>
                 <Link
-                  href="/shop?type=CLONE"
+                  href="/shop?type=clone"
                   className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-400 hover:text-blue-300"
                 >
                   <span>Xem danh sách Acc Clone</span>

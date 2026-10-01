@@ -42,11 +42,11 @@
     "/thue-acc-tft-dtcl": {
       "path": "/thue-acc-tft-dtcl",
       "name": "Dịch vụ Thuê Acc TFT",
-      "title": "Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile",
-      "description": "Dịch vụ thuê tài khoản ĐTCL (TFT Mobile & PC) uy tín bởi cựu Thách Đấu Tuấn Thái Bình. Đầy đủ acc VIP Tí Nị Thần Thoại và Acc Clone giá tốt, bàn giao 1-1.",
+      "title": "Thuê Acc TFT - Thuê Acc ĐTCL | ShopTFTMobile",
+      "description": "Dịch vụ thuê acc TFT, thuê acc ĐTCL chính chủ Tuấn Thái Bình. Đầy đủ acc VIP Tí Nị, acc Clone cày rank, Sân Đấu Thần Thoại. Bàn giao 1-1 nhanh chóng qua Zalo.",
       "canonical": "https://www.shoptftmobile.net/thue-acc-tft-dtcl",
-      "ogTitle": "Thuê Acc TFT - ĐTCL Uy Tín | ShopTFTMobile",
-      "ogDescription": "Dịch vụ thuê tài khoản ĐTCL (TFT Mobile & PC) uy tín bởi cựu Thách Đấu Tuấn Thái Bình. Đầy đủ acc VIP Tí Nị Thần Thoại và Acc Clone giá tốt.",
+      "ogTitle": "Thuê Acc TFT - Thuê Acc ĐTCL | ShopTFTMobile",
+      "ogDescription": "Dịch vụ thuê acc TFT, thuê acc ĐTCL chính chủ Tuấn Thái Bình. Đầy đủ acc VIP Tí Nị, acc Clone cày rank, Sân Đấu Thần Thoại. Bàn giao 1-1 nhanh chóng qua Zalo.",
       "ogImage": "/banner-seo.jpg",
       "robots": {
         "index": true,
@@ -170,7 +170,12 @@
       "/pay/*",
       "/api/*",
       "/*?*search=*",
-      "/*?*q=*"
+      "/*?*q=*",
+      "/*?*sort=*",
+      "/*?*price=*",
+      "/*?*type=*",
+      "/*?*focus=*",
+      "/*?*page=*"
     ],
     "crawlDelay": 0
   }

@@ -13,6 +13,7 @@ import {
   Sparkles,
   Trophy,
   UserCheck,
+  ChevronRight,
 } from "lucide-react";
 
 export const TFTAbout: React.FC = () => {
@@ -95,8 +96,20 @@ export const TFTAbout: React.FC = () => {
   return (
     <div className="w-full bg-[#09090b] text-white">
       {/* 1. INTRO / SHOP IDENTITY */}
-      <section className="pt-12 sm:pt-16 pb-10 sm:pb-14 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08]">
+      <section className="pt-8 sm:pt-12 pb-10 sm:pb-14 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08]">
         <div className="max-w-4xl mx-auto text-center space-y-4">
+          {/* Breadcrumb linking back to homepage for brand entity clarity */}
+          <nav
+            aria-label="Breadcrumb"
+            className="flex items-center justify-center gap-1.5 text-xs text-zinc-400 mb-2 flex-wrap"
+          >
+            <Link href="/" className="hover:text-white transition-colors">
+              Trang chủ
+            </Link>
+            <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
+            <span className="text-zinc-200 font-medium">Về ShopTFTMobile</span>
+          </nav>
+
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.06] border border-white/10 text-zinc-300 text-xs font-semibold uppercase tracking-[0.08em]">
             <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
             <span>VỀ SHOP</span>
@@ -342,6 +355,13 @@ export const TFTAbout: React.FC = () => {
             >
               <span>Xem kho acc</span>
               <ArrowRight className="w-4 h-4" />
+            </Link>
+
+            <Link
+              href="/"
+              className="px-5 py-2.5 sm:py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-medium text-xs sm:text-sm transition-all inline-flex items-center gap-1.5"
+            >
+              <span>Trang chủ</span>
             </Link>
 
             <Link

@@ -26,6 +26,11 @@ export default function robots(): MetadataRoute.Robots {
     "/api/*",
     "/*?*search=*",
     "/*?*q=*",
+    "/*?*sort=*",
+    "/*?*price=*",
+    "/*?*type=*",
+    "/*?*focus=*",
+    "/*?*page=*",
   ];
 
   return {
