@@ -36,7 +36,7 @@ export const TFTNavbar: React.FC = () => {
     if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
     closeTimerRef.current = setTimeout(() => {
       setDesktopDropdown(null);
-    }, 150);
+    }, 180);
   };
 
   useEffect(() => {
@@ -127,10 +127,10 @@ export const TFTNavbar: React.FC = () => {
           </Link>
 
           {/* 2. Center: Clean Navigation (Logo | Kho Acc ▼ | Hướng Dẫn ▼ | Về Shop) */}
-          <nav className="hidden md:flex items-center gap-6 lg:gap-8 text-xs sm:text-sm font-medium">
+          <nav className="hidden md:flex items-center gap-6 lg:gap-8 h-full text-xs sm:text-sm font-medium">
             {/* Kho Acc Dropdown */}
             <div
-              className="relative"
+              className="relative h-full flex items-center"
               onMouseEnter={() => handleMouseEnter("shop")}
               onMouseLeave={handleMouseLeave}
             >
@@ -155,53 +155,53 @@ export const TFTNavbar: React.FC = () => {
 
               {desktopDropdown === "shop" && (
                 <div
-                  className="absolute left-0 top-full pt-1.5 z-50 animate-in fade-in zoom-in-95 duration-150"
+                  className="absolute left-0 top-full pt-2.5 z-[60] animate-in fade-in slide-in-from-top-1.5 duration-150 ease-out"
                   onMouseEnter={() => handleMouseEnter("shop")}
                   onMouseLeave={handleMouseLeave}
                 >
-                  <div className="w-52 rounded-xl bg-[#141416]/98 backdrop-blur-md border border-white/10 shadow-2xl p-1.5 text-xs space-y-0.5">
+                  <div className="w-56 rounded-xl bg-[#0c0d12] border border-white/12 shadow-[0_20px_45px_rgba(0,0,0,0.9)] p-1.5 text-xs select-none">
                     <Link
                       href="/shop"
-                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors"
+                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors group whitespace-nowrap"
                     >
                       <span className="font-medium">Tất cả Acc</span>
-                      <span className="text-[10px] text-zinc-500 font-mono">/shop</span>
+                      <span className="text-[10px] text-zinc-500 font-mono tracking-wider">/shop</span>
                     </Link>
                     <Link
                       href="/shop?type=vip"
-                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors"
+                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors group whitespace-nowrap"
                     >
                       <span className="font-medium">Acc VIP</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-white font-mono font-bold">VIP</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-400/10 text-amber-300 font-mono font-semibold border border-amber-400/20">VIP</span>
                     </Link>
                     <Link
                       href="/shop?type=clone"
-                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors"
+                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors group whitespace-nowrap"
                     >
                       <span className="font-medium">Acc Clone</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-zinc-400 font-mono">CLONE</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-zinc-400 font-mono border border-white/5">CLONE</span>
                     </Link>
                     <Link
                       href="/shop?sort=newest"
-                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors"
+                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors group whitespace-nowrap"
                     >
-                      <span className="font-medium">Acc Mới Về</span>
-                      <span className="text-[10px] text-amber-400 font-mono">Mới</span>
+                      <span className="font-medium">Acc Mới</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-400/10 text-emerald-400 font-mono font-medium border border-emerald-400/20">MỚI</span>
                     </Link>
                     <div className="my-1 border-t border-white/[0.08]" />
                     <Link
                       href="/shop?focus=pet"
-                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors"
+                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors group whitespace-nowrap"
                     >
                       <span className="font-medium">Linh Thú / Chibi</span>
-                      <span className="text-[10px] text-zinc-500">Tướng</span>
+                      <span className="text-[11px] text-zinc-500">Tướng</span>
                     </Link>
                     <Link
                       href="/shop?focus=arena"
-                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors"
+                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors group whitespace-nowrap"
                     >
                       <span className="font-medium">Sân Đấu</span>
-                      <span className="text-[10px] text-zinc-500">Bản đồ</span>
+                      <span className="text-[11px] text-zinc-500">Bản đồ</span>
                     </Link>
                   </div>
                 </div>
@@ -210,7 +210,7 @@ export const TFTNavbar: React.FC = () => {
 
             {/* Hướng Dẫn Dropdown */}
             <div
-              className="relative"
+              className="relative h-full flex items-center"
               onMouseEnter={() => handleMouseEnter("guide")}
               onMouseLeave={handleMouseLeave}
             >
@@ -235,24 +235,24 @@ export const TFTNavbar: React.FC = () => {
 
               {desktopDropdown === "guide" && (
                 <div
-                  className="absolute left-0 top-full pt-1.5 z-50 animate-in fade-in zoom-in-95 duration-150"
+                  className="absolute left-0 top-full pt-2.5 z-[60] animate-in fade-in slide-in-from-top-1.5 duration-150 ease-out"
                   onMouseEnter={() => handleMouseEnter("guide")}
                   onMouseLeave={handleMouseLeave}
                 >
-                  <div className="w-60 rounded-xl bg-[#141416]/98 backdrop-blur-md border border-white/10 shadow-2xl p-1.5 text-xs space-y-0.5">
+                  <div className="w-64 rounded-xl bg-[#0c0d12] border border-white/12 shadow-[0_20px_45px_rgba(0,0,0,0.9)] p-1.5 text-xs select-none">
                     <Link
                       href="/huong-dan"
-                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors"
+                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors group whitespace-nowrap"
                     >
                       <span className="font-medium">Tất cả hướng dẫn</span>
                       <span className="text-[10px] text-zinc-500 font-mono">Hub</span>
                     </Link>
                     <Link
                       href="/huong-dan/doi-thong-tin-acc-riot"
-                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors"
+                      className="flex items-center justify-between px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors group whitespace-nowrap"
                     >
                       <span className="font-medium">Đổi thông tin Acc Riot</span>
-                      <span className="text-[10px] text-emerald-400 font-mono font-medium">Bảo mật</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-400/10 text-emerald-400 font-mono font-medium border border-emerald-400/20">Bảo mật</span>
                     </Link>
                   </div>
                 </div>
