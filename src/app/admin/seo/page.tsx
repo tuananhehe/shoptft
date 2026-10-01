@@ -30,6 +30,7 @@ import {
   Link2,
   TrendingUp,
   BookOpen,
+  FlaskConical,
 } from "lucide-react";
 import {
   SeoConfigDatabase,
@@ -44,12 +45,15 @@ import {
   ContentBrief,
   BacklinkMonitorReport,
   BacklinkItem,
+  SerpExperimentsReport,
+  SerpExperimentItem,
 } from "@/utils/seo-shared";
 import { ContentRefreshTab } from "@/components/admin/content-refresh-tab";
 import { InternalLinksTab } from "@/components/admin/internal-links-tab";
 import { RankingOptimizationTab } from "@/components/admin/ranking-optimization-tab";
 import { ContentOpportunitiesTab } from "@/components/admin/content-opportunities-tab";
 import { BacklinksTab } from "@/components/admin/backlinks-tab";
+import { SerpExperimentsTab } from "@/components/admin/serp-experiments-tab";
 
 type TabKey =
   | "overview"
@@ -60,6 +64,7 @@ type TabKey =
   | "ranking"
   | "content_opportunities"
   | "backlinks"
+  | "serp_experiments"
   | "sitemap"
   | "redirects"
   | "schema"
@@ -126,6 +131,7 @@ export default function AdminSeoPage() {
   const [contentOpportunities, setContentOpportunities] = useState<ContentOpportunityItem[]>([]);
   const [contentBriefs, setContentBriefs] = useState<ContentBrief[]>([]);
   const [backlinkReport, setBacklinkReport] = useState<BacklinkMonitorReport | null>(null);
+  const [serpExperimentsReport, setSerpExperimentsReport] = useState<SerpExperimentsReport | null>(null);
   const [socialNetworkPreview, setSocialNetworkPreview] = useState<"facebook" | "twitter">("facebook");
 
   // Fetch SEO configuration from API
@@ -152,6 +158,7 @@ export default function AdminSeoPage() {
         if (data.contentOpportunities) setContentOpportunities(data.contentOpportunities);
         if (data.contentBriefs) setContentBriefs(data.contentBriefs);
         if (data.backlinkReport) setBacklinkReport(data.backlinkReport);
+        if (data.serpExperimentsReport) setSerpExperimentsReport(data.serpExperimentsReport);
       } else {
         toast.error(data.error || "Không thể tải dữ liệu SEO!");
       }
@@ -232,6 +239,60 @@ export default function AdminSeoPage() {
       return { importedCount: data.message?.includes("thành công") ? (data.backlinkReport?.summary?.totalBacklinks || 1) : 0, errors: data.errors || [] };
     }
     return { importedCount: 0, errors: [data.error || "Lỗi import CSV"] };
+  };
+
+  const handleAddSerpExperiment = async (item: Omit<SerpExperimentItem, "id">) => {
+    const localToken = typeof window !== "undefined" ? localStorage.getItem("shoptft_admin_token") : null;
+    const res = await fetch("/api/admin/seo?action=add_serp_experiment", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(localToken ? { "x-admin-token": localToken } : {}),
+      },
+      body: JSON.stringify(item),
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (data.serpReport) setSerpExperimentsReport(data.serpReport);
+      return true;
+    }
+    throw new Error(data.error || "Lỗi khi thêm thử nghiệm SERP");
+  };
+
+  const handleUpdateSerpExperiment = async (id: string, updates: Partial<SerpExperimentItem>) => {
+    const localToken = typeof window !== "undefined" ? localStorage.getItem("shoptft_admin_token") : null;
+    const res = await fetch("/api/admin/seo?action=update_serp_experiment", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(localToken ? { "x-admin-token": localToken } : {}),
+      },
+      body: JSON.stringify({ id, updates }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (data.serpReport) setSerpExperimentsReport(data.serpReport);
+      return true;
+    }
+    throw new Error(data.error || "Lỗi khi cập nhật thử nghiệm SERP");
+  };
+
+  const handleDeleteSerpExperiment = async (id: string) => {
+    const localToken = typeof window !== "undefined" ? localStorage.getItem("shoptft_admin_token") : null;
+    const res = await fetch("/api/admin/seo?action=delete_serp_experiment", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(localToken ? { "x-admin-token": localToken } : {}),
+      },
+      body: JSON.stringify({ id }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (data.serpReport) setSerpExperimentsReport(data.serpReport);
+      return true;
+    }
+    throw new Error(data.error || "Lỗi khi xóa thử nghiệm SERP");
   };
 
   useEffect(() => {
@@ -553,6 +614,23 @@ export default function AdminSeoPage() {
           {backlinkReport && backlinkReport.summary.totalBacklinks > 0 && (
             <span className="px-1.5 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold">
               {backlinkReport.summary.totalBacklinks}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveTab("serp_experiments")}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === "serp_experiments"
+              ? "bg-gray-900 text-white shadow-xs"
+              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+          }`}
+        >
+          <FlaskConical className="w-3.5 h-3.5 text-purple-500" />
+          <span>Thử Nghiệm SERP & CTR</span>
+          {serpExperimentsReport && (serpExperimentsReport.summary.running > 0 || serpExperimentsReport.summary.inReview > 0) && (
+            <span className="px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[10px] font-bold">
+              {serpExperimentsReport.summary.running + serpExperimentsReport.summary.inReview} test
             </span>
           )}
         </button>
@@ -1475,6 +1553,19 @@ export default function AdminSeoPage() {
           onUpdateBacklink={handleUpdateBacklink}
           onDeleteBacklink={handleDeleteBacklink}
           onImportCsv={handleImportBacklinksCsv}
+        />
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB: SERP CTR & TITLE/META EXPERIMENTS (PHASE 11)              */}
+      {/* ============================================================== */}
+      {activeTab === "serp_experiments" && (
+        <SerpExperimentsTab
+          report={serpExperimentsReport}
+          onRefresh={fetchSeoData}
+          onAddExperiment={handleAddSerpExperiment}
+          onUpdateExperiment={handleUpdateSerpExperiment}
+          onDeleteExperiment={handleDeleteSerpExperiment}
         />
       )}
 

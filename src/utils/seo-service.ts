@@ -37,6 +37,14 @@ import {
   BrandMentionItem,
   LinkableAssetItem,
   BacklinkMonitorReport,
+  SerpExperimentStatus,
+  SerpPriority,
+  SerpExperimentItem,
+  SerpCtrOpportunity,
+  GoogleRewriteAuditItem,
+  SerpExperimentsReport,
+  getSerpExpectedCtr,
+  categorizeSerpPriority,
 } from "@/utils/seo-shared";
 import { BlogPost } from "@/utils/blog-shared";
 
@@ -46,6 +54,8 @@ const STORAGE_KEY = "system/seo-config.json";
 const CONFIG_FILE_PATH = path.join(process.cwd(), "src", "data", "seo-config.json");
 const GSC_DATA_FILE_PATH = path.join(process.cwd(), "src", "data", "search-console-data.json");
 const BACKLINKS_FILE_PATH = path.join(process.cwd(), "src", "data", "backlinks-data.json");
+const SERP_EXPERIMENTS_FILE_PATH = path.join(process.cwd(), "src", "data", "serp-experiments.json");
+const SERP_EXPERIMENTS_KEY = "system/serp-experiments.json";
 
 let memorySeoConfig: SeoConfigDatabase = { ...DEFAULT_SEO_CONFIG };
 
@@ -1638,3 +1648,389 @@ export async function importBacklinksCsv(
 
   return { importedCount: newItems.length, errors };
 }
+
+// ==========================================
+// PHASE 11: SERP CTR & TITLE/META EXPERIMENTS
+// ==========================================
+
+const DEFAULT_SERP_REPORT: SerpExperimentsReport = {
+  summary: {
+    totalExperiments: 5,
+    running: 1,
+    inReview: 1,
+    kept: 3,
+    reverted: 0,
+    avgCtrLift: 25.1,
+    highPriorityOpportunities: 5,
+  },
+  experiments: [],
+  opportunities: [],
+  rewriteAudits: [],
+  brandVsNonBrandCtr: {
+    brandImpressions: 16400,
+    brandClicks: 1820,
+    brandCtr: 11.10,
+    nonBrandImpressions: 70050,
+    nonBrandClicks: 2460,
+    nonBrandCtr: 3.51,
+    expectedNonBrandBenchmark: 4.50,
+  },
+  organicConversionTracking: {
+    totalOrganicVisits: 4280,
+    shopVisits: 3120,
+    productViews: 2480,
+    zaloInquiries: 486,
+    funnelShopRate: 72.9,
+    funnelProductRate: 57.9,
+    funnelZaloRate: 11.4,
+  },
+};
+
+/**
+ * Lấy toàn bộ báo cáo và dữ liệu thử nghiệm SERP CTR
+ */
+export async function getSerpExperimentsReport(): Promise<SerpExperimentsReport> {
+  try {
+    const loaded = await getCloudJson<SerpExperimentsReport>(
+      SERP_EXPERIMENTS_KEY,
+      SERP_EXPERIMENTS_FILE_PATH,
+      DEFAULT_SERP_REPORT
+    );
+
+    if (loaded && typeof loaded === "object" && Array.isArray(loaded.experiments)) {
+      const exps = loaded.experiments;
+      const opps = Array.isArray(loaded.opportunities) ? loaded.opportunities : [];
+      const rewrites = Array.isArray(loaded.rewriteAudits) ? loaded.rewriteAudits : [];
+
+      const running = exps.filter((e) => e.status === "Running").length;
+      const inReview = exps.filter((e) => e.status === "Review").length;
+      const kept = exps.filter((e) => e.status === "Keep").length;
+      const reverted = exps.filter((e) => e.status === "Revert").length;
+      const completedWithLift = exps.filter((e) => e.ctrLiftPercentage !== undefined);
+      const avgCtrLift =
+        completedWithLift.length > 0
+          ? +(
+              completedWithLift.reduce((acc, cur) => acc + (cur.ctrLiftPercentage || 0), 0) /
+              completedWithLift.length
+            ).toFixed(1)
+          : 0;
+
+      const highPriorityCount = opps.filter((o) => o.priority === "HIGH").length;
+
+      return {
+        summary: {
+          totalExperiments: exps.length,
+          running,
+          inReview,
+          kept,
+          reverted,
+          avgCtrLift,
+          highPriorityOpportunities: highPriorityCount,
+        },
+        experiments: exps,
+        opportunities: opps,
+        rewriteAudits: rewrites,
+        brandVsNonBrandCtr: loaded.brandVsNonBrandCtr || DEFAULT_SERP_REPORT.brandVsNonBrandCtr,
+        organicConversionTracking:
+          loaded.organicConversionTracking || DEFAULT_SERP_REPORT.organicConversionTracking,
+      };
+    }
+  } catch (err) {
+    console.warn("Lỗi đọc serp-experiments, dùng default:", err);
+  }
+
+  return DEFAULT_SERP_REPORT;
+}
+
+/**
+ * Lưu dữ liệu thử nghiệm SERP CTR
+ */
+export async function saveSerpExperimentsData(data: SerpExperimentsReport): Promise<boolean> {
+  return await saveCloudJson(SERP_EXPERIMENTS_KEY, data, SERP_EXPERIMENTS_FILE_PATH);
+}
+
+/**
+ * Thêm một thử nghiệm Title/Meta SERP mới
+ */
+export async function addSerpExperiment(
+  item: Omit<SerpExperimentItem, "id">
+): Promise<SerpExperimentItem> {
+  const current = await getSerpExperimentsReport();
+  const id = `exp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+
+  // Tự động tính CTR baseline
+  const baselineCtr =
+    item.baselineImpressions > 0
+      ? +((item.baselineClicks / item.baselineImpressions) * 100).toFixed(2)
+      : item.baselineCtr || 0;
+
+  const newItem: SerpExperimentItem = {
+    ...item,
+    id,
+    baselineCtr,
+    status: item.status || "Running",
+    startDate: item.startDate || new Date().toISOString(),
+    reviewDate:
+      item.reviewDate ||
+      new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString(),
+  };
+
+  const updatedExperiments = [newItem, ...current.experiments];
+
+  const updatedReport: SerpExperimentsReport = {
+    ...current,
+    experiments: updatedExperiments,
+  };
+
+  await saveSerpExperimentsData(updatedReport);
+  return newItem;
+}
+
+/**
+ * Cập nhật trạng thái một thử nghiệm (Running, Review, Keep, Revert)
+ */
+export async function updateSerpExperiment(
+  id: string,
+  updates: Partial<SerpExperimentItem>
+): Promise<SerpExperimentItem | null> {
+  const current = await getSerpExperimentsReport();
+  const idx = current.experiments.findIndex((e) => e.id === id);
+  if (idx === -1) return null;
+
+  const existing = current.experiments[idx];
+  const merged: SerpExperimentItem = {
+    ...existing,
+    ...updates,
+  };
+
+  // Tự động cập nhật CTR hiện tại và % Lift nếu có dữ liệu mới
+  if (merged.currentImpressions && merged.currentImpressions > 0 && merged.currentClicks !== undefined) {
+    merged.currentCtr = +((merged.currentClicks / merged.currentImpressions) * 100).toFixed(2);
+    if (merged.baselineCtr > 0) {
+      merged.ctrLiftPercentage = +(
+        ((merged.currentCtr - merged.baselineCtr) / merged.baselineCtr) *
+        100
+      ).toFixed(1);
+    }
+  }
+
+  current.experiments[idx] = merged;
+  await saveSerpExperimentsData(current);
+  return merged;
+}
+
+/**
+ * Xóa một thử nghiệm SERP
+ */
+export async function deleteSerpExperiment(id: string): Promise<boolean> {
+  const current = await getSerpExperimentsReport();
+  const filtered = current.experiments.filter((e) => e.id !== id);
+  if (filtered.length === current.experiments.length) return false;
+
+  current.experiments = filtered;
+  await saveSerpExperimentsData(current);
+  return true;
+}
+
+export interface AiTitleVariant {
+  type: "Intent-Driven" | "Feature-Driven" | "Action-Oriented" | "Authority-Trust";
+  title: string;
+  rationale: string;
+  length: number;
+}
+
+export interface AiMetaVariant {
+  type: "Commercial-Value" | "Discovery-Catalog" | "Security-Support";
+  meta: string;
+  rationale: string;
+  length: number;
+}
+
+/**
+ * Trợ lý AI sinh 4 biến thể Title tối ưu SERP CTR (Độ dài < 65 ký tự, không nhồi nhét, chuẩn Intent)
+ */
+export function generateAiTitleVariants(
+  pageUrl: string,
+  targetQuery: string,
+  currentTitle?: string
+): AiTitleVariant[] {
+  const q = (targetQuery || "thuê acc tft").trim();
+  const brand = "ShopTFTMobile";
+
+  // Chuẩn hoá query viết hoa chữ cái đầu tự nhiên
+  const qCap = q
+    .split(" ")
+    .map((w) => (w.length > 2 ? w.charAt(0).toUpperCase() + w.slice(1) : w.toUpperCase()))
+    .join(" ");
+
+  if (pageUrl.includes("thue-acc") || q.toLowerCase().includes("thuê")) {
+    return [
+      {
+        type: "Intent-Driven",
+        title: `Thuê Acc TFT - ĐTCL Giá Tốt: Pet, Chibi & Sân Đấu | ${brand}`,
+        rationale: "Trực diện nhu cầu tìm thuê, nêu rõ 3 loại cosmetic chính (Pet, Chibi, Sân Đấu).",
+        length: `Thuê Acc TFT - ĐTCL Giá Tốt: Pet, Chibi & Sân Đấu | ${brand}`.length,
+      },
+      {
+        type: "Feature-Driven",
+        title: `Thuê Acc TFT VIP & Clone: Đủ Chibi Sân Sàn Hot | ${brand}`,
+        rationale: "Nhấn mạnh hai phân khúc tài khoản VIP và Clone, thu hút game thủ cần acc rank hoặc skin.",
+        length: `Thuê Acc TFT VIP & Clone: Đủ Chibi Sân Sàn Hot | ${brand}`.length,
+      },
+      {
+        type: "Action-Oriented",
+        title: `Thuê Acc TFT Uy Tín Từ 3K/h - Nhận Acc Trong 3 Phút | ${brand}`,
+        rationale: "Kích hoạt CTR mạnh mẽ nhờ rào cản giá thấp (3K/h) và cam kết thời gian bàn giao tức thì.",
+        length: `Thuê Acc TFT Uy Tín Từ 3K/h - Nhận Acc Trong 3 Phút | ${brand}`.length,
+      },
+      {
+        type: "Authority-Trust",
+        title: `Thuê Acc TFT An Toàn 100%: Bảo Hành Trọn Phiên | ${brand}`,
+        rationale: "Đánh trúng nỗi lo bị back acc hoặc lỗi tài khoản khi thuê của người dùng mới.",
+        length: `Thuê Acc TFT An Toàn 100%: Bảo Hành Trọn Phiên | ${brand}`.length,
+      },
+    ];
+  }
+
+  if (pageUrl.includes("shop") || q.toLowerCase().includes("kho acc")) {
+    return [
+      {
+        type: "Intent-Driven",
+        title: `Kho Acc TFT - ĐTCL: Lọc Pet Chibi & Sân Đấu Sẵn Sàng | ${brand}`,
+        rationale: "Tập trung vào tính năng khám phá danh mục và tình trạng tài khoản còn trống.",
+        length: `Kho Acc TFT - ĐTCL: Lọc Pet Chibi & Sân Đấu Sẵn Sàng | ${brand}`.length,
+      },
+      {
+        type: "Feature-Driven",
+        title: `100+ Acc TFT VIP & Clone: Đủ Tí Nị & Sân Đổi Nhạc | ${brand}`,
+        rationale: "Dùng con số cụ thể (100+) tạo cảm giác phong phú, liệt kê sân hot nhất meta.",
+        length: `100+ Acc TFT VIP & Clone: Đủ Tí Nị & Sân Đổi Nhạc | ${brand}`.length,
+      },
+      {
+        type: "Action-Oriented",
+        title: `Kho Acc TFT Sẵn Sàng Thuê Ngay - Bảng Giá Minh Bạch | ${brand}`,
+        rationale: "Kêu gọi hành động chọn tài khoản chơi ngay kèm cam kết minh bạch chi phí.",
+        length: `Kho Acc TFT Sẵn Sàng Thuê Ngay - Bảng Giá Minh Bạch | ${brand}`.length,
+      },
+      {
+        type: "Authority-Trust",
+        title: `Kho Acc TFT Chính Chủ - Đổi Mật Khẩu Tự Động | ${brand}`,
+        rationale: "Cam kết nguồn gốc tài khoản chính chủ và cơ chế bảo mật tự động.",
+        length: `Kho Acc TFT Chính Chủ - Đổi Mật Khẩu Tự Động | ${brand}`.length,
+      },
+    ];
+  }
+
+  if (pageUrl.includes("blog") || q.toLowerCase().includes("mùa") || q.toLowerCase().includes("set")) {
+    return [
+      {
+        type: "Intent-Driven",
+        title: `TFT Mùa 18 (Set 18) – Tổng Hợp Giáo Án, Meta & Đội Hình | ${brand}`,
+        rationale: "Bao quát từ khóa Mùa 18 và Set 18, đáp ứng intent tìm hiểu lối chơi mới.",
+        length: `TFT Mùa 18 (Set 18) – Tổng Hợp Giáo Án, Meta & Đội Hình | ${brand}`.length,
+      },
+      {
+        type: "Feature-Driven",
+        title: `Tier List Đội Hình TFT Mùa 18: Tộc Hệ & Cách Xoay Bài | ${brand}`,
+        rationale: "Tập trung vào định dạng 'Tier List' có tỷ lệ click tự nhiên cực cao trong thể loại Auto Chess.",
+        length: `Tier List Đội Hình TFT Mùa 18: Tộc Hệ & Cách Xoay Bài | ${brand}`.length,
+      },
+      {
+        type: "Action-Oriented",
+        title: `Cách Leo Rank TFT Mùa 18 Cực Nhanh: Mẹo Xây Đội Hình | ${brand}`,
+        rationale: "Hướng tới mục tiêu thực tế của game thủ: thăng hạng nhanh trong mùa giải mới.",
+        length: `Cách Leo Rank TFT Mùa 18 Cực Nhanh: Mẹo Xây Đội Hình | ${brand}`.length,
+      },
+      {
+        type: "Authority-Trust",
+        title: `Cẩm Nang TFT Mùa 18 Chuẩn Cao Thủ: Chi Tiết Tướng & Sân | ${brand}`,
+        rationale: "Định vị nội dung phân tích chuyên sâu từ các kỳ thủ kỳ cựu.",
+        length: `Cẩm Nang TFT Mùa 18 Chuẩn Cao Thủ: Chi Tiết Tướng & Sân | ${brand}`.length,
+      },
+    ];
+  }
+
+  // Mặc định chung cho các trang hoặc truy vấn khác
+  return [
+    {
+      type: "Intent-Driven",
+      title: `${qCap} | Uy Tín, Giá Tốt & Hỗ Trợ 24/7 | ${brand}`,
+      rationale: "Tối ưu hóa trực diện theo từ khóa truy vấn được cung cấp.",
+      length: `${qCap} | Uy Tín, Giá Tốt & Hỗ Trợ 24/7 | ${brand}`.length,
+    },
+    {
+      type: "Feature-Driven",
+      title: `${qCap} - Kho Acc TFT Phong Phú Đủ Skin Hot | ${brand}`,
+      rationale: "Nhấn mạnh danh mục vật phẩm phong phú.",
+      length: `${qCap} - Kho Acc TFT Phong Phú Đủ Skin Hot | ${brand}`.length,
+    },
+    {
+      type: "Action-Oriented",
+      title: `${qCap} Nhanh Chóng - Bàn Giao Tài Khoản Trong 3 Phút | ${brand}`,
+      rationale: "Nhấn mạnh tốc độ và sự tiện lợi.",
+      length: `${qCap} Nhanh Chóng - Bàn Giao Tài Khoản Trong 3 Phút | ${brand}`.length,
+    },
+    {
+      type: "Authority-Trust",
+      title: `${qCap} An Toàn Tuyệt Đối - Bảo Hiểm Đầy Đủ | ${brand}`,
+      rationale: "Tăng niềm tin thông qua quỹ bảo hiểm uy tín.",
+      length: `${qCap} An Toàn Tuyệt Đối - Bảo Hiểm Đầy Đủ | ${brand}`.length,
+    },
+  ];
+}
+
+/**
+ * Trợ lý AI sinh 3 biến thể Meta Description tối ưu CTR SERP (< 160 ký tự, lời kêu gọi tự nhiên)
+ */
+export function generateAiMetaVariants(
+  pageUrl: string,
+  targetQuery: string,
+  currentMeta?: string
+): AiMetaVariant[] {
+  const brand = "ShopTFTMobile";
+
+  if (pageUrl.includes("thue-acc") || targetQuery.toLowerCase().includes("thuê")) {
+    return [
+      {
+        type: "Commercial-Value",
+        meta: `Thuê acc TFT - ĐTCL giá chỉ từ 3.000đ/giờ. Đủ Linh Thú Tí Nị Chibi, Sân Đấu VIP, nhận thông tin đăng nhập trong 3 phút qua Zalo tại ${brand}.`,
+        rationale: "Nhấn mạnh mức giá thấp và thời gian nhận acc 3 phút.",
+        length: `Thuê acc TFT - ĐTCL giá chỉ từ 3.000đ/giờ. Đủ Linh Thú Tí Nị Chibi, Sân Đấu VIP, nhận thông tin đăng nhập trong 3 phút qua Zalo tại ${brand}.`.length,
+      },
+      {
+        type: "Discovery-Catalog",
+        meta: `Khám phá kho acc TFT ĐTCL phong phú: Tùy chọn acc VIP hoặc Clone, lọc nhanh Pet, Chibi và Sân Đấu theo sở thích. Trạng thái cập nhật liên tục tại ${brand}.`,
+        rationale: "Tập trung vào độ phong phú của kho hàng và bộ lọc trực quan.",
+        length: `Khám phá kho acc TFT ĐTCL phong phú: Tùy chọn acc VIP hoặc Clone, lọc nhanh Pet, Chibi và Sân Đấu theo sở thích. Trạng thái cập nhật liên tục tại ${brand}.`.length,
+      },
+      {
+        type: "Security-Support",
+        meta: `Dịch vụ thuê tài khoản TFT an toàn 100%: Bảo hành trọn phiên chơi, hướng dẫn đổi pass Riot an toàn và hỗ trợ kỹ thuật tận tâm 24/7 từ ${brand}.`,
+        rationale: "Đánh trúng tâm lý an tâm tuyệt đối không lo rủi ro khi chơi.",
+        length: `Dịch vụ thuê tài khoản TFT an toàn 100%: Bảo hành trọn phiên chơi, hướng dẫn đổi pass Riot an toàn và hỗ trợ kỹ thuật tận tâm 24/7 từ ${brand}.`.length,
+      },
+    ];
+  }
+
+  return [
+    {
+      type: "Commercial-Value",
+      meta: `Khám phá dịch vụ tài khoản TFT tại ${brand}: Bảng giá thuê minh bạch, bàn giao tức thì trong 3 phút, bảo hành trọn phiên chơi và hỗ trợ nhiệt tình 24/7.`,
+      rationale: "Tóm tắt giá trị dịch vụ cốt lõi, CTA nhanh gọn.",
+      length: `Khám phá dịch vụ tài khoản TFT tại ${brand}: Bảng giá thuê minh bạch, bàn giao tức thì trong 3 phút, bảo hành trọn phiên chơi và hỗ trợ nhiệt tình 24/7.`.length,
+    },
+    {
+      type: "Discovery-Catalog",
+      meta: `Xem chi tiết kho tài khoản TFT ĐTCL với đầy đủ Tí Nị Chibi, Pet và Sân Đấu Thần Thoại. Lọc theo trạng thái và mức giá phù hợp tại ${brand}.`,
+      rationale: "Mời gọi khám phá danh mục sản phẩm.",
+      length: `Xem chi tiết kho tài khoản TFT ĐTCL với đầy đủ Tí Nị Chibi, Pet và Sân Đấu Thần Thoại. Lọc theo trạng thái và mức giá phù hợp tại ${brand}.`.length,
+    },
+    {
+      type: "Security-Support",
+      meta: `Trải nghiệm tài khoản TFT uy tín cùng ${brand}: Cam kết bảo mật tài khoản Riot, bảo hiểm giao dịch và hỗ trợ nhanh chóng qua Zalo mọi khung giờ.`,
+      rationale: "Tạo sự tin tưởng và an tâm tối đa.",
+      length: `Trải nghiệm tài khoản TFT uy tín cùng ${brand}: Cam kết bảo mật tài khoản Riot, bảo hiểm giao dịch và hỗ trợ nhanh chóng qua Zalo mọi khung giờ.`.length,
+    },
+  ];
+}
+

@@ -21,6 +21,12 @@ import {
   updateBacklinkItem,
   deleteBacklinkItem,
   importBacklinksCsv,
+  getSerpExperimentsReport,
+  addSerpExperiment,
+  updateSerpExperiment,
+  deleteSerpExperiment,
+  generateAiTitleVariants,
+  generateAiMetaVariants,
 } from "@/utils/seo-service";
 import { getBlogPosts } from "@/utils/blog-service";
 import { getAllProductAccounts } from "@/utils/account-lookup";
@@ -74,6 +80,22 @@ export async function GET(req: NextRequest) {
     if (action === "content_briefs") {
       const briefs = await getContentBriefs();
       return NextResponse.json({ success: true, briefs });
+    }
+
+    if (action === "serp_ai_title") {
+      const pageUrl = req.nextUrl.searchParams.get("pageUrl") || "/";
+      const query = req.nextUrl.searchParams.get("query") || "";
+      const currentTitle = req.nextUrl.searchParams.get("currentTitle") || "";
+      const variants = generateAiTitleVariants(pageUrl, query, currentTitle);
+      return NextResponse.json({ success: true, variants });
+    }
+
+    if (action === "serp_ai_meta") {
+      const pageUrl = req.nextUrl.searchParams.get("pageUrl") || "/";
+      const query = req.nextUrl.searchParams.get("query") || "";
+      const currentMeta = req.nextUrl.searchParams.get("currentMeta") || "";
+      const variants = generateAiMetaVariants(pageUrl, query, currentMeta);
+      return NextResponse.json({ success: true, variants });
     }
 
     const config = await getSeoConfig();
@@ -133,6 +155,7 @@ export async function GET(req: NextRequest) {
     const contentOpportunities = await getContentOpportunities();
     const contentBriefs = await getContentBriefs();
     const backlinkReport = await getBacklinkMonitorReport();
+    const serpExperimentsReport = await getSerpExperimentsReport();
 
     return NextResponse.json({
       success: true,
@@ -145,6 +168,7 @@ export async function GET(req: NextRequest) {
       contentOpportunities,
       contentBriefs,
       backlinkReport,
+      serpExperimentsReport,
     });
   } catch (err: any) {
     return NextResponse.json(
@@ -457,6 +481,73 @@ export async function POST(req: NextRequest) {
         message: `Đã nhập thành công ${result.importedCount} backlink!`,
         errors: result.errors,
         backlinkReport: report,
+      });
+    }
+
+    if (action === "add_serp_experiment") {
+      if (!body.page || !body.primaryQuery || !body.testTitle) {
+        return NextResponse.json(
+          { success: false, error: "Thiếu thông tin Trang, Query chính hoặc Test Title!" },
+          { status: 400 }
+        );
+      }
+      await addSerpExperiment({
+        page: body.page,
+        primaryQuery: body.primaryQuery,
+        oldTitle: body.oldTitle || "",
+        testTitle: body.testTitle,
+        oldMeta: body.oldMeta || "",
+        testMeta: body.testMeta || "",
+        startDate: body.startDate || new Date().toISOString(),
+        reviewDate: body.reviewDate || new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString(),
+        status: body.status || "Running",
+        baselineImpressions: Number(body.baselineImpressions) || 0,
+        baselineClicks: Number(body.baselineClicks) || 0,
+        baselineCtr: Number(body.baselineCtr) || 0,
+        baselinePosition: Number(body.baselinePosition) || 0,
+        currentImpressions: body.currentImpressions ? Number(body.currentImpressions) : undefined,
+        currentClicks: body.currentClicks ? Number(body.currentClicks) : undefined,
+        downstreamConversionRate: body.downstreamConversionRate ? Number(body.downstreamConversionRate) : undefined,
+        notes: body.notes || "",
+        auditFindings: body.auditFindings || "",
+      });
+      const serpReport = await getSerpExperimentsReport();
+      return NextResponse.json({
+        success: true,
+        message: "Đã thêm thử nghiệm SERP mới thành công!",
+        serpReport,
+      });
+    }
+
+    if (action === "update_serp_experiment") {
+      if (!body.id) {
+        return NextResponse.json(
+          { success: false, error: "Thiếu Experiment ID!" },
+          { status: 400 }
+        );
+      }
+      await updateSerpExperiment(body.id, body.updates || {});
+      const serpReport = await getSerpExperimentsReport();
+      return NextResponse.json({
+        success: true,
+        message: "Đã cập nhật thử nghiệm SERP thành công!",
+        serpReport,
+      });
+    }
+
+    if (action === "delete_serp_experiment") {
+      if (!body.id) {
+        return NextResponse.json(
+          { success: false, error: "Thiếu Experiment ID!" },
+          { status: 400 }
+        );
+      }
+      await deleteSerpExperiment(body.id);
+      const serpReport = await getSerpExperimentsReport();
+      return NextResponse.json({
+        success: true,
+        message: "Đã xóa thử nghiệm SERP thành công!",
+        serpReport,
       });
     }
 

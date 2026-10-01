@@ -711,3 +711,132 @@ export function detectRedirectLoop(
 
   return { hasLoop: false };
 }
+
+// ==========================================
+// PHASE 11: SERP CTR + TITLE/META EXPERIMENTS
+// ==========================================
+
+export type SerpExperimentStatus = "Running" | "Review" | "Keep" | "Revert";
+export type SerpPriority = "HIGH" | "MEDIUM" | "LOW";
+
+export interface SerpExperimentItem {
+  id: string;
+  page: string;
+  primaryQuery: string;
+  oldTitle: string;
+  testTitle: string;
+  oldMeta: string;
+  testMeta: string;
+  startDate: string;
+  reviewDate: string;
+  status: SerpExperimentStatus;
+  baselineImpressions: number;
+  baselineClicks: number;
+  baselineCtr: number;
+  baselinePosition: number;
+  currentImpressions?: number;
+  currentClicks?: number;
+  currentCtr?: number;
+  currentPosition?: number;
+  ctrLiftPercentage?: number;
+  downstreamConversionRate?: number;
+  notes?: string;
+  auditFindings?: string;
+}
+
+export interface SerpCtrOpportunity {
+  query: string;
+  pageUrl: string;
+  impressions: number;
+  clicks: number;
+  ctr: number;
+  position: number;
+  expectedCtr: number;
+  ctrGap: number;
+  priority: SerpPriority;
+  intentType: "Commercial" | "Discovery" | "Informational" | "Brand";
+  diagnosis: string;
+  recommendedWording: string;
+}
+
+export interface GoogleRewriteAuditItem {
+  pageUrl: string;
+  configuredTitle: string;
+  serpDisplayTitle: string;
+  status: "matched" | "rewritten" | "truncated";
+  rewriteReason: string;
+  recommendation: string;
+}
+
+export interface BrandVsNonBrandMetrics {
+  brandImpressions: number;
+  brandClicks: number;
+  brandCtr: number;
+  nonBrandImpressions: number;
+  nonBrandClicks: number;
+  nonBrandCtr: number;
+  expectedNonBrandBenchmark: number;
+}
+
+export interface OrganicConversionMetrics {
+  totalOrganicVisits: number;
+  shopVisits: number;
+  productViews: number;
+  zaloInquiries: number;
+  funnelShopRate: number;
+  funnelProductRate: number;
+  funnelZaloRate: number;
+}
+
+export interface SerpExperimentsReport {
+  summary: {
+    totalExperiments: number;
+    running: number;
+    inReview: number;
+    kept: number;
+    reverted: number;
+    avgCtrLift: number;
+    highPriorityOpportunities: number;
+  };
+  experiments: SerpExperimentItem[];
+  opportunities: SerpCtrOpportunity[];
+  rewriteAudits: GoogleRewriteAuditItem[];
+  brandVsNonBrandCtr: BrandVsNonBrandMetrics;
+  organicConversionTracking: OrganicConversionMetrics;
+}
+
+/**
+ * Ước tính CTR tiêu chuẩn (benchmark) theo thứ hạng tìm kiếm tự nhiên của Google
+ */
+export function getSerpExpectedCtr(position: number): number {
+  if (position <= 1.2) return 28.0;
+  if (position <= 2.0) return 15.5;
+  if (position <= 3.0) return 10.5;
+  if (position <= 5.0) return 7.5;
+  if (position <= 7.0) return 5.8;
+  if (position <= 10.0) return 4.0;
+  if (position <= 15.0) return 2.2;
+  if (position <= 20.0) return 1.4;
+  return 0.8;
+}
+
+/**
+ * Phân loại mức độ ưu tiên tối ưu SERP CTR
+ * HIGH: vị trí 1-10, impressions lớn, CTR < benchmark
+ * MEDIUM: vị trí 10-20, impressions đáng kể
+ * LOW: vị trí > 20 (cần đẩy rank trước khi test CTR)
+ */
+export function categorizeSerpPriority(position: number, impressions: number, ctr: number): SerpPriority {
+  const benchmark = getSerpExpectedCtr(position);
+  if (position <= 10) {
+    if (impressions >= 3000 && ctr < benchmark) {
+      return "HIGH";
+    }
+    return "MEDIUM";
+  }
+  if (position <= 20) {
+    return impressions >= 2000 ? "MEDIUM" : "LOW";
+  }
+  return "LOW";
+}
+
