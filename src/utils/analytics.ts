@@ -461,4 +461,20 @@ export const analytics = {
       guide_target: guideTarget || "/huong-dan",
     });
   },
+
+  /**
+   * Product Discovery & Navigation tracking (Improvement 4)
+   */
+  trackProductToRelated: (currentProductId: string, relatedProductId: string) => {
+    sendEvent("product_to_related", {
+      current_product_id: currentProductId,
+      related_product_id: relatedProductId,
+    });
+  },
+
+  trackProductToShop: (currentProductId: string) => {
+    sendEvent("product_to_shop", {
+      current_product_id: currentProductId,
+    });
+  },
 };

@@ -196,9 +196,9 @@ export const DEFAULT_SEO_CONFIG: SeoConfigDatabase = {
     },
   },
   productTemplate: {
-    titleTemplate: "{product_name} | Thuê Acc TFT - ShopTFTMobile",
+    titleTemplate: "{product_name} | Acc TFT - {site_name}",
     descriptionTemplate:
-      "Thuê tài khoản TFT {product_name} ({type}) sở hữu {pet} kèm {arena}. Giá chỉ {price}. Bàn giao trực tiếp qua Zalo Tuấn Thái Bình TFT.",
+      "Xem thông tin acc TFT {product_name} ({type}) kèm {pet}, {arena} tại {site_name}. Bàn giao uy tín qua Zalo Tuấn Thái Bình TFT.",
     defaultOgImage: "/banner-seo.jpg",
   },
   redirects: [
@@ -259,42 +259,65 @@ export function formatProductSeo(
     mainArena?: string;
     price?: number;
     hourlyPrice?: number;
+    status?: string;
   },
   template: ProductSeoTemplate,
   siteName: string = "ShopTFTMobile"
 ): { title: string; description: string; ogImage: string } {
+  const rawTitle = (account.title || account.code).trim();
   const petName =
     account.mainChibi ||
-    (account.allChibi && account.allChibi.length > 0 ? account.allChibi[0] : "Linh Thú Đặc Biệt");
-  const arenaName = account.mainArena || "Sân đấu đẹp";
+    (account.allChibi && account.allChibi.length > 0 ? account.allChibi[0] : "");
+  const arenaName = account.mainArena || "";
   const typeName = account.type === "VIP" ? "Acc VIP" : "Acc Clone";
-  const priceDisplay = account.price
-    ? `${account.price.toLocaleString("vi-VN")}đ`
-    : account.hourlyPrice
-    ? `${account.hourlyPrice.toLocaleString("vi-VN")}đ/h`
-    : "Giá tốt";
+  const site = siteName || "ShopTFTMobile";
 
-  const replaceTokens = (str: string) => {
-    return str
-      .replace(/{product_name}/gi, account.title || account.code)
-      .replace(/{pet}/gi, petName)
-      .replace(/{arena}/gi, arenaName)
-      .replace(/{type}/gi, typeName)
-      .replace(/{price}/gi, priceDisplay)
-      .replace(/{site_name}/gi, siteName)
-      .replace(/\s+/g, " ")
-      .trim();
-  };
+  // Clean fallback values for tokens
+  const petText = petName ? petName : "";
+  const arenaText = arenaName ? arenaName : "";
 
-  const title = replaceTokens(template.titleTemplate || "{product_name} | ShopTFTMobile");
-  const description = replaceTokens(
+  // Title generation
+  const titlePattern = template.titleTemplate || "{product_name} | Acc TFT - {site_name}";
+  let generatedTitle = titlePattern
+    .replace(/{product_name}/gi, rawTitle)
+    .replace(/{type}/gi, typeName)
+    .replace(/{site_name}/gi, site)
+    .replace(/\s+/g, " ")
+    .trim();
+
+  // Intelligent truncation if title is too long (> 68 chars)
+  const suffix = ` | Acc TFT - ${site}`;
+  if (generatedTitle.length > 68 && rawTitle.length > 35) {
+    const maxNameLen = Math.max(15, 65 - suffix.length);
+    const truncatedName = rawTitle.slice(0, maxNameLen).trim().replace(/[,.-]+$/, "");
+    generatedTitle = `${truncatedName}...${suffix}`;
+  }
+
+  // Description generation
+  const descPattern =
     template.descriptionTemplate ||
-      "Thuê {product_name} ({type}) với {pet} và {arena}. Bàn giao nhanh qua Zalo."
-  );
+    "Xem thông tin acc TFT {product_name} ({type}) kèm {pet}, {arena} tại {site_name}. Bàn giao uy tín qua Zalo Tuấn Thái Bình TFT.";
+
+  let generatedDesc = descPattern
+    .replace(/{product_name}/gi, rawTitle)
+    .replace(/{pet}/gi, petText)
+    .replace(/{arena}/gi, arenaText)
+    .replace(/{type}/gi, typeName)
+    .replace(/{site_name}/gi, site);
+
+  // Clean separators: remove empty commas, dangling hyphens, double spaces
+  generatedDesc = generatedDesc
+    .replace(/kèm\s*,\s*/gi, "kèm ")
+    .replace(/,\s*,/g, ",")
+    .replace(/\(\s*\)/g, "")
+    .replace(/\s*-\s*-+\s*/g, " - ")
+    .replace(/\s*,\s*tại/gi, " tại")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 
   return {
-    title,
-    description,
+    title: generatedTitle,
+    description: generatedDesc,
     ogImage: template.defaultOgImage || "/banner-seo.jpg",
   };
 }

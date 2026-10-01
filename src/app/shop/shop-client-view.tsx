@@ -601,7 +601,7 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
         {/* Page Title & Subtitle - Tinh gọn trên mobile */}
         <div className="mb-4 sm:mb-6">
           <h1 className="text-xl sm:text-3xl lg:text-4xl font-heading font-bold text-white tracking-tight leading-tight">
-            Kho Acc TFT
+            Kho Acc TFT - ĐTCL
           </h1>
           <p className="mt-1 text-zinc-400 text-xs sm:text-sm max-w-2xl font-normal leading-relaxed">
             <span className="sm:hidden">Tìm acc theo Pet, Sân Đấu và mức giá.</span>

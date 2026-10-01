@@ -82,27 +82,41 @@ export default async function AccountDetailPage({ params }: PageProps) {
   const cleanCode = account.code.replace(/^MS:\s*/i, "").trim();
   const accountUrl = `https://www.shoptftmobile.net/acc/${encodeURIComponent(cleanCode || account.id)}`;
 
-  const breadcrumbJsonLd = {
+  const seoConfig = await getSeoConfig();
+  const formatted = formatProductSeo(account, seoConfig.productTemplate, seoConfig.global.siteName);
+
+  const productJsonLd = {
     "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
+    "@graph": [
       {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Trang chủ",
-        "item": "https://www.shoptftmobile.net",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Trang chủ",
+            "item": "https://www.shoptftmobile.net",
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Kho Acc",
+            "item": "https://www.shoptftmobile.net/shop",
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": account.title,
+            "item": accountUrl,
+          },
+        ],
       },
       {
-        "@type": "ListItem",
-        "position": 2,
-        "name": "Kho Acc",
-        "item": "https://www.shoptftmobile.net/shop",
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": account.title,
-        "item": accountUrl,
+        "@type": "WebPage",
+        "name": formatted.title,
+        "description": formatted.description,
+        "url": accountUrl,
+        "inLanguage": "vi-VN",
       },
     ],
   };
@@ -111,7 +125,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
       />
       <AccountDetailView account={account} relatedAccounts={relatedAccounts} />
     </>

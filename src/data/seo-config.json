@@ -125,8 +125,8 @@
     }
   },
   "productTemplate": {
-    "titleTemplate": "{product_name} | Thuê Acc TFT - ShopTFTMobile",
-    "descriptionTemplate": "Thuê tài khoản TFT {product_name} ({type}) sở hữu {pet} kèm {arena}. Giá chỉ {price}. Bàn giao trực tiếp qua Zalo Tuấn Thái Bình TFT.",
+    "titleTemplate": "{product_name} | Acc TFT - {site_name}",
+    "descriptionTemplate": "Xem thông tin acc TFT {product_name} ({type}) kèm {pet}, {arena} tại {site_name}. Bàn giao uy tín qua Zalo Tuấn Thái Bình TFT.",
     "defaultOgImage": "/banner-seo.jpg"
   },
   "redirects": [

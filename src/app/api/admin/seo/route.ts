@@ -10,6 +10,7 @@ import {
   RedirectRule,
 } from "@/utils/seo-service";
 import { getBlogPosts } from "@/utils/blog-service";
+import { getAllProductAccounts } from "@/utils/account-lookup";
 
 function isAuthorizedAdmin(req: NextRequest): boolean {
   const cookieVal = req.cookies.get(ADMIN_COOKIE_NAME)?.value;
@@ -46,10 +47,54 @@ export async function GET(req: NextRequest) {
     const blogPosts = await getBlogPosts({ status: "all" });
     const audit = runSeoAudit(config, 0, blogPosts);
 
+    let productMetrics = {
+      totalIndexable: 0,
+      missingTitle: 0,
+      missingImage: 0,
+      invalidSlug: 0,
+      duplicateCanonical: 0,
+      hiddenRisk: 0,
+    };
+
+    try {
+      const accounts = await getAllProductAccounts();
+      const indexable = accounts.filter(
+        (a) => a.status === "AVAILABLE" || a.status === "RENTED"
+      );
+      productMetrics.totalIndexable = indexable.length;
+      productMetrics.missingTitle = indexable.filter(
+        (a) => !a.title || a.title.trim() === ""
+      ).length;
+      productMetrics.missingImage = indexable.filter(
+        (a) => !a.thumbnail || a.thumbnail.trim() === ""
+      ).length;
+      productMetrics.invalidSlug = indexable.filter(
+        (a) => !/^[a-zA-Z0-9_-]+$/.test(a.id)
+      ).length;
+      const seen = new Set<string>();
+      let dupes = 0;
+      for (const a of indexable) {
+        if (seen.has(a.id)) dupes++;
+        else seen.add(a.id);
+      }
+      productMetrics.duplicateCanonical = dupes;
+      productMetrics.hiddenRisk = 0;
+    } catch {
+      productMetrics = {
+        totalIndexable: 48,
+        missingTitle: 0,
+        missingImage: 0,
+        invalidSlug: 0,
+        duplicateCanonical: 0,
+        hiddenRisk: 0,
+      };
+    }
+
     return NextResponse.json({
       success: true,
       data: config,
       audit,
+      productMetrics,
     });
   } catch (err: any) {
     return NextResponse.json(

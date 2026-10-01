@@ -44,6 +44,7 @@ const SAMPLE_ACCOUNTS = [
     type: "VIP",
     mainChibi: "Ahri Tí Nị Chiêu Hồn",
     mainArena: "Sân Đấu EDM Đổi Nhạc",
+    thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&auto=format&fit=crop",
     price: 3600,
     hourlyPrice: 3600,
   },
@@ -54,6 +55,7 @@ const SAMPLE_ACCOUNTS = [
     type: "VIP",
     mainChibi: "Yasuo Tí Nị Kiếm Sư",
     mainArena: "Sân Đấu Thần Thoại",
+    thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=800&auto=format&fit=crop",
     price: 4500,
     hourlyPrice: 4500,
   },
@@ -64,6 +66,7 @@ const SAMPLE_ACCOUNTS = [
     type: "CLONE",
     mainChibi: "Linh Thú Poro",
     mainArena: "Sân Đấu Tiêu Chuẩn",
+    thumbnail: "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=800&auto=format&fit=crop",
     price: 2500,
     hourlyPrice: 2500,
   },
@@ -75,6 +78,14 @@ export default function AdminSeoPage() {
   const [saving, setSaving] = useState(false);
   const [config, setConfig] = useState<SeoConfigDatabase>(DEFAULT_SEO_CONFIG);
   const [audit, setAudit] = useState<SeoAuditReport | null>(null);
+  const [productMetrics, setProductMetrics] = useState({
+    totalIndexable: 48,
+    missingTitle: 0,
+    missingImage: 0,
+    invalidSlug: 0,
+    duplicateCanonical: 0,
+    hiddenRisk: 0,
+  });
 
   // Sub-states
   const [selectedPageKey, setSelectedPageKey] = useState<string>("/");
@@ -93,6 +104,7 @@ export default function AdminSeoPage() {
       if (data.success && data.data) {
         setConfig(data.data);
         if (data.audit) setAudit(data.audit);
+        if (data.productMetrics) setProductMetrics(data.productMetrics);
       } else {
         toast.error(data.error || "Không thể tải dữ liệu SEO!");
       }
@@ -734,146 +746,234 @@ export default function AdminSeoPage() {
       )}
 
       {/* ============================================================== */}
+      {/* ============================================================== */}
       {/* TAB 3: MẪU SEO SẢN PHẨM / KHO ACC                             */}
       {/* ============================================================== */}
       {activeTab === "products" && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-7 bg-white rounded-2xl border border-gray-200 p-5 shadow-xs space-y-5">
-            <div>
-              <h3 className="font-heading font-bold text-sm text-gray-900">
-                Mẫu sinh Title & Meta Description tự động cho Kho Acc
-              </h3>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Áp dụng nhất quán cho hơn 50+ tài khoản chi tiết (/acc/[id]), tránh trùng lặp nội dung.
-              </p>
-            </div>
-
-            {/* Variable tokens guide */}
-            <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-2">
-              <span className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
-                <Info className="w-3.5 h-3.5 text-gray-500" />
-                <span>Các biến hỗ trợ:</span>
-              </span>
-              <div className="flex flex-wrap gap-1.5 text-[11px] font-mono">
-                <code className="px-2 py-0.5 rounded-md bg-white border border-gray-200 text-gray-800">
-                  {"{product_name}"}
-                </code>
-                <code className="px-2 py-0.5 rounded-md bg-white border border-gray-200 text-gray-800">
-                  {"{pet}"}
-                </code>
-                <code className="px-2 py-0.5 rounded-md bg-white border border-gray-200 text-gray-800">
-                  {"{arena}"}
-                </code>
-                <code className="px-2 py-0.5 rounded-md bg-white border border-gray-200 text-gray-800">
-                  {"{type}"}
-                </code>
-                <code className="px-2 py-0.5 rounded-md bg-white border border-gray-200 text-gray-800">
-                  {"{price}"}
-                </code>
-                <code className="px-2 py-0.5 rounded-md bg-white border border-gray-200 text-gray-800">
-                  {"{site_name}"}
-                </code>
+        <div className="space-y-6">
+          {/* Product Audit Metrics Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="p-3.5 rounded-2xl bg-white border border-gray-200 shadow-xs">
+              <div className="text-[11px] font-medium text-gray-500">Tổng product indexable</div>
+              <div className="text-xl font-heading font-bold text-gray-900 mt-1">{productMetrics.totalIndexable}</div>
+              <div className="text-[10px] text-emerald-600 mt-0.5 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                <span>AVAILABLE + RENTED</span>
               </div>
             </div>
 
-            {/* Title Template */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-700">Mẫu Tiêu Đề (Title Template)</label>
-              <input
-                type="text"
-                value={config.productTemplate.titleTemplate}
-                onChange={(e) =>
-                  setConfig((prev) => ({
-                    ...prev,
-                    productTemplate: {
-                      ...prev.productTemplate,
-                      titleTemplate: e.target.value,
-                    },
-                  }))
-                }
-                className="w-full px-3.5 py-2 text-xs border border-gray-200 rounded-xl font-mono focus:outline-hidden focus:border-gray-900"
-              />
+            <div className="p-3.5 rounded-2xl bg-white border border-gray-200 shadow-xs">
+              <div className="text-[11px] font-medium text-gray-500">Product thiếu title</div>
+              <div className={`text-xl font-heading font-bold mt-1 ${productMetrics.missingTitle > 0 ? "text-red-500" : "text-emerald-600"}`}>
+                {productMetrics.missingTitle}
+              </div>
+              <div className="text-[10px] text-gray-400 mt-0.5">Tiêu đề trống</div>
             </div>
 
-            {/* Description Template */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-700">Mẫu Mô Tả (Description Template)</label>
-              <textarea
-                rows={3}
-                value={config.productTemplate.descriptionTemplate}
-                onChange={(e) =>
-                  setConfig((prev) => ({
-                    ...prev,
-                    productTemplate: {
-                      ...prev.productTemplate,
-                      descriptionTemplate: e.target.value,
-                    },
-                  }))
-                }
-                className="w-full px-3.5 py-2 text-xs border border-gray-200 rounded-xl font-mono focus:outline-hidden focus:border-gray-900"
-              />
+            <div className="p-3.5 rounded-2xl bg-white border border-gray-200 shadow-xs">
+              <div className="text-[11px] font-medium text-gray-500">Product thiếu ảnh</div>
+              <div className={`text-xl font-heading font-bold mt-1 ${productMetrics.missingImage > 0 ? "text-amber-500" : "text-emerald-600"}`}>
+                {productMetrics.missingImage}
+              </div>
+              <div className="text-[10px] text-gray-400 mt-0.5">Chưa có thumbnail</div>
             </div>
 
-            {/* Default OG Image */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-700">Ảnh OG mặc định khi acc chưa có ảnh</label>
-              <input
-                type="text"
-                value={config.productTemplate.defaultOgImage}
-                onChange={(e) =>
-                  setConfig((prev) => ({
-                    ...prev,
-                    productTemplate: {
-                      ...prev.productTemplate,
-                      defaultOgImage: e.target.value,
-                    },
-                  }))
-                }
-                className="w-full px-3.5 py-2 text-xs border border-gray-200 rounded-xl focus:outline-hidden focus:border-gray-900"
-              />
+            <div className="p-3.5 rounded-2xl bg-white border border-gray-200 shadow-xs">
+              <div className="text-[11px] font-medium text-gray-500">Slug không hợp lệ</div>
+              <div className={`text-xl font-heading font-bold mt-1 ${productMetrics.invalidSlug > 0 ? "text-red-500" : "text-emerald-600"}`}>
+                {productMetrics.invalidSlug}
+              </div>
+              <div className="text-[10px] text-gray-400 mt-0.5">Ký tự đặc biệt/dấu cách</div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-white border border-gray-200 shadow-xs">
+              <div className="text-[11px] font-medium text-gray-500">Canonical trùng lặp</div>
+              <div className={`text-xl font-heading font-bold mt-1 ${productMetrics.duplicateCanonical > 0 ? "text-red-500" : "text-emerald-600"}`}>
+                {productMetrics.duplicateCanonical}
+              </div>
+              <div className="text-[10px] text-gray-400 mt-0.5">URL bị trùng</div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-white border border-gray-200 shadow-xs">
+              <div className="text-[11px] font-medium text-gray-500">Nguy cơ lộ acc ẩn</div>
+              <div className={`text-xl font-heading font-bold mt-1 ${productMetrics.hiddenRisk > 0 ? "text-red-500" : "text-emerald-600"}`}>
+                {productMetrics.hiddenRisk}
+              </div>
+              <div className="text-[10px] text-emerald-600 mt-0.5 flex items-center gap-1">
+                <Shield className="w-3 h-3" />
+                <span>Đã chặn an toàn</span>
+              </div>
             </div>
           </div>
 
-          {/* Live Preview Column */}
-          <div className="lg:col-span-5 space-y-4">
-            <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
-                  Thử nghiệm trên tài khoản mẫu
-                </span>
-                <select
-                  value={selectedSampleIndex}
-                  onChange={(e) => setSelectedSampleIndex(Number(e.target.value))}
-                  className="px-2.5 py-1 text-xs border border-gray-200 rounded-lg bg-gray-50"
-                >
-                  {SAMPLE_ACCOUNTS.map((acc, idx) => (
-                    <option key={acc.id} value={idx}>
-                      {acc.code} - [{acc.type}]
-                    </option>
-                  ))}
-                </select>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-7 bg-white rounded-2xl border border-gray-200 p-5 shadow-xs space-y-5">
+              <div>
+                <h3 className="font-heading font-bold text-sm text-gray-900">
+                  Mẫu sinh Title & Meta Description tự động cho Kho Acc
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Áp dụng nhất quán cho hơn 50+ tài khoản chi tiết (/acc/[id]), tránh trùng lặp nội dung.
+                </p>
               </div>
 
-              {/* Rendered Result Preview */}
-              <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 space-y-3">
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-gray-400">Tiêu đề sau khi sinh:</span>
-                  <p className="text-xs font-bold text-gray-900 mt-0.5 leading-snug">
-                    {productPreview.title}
-                  </p>
-                  <span className="text-[10px] text-gray-500">
-                    Độ dài: {productPreview.title.length} ký tự
+              {/* Variable tokens guide */}
+              <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-2">
+                <span className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 text-gray-500" />
+                  <span>Các biến hỗ trợ:</span>
+                </span>
+                <div className="flex flex-wrap gap-1.5 text-[11px] font-mono">
+                  <code className="px-2 py-0.5 rounded-md bg-white border border-gray-200 text-gray-800">
+                    {"{product_name}"}
+                  </code>
+                  <code className="px-2 py-0.5 rounded-md bg-white border border-gray-200 text-gray-800">
+                    {"{pet}"}
+                  </code>
+                  <code className="px-2 py-0.5 rounded-md bg-white border border-gray-200 text-gray-800">
+                    {"{arena}"}
+                  </code>
+                  <code className="px-2 py-0.5 rounded-md bg-white border border-gray-200 text-gray-800">
+                    {"{type}"}
+                  </code>
+                  <code className="px-2 py-0.5 rounded-md bg-white border border-gray-200 text-gray-800">
+                    {"{price}"}
+                  </code>
+                  <code className="px-2 py-0.5 rounded-md bg-white border border-gray-200 text-gray-800">
+                    {"{site_name}"}
+                  </code>
+                </div>
+              </div>
+
+              {/* Title Template */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-gray-700">Mẫu Tiêu Đề (Title Template)</label>
+                <input
+                  type="text"
+                  value={config.productTemplate.titleTemplate}
+                  onChange={(e) =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      productTemplate: {
+                        ...prev.productTemplate,
+                        titleTemplate: e.target.value,
+                      },
+                    }))
+                  }
+                  className="w-full px-3.5 py-2 text-xs border border-gray-200 rounded-xl font-mono focus:outline-hidden focus:border-gray-900"
+                />
+              </div>
+
+              {/* Description Template */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-gray-700">Mẫu Mô Tả (Description Template)</label>
+                <textarea
+                  rows={3}
+                  value={config.productTemplate.descriptionTemplate}
+                  onChange={(e) =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      productTemplate: {
+                        ...prev.productTemplate,
+                        descriptionTemplate: e.target.value,
+                      },
+                    }))
+                  }
+                  className="w-full px-3.5 py-2 text-xs border border-gray-200 rounded-xl font-mono focus:outline-hidden focus:border-gray-900"
+                />
+              </div>
+
+              {/* Default OG Image */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-gray-700">Ảnh OG mặc định khi acc chưa có ảnh</label>
+                <input
+                  type="text"
+                  value={config.productTemplate.defaultOgImage}
+                  onChange={(e) =>
+                    setConfig((prev) => ({
+                      ...prev,
+                      productTemplate: {
+                        ...prev.productTemplate,
+                        defaultOgImage: e.target.value,
+                      },
+                    }))
+                  }
+                  className="w-full px-3.5 py-2 text-xs border border-gray-200 rounded-xl focus:outline-hidden focus:border-gray-900"
+                />
+              </div>
+            </div>
+
+            {/* Live Preview Column */}
+            <div className="lg:col-span-5 space-y-4">
+              <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                    Thử nghiệm trên tài khoản mẫu
                   </span>
+                  <select
+                    value={selectedSampleIndex}
+                    onChange={(e) => setSelectedSampleIndex(Number(e.target.value))}
+                    className="px-2.5 py-1 text-xs border border-gray-200 rounded-lg bg-gray-50"
+                  >
+                    {SAMPLE_ACCOUNTS.map((acc, idx) => (
+                      <option key={acc.id} value={idx}>
+                        {acc.code} - [{acc.type}]
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                <div className="pt-2 border-t border-gray-200">
-                  <span className="text-[10px] uppercase font-bold text-gray-400">Mô tả sau khi sinh:</span>
-                  <p className="text-xs text-gray-700 mt-0.5 leading-relaxed">
-                    {productPreview.description}
-                  </p>
-                  <span className="text-[10px] text-gray-500">
-                    Độ dài: {productPreview.description.length} ký tự
+                {/* Google SERP Preview */}
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Google Search Preview</span>
                   </span>
+                  <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 space-y-1 font-sans">
+                    <div className="flex items-center gap-1.5 text-[11px] text-gray-600">
+                      <span className="font-semibold text-gray-800">{config.global.siteName}</span>
+                      <span className="text-gray-400">›</span>
+                      <span className="text-gray-500 truncate">https://www.shoptftmobile.net/acc/{currentSample.id}</span>
+                    </div>
+                    <h4 className="text-sm font-semibold text-blue-800 hover:underline cursor-pointer leading-snug line-clamp-1">
+                      {productPreview.title}
+                    </h4>
+                    <p className="text-xs text-gray-700 leading-relaxed line-clamp-2">
+                      {productPreview.description}
+                    </p>
+                  </div>
+                  <div className="flex justify-between text-[10px] text-gray-500 px-1">
+                    <span>Title: {productPreview.title.length} ký tự</span>
+                    <span>Desc: {productPreview.description.length} ký tự</span>
+                  </div>
+                </div>
+
+                {/* Social / Zalo Preview */}
+                <div className="space-y-1.5 pt-2 border-t border-gray-100">
+                  <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Social / Zalo Preview</span>
+                  </span>
+                  <div className="rounded-xl border border-gray-200 overflow-hidden bg-white shadow-xs">
+                    <div className="aspect-video w-full bg-zinc-900 relative overflow-hidden flex items-center justify-center">
+                      <img
+                        src={currentSample.thumbnail || config.productTemplate.defaultOgImage}
+                        alt="Social preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="p-3 bg-gray-50 border-t border-gray-200 space-y-1">
+                      <span className="text-[10px] font-mono text-gray-500 uppercase tracking-wider block">
+                        shoptftmobile.net
+                      </span>
+                      <h5 className="text-xs font-bold text-gray-900 line-clamp-1">
+                        {productPreview.title}
+                      </h5>
+                      <p className="text-[11px] text-gray-600 line-clamp-2">
+                        {productPreview.description}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

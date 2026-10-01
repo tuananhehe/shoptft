@@ -299,6 +299,11 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
             <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
             <Link
               href="/shop"
+              onClick={() => {
+                try {
+                  analytics.trackProductToShop(account.code || account.id);
+                } catch {}
+              }}
               className="hover:text-white transition-colors"
             >
               Kho Acc
@@ -361,7 +366,7 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
               >
                 <LazyAccountImage
                   src={account.thumbnail}
-                  alt={`Thuê acc TFT ${account.code} ${account.title}`}
+                  alt={`Acc TFT ${account.title}`}
                   priority
                   containerClassName="w-full h-full flex items-center justify-center"
                   className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
@@ -485,32 +490,75 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                 {account.title}
               </h1>
 
-              {/* Items & Arenas */}
-              <div className="pt-3 border-t border-white/[0.08] space-y-2">
-                <div className="text-xs text-zinc-400">Chi tiết vật phẩm trong tài khoản:</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {allChibis.map((chibi, idx) => (
-                    <span
-                      key={`chibi-${idx}`}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/[0.06] border border-white/10 text-zinc-200 text-xs font-medium"
-                    >
-                      <span className="text-zinc-400">Pet:</span>
-                      <span>{chibi}</span>
-                    </span>
-                  ))}
+              {account.description && (
+                <p className="text-sm text-zinc-300 leading-relaxed">
+                  {account.description}
+                </p>
+              )}
 
-                  {allArenas.map((arena, idx) => (
-                    <span
-                      key={`arena-${idx}`}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/[0.06] border border-white/10 text-zinc-200 text-xs font-medium"
-                    >
-                      <span className="text-zinc-400">Sân:</span>
-                      <span>{arena}</span>
-                    </span>
-                  ))}
+              {/* Thông tin acc */}
+              <div className="pt-3 border-t border-white/[0.08] space-y-3">
+                <h2 className="text-xs uppercase tracking-wider font-semibold text-zinc-400">
+                  Thông tin acc
+                </h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                  <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                    <div className="text-zinc-500 text-[11px]">Phân loại</div>
+                    <div className="font-semibold text-white mt-0.5">{isClone ? "Acc Clone (Chính chủ)" : "Acc VIP Thuê"}</div>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                    <div className="text-zinc-500 text-[11px]">Mức Rank</div>
+                    <div className="font-semibold text-white mt-0.5">{account.rank || "Chưa rank"}</div>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                    <div className="text-zinc-500 text-[11px]">Trạng thái</div>
+                    <div className={`font-semibold mt-0.5 ${isRented ? "text-amber-400" : "text-emerald-400"}`}>
+                      {isRented ? "Đang thuê" : "Còn sẵn sàng"}
+                    </div>
+                  </div>
+                </div>
 
-                  {account.features &&
-                    account.features.map((feat, idx) => (
+                {allChibis.length > 0 && (
+                  <div className="pt-2">
+                    <h2 className="text-xs uppercase tracking-wider font-semibold text-zinc-400 mb-2">
+                      Pet / Chibi
+                    </h2>
+                    <div className="flex flex-wrap gap-1.5">
+                      {allChibis.map((chibi, idx) => (
+                        <span
+                          key={`chibi-${idx}`}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.06] border border-white/10 text-zinc-200 text-xs font-medium"
+                        >
+                          <Sparkles className="w-3 h-3 text-amber-400" />
+                          <span>{chibi}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {allArenas.length > 0 && (
+                  <div className="pt-2">
+                    <h2 className="text-xs uppercase tracking-wider font-semibold text-zinc-400 mb-2">
+                      Sân Đấu
+                    </h2>
+                    <div className="flex flex-wrap gap-1.5">
+                      {allArenas.map((arena, idx) => (
+                        <span
+                          key={`arena-${idx}`}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.06] border border-white/10 text-zinc-200 text-xs font-medium"
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                          <span>{arena}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {account.features && account.features.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {account.features.map((feat, idx) => (
                       <span
                         key={`feat-${idx}`}
                         className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.08] text-zinc-300 text-xs"
@@ -519,7 +567,8 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                         <span>{feat}</span>
                       </span>
                     ))}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -529,7 +578,7 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                 /* Clone Account */
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-sm font-semibold text-white">Gói Sở Hữu Trọn Đời:</h2>
+                    <h2 className="text-sm font-semibold text-white">Gói thuê: Sở Hữu Trọn Đời</h2>
                     <span className="text-xs text-zinc-400">Bàn giao về mail chính chủ</span>
                   </div>
 
@@ -544,7 +593,7 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                 /* VIP Account Package Selector */
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-sm font-semibold text-white">Chọn Gói Thuê:</h2>
+                    <h2 className="text-sm font-semibold text-white">Gói thuê</h2>
                     <span className="text-xs text-zinc-400">Bàn giao qua Zalo</span>
                   </div>
 
@@ -653,7 +702,7 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-lg sm:text-xl font-heading font-bold text-white">
-                    {isRented ? "Tìm acc tương tự đang còn" : "Tài khoản tương tự"}
+                    {isRented ? "Acc tương tự đang còn" : "Acc tương tự"}
                   </h2>
                   <p className="text-zinc-400 text-xs">
                     {isRented
@@ -685,13 +734,18 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                     <Link
                       key={rel.id}
                       href={relUrl}
+                      onClick={() => {
+                        try {
+                          analytics.trackProductToRelated(account.code || account.id, rel.code || rel.id);
+                        } catch {}
+                      }}
                       className="bg-[#121214] rounded-2xl border border-white/[0.08] hover:border-white/20 p-3 transition-all flex flex-col justify-between group"
                     >
                       <div>
                         <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-[#09090b] mb-2.5">
                           <LazyAccountImage
                             src={rel.thumbnail}
-                            alt={rel.title}
+                            alt={`Acc TFT ${rel.title}`}
                             containerClassName="w-full h-full flex items-center justify-center"
                             className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                           />
@@ -734,10 +788,10 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
         {/* Hướng Dẫn & Cẩm Nang Liên Quan (Shop -> Content) */}
         <div className="mt-8 p-4 sm:p-5 rounded-2xl bg-[#121214] border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-0.5">
-            <h3 className="text-xs sm:text-sm font-heading font-bold text-white flex items-center gap-1.5">
+            <h2 className="text-xs sm:text-sm font-heading font-bold text-white flex items-center gap-1.5">
               <BookOpen className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>Hướng Dẫn & Cẩm Nang Hỗ Trợ</span>
-            </h3>
+              <span>Hướng dẫn liên quan</span>
+            </h2>
             <p className="text-[11px] text-zinc-400">
               Cẩm nang bảo mật Riot, mẹo chọn acc theo Pet và giải đáp thắc mắc khi thuê.
             </p>
