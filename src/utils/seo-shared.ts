@@ -153,13 +153,13 @@ export const DEFAULT_SEO_CONFIG: SeoConfigDatabase = {
     "/shop": {
       path: "/shop",
       name: "Kho Acc",
-      title: "Kho Acc TFT - ĐTCL | ShopTFTMobile",
+      title: "Kho Acc TFT - ĐTCL | Pet, Chibi & Sân Đấu | ShopTFTMobile",
       description:
-        "Tìm tài khoản TFT/ĐTCL theo Pet, Chibi, Sân Đấu, loại acc và mức giá tại ShopTFTMobile.",
+        "Xem kho acc TFT/ĐTCL theo Pet, Chibi, Sân Đấu, VIP/Clone và mức giá tại ShopTFTMobile. Kiểm tra trạng thái acc và chọn tài khoản phù hợp.",
       canonical: "https://www.shoptftmobile.net/shop",
-      ogTitle: "Kho Acc TFT - ĐTCL | ShopTFTMobile",
+      ogTitle: "Kho Acc TFT - ĐTCL | Pet, Chibi & Sân Đấu | ShopTFTMobile",
       ogDescription:
-        "Tìm tài khoản TFT/ĐTCL theo Pet, Chibi, Sân Đấu, loại acc và mức giá tại ShopTFTMobile.",
+        "Xem kho acc TFT/ĐTCL theo Pet, Chibi, Sân Đấu, VIP/Clone và mức giá tại ShopTFTMobile. Kiểm tra trạng thái acc và chọn tài khoản phù hợp.",
       ogImage: "/banner-seo.jpg",
       robots: { index: true, follow: true },
     },
@@ -217,9 +217,9 @@ export const DEFAULT_SEO_CONFIG: SeoConfigDatabase = {
     },
   },
   productTemplate: {
-    titleTemplate: "{product_name} | Acc TFT - {site_name}",
+    titleTemplate: "{product_name} | Acc TFT - ĐTCL | {site_name}",
     descriptionTemplate:
-      "Xem thông tin acc TFT {product_name} ({type}) kèm {pet}, {arena} tại {site_name}. Bàn giao uy tín qua Zalo Tuấn Thái Bình TFT.",
+      "Xem {product_name} ({type}) kèm {pet}, {arena} tại {site_name}. Trạng thái {status}, giá thuê minh bạch và gợi ý tài khoản tương tự.",
     defaultOgImage: "/banner-seo.jpg",
   },
   redirects: [
@@ -278,6 +278,7 @@ export const DEFAULT_SEO_CONFIG: SeoConfigDatabase = {
       "/*?*price=*",
       "/*?*type=*",
       "/*?*focus=*",
+      "/*?*status=*",
       "/*?*page=*",
     ],
     crawlDelay: 0,
@@ -295,6 +296,7 @@ export function formatProductSeo(
     mainChibi?: string;
     allChibi?: string[];
     mainArena?: string;
+    allArenas?: string[];
     price?: number;
     hourlyPrice?: number;
     status?: string;
@@ -306,8 +308,11 @@ export function formatProductSeo(
   const petName =
     account.mainChibi ||
     (account.allChibi && account.allChibi.length > 0 ? account.allChibi[0] : "");
-  const arenaName = account.mainArena || "";
+  const arenaName =
+    account.mainArena ||
+    (account.allArenas && account.allArenas.length > 0 ? account.allArenas[0] : "");
   const typeName = account.type === "VIP" ? "Acc VIP" : "Acc Clone";
+  const statusText = account.status === "RENTED" ? "đang có khách thuê" : "còn sẵn sàng";
   const site = siteName || "ShopTFTMobile";
 
   // Clean fallback values for tokens
@@ -315,7 +320,8 @@ export function formatProductSeo(
   const arenaText = arenaName ? arenaName : "";
 
   // Title generation
-  const titlePattern = template.titleTemplate || "{product_name} | Acc TFT - {site_name}";
+  const titlePattern =
+    template.titleTemplate || "{product_name} | Acc TFT - ĐTCL | {site_name}";
   let generatedTitle = titlePattern
     .replace(/{product_name}/gi, rawTitle)
     .replace(/{type}/gi, typeName)
@@ -324,7 +330,7 @@ export function formatProductSeo(
     .trim();
 
   // Intelligent truncation if title is too long (> 68 chars)
-  const suffix = ` | Acc TFT - ${site}`;
+  const suffix = ` | Acc TFT - ĐTCL | ${site}`;
   if (generatedTitle.length > 68 && rawTitle.length > 35) {
     const maxNameLen = Math.max(15, 65 - suffix.length);
     const truncatedName = rawTitle.slice(0, maxNameLen).trim().replace(/[,.-]+$/, "");
@@ -334,18 +340,20 @@ export function formatProductSeo(
   // Description generation
   const descPattern =
     template.descriptionTemplate ||
-    "Xem thông tin acc TFT {product_name} ({type}) kèm {pet}, {arena} tại {site_name}. Bàn giao uy tín qua Zalo Tuấn Thái Bình TFT.";
+    "Xem chi tiết {product_name} ({type}) kèm {pet}, {arena} tại {site_name}. Trạng thái {status}, giá thuê minh bạch và gợi ý tài khoản tương tự.";
 
   let generatedDesc = descPattern
     .replace(/{product_name}/gi, rawTitle)
     .replace(/{pet}/gi, petText)
     .replace(/{arena}/gi, arenaText)
     .replace(/{type}/gi, typeName)
+    .replace(/{status}/gi, statusText)
     .replace(/{site_name}/gi, site);
 
   // Clean separators: remove empty commas, dangling hyphens, double spaces
   generatedDesc = generatedDesc
     .replace(/kèm\s*,\s*/gi, "kèm ")
+    .replace(/kèm\s+tại/gi, "tại")
     .replace(/,\s*,/g, ",")
     .replace(/\(\s*\)/g, "")
     .replace(/\s*-\s*-+\s*/g, " - ")

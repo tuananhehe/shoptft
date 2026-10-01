@@ -366,7 +366,7 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
               >
                 <LazyAccountImage
                   src={account.thumbnail}
-                  alt={`Acc TFT ${account.title}`}
+                  alt={`Acc TFT ${account.title} - Mã ${account.code}`}
                   priority
                   containerClassName="w-full h-full flex items-center justify-center"
                   className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"

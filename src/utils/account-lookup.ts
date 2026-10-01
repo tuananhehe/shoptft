@@ -561,6 +561,7 @@ export const getRelatedAccounts = cache(async (
       .select("id, code, type, title, rank, price, hourly_price, daily_price, period_price, period_unit, price_display_type, custom_price, custom_price_unit, champions, arenas, image_url, status, rented_until, description, created_at")
       .eq("type", current.type)
       .neq("id", current.id)
+      .neq("status", "HIDDEN")
       .order("created_at", { ascending: false })
       .limit(24);
 

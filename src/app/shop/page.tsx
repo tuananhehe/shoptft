@@ -15,13 +15,20 @@ interface ShopPageProps {
 
 export async function generateMetadata({ searchParams }: ShopPageProps): Promise<Metadata> {
   const resolvedSearchParams = searchParams ? await searchParams : {};
-  const hasFilterParams = Object.keys(resolvedSearchParams).length > 0;
+  const hasFilterParams = Object.keys(resolvedSearchParams).some((k) => {
+    const val = resolvedSearchParams[k];
+    return val !== undefined && val !== "" && (Array.isArray(val) ? val.length > 0 : true);
+  });
 
-  const canonicalUrl = "https://www.shoptftmobile.net/shop";
-  const title = "Kho Acc TFT - ĐTCL | ShopTFTMobile";
+  const seoConfig = await getSeoConfig();
+  const pageConfig = seoConfig.pages["/shop"];
+
+  const canonicalUrl = pageConfig?.canonical || "https://www.shoptftmobile.net/shop";
+  const title = pageConfig?.title || "Kho Acc TFT - ĐTCL | Pet, Chibi & Sân Đấu | ShopTFTMobile";
   const description =
-    "Tìm tài khoản TFT/ĐTCL theo Pet, Chibi, Sân Đấu, loại acc và mức giá tại ShopTFTMobile.";
-  const ogImg = "https://www.shoptftmobile.net/banner-seo.jpg";
+    pageConfig?.description ||
+    "Xem kho acc TFT/ĐTCL theo Pet, Chibi, Sân Đấu, VIP/Clone và mức giá tại ShopTFTMobile. Kiểm tra trạng thái acc và chọn tài khoản phù hợp.";
+  const ogImg = pageConfig?.ogImage || "https://www.shoptftmobile.net/banner-seo.jpg";
 
   return {
     title: {
@@ -35,13 +42,13 @@ export async function generateMetadata({ searchParams }: ShopPageProps): Promise
       title,
       description,
       url: canonicalUrl,
-      siteName: "ShopTFTMobile",
+      siteName: seoConfig.global.siteName || "ShopTFTMobile",
       images: [
         {
           url: ogImg,
           width: 1200,
           height: 630,
-          alt: "Kho Acc TFT - ĐTCL | ShopTFTMobile",
+          alt: title,
         },
       ],
       locale: "vi_VN",
@@ -69,7 +76,7 @@ function ShopLoadingSkeleton() {
             Kho Acc TFT - ĐTCL
           </h1>
           <p className="text-xs sm:text-sm text-zinc-400">
-            Tìm kiếm và lựa chọn tài khoản ĐTCL theo Linh Thú Tí Nị, Sân Đấu, loại acc VIP hoặc Clone giá tốt tại ShopTFTMobile.
+            Tìm acc theo Pet, Chibi, Sân Đấu, loại tài khoản và mức giá phù hợp.
           </p>
         </div>
         <div className="h-12 sm:h-14 bg-[#141414] border border-white/[0.08] rounded-2xl mb-4 animate-pulse" />

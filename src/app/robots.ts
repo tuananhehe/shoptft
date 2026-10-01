@@ -32,6 +32,7 @@ export default function robots(): MetadataRoute.Robots {
     "/*?*price=*",
     "/*?*type=*",
     "/*?*focus=*",
+    "/*?*status=*",
     "/*?*page=*",
   ];
 

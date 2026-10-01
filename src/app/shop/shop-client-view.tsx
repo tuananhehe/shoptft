@@ -679,8 +679,7 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
             Kho Acc TFT - ĐTCL
           </h1>
           <p className="mt-1 text-zinc-400 text-xs sm:text-sm max-w-2xl font-normal leading-relaxed">
-            <span className="sm:hidden">Tìm acc theo Pet, Sân Đấu và mức giá.</span>
-            <span className="hidden sm:inline">Tìm kiếm theo Pet, Chibi, Sân Đấu, loại tài khoản và khoảng giá phù hợp.</span>
+            Tìm acc theo Pet, Chibi, Sân Đấu, loại tài khoản và mức giá phù hợp.
           </p>
         </div>
 

@@ -66,16 +66,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let productRoutes: MetadataRoute.Sitemap = [];
   try {
     const accounts = await getAllProductAccounts();
-    productRoutes = accounts.map((acc) => {
-      const cleanCode = acc.code.replace(/^MS:\s*/i, "").trim();
-      const slug = cleanCode || acc.id;
-      return {
-        url: `${baseUrl}/acc/${encodeURIComponent(slug)}`,
-        lastModified: buildDate,
-        changeFrequency: "daily",
-        priority: 0.8,
-      };
-    });
+    productRoutes = accounts
+      .filter((acc) => (acc as any).status !== "HIDDEN")
+      .map((acc) => {
+        const cleanCode = acc.code.replace(/^MS:\s*/i, "").trim();
+        const slug = cleanCode || acc.id;
+        return {
+          url: `${baseUrl}/acc/${encodeURIComponent(slug)}`,
+          lastModified: buildDate,
+          changeFrequency: "daily",
+          priority: 0.8,
+        };
+      });
   } catch (err) {
     console.error("Lỗi tạo sitemap sản phẩm:", err);
   }

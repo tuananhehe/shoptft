@@ -28,11 +28,11 @@
     "/shop": {
       "path": "/shop",
       "name": "Kho Acc",
-      "title": "Kho Acc TFT - ĐTCL | ShopTFTMobile",
-      "description": "Tìm tài khoản TFT/ĐTCL theo Pet, Chibi, Sân Đấu, loại acc và mức giá tại ShopTFTMobile.",
+      "title": "Kho Acc TFT - ĐTCL | Pet, Chibi & Sân Đấu | ShopTFTMobile",
+      "description": "Xem kho acc TFT/ĐTCL theo Pet, Chibi, Sân Đấu, VIP/Clone và mức giá tại ShopTFTMobile. Kiểm tra trạng thái acc và chọn tài khoản phù hợp.",
       "canonical": "https://www.shoptftmobile.net/shop",
-      "ogTitle": "Kho Acc TFT - ĐTCL | ShopTFTMobile",
-      "ogDescription": "Tìm tài khoản TFT/ĐTCL theo Pet, Chibi, Sân Đấu, loại acc và mức giá tại ShopTFTMobile.",
+      "ogTitle": "Kho Acc TFT - ĐTCL | Pet, Chibi & Sân Đấu | ShopTFTMobile",
+      "ogDescription": "Xem kho acc TFT/ĐTCL theo Pet, Chibi, Sân Đấu, VIP/Clone và mức giá tại ShopTFTMobile. Kiểm tra trạng thái acc và chọn tài khoản phù hợp.",
       "ogImage": "/banner-seo.jpg",
       "robots": {
         "index": true,
@@ -125,8 +125,8 @@
     }
   },
   "productTemplate": {
-    "titleTemplate": "{product_name} | Acc TFT - {site_name}",
-    "descriptionTemplate": "Xem thông tin acc TFT {product_name} ({type}) kèm {pet}, {arena} tại {site_name}. Bàn giao uy tín qua Zalo Tuấn Thái Bình TFT.",
+    "titleTemplate": "{product_name} | Acc TFT - ĐTCL | {site_name}",
+    "descriptionTemplate": "Xem {product_name} ({type}) kèm {pet}, {arena} tại {site_name}. Trạng thái {status}, giá thuê minh bạch và gợi ý tài khoản tương tự.",
     "defaultOgImage": "/banner-seo.jpg"
   },
   "redirects": [
@@ -185,6 +185,7 @@
       "/*?*price=*",
       "/*?*type=*",
       "/*?*focus=*",
+      "/*?*status=*",
       "/*?*page=*"
     ],
     "crawlDelay": 0

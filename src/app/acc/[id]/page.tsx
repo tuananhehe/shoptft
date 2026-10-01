@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const resolvedParams = await Promise.resolve(params);
   const account = await getAccountByIdOrSlug(resolvedParams.id);
 
-  if (!account) {
+  if (!account || (account as any).status === "HIDDEN") {
     return {
       title: {
         absolute: "Không tìm thấy tài khoản | ShopTFTMobile",
@@ -57,7 +57,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           url: ogImg,
           width: 800,
           height: 600,
-          alt: `${account.code} - ${account.title}`,
+          alt: `${account.code} - ${account.title} | Acc TFT - ĐTCL`,
         },
       ],
     },
@@ -67,6 +67,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       images: [ogImg],
     },
+    robots: {
+      index: true,
+      follow: true,
+    },
   };
 }
 
@@ -74,7 +78,7 @@ export default async function AccountDetailPage({ params }: PageProps) {
   const resolvedParams = await Promise.resolve(params);
   const account = await getAccountByIdOrSlug(resolvedParams.id);
 
-  if (!account) {
+  if (!account || (account as any).status === "HIDDEN") {
     notFound();
   }
 
