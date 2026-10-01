@@ -71,9 +71,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .map((acc) => {
         const cleanCode = acc.code.replace(/^MS:\s*/i, "").trim();
         const slug = cleanCode || acc.id;
+        const rawDate = (acc as any).updatedAt || (acc as any).updated_at || (acc as any).createdAt || (acc as any).created_at;
+        const validDate = rawDate ? new Date(rawDate) : buildDate;
         return {
           url: `${baseUrl}/acc/${encodeURIComponent(slug)}`,
-          lastModified: buildDate,
+          lastModified: isNaN(validDate.getTime()) ? buildDate : validDate,
           changeFrequency: "daily",
           priority: 0.8,
         };

@@ -227,6 +227,41 @@ export async function PUT(req: NextRequest) {
         }
         seenSources.add(lowerSrc);
 
+        // Prevent root redirect
+        if (lowerSrc === "/" || lowerSrc === "/*") {
+          return NextResponse.json(
+            { success: false, error: "Không được chuyển hướng toàn bộ trang chủ (/)" },
+            { status: 400 }
+          );
+        }
+
+        // Prevent self redirect
+        if (lowerSrc === cleanDest.toLowerCase()) {
+          return NextResponse.json(
+            { success: false, error: `URL nguồn và đích không được trùng nhau: ${formattedSrc}` },
+            { status: 400 }
+          );
+        }
+
+        // Prevent dangerous arbitrary open redirects
+        if (cleanDest.startsWith("http://") || cleanDest.startsWith("https://")) {
+          try {
+            const destUrl = new URL(cleanDest);
+            const allowedHosts = new Set(["www.shoptftmobile.net", "shoptftmobile.net", "zalo.me", "checkscam.vn"]);
+            if (!allowedHosts.has(destUrl.hostname.toLowerCase())) {
+              return NextResponse.json(
+                { success: false, error: `Đích chuyển hướng ra ngoài không an toàn: ${destUrl.hostname}. Chỉ chấp nhận domain của hệ thống hoặc đối tác chính thức.` },
+                { status: 400 }
+              );
+            }
+          } catch {
+            return NextResponse.json(
+              { success: false, error: `URL đích không hợp lệ: ${cleanDest}` },
+              { status: 400 }
+            );
+          }
+        }
+
         // Check loops
         const loopCheck = detectRedirectLoop(formattedSrc, cleanDest, body.redirects, r.id);
         if (loopCheck.hasLoop) {

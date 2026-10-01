@@ -129,20 +129,22 @@ function applySecurityHeaders(res: NextResponse, pathname: string): NextResponse
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // -1. DOMAIN CANONICALIZATION (Apex -> WWW, and shoptftmobile.com -> shoptftmobile.net)
+  // -1. DOMAIN & PROTOCOL CANONICALIZATION (Single-Hop 301)
   const host = (req.headers.get("x-forwarded-host") || req.headers.get("host") || "").toLowerCase().split(":")[0];
-  if (
-    host === "shoptftmobile.com" ||
-    host === "www.shoptftmobile.com" ||
-    host === "shoptftmobile.net"
-  ) {
+  const proto = (req.headers.get("x-forwarded-proto") || req.nextUrl.protocol || "").replace(":", "").toLowerCase();
+
+  const isLegacyDomain = host === "shoptftmobile.com" || host === "www.shoptftmobile.com";
+  const isNonWww = host === "shoptftmobile.net";
+  const isHttpOnCanonical = host === "www.shoptftmobile.net" && proto === "http";
+
+  if (isLegacyDomain || isNonWww || isHttpOnCanonical) {
     const canonicalUrl = new URL(req.url);
     canonicalUrl.protocol = "https:";
     canonicalUrl.host = "www.shoptftmobile.net";
     return NextResponse.redirect(canonicalUrl, 301);
   }
 
-  // 0. URL REDIRECTS (SEO Rules)
+  // 0. URL REDIRECTS (SEO Rules with Chain Flattening: A -> B -> C becomes A -> C)
   const normalizedPathname = pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
   const activeRedirects = (seoConfig as any)?.redirects || [];
   const matchedRedirect = activeRedirects.find((r: any) => {
@@ -152,10 +154,37 @@ export async function middleware(req: NextRequest) {
       : r.source.trim();
     return cleanSource.toLowerCase() === normalizedPathname.toLowerCase();
   });
+
   if (matchedRedirect) {
-    const dest = matchedRedirect.destination?.trim();
+    let dest = matchedRedirect.destination?.trim() || "";
+    const visited = new Set<string>([normalizedPathname.toLowerCase()]);
+
+    for (let hop = 0; hop < 5; hop++) {
+      const cleanDest = dest.startsWith("http") ? new URL(dest).pathname : dest.split("?")[0].split("#")[0];
+      const normalizedDest = cleanDest.length > 1 && cleanDest.endsWith("/") ? cleanDest.slice(0, -1) : cleanDest;
+      if (visited.has(normalizedDest.toLowerCase())) break;
+      visited.add(normalizedDest.toLowerCase());
+
+      const nextHop = activeRedirects.find((r: any) => {
+        if (!r.enabled || !r.source) return false;
+        const s = r.source.trim().length > 1 && r.source.trim().endsWith("/") ? r.source.trim().slice(0, -1) : r.source.trim();
+        return s.toLowerCase() === normalizedDest.toLowerCase();
+      });
+      if (!nextHop) break;
+      dest = nextHop.destination?.trim() || dest;
+    }
+
     if (dest) {
-      const destUrl = dest.startsWith("http") ? new URL(dest) : new URL(dest, req.url);
+      let destUrl: URL;
+      if (dest.startsWith("http://") || dest.startsWith("https://")) {
+        destUrl = new URL(dest);
+        const allowedHosts = new Set(["www.shoptftmobile.net", "shoptftmobile.net", "zalo.me", "checkscam.vn"]);
+        if (!allowedHosts.has(destUrl.hostname.toLowerCase())) {
+          destUrl = new URL("/", "https://www.shoptftmobile.net");
+        }
+      } else {
+        destUrl = new URL(dest, "https://www.shoptftmobile.net");
+      }
       return NextResponse.redirect(destUrl, matchedRedirect.permanent ? 301 : 302);
     }
   }
