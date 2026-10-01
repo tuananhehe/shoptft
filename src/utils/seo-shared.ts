@@ -215,6 +215,19 @@ export const DEFAULT_SEO_CONFIG: SeoConfigDatabase = {
       ogImage: "/banner-seo.jpg",
       robots: { index: true, follow: true },
     },
+    "/blog/tft-mua-18": {
+      path: "/blog/tft-mua-18",
+      name: "TFT Mùa 18 Hub",
+      title: "TFT Mùa 18 – Hướng Dẫn, Meta, Pet & Sân Đấu | ShopTFTMobile",
+      description:
+        "Cổng thông tin toàn diện về TFT Mùa 18 (Đại Ngàn Kỳ Bí): tổng hợp hướng dẫn, meta patch mới nhất, giáo án đội hình, cẩm nang Pet Chibi, Sân Đấu và kinh nghiệm leo rank.",
+      canonical: "https://www.shoptftmobile.net/blog/tft-mua-18",
+      ogTitle: "TFT Mùa 18 – Hướng Dẫn, Meta, Pet & Sân Đấu | ShopTFTMobile",
+      ogDescription:
+        "Cổng thông tin toàn diện về TFT Mùa 18 (Đại Ngàn Kỳ Bí): tổng hợp hướng dẫn, meta patch mới nhất, giáo án đội hình, cẩm nang Pet Chibi, Sân Đấu và kinh nghiệm leo rank.",
+      ogImage: "/banner-seo.jpg",
+      robots: { index: true, follow: true },
+    },
   },
   productTemplate: {
     titleTemplate: "{product_name} | Acc TFT - ĐTCL | {site_name}",

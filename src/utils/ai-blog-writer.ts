@@ -46,9 +46,15 @@ export function detectTftAttributes(promptText: string): {
 
   // 2. Detect Content Type
   let contentType: BlogContentType = "seasonal";
-  if (patch) {
+  if (patch || lower.includes("đội hình") || lower.includes("reroll") || lower.includes("tier list")) {
     contentType = "patch-sensitive";
+    if (!patch) patch = CURRENT_TFT_PATCH;
   } else if (
+    lower.includes("là gì") ||
+    lower.includes("cách chọn acc") ||
+    lower.includes("chọn acc") ||
+    lower.includes("khác nhau thế nào") ||
+    lower.includes("so sánh") ||
     lower.includes("đổi mật khẩu") ||
     lower.includes("mật khẩu") ||
     lower.includes("đổi mail") ||
@@ -64,7 +70,7 @@ export function detectTftAttributes(promptText: string): {
     lower.includes("lừa đảo")
   ) {
     contentType = "evergreen";
-  } else if (lower.includes("mùa 18") || lower.includes("set 18") || lower.includes("đại ngàn")) {
+  } else if (lower.includes("mùa 18") || lower.includes("set 18") || lower.includes("đại ngàn") || lower.includes("tộc hệ") || lower.includes("tướng")) {
     contentType = "seasonal";
   }
 

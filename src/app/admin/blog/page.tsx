@@ -535,9 +535,11 @@ export default function AdminBlogManagerPage() {
                 <tr>
                   <th className="px-4 py-3">Bài viết</th>
                   <th className="px-4 py-3">Chuyên mục</th>
+                  <th className="px-4 py-3">Mùa</th>
                   <th className="px-4 py-3">Trạng thái</th>
                   <th className="px-4 py-3">Phân loại</th>
                   <th className="px-4 py-3">Patch</th>
+                  <th className="px-4 py-3">Độ tươi mới</th>
                   <th className="px-4 py-3">Sức khỏe SEO</th>
                   <th className="px-4 py-3">Ngày cập nhật</th>
                   <th className="px-4 py-3 text-right">Thao tác</th>
@@ -548,6 +550,37 @@ export default function AdminBlogManagerPage() {
                   const titleLen = (post.seo?.title || post.title).length;
                   const descLen = (post.seo?.description || post.excerpt).length;
                   const isSeoOk = titleLen >= 30 && titleLen <= 70 && descLen >= 80 && descLen <= 170;
+
+                  const isSet18 =
+                    post.category === "TFT Mùa 18" ||
+                    post.contentType === "seasonal" ||
+                    post.contentType === "patch-sensitive" ||
+                    post.tags.some((t) => t.toLowerCase().includes("18"));
+
+                  const now = Date.now();
+                  const updatedDate = new Date(post.updatedAt || post.publishedAt).getTime();
+                  const ageDays = isNaN(updatedDate) ? 999 : (now - updatedDate) / (1000 * 60 * 60 * 24);
+
+                  let freshnessStatus: "Fresh" | "Needs Review" | "Outdated" = "Fresh";
+                  let freshnessBadge = "bg-emerald-50 text-emerald-700 border-emerald-200";
+
+                  if (post.contentType === "patch-sensitive") {
+                    if (post.patch && post.patch.toLowerCase().trim() !== CURRENT_TFT_PATCH.toLowerCase().trim()) {
+                      freshnessStatus = "Outdated";
+                      freshnessBadge = "bg-red-50 text-red-700 border-red-200";
+                    } else if (ageDays > 14) {
+                      freshnessStatus = "Needs Review";
+                      freshnessBadge = "bg-amber-50 text-amber-700 border-amber-200";
+                    }
+                  } else if (post.contentType === "seasonal") {
+                    if (ageDays > 45) {
+                      freshnessStatus = "Needs Review";
+                      freshnessBadge = "bg-amber-50 text-amber-700 border-amber-200";
+                    }
+                  } else if (ageDays > 180) {
+                    freshnessStatus = "Needs Review";
+                    freshnessBadge = "bg-amber-50 text-amber-700 border-amber-200";
+                  }
 
                   return (
                     <tr key={post.id} className="hover:bg-gray-50/60 transition-colors">
@@ -584,6 +617,15 @@ export default function AdminBlogManagerPage() {
                         </span>
                       </td>
 
+                      {/* Season */}
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={`px-2 py-0.5 rounded-md font-mono text-[10px] font-bold border ${
+                          isSet18 ? "bg-amber-50 text-amber-800 border-amber-200" : "bg-zinc-50 text-zinc-600 border-zinc-200"
+                        }`}>
+                          {isSet18 ? "Mùa 18" : "Evergreen"}
+                        </span>
+                      </td>
+
                       {/* Status */}
                       <td className="px-4 py-3 whitespace-nowrap">
                         {post.status === "published" ? (
@@ -613,6 +655,16 @@ export default function AdminBlogManagerPage() {
                         ) : (
                           "—"
                         )}
+                      </td>
+
+                      {/* Freshness Status */}
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${freshnessBadge}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            freshnessStatus === "Fresh" ? "bg-emerald-500" : freshnessStatus === "Needs Review" ? "bg-amber-500" : "bg-red-500"
+                          }`} />
+                          <span>{freshnessStatus}</span>
+                        </span>
                       </td>
 
                       {/* SEO Status Check */}

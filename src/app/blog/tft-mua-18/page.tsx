@@ -24,16 +24,16 @@ import {
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "TFT Mùa 18 – Tổng hợp hướng dẫn, meta và cập nhật | ShopTFTMobile",
+  title: "TFT Mùa 18 – Hướng Dẫn, Meta, Pet & Sân Đấu | ShopTFTMobile",
   description:
-    "Cổng thông tin toàn diện về TFT Mùa 18 (Đại Ngàn Kỳ Bí): tổng hợp hướng dẫn, meta patch mới nhất, giáo án đội hình, cẩm nang Pet Chibi Sân Đấu và kinh nghiệm leo rank.",
+    "Cổng thông tin toàn diện về TFT Mùa 18 (Đại Ngàn Kỳ Bí): tổng hợp hướng dẫn, meta patch mới nhất, giáo án đội hình, cẩm nang Pet Chibi, Sân Đấu và kinh nghiệm leo rank.",
   alternates: {
     canonical: "https://www.shoptftmobile.net/blog/tft-mua-18",
   },
   openGraph: {
-    title: "TFT Mùa 18 – Tổng hợp hướng dẫn, meta và cập nhật | ShopTFTMobile",
+    title: "TFT Mùa 18 – Hướng Dẫn, Meta, Pet & Sân Đấu | ShopTFTMobile",
     description:
-      "Cổng thông tin toàn diện về TFT Mùa 18 (Đại Ngàn Kỳ Bí): tổng hợp hướng dẫn, meta patch mới nhất, giáo án đội hình, cẩm nang Pet Chibi Sân Đấu và kinh nghiệm leo rank.",
+      "Cổng thông tin toàn diện về TFT Mùa 18 (Đại Ngàn Kỳ Bí): tổng hợp hướng dẫn, meta patch mới nhất, giáo án đội hình, cẩm nang Pet Chibi, Sân Đấu và kinh nghiệm leo rank.",
     url: "https://www.shoptftmobile.net/blog/tft-mua-18",
     siteName: "ShopTFTMobile",
     images: [
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
         url: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Xayah_8.jpg",
         width: 1200,
         height: 630,
-        alt: "TFT Mùa 18 Hub Tổng Hợp",
+        alt: "TFT Mùa 18 Hub – Hướng Dẫn, Meta, Pet & Sân Đấu",
       },
     ],
     locale: "vi_VN",
@@ -49,9 +49,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "TFT Mùa 18 – Tổng hợp hướng dẫn, meta và cập nhật | ShopTFTMobile",
+    title: "TFT Mùa 18 – Hướng Dẫn, Meta, Pet & Sân Đấu | ShopTFTMobile",
     description:
-      "Cổng thông tin toàn diện về TFT Mùa 18 (Đại Ngàn Kỳ Bí): tổng hợp hướng dẫn, meta patch mới nhất, giáo án đội hình, cẩm nang Pet Chibi Sân Đấu và kinh nghiệm leo rank.",
+      "Cổng thông tin toàn diện về TFT Mùa 18 (Đại Ngàn Kỳ Bí): tổng hợp hướng dẫn, meta patch mới nhất, giáo án đội hình, cẩm nang Pet Chibi, Sân Đấu và kinh nghiệm leo rank.",
     images: ["https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Xayah_8.jpg"],
   },
 };
@@ -69,31 +69,50 @@ export default async function TftSet18HubPage() {
 
   // Grouping into specific hub pillars
   const latestPosts = set18Posts.slice(0, 3);
+
+  // 1. Tổng quan Mùa 18 (Cluster A)
+  const overviewPosts = set18Posts.filter(
+    (p) =>
+      p.slug.includes("co-gi-moi") ||
+      p.slug.includes("toc-he") ||
+      p.slug.includes("co-che-tinh-linh") ||
+      p.slug.includes("tuong-tft-mua-18") ||
+      p.slug.includes("nguoi-moi") ||
+      p.slug.includes("dau-game")
+  );
+
+  // 2. Meta & Đội Hình (Cluster B)
   const metaPosts = set18Posts.filter(
     (p) =>
       p.category === "Meta & Đội Hình" ||
       p.slug.includes("doi-hinh") ||
-      p.slug.includes("reroll")
-  );
-  const patchPosts = set18Posts.filter(
-    (p) =>
-      Boolean(p.patch) ||
-      p.slug.includes("patch") ||
+      p.slug.includes("reroll") ||
       p.slug.includes("tuong-4-vang") ||
       p.slug.includes("tuong-5-vang")
   );
-  const cosmeticPosts = set18Posts.filter(
+
+  // 3. Patch & Cập Nhật Tướng (Patch-sensitive)
+  const patchPosts = set18Posts.filter(
     (p) =>
-      p.category === "Pet / Chibi / Sân Đấu" ||
+      p.contentType === "patch-sensitive" ||
+      Boolean(p.patch) ||
+      p.slug.includes("patch")
+  );
+
+  // 4. Pet / Chibi (Cluster C)
+  const petPosts = set18Posts.filter(
+    (p) =>
       p.slug.includes("pet") ||
       p.slug.includes("chibi") ||
-      p.slug.includes("san-dau")
+      p.tags.some((t) => t.toLowerCase().includes("chibi") || t.toLowerCase().includes("pet"))
   );
-  const beginnerPosts = set18Posts.filter(
+
+  // 5. Sân Đấu (Cluster D)
+  const arenaPosts = set18Posts.filter(
     (p) =>
-      p.slug.includes("nguoi-moi") ||
-      p.slug.includes("dau-game") ||
-      p.slug.includes("co-che")
+      p.slug.includes("san-dau") ||
+      p.slug.includes("arena") ||
+      p.tags.some((t) => t.toLowerCase().includes("sân đấu") || t.toLowerCase().includes("arena"))
   );
 
   const jsonLd = {
@@ -124,8 +143,8 @@ export default async function TftSet18HubPage() {
       },
       {
         "@type": "CollectionPage",
-        "name": "TFT Mùa 18 – Tổng hợp hướng dẫn, meta và cập nhật",
-        "description": "Cổng thông tin tổng hợp cơ chế, đội hình meta, tộc hệ và tướng ĐTCL Mùa 18.",
+        "name": "TFT Mùa 18 – Hướng Dẫn, Meta, Pet & Sân Đấu",
+        "description": "Cổng thông tin tổng hợp cơ chế, đội hình meta, tộc hệ, tướng, Pet Chibi và Sân Đấu ĐTCL Mùa 18.",
         "url": "https://www.shoptftmobile.net/blog/tft-mua-18",
       },
     ],
@@ -220,11 +239,11 @@ export default async function TftSet18HubPage() {
             </div>
 
             <h1 className="text-2xl sm:text-4xl lg:text-5xl font-heading font-black text-white tracking-tight leading-tight">
-              TFT Mùa 18 – Tổng hợp hướng dẫn, meta và cập nhật
+              TFT Mùa 18 – Hướng Dẫn, Meta, Pet & Sân Đấu
             </h1>
 
             <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
-              Tổng hợp toàn diện kiến thức ĐTCL Mùa 18: cơ chế Tinh Linh (Wisps), danh sách đội hình chuẩn meta qua từng patch, cẩm nang linh thú Tí Nị Thần Thoại và hướng dẫn dành cho tân thủ từ cựu Thách Đấu Tuấn Thái Bình.
+              Tổng hợp toàn diện kiến thức ĐTCL Mùa 18 (Đại Ngàn Kỳ Bí): cơ chế Tinh Linh (Wisps), danh sách đội hình chuẩn meta qua từng patch, cẩm nang Pet Chibi, Sân Đấu và kinh nghiệm leo rank từ cựu Thách Đấu Tuấn Thái Bình.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -247,14 +266,14 @@ export default async function TftSet18HubPage() {
           </div>
         </section>
 
-        {/* 2. Bài mới nhất (Latest Articles) */}
+        {/* 1. Bài mới nhất (Latest Articles) */}
         {latestPosts.length > 0 && (
           <section className="space-y-4 mb-12">
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
               <div className="flex items-center gap-2">
                 <Flame className="w-5 h-5 text-amber-400" />
                 <h2 className="text-lg sm:text-xl font-heading font-bold text-white">
-                  Bài Viết Mới Nhất
+                  Bài Viết Mới Cập Nhật
                 </h2>
               </div>
               <span className="text-xs text-zinc-500">Cập nhật liên tục</span>
@@ -265,7 +284,33 @@ export default async function TftSet18HubPage() {
           </section>
         )}
 
-        {/* 3. Meta & Đội Hình */}
+        {/* 2. Tổng quan Mùa 18 (Cluster A) */}
+        {overviewPosts.length > 0 && (
+          <section className="space-y-4 mb-12">
+            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-amber-400" />
+                <div>
+                  <h2 className="text-lg sm:text-xl font-heading font-bold text-white">
+                    Tổng Quan Mùa 18
+                  </h2>
+                  <p className="text-xs text-zinc-400">Khám phá cơ chế Tinh Linh, danh sách tộc hệ, chất tướng và cẩm nang tân thủ</p>
+                </div>
+              </div>
+              <Link
+                href="/blog/tft-mua-18-co-gi-moi-tong-quan-dai-ngan-ky-bi"
+                className="text-xs text-amber-400 hover:text-amber-300 transition-colors"
+              >
+                Chi tiết Set 18 →
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {overviewPosts.map(renderPostCard)}
+            </div>
+          </section>
+        )}
+
+        {/* 3. Meta & Đội Hình (Cluster B) */}
         {metaPosts.length > 0 && (
           <section className="space-y-4 mb-12">
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
@@ -275,7 +320,7 @@ export default async function TftSet18HubPage() {
                   <h2 className="text-lg sm:text-xl font-heading font-bold text-white">
                     Meta & Đội Hình
                   </h2>
-                  <p className="text-xs text-zinc-400">Giáo án leo rank, đội hình reroll và bài carry mạnh nhất</p>
+                  <p className="text-xs text-zinc-400">Giáo án leo rank chuẩn Thách Đấu, đội hình reroll và khung bài Fast 8/9</p>
                 </div>
               </div>
               <Link
@@ -291,7 +336,7 @@ export default async function TftSet18HubPage() {
           </section>
         )}
 
-        {/* 4. Patch & Bản Vá Cập Nhật */}
+        {/* 4. Patch & Cập Nhật Tướng (Patch-sensitive) */}
         {patchPosts.length > 0 && (
           <section className="space-y-4 mb-12">
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
@@ -299,9 +344,9 @@ export default async function TftSet18HubPage() {
                 <Zap className="w-5 h-5 text-blue-400" />
                 <div>
                   <h2 className="text-lg sm:text-xl font-heading font-bold text-white">
-                    Cập Nhật Patch & Phân Tích Tướng
+                    Cập Nhật Patch & Biến Động Meta
                   </h2>
-                  <p className="text-xs text-zinc-400">Thay đổi sức mạnh tướng 4 vàng, 5 vàng qua các bản vá</p>
+                  <p className="text-xs text-zinc-400">Theo dõi thay đổi sức mạnh tướng qua từng bản vá để điều chỉnh giáo án</p>
                 </div>
               </div>
               <span className="text-xs font-mono text-zinc-500">Patch 18.3b</span>
@@ -312,17 +357,17 @@ export default async function TftSet18HubPage() {
           </section>
         )}
 
-        {/* 5. Pet / Chibi / Sân Đấu */}
-        {cosmeticPosts.length > 0 && (
+        {/* 5. Pet / Chibi (Cluster C) */}
+        {petPosts.length > 0 && (
           <section className="space-y-4 mb-12">
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
               <div className="flex items-center gap-2">
                 <Layers className="w-5 h-5 text-purple-400" />
                 <div>
                   <h2 className="text-lg sm:text-xl font-heading font-bold text-white">
-                    Pet, Chibi & Sân Đấu Mùa 18
+                    Pet / Chibi Mùa 18
                   </h2>
-                  <p className="text-xs text-zinc-400">Khám phá linh thú Tí Nị thần thoại và hiệu ứng sàn đấu độc quyền</p>
+                  <p className="text-xs text-zinc-400">Tổng hợp tướng Tí Nị thần thoại, linh thú độc quyền và cẩm nang chọn acc</p>
                 </div>
               </div>
               <Link
@@ -333,33 +378,33 @@ export default async function TftSet18HubPage() {
               </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {cosmeticPosts.map(renderPostCard)}
+              {petPosts.map(renderPostCard)}
             </div>
           </section>
         )}
 
-        {/* 6. Hướng Dẫn Người Mới */}
-        {beginnerPosts.length > 0 && (
+        {/* 6. Sân Đấu (Cluster D) */}
+        {arenaPosts.length > 0 && (
           <section className="space-y-4 mb-12">
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
               <div className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-amber-400" />
+                <Gamepad2 className="w-5 h-5 text-indigo-400" />
                 <div>
                   <h2 className="text-lg sm:text-xl font-heading font-bold text-white">
-                    Hướng Dẫn Cho Người Mới
+                    Sân Đấu Mùa 18
                   </h2>
-                  <p className="text-xs text-zinc-400">Cách làm quen cơ chế Tinh Linh, giữ máu đầu game và tích lợi tức</p>
+                  <p className="text-xs text-zinc-400">Khám phá các mẫu sàn đấu tương tác, đổi nhạc EDM sống động và cách chọn acc</p>
                 </div>
               </div>
               <Link
-                href="/huong-dan/doi-thong-tin-acc-riot"
-                className="text-xs text-zinc-400 hover:text-white transition-colors"
+                href="/shop?focus=arena"
+                className="text-xs text-amber-400 hover:text-amber-300 transition-colors"
               >
-                Bảo Mật Riot →
+                Xem Acc Sân Đấu →
               </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {beginnerPosts.map(renderPostCard)}
+              {arenaPosts.map(renderPostCard)}
             </div>
           </section>
         )}
