@@ -19,9 +19,11 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
   const executeSearch = () => {
     const query = searchTerm.trim();
     if (query) {
+      analytics.trackHomepageSearch(query);
       analytics.trackSearchProduct({ query });
       router.push(`/shop?search=${encodeURIComponent(query)}`);
     } else {
+      analytics.trackHomepageViewShop();
       router.push("/shop");
     }
   };
@@ -32,13 +34,13 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
   };
 
   const shortcuts = [
-    { label: "Gwen", href: "/shop?search=Gwen" },
-    { label: "Yasuo", href: "/shop?search=Yasuo" },
-    { label: "Yone", href: "/shop?search=Yone" },
     { label: "Ahri", href: "/shop?search=Ahri" },
-    { label: "Hàng Hiệu", href: "/shop?search=H%C3%A0ng%20Hi%E1%BB%87u" },
+    { label: "Jinx", href: "/shop?search=Jinx" },
+    { label: "Gwen", href: "/shop?search=Gwen" },
+    { label: "Pet/Chibi", href: "/shop?focus=pet" },
     { label: "Sân Đấu", href: "/shop?focus=arena" },
-    { label: "Acc Clone", href: "/shop?type=clone" },
+    { label: "VIP", href: "/shop?type=vip" },
+    { label: "Clone", href: "/shop?type=clone" },
   ];
 
   return (
@@ -53,9 +55,9 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
           <span className="inline-block whitespace-nowrap">BẠN MUỐN</span>
         </h1>
 
-        {/* Description */}
+        {/* Supporting Description */}
         <p className="mt-3 sm:mt-3.5 text-sm sm:text-base text-zinc-400 max-w-xl mx-auto font-normal leading-relaxed">
-          Pet, Chibi, Sân Đấu và các combo TFT được cập nhật liên tục.
+          Khám phá kho acc TFT/ĐTCL theo Pet, Chibi, Sân Đấu và nhu cầu sử dụng.
         </p>
 
         {/* Large Search Form */}
@@ -72,7 +74,7 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
                   executeSearch();
                 }
               }}
-              placeholder="Tìm Ahri, Jinx, Gwen, Sân đấu, mã acc..."
+              placeholder="Tìm Pet, Chibi, Sân Đấu, mã acc..."
               aria-label="Tìm kiếm tài khoản TFT"
               className="w-full h-12 sm:h-14 pl-12 pr-28 sm:pr-32 rounded-2xl bg-[#141416] focus:bg-[#18181c] border border-white/15 focus:border-white/40 text-white placeholder:text-zinc-500 text-sm focus:outline-none transition-all shadow-sm"
             />
@@ -91,7 +93,7 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
           </div>
         </form>
 
-        {/* Quick Shortcuts */}
+        {/* Quick Shortcuts (5-7 chips) */}
         <div className="mt-3.5 flex flex-wrap items-center justify-center gap-2 text-xs">
           <span className="text-zinc-500">Gợi ý:</span>
           {shortcuts.map((item) => (
@@ -99,6 +101,7 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
               key={item.label}
               href={item.href}
               onClick={() => {
+                analytics.trackHomepageChipClick(item.label);
                 if (item.href.includes("search=")) {
                   analytics.trackSearchProduct({ query: item.label });
                 }
@@ -110,21 +113,23 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
           ))}
         </div>
 
-        {/* Actions & Trust Line */}
+        {/* Primary & Secondary Actions + Truthful Trust Line */}
         <div className="mt-6 pt-5 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-400">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <Link
               href="/shop"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white font-medium border border-white/10 transition-colors"
+              onClick={() => analytics.trackHomepageViewShop()}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 font-semibold transition-colors shadow-sm"
             >
-              <span>Xem toàn bộ kho acc</span>
+              <span>Xem Kho Acc</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
             <Link
-              href="/shop?sort=newest"
-              className="px-3.5 py-2 text-zinc-400 hover:text-white transition-colors"
+              href="/huong-dan"
+              onClick={() => analytics.trackHomepageGuideClick()}
+              className="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl bg-white/[0.06] hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition-colors"
             >
-              Acc mới nhất →
+              <span>Hướng Dẫn</span>
             </Link>
           </div>
 

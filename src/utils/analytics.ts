@@ -404,4 +404,29 @@ export const analytics = {
       success: params.success,
     });
   },
+
+  /**
+   * Homepage Conversion & Discovery tracking (Improvement 2)
+   */
+  trackHomepageSearch: (query: string) => {
+    const trimmed = (query || "").trim();
+    if (!trimmed) return;
+    sendEvent("homepage_search", { search_term: trimmed });
+  },
+
+  trackHomepageChipClick: (chip: string) => {
+    sendEvent("homepage_chip_click", { chip });
+  },
+
+  trackHomepageViewShop: () => {
+    sendEvent("homepage_view_shop", {});
+  },
+
+  trackHomepageBlogClick: (slug: string) => {
+    sendEvent("homepage_blog_click", { post_slug: slug });
+  },
+
+  trackHomepageGuideClick: () => {
+    sendEvent("homepage_guide_click", {});
+  },
 };

@@ -26,20 +26,20 @@ export const TFTAdminIntro = () => (
           </div>
 
           <h2 className="font-heading text-2xl sm:text-3xl font-bold tracking-[-0.02em] text-white leading-tight">
-            Tuấn Thái Bình
+            Tuấn Thái Bình TFT
           </h2>
-          <p className="text-zinc-300 text-sm font-medium mt-1">
-            Người vận hành ShopTFTMobile
+          <p className="text-zinc-300 text-xs sm:text-sm font-medium mt-1">
+            Chủ shop & Người vận hành ShopTFTMobile
           </p>
-          <p className="text-zinc-400 text-sm mt-2 max-w-md leading-relaxed font-normal">
-            5+ năm đồng hành cùng cộng đồng ĐTCL Việt Nam. Từng đạt mức Rank Thách Đấu, cam kết tư vấn và hỗ trợ tài khoản trực tiếp, minh bạch.
+          <p className="text-zinc-400 text-xs sm:text-sm mt-2 max-w-md leading-relaxed font-normal">
+            Gắn bó hơn 5 năm cùng Đấu Trường Chân Lý Việt Nam và từng đạt mức rank Thách Đấu. ShopTFTMobile được vận hành với nguyên tắc thông tin minh bạch, ký quỹ bảo hiểm 30M trên Checkscam và đồng hành hỗ trợ trực tiếp 1-1 cho từng khách hàng.
           </p>
 
           <Link
             href="/ve-shop"
-            className="mt-4 inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-white hover:text-zinc-300 transition-colors"
+            className="mt-4 inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-white hover:text-amber-400 transition-colors"
           >
-            <span>Tìm hiểu về shop</span>
+            <span>Tìm hiểu về Shop</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>

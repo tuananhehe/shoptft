@@ -10,22 +10,17 @@ const steps = [
   {
     step: "01",
     title: "Chọn acc",
-    desc: "Tìm acc theo Pet, Chibi hoặc Sân Đấu.",
+    desc: "Tìm acc theo Pet, Chibi hoặc Sân Đấu mong muốn tại Kho Acc.",
   },
   {
     step: "02",
-    title: "Chọn gói thuê",
-    desc: "Xem chi tiết gói giá và thời lượng thuê.",
+    title: "Xem thông tin & gói thuê",
+    desc: "Kiểm tra chi tiết Linh Thú, Sân Đấu, trạng thái còn acc và mức giá phù hợp.",
   },
   {
     step: "03",
-    title: "Liên hệ Shop qua Zalo",
-    desc: "Gửi mã acc và nhu cầu thuê cho shop.",
-  },
-  {
-    step: "04",
-    title: "Admin xác nhận & bàn giao",
-    desc: "Shop kiểm tra và bàn giao tài khoản trực tiếp qua Zalo.",
+    title: "Liên hệ Zalo",
+    desc: "Gửi mã số tài khoản qua Zalo để chủ shop Tuấn Thái Bình bàn giao trực tiếp.",
   },
 ];
 
@@ -45,25 +40,25 @@ export const TFTRentalProcess = () => (
             Quy Trình Thuê Acc
           </h2>
           <p className="text-zinc-400 text-sm mt-1 max-w-lg mx-auto font-normal leading-relaxed">
-            Quy trình đơn giản, bảo mật và hỗ trợ trực tiếp từ chủ shop.
+            3 bước đơn giản, minh bạch và hỗ trợ trực tiếp 1-1 qua Zalo từ chủ shop.
           </p>
         </div>
       </Reveal>
 
-      {/* Desktop Process line 01 -------- 02 -------- 03 -------- 04 */}
-      <div className="hidden md:grid md:grid-cols-4 gap-6 relative">
+      {/* Desktop Process line 01 -------- 02 -------- 03 */}
+      <div className="hidden md:grid md:grid-cols-3 gap-8 relative">
         {/* Connecting Line */}
-        <div className="absolute top-5 left-[12.5%] right-[12.5%] h-[1px] bg-white/[0.1] -z-0" />
+        <div className="absolute top-5 left-[16.6%] right-[16.6%] h-[1px] bg-white/[0.1] -z-0" />
 
         {steps.map((item) => (
-          <div key={item.step} className="flex flex-col items-center text-center relative z-10">
+          <div key={item.step} className="flex flex-col items-center text-center relative z-10 px-4">
             <div className="w-10 h-10 rounded-full bg-[#141414] border border-white/[0.15] text-white font-mono font-bold text-sm flex items-center justify-center mb-4 shadow-sm">
               {item.step}
             </div>
             <h3 className="font-heading text-base font-semibold text-white mb-1">
               {item.title}
             </h3>
-            <p className="text-xs text-zinc-400 leading-relaxed max-w-[200px]">
+            <p className="text-xs text-zinc-400 leading-relaxed max-w-[240px]">
               {item.desc}
             </p>
           </div>
