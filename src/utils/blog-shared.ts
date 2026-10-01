@@ -35,6 +35,71 @@ export interface BlogAuthor {
   avatar: string;
 }
 
+export interface BlogPostRefreshDraft {
+  id: string;
+  createdAt: string;
+  suggestedTitle: string;
+  suggestedExcerpt: string;
+  suggestedContent: string;
+  suggestedPatch?: string;
+  suggestedSeo: BlogPostSeo;
+  analysisReasons?: string[];
+  sectionsToUpdate?: string[];
+  sectionsToAdd?: string[];
+  internalLinks?: Array<{ text: string; url: string; reason: string }>;
+  researchRequired?: string[];
+  status: "pending_review" | "approved" | "rejected";
+}
+
+export interface BlogPostPreviousVersion {
+  title: string;
+  content: string;
+  excerpt: string;
+  patch?: string;
+  seo: BlogPostSeo;
+  archivedAt: string;
+}
+
+export interface BlogSearchConsoleMetrics {
+  clicks: number;
+  impressions: number;
+  ctr: number; // e.g. 1.8 (%)
+  position: number; // e.g. 12.4
+  period: "7d" | "28d" | "3mo";
+  periodLabel: string; // e.g. "28 ngày qua"
+  views?: number;
+  conversions?: number;
+}
+
+export type RefreshStatus = "Fresh" | "Needs Review" | "Outdated" | "SEO Opportunity";
+export type RefreshPriority = "High" | "Medium" | "Low";
+
+export interface PostRefreshEvaluation {
+  status: RefreshStatus;
+  priority: RefreshPriority;
+  reasons: string[];
+  outboundLinksCount: number;
+  inboundLinksCount: number;
+  isOrphan: boolean;
+  cannibalizationWith?: string[];
+  isPatchStale: boolean;
+  daysSinceUpdate: number;
+}
+
+export interface AiRefreshAnalysis {
+  status: RefreshStatus;
+  priority: RefreshPriority;
+  reasons: string[];
+  mainIssues: string[];
+  suggestedTitle?: string;
+  suggestedMetaDescription?: string;
+  sectionsToUpdate: string[];
+  sectionsToAdd: string[];
+  internalLinks: Array<{ text: string; url: string; reason: string }>;
+  researchRequired: string[];
+  freshnessWarnings: string[];
+}
+
 export interface BlogPost {
   id: string;
   slug: string;
@@ -56,6 +121,9 @@ export interface BlogPost {
   seo: BlogPostSeo;
   generatedByAi?: boolean;
   suggestedCoverPrompt?: string;
+  refreshDraft?: BlogPostRefreshDraft | null;
+  previousVersion?: BlogPostPreviousVersion | null;
+  searchConsoleMetrics?: BlogSearchConsoleMetrics | null;
 }
 
 export type AiArticleLength = "short" | "standard" | "deep";

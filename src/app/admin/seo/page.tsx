@@ -33,8 +33,9 @@ import {
   RedirectRule,
   formatProductSeo,
 } from "@/utils/seo-shared";
+import { ContentRefreshTab } from "@/components/admin/content-refresh-tab";
 
-type TabKey = "overview" | "pages" | "products" | "sitemap" | "redirects" | "schema" | "settings";
+type TabKey = "overview" | "pages" | "products" | "refresh" | "sitemap" | "redirects" | "schema" | "settings";
 
 const SAMPLE_ACCOUNTS = [
   {
@@ -356,6 +357,18 @@ export default function AdminSeoPage() {
         >
           <Package className="w-3.5 h-3.5" />
           <span>Sản phẩm</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("refresh")}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === "refresh"
+              ? "bg-gray-900 text-white shadow-xs"
+              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+          <span>Content Refresh</span>
         </button>
 
         <button
@@ -980,6 +993,11 @@ export default function AdminSeoPage() {
           </div>
         </div>
       )}
+
+      {/* ============================================================== */}
+      {/* TAB: CONTENT REFRESH (AI ASSISTED)                             */}
+      {/* ============================================================== */}
+      {activeTab === "refresh" && <ContentRefreshTab />}
 
       {/* ============================================================== */}
       {/* TAB 4: SITEMAP & ROBOTS                                        */}
