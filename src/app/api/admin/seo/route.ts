@@ -7,9 +7,12 @@ import {
   runImageAudit,
   runInternalLinksAudit,
   detectRedirectLoop,
+  getSearchConsoleReport,
+  generateAiRankingProposal,
   DEFAULT_SEO_CONFIG,
   SeoConfigDatabase,
   RedirectRule,
+  GscPeriodKey,
 } from "@/utils/seo-service";
 import { getBlogPosts } from "@/utils/blog-service";
 import { getAllProductAccounts } from "@/utils/account-lookup";
@@ -45,6 +48,15 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    const action = req.nextUrl.searchParams.get("action");
+    if (action === "ai_proposal") {
+      const query = req.nextUrl.searchParams.get("query") || "";
+      const pageUrl = req.nextUrl.searchParams.get("pageUrl") || "/";
+      const opportunityType = req.nextUrl.searchParams.get("opportunityType") || "Ranking";
+      const proposal = generateAiRankingProposal(query, pageUrl, opportunityType);
+      return NextResponse.json({ success: true, proposal });
+    }
+
     const config = await getSeoConfig();
     const blogPosts = await getBlogPosts({ status: "all" });
     const audit = runSeoAudit(config, 0, blogPosts);
@@ -97,6 +109,9 @@ export async function GET(req: NextRequest) {
     const imageHealth = runImageAudit(config, allAccounts, blogPosts);
     const internalLinksAudit = runInternalLinksAudit(config, blogPosts, allAccounts);
 
+    const periodParam = (req.nextUrl.searchParams.get("period") as GscPeriodKey) || "28d";
+    const gscReport = await getSearchConsoleReport(periodParam);
+
     return NextResponse.json({
       success: true,
       data: config,
@@ -104,6 +119,7 @@ export async function GET(req: NextRequest) {
       productMetrics,
       imageHealth,
       internalLinksAudit,
+      gscReport,
     });
   } catch (err: any) {
     return NextResponse.json(

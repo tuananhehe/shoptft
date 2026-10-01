@@ -1,0 +1,905 @@
+{
+  "periods": {
+    "28d": {
+      "summary": {
+        "clicks": 4280,
+        "impressions": 86450,
+        "ctr": 4.95,
+        "avgPosition": 8.7,
+        "brandClicks": 1820,
+        "nonBrandClicks": 2460,
+        "nonBrandClicksPercentage": 57.48,
+        "brandImpressions": 16400,
+        "nonBrandImpressions": 70050,
+        "brandCtr": 11.10,
+        "nonBrandCtr": 3.51,
+        "brandAvgPosition": 1.4,
+        "nonBrandAvgPosition": 10.4
+      },
+      "queries": [
+        {
+          "query": "shoptftmobile",
+          "group": "BRAND",
+          "pageUrl": "/",
+          "clicks": 940,
+          "impressions": 6800,
+          "ctr": 13.82,
+          "position": 1.1,
+          "previousCtr": 13.50,
+          "previousPosition": 1.2
+        },
+        {
+          "query": "shoptft",
+          "group": "BRAND",
+          "pageUrl": "/",
+          "clicks": 480,
+          "impressions": 4200,
+          "ctr": 11.43,
+          "position": 1.2,
+          "previousCtr": 11.20,
+          "previousPosition": 1.3
+        },
+        {
+          "query": "Tuấn Thái Bình TFT",
+          "group": "BRAND",
+          "pageUrl": "/ve-shop",
+          "clicks": 260,
+          "impressions": 2900,
+          "ctr": 8.97,
+          "position": 1.3,
+          "previousCtr": 8.50,
+          "previousPosition": 1.4
+        },
+        {
+          "query": "shoptftmobile.com",
+          "group": "BRAND",
+          "pageUrl": "/",
+          "clicks": 140,
+          "impressions": 2500,
+          "ctr": 5.60,
+          "position": 1.8,
+          "previousCtr": 5.10,
+          "previousPosition": 2.1
+        },
+        {
+          "query": "thuê acc TFT",
+          "group": "COMMERCIAL",
+          "pageUrl": "/thue-acc-tft-dtcl",
+          "clicks": 520,
+          "impressions": 11400,
+          "ctr": 4.56,
+          "position": 7.4,
+          "previousCtr": 3.90,
+          "previousPosition": 9.8
+        },
+        {
+          "query": "thuê acc ĐTCL",
+          "group": "COMMERCIAL",
+          "pageUrl": "/thue-acc-tft-dtcl",
+          "clicks": 410,
+          "impressions": 9200,
+          "ctr": 4.46,
+          "position": 8.9,
+          "previousCtr": 3.75,
+          "previousPosition": 11.2
+        },
+        {
+          "query": "kho acc TFT",
+          "group": "COMMERCIAL",
+          "pageUrl": "/shop",
+          "clicks": 340,
+          "impressions": 7800,
+          "ctr": 4.36,
+          "position": 5.8,
+          "previousCtr": 4.10,
+          "previousPosition": 6.5
+        },
+        {
+          "query": "acc TFT",
+          "group": "COMMERCIAL",
+          "pageUrl": "/shop",
+          "clicks": 280,
+          "impressions": 8500,
+          "ctr": 3.29,
+          "position": 8.2,
+          "previousCtr": 3.10,
+          "previousPosition": 9.0
+        },
+        {
+          "query": "acc TFT VIP",
+          "group": "COMMERCIAL",
+          "pageUrl": "/thue-acc-tft-dtcl",
+          "clicks": 190,
+          "impressions": 3800,
+          "ctr": 5.00,
+          "position": 6.1,
+          "previousCtr": 4.80,
+          "previousPosition": 6.9
+        },
+        {
+          "query": "acc TFT Clone",
+          "group": "COMMERCIAL",
+          "pageUrl": "/thue-acc-tft-dtcl",
+          "clicks": 150,
+          "impressions": 3100,
+          "ctr": 4.84,
+          "position": 6.7,
+          "previousCtr": 4.50,
+          "previousPosition": 7.4
+        },
+        {
+          "query": "Pet TFT",
+          "group": "DISCOVERY",
+          "pageUrl": "/shop",
+          "clicks": 110,
+          "impressions": 3600,
+          "ctr": 3.06,
+          "position": 11.8,
+          "previousCtr": 2.80,
+          "previousPosition": 13.5
+        },
+        {
+          "query": "Chibi TFT",
+          "group": "DISCOVERY",
+          "pageUrl": "/shop",
+          "clicks": 135,
+          "impressions": 4400,
+          "ctr": 3.07,
+          "position": 12.3,
+          "previousCtr": 2.90,
+          "previousPosition": 14.1
+        },
+        {
+          "query": "Sân Đấu TFT",
+          "group": "DISCOVERY",
+          "pageUrl": "/shop",
+          "clicks": 95,
+          "impressions": 3200,
+          "ctr": 2.97,
+          "position": 13.0,
+          "previousCtr": 2.70,
+          "previousPosition": 14.8
+        },
+        {
+          "query": "Ahri Tí Nị Chiêu Hồn",
+          "group": "DISCOVERY",
+          "pageUrl": "/acc/sample-1",
+          "clicks": 85,
+          "impressions": 1950,
+          "ctr": 4.36,
+          "position": 4.6,
+          "previousCtr": 3.90,
+          "previousPosition": 5.8
+        },
+        {
+          "query": "Yasuo Tí Nị Kiếm Sư",
+          "group": "DISCOVERY",
+          "pageUrl": "/acc/sample-2",
+          "clicks": 70,
+          "impressions": 1650,
+          "ctr": 4.24,
+          "position": 5.1,
+          "previousCtr": 3.80,
+          "previousPosition": 6.2
+        },
+        {
+          "query": "Sân Đấu EDM Đổi Nhạc",
+          "group": "DISCOVERY",
+          "pageUrl": "/blog/san-dau-moi-va-hieu-ung-am-nhac-tft-mua-18",
+          "clicks": 65,
+          "impressions": 1720,
+          "ctr": 3.78,
+          "position": 6.8,
+          "previousCtr": 3.40,
+          "previousPosition": 8.0
+        },
+        {
+          "query": "TFT mùa 18",
+          "group": "CONTENT",
+          "pageUrl": "/blog/tft-mua-18",
+          "clicks": 415,
+          "impressions": 14200,
+          "ctr": 2.92,
+          "position": 6.2,
+          "previousCtr": 2.60,
+          "previousPosition": 7.5
+        },
+        {
+          "query": "ĐTCL mùa 18",
+          "group": "CONTENT",
+          "pageUrl": "/blog/tft-mua-18",
+          "clicks": 290,
+          "impressions": 10500,
+          "ctr": 2.76,
+          "position": 7.1,
+          "previousCtr": 2.45,
+          "previousPosition": 8.3
+        },
+        {
+          "query": "đội hình TFT",
+          "group": "CONTENT",
+          "pageUrl": "/blog/top-doi-hinh-manh-tft-mua-18-patch-18-3",
+          "clicks": 210,
+          "impressions": 6900,
+          "ctr": 3.04,
+          "position": 9.4,
+          "previousCtr": 2.80,
+          "previousPosition": 11.0
+        },
+        {
+          "query": "meta TFT",
+          "group": "CONTENT",
+          "pageUrl": "/blog/top-doi-hinh-manh-tft-mua-18-patch-18-3",
+          "clicks": 145,
+          "impressions": 4800,
+          "ctr": 3.02,
+          "position": 10.2,
+          "previousCtr": 2.75,
+          "previousPosition": 12.1
+        },
+        {
+          "query": "patch TFT",
+          "group": "CONTENT",
+          "pageUrl": "/blog/tft-mua-18",
+          "clicks": 90,
+          "impressions": 3100,
+          "ctr": 2.90,
+          "position": 11.5,
+          "previousCtr": 2.65,
+          "previousPosition": 13.0
+        },
+        {
+          "query": "đổi email Riot",
+          "group": "GUIDE",
+          "pageUrl": "/huong-dan/doi-thong-tin-acc-riot",
+          "clicks": 125,
+          "impressions": 2850,
+          "ctr": 4.39,
+          "position": 8.7,
+          "previousCtr": 3.90,
+          "previousPosition": 10.3
+        },
+        {
+          "query": "đổi mật khẩu Riot",
+          "group": "GUIDE",
+          "pageUrl": "/huong-dan/doi-thong-tin-acc-riot",
+          "clicks": 110,
+          "impressions": 2600,
+          "ctr": 4.23,
+          "position": 9.1,
+          "previousCtr": 3.80,
+          "previousPosition": 10.8
+        },
+        {
+          "query": "đổi thông tin Riot",
+          "group": "GUIDE",
+          "pageUrl": "/huong-dan/doi-thong-tin-acc-riot",
+          "clicks": 95,
+          "impressions": 2400,
+          "ctr": 3.96,
+          "position": 9.8,
+          "previousCtr": 3.50,
+          "previousPosition": 11.6
+        }
+      ],
+      "pages": [
+        {
+          "url": "/",
+          "title": "Thuê Acc TFT - ĐTCL | Pet, Chibi & Sân Đấu | ShopTFTMobile",
+          "pageType": "home",
+          "clicks": 1420,
+          "impressions": 11000,
+          "ctr": 12.91,
+          "position": 1.2,
+          "previousClicks": 1310,
+          "previousPosition": 1.3,
+          "indexStatus": "indexed",
+          "canonicalUrl": "https://www.shoptftmobile.net"
+        },
+        {
+          "url": "/thue-acc-tft-dtcl",
+          "title": "Thuê Acc TFT - ĐTCL: Pet, Chibi & Sân Đấu | ShopTFTMobile",
+          "pageType": "commercial_landing",
+          "clicks": 1080,
+          "impressions": 23700,
+          "ctr": 4.56,
+          "position": 7.4,
+          "previousClicks": 790,
+          "previousPosition": 10.2,
+          "indexStatus": "indexed",
+          "canonicalUrl": "https://www.shoptftmobile.net/thue-acc-tft-dtcl"
+        },
+        {
+          "url": "/shop",
+          "title": "Kho Acc TFT - ĐTCL | Pet, Chibi & Sân Đấu | ShopTFTMobile",
+          "pageType": "shop",
+          "clicks": 620,
+          "impressions": 16300,
+          "ctr": 3.80,
+          "position": 7.0,
+          "previousClicks": 540,
+          "previousPosition": 7.8,
+          "indexStatus": "indexed",
+          "canonicalUrl": "https://www.shoptftmobile.net/shop"
+        },
+        {
+          "url": "/blog/tft-mua-18",
+          "title": "TFT Mùa 18 – Hướng Dẫn, Meta, Pet & Sân Đấu | ShopTFTMobile",
+          "pageType": "hub",
+          "clicks": 705,
+          "impressions": 24700,
+          "ctr": 2.85,
+          "position": 6.5,
+          "previousClicks": 520,
+          "previousPosition": 8.0,
+          "indexStatus": "indexed",
+          "canonicalUrl": "https://www.shoptftmobile.net/blog/tft-mua-18"
+        },
+        {
+          "url": "/ve-shop",
+          "title": "Về ShopTFTMobile & Tuấn Thái Bình TFT | Uy Tín & Trách Nhiệm",
+          "pageType": "brand_about",
+          "clicks": 260,
+          "impressions": 2900,
+          "ctr": 8.97,
+          "position": 1.3,
+          "previousClicks": 230,
+          "previousPosition": 1.4,
+          "indexStatus": "indexed",
+          "canonicalUrl": "https://www.shoptftmobile.net/ve-shop"
+        },
+        {
+          "url": "/huong-dan/doi-thong-tin-acc-riot",
+          "title": "Hướng Dẫn Đổi Thông Tin Acc Riot An Toàn | ShopTFTMobile",
+          "pageType": "guide",
+          "clicks": 330,
+          "impressions": 7850,
+          "ctr": 4.20,
+          "position": 9.2,
+          "previousClicks": 270,
+          "previousPosition": 10.9,
+          "indexStatus": "indexed",
+          "canonicalUrl": "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot"
+        },
+        {
+          "url": "/huong-dan",
+          "title": "Hướng Dẫn Dịch Vụ TFT & Riot Games | ShopTFTMobile",
+          "pageType": "guide",
+          "clicks": 85,
+          "impressions": 2200,
+          "ctr": 3.86,
+          "position": 12.4,
+          "previousClicks": 70,
+          "previousPosition": 13.5,
+          "indexStatus": "indexed",
+          "canonicalUrl": "https://www.shoptftmobile.net/huong-dan"
+        },
+        {
+          "url": "/blog",
+          "title": "Blog TFT Mùa 18, Giáo Án Meta & Tin Tức ĐTCL | ShopTFTMobile",
+          "pageType": "hub",
+          "clicks": 110,
+          "impressions": 3400,
+          "ctr": 3.24,
+          "position": 11.1,
+          "previousClicks": 95,
+          "previousPosition": 12.3,
+          "indexStatus": "indexed",
+          "canonicalUrl": "https://www.shoptftmobile.net/blog"
+        }
+      ],
+      "opportunities": [
+        {
+          "id": "opp-1",
+          "query": "thuê acc TFT",
+          "page": "/thue-acc-tft-dtcl",
+          "clicks": 520,
+          "impressions": 11400,
+          "ctr": 4.56,
+          "position": 7.4,
+          "opportunity": "Ranking",
+          "priority": "HIGH",
+          "reason": "Top query commercial cốt lõi đang ở position 7.4. Tiềm năng lọt top 3 để tăng x2.5 clicks.",
+          "recommendedAction": "Gia cố internal link từ các bài blog liên quan sang /thue-acc-tft-dtcl với anchor 'thuê acc TFT', bổ sung FAQ schema về bảo hiểm và quy trình thuê.",
+          "targetAudienceOrIntent": "Người chơi TFT PC & Mobile đang có nhu cầu thuê acc ngay trong hôm nay"
+        },
+        {
+          "url": "/thue-acc-tft-dtcl",
+          "id": "opp-2",
+          "query": "thuê acc ĐTCL",
+          "page": "/thue-acc-tft-dtcl",
+          "clicks": 410,
+          "impressions": 9200,
+          "ctr": 4.46,
+          "position": 8.9,
+          "opportunity": "Ranking",
+          "priority": "HIGH",
+          "reason": "Search volume ĐTCL cao ở mobile player, position 8.9 có cơ hội bứt phá lên top 5.",
+          "recommendedAction": "Bổ sung đoạn nội dung giải đáp trải nghiệm chơi trên điện thoại ĐTCL Mobile, hướng dẫn đăng nhập VNG/Riot.",
+          "targetAudienceOrIntent": "Game thủ ĐTCL Mobile tìm kiếm tài khoản có Pet Chibi đẹp để chơi trên điện thoại"
+        },
+        {
+          "id": "opp-3",
+          "query": "TFT mùa 18",
+          "page": "/blog/tft-mua-18",
+          "clicks": 415,
+          "impressions": 14200,
+          "ctr": 2.92,
+          "position": 6.2,
+          "opportunity": "CTR",
+          "priority": "HIGH",
+          "reason": "Impression rất cao (14.2k) ở position 6.2 nhưng CTR chỉ 2.92%. Tiêu đề và meta description chưa đủ điểm nhấn thu hút click.",
+          "recommendedAction": "Tối ưu lại snippet: bổ sung mốc patch hiện tại (Patch 18.3b) và liệt kê 3 cụm nội dung chính (Đại Ngàn Kỳ Bí, Giáo Án Meta, Pet Chibi).",
+          "targetAudienceOrIntent": "Game thủ tìm hiểu thông tin tổng quan và meta bản cập nhật Mùa 18"
+        },
+        {
+          "id": "opp-4",
+          "query": "shoptftmobile.com",
+          "page": "/",
+          "clicks": 140,
+          "impressions": 2500,
+          "ctr": 5.60,
+          "position": 1.8,
+          "opportunity": "Indexing",
+          "priority": "HIGH",
+          "reason": "Người dùng vẫn tìm kiếm tên domain cũ .com. Cần bảo đảm Google ghi nhận tín hiệu chuyển dịch sang .net và duy trì 301 không suy giảm.",
+          "recommendedAction": "Theo dõi Search Console Change of Address, audit lại các backlink cũ, duy trì 301 permanent trên Cloudflare.",
+          "targetAudienceOrIntent": "Khách hàng thân thiết ghi nhớ thương hiệu qua tên miền cũ .com"
+        },
+        {
+          "id": "opp-5",
+          "query": "đội hình TFT",
+          "page": "/blog/top-doi-hinh-manh-tft-mua-18-patch-18-3",
+          "clicks": 210,
+          "impressions": 6900,
+          "ctr": 3.04,
+          "position": 9.4,
+          "opportunity": "Ranking",
+          "priority": "MEDIUM",
+          "reason": "Query meta TFT rất cạnh tranh, trang đang đứng cuối trang 1 (pos 9.4).",
+          "recommendedAction": "Cập nhật bảng tier list theo patch mới nhất, chèn link nội bộ từ Topic Hub /blog/tft-mua-18 với anchor text ngữ cảnh tự nhiên.",
+          "targetAudienceOrIntent": "Người chơi tìm kiếm comp chuẩn để leo rank Thách Đấu"
+        },
+        {
+          "id": "opp-6",
+          "query": "Chibi TFT",
+          "page": "/shop",
+          "clicks": 135,
+          "impressions": 4400,
+          "ctr": 3.07,
+          "position": 12.3,
+          "opportunity": "Content",
+          "priority": "MEDIUM",
+          "reason": "Position 12.3 (đầu trang 2), intent tìm kiếm kho acc theo Pet Chibi.",
+          "recommendedAction": "Gia cố đoạn mô tả ngắn trên /shop về bộ sưu tập Chibi Tí Nị và liên kết tới bài cẩm nang chọn acc theo Chibi.",
+          "targetAudienceOrIntent": "Khách hàng muốn thuê tài khoản có tướng tí nị yêu thích (Ahri, Yasuo, Lee Sin...)"
+        },
+        {
+          "id": "opp-7",
+          "query": "đổi thông tin Riot",
+          "page": "/huong-dan/doi-thong-tin-acc-riot",
+          "clicks": 95,
+          "impressions": 2400,
+          "ctr": 3.96,
+          "position": 9.8,
+          "opportunity": "Ranking",
+          "priority": "MEDIUM",
+          "reason": "Vị trí 9.8 sát mép trang 1. Bài viết hướng dẫn chất lượng cao và mang lại trust lớn cho thương hiệu.",
+          "recommendedAction": "Bổ sung sơ đồ trực quan 4 bước bảo mật Riot và dẫn link từ chân trang tất cả các bài blog.",
+          "targetAudienceOrIntent": "Người thuê acc muốn biết quy trình đổi pass và bảo mật an toàn tài khoản Riot"
+        },
+        {
+          "id": "opp-8",
+          "query": "acc TFT clone giá sinh viên",
+          "page": "/shop",
+          "clicks": 28,
+          "impressions": 480,
+          "ctr": 5.83,
+          "position": 14.5,
+          "opportunity": "Content",
+          "priority": "LOW",
+          "reason": "Search volume thấp, tính thương mại hẹp nhưng tỉ lệ click ổn định.",
+          "recommendedAction": "Giữ nguyên filter clone giá rẻ trên /shop, không cần tạo landing page riêng tránh mỏng nội dung.",
+          "targetAudienceOrIntent": "Học sinh, sinh viên tìm acc clone phụ để đánh test bài"
+        }
+      ],
+      "cannibalization": [
+        {
+          "query": "thuê acc TFT",
+          "competingUrls": [
+            "/thue-acc-tft-dtcl",
+            "/"
+          ],
+          "recommendedUrl": "/thue-acc-tft-dtcl",
+          "actionReason": "Trang /thue-acc-tft-dtcl là Landing Page chuyên biệt được thiết kế để giải quyết trọn vẹn ý định thương mại (Commercial Informational). Homepage chỉ nên giữ Brand + broad intent; điều chỉnh anchor text nội bộ trên Homepage để trỏ về /thue-acc-tft-dtcl thay vì cạnh tranh từ khóa này."
+        },
+        {
+          "query": "acc TFT",
+          "competingUrls": [
+            "/shop",
+            "/"
+          ],
+          "recommendedUrl": "/shop",
+          "actionReason": "Truy vấn 'acc TFT' có thiên hướng khám phá danh mục hàng sẵn sàng thuê (Catalog Discovery). Ưu tiên định vị /shop là trang đích chuẩn, tránh việc Homepage phân tán tín hiệu rank của kho sản phẩm."
+        },
+        {
+          "query": "shoptftmobile.com",
+          "competingUrls": [
+            "/",
+            "https://shoptftmobile.com"
+          ],
+          "recommendedUrl": "/",
+          "actionReason": "Domain cũ .com đang 301 về .net. Search Console vẫn ghi nhận impressions cho query domain cũ; cần duy trì canonical tuyệt đối trên https://www.shoptftmobile.net để củng cố thực thể hợp nhất."
+        }
+      ],
+      "contentGaps": [
+        {
+          "query": "cách cài đặt ĐTCL Mobile bản quốc tế",
+          "searchImpressions": 1850,
+          "userIntent": "Hướng dẫn kỹ thuật tải và cài đặt game ĐTCL trên iOS & Android khi đổi vùng hoặc gặp lỗi cập nhật.",
+          "suggestedTitle": "Hướng Dẫn Tải & Cài Đặt ĐTCL Mobile Bản Quốc Tế Cho iOS & Android",
+          "suggestedUrl": "/huong-dan/tai-va-cai-dat-dtcl-mobile",
+          "targetCluster": "Hướng Dẫn Riot & Dịch Vụ"
+        },
+        {
+          "query": "bảng giá thuê acc TFT VIP theo ngày và tuần",
+          "searchImpressions": 1420,
+          "userIntent": "Khách hàng muốn tham khảo bảng so sánh giá thuê theo giờ, ngày, đêm và combo tuần trước khi quyết định.",
+          "suggestedTitle": "Bảng Giá Thuê Acc TFT Mới Nhất: So Sánh Giá Theo Giờ, Ngày & Gói VIP",
+          "suggestedUrl": "/thue-acc-tft-dtcl#bang-gia",
+          "targetCluster": "Commercial Landing Page Component"
+        },
+        {
+          "query": "cách chơi ĐTCL trên máy tính PC mượt không lag",
+          "searchImpressions": 980,
+          "userIntent": "Tối ưu hóa client Riot Client trên máy tính cấu hình yếu để leo rank ổn định.",
+          "suggestedTitle": "Cách Cài Đặt & Chơi ĐTCL Trên PC Cấu Hình Thấp Mượt Mà Không Lag",
+          "suggestedUrl": "/huong-dan/choi-tft-tren-pc-muot",
+          "targetCluster": "Hướng Dẫn Riot & Dịch Vụ"
+        }
+      ],
+      "blogPerformance": [
+        {
+          "slug": "top-doi-hinh-manh-tft-mua-18-patch-18-3",
+          "title": "Đội Hình Mạnh TFT Mùa 18 Patch 18.3b: Giáo Án & Cách Vận Hành",
+          "patch": "18.3b",
+          "updatedAt": "2026-10-01",
+          "impressions": 8400,
+          "clicks": 320,
+          "ctr": 3.81,
+          "position": 8.4,
+          "blogToShopClicks": 88,
+          "productViews": 54,
+          "zaloClicks": 19,
+          "conversionRate": 5.94,
+          "performanceGroup": "top_performer"
+        },
+        {
+          "slug": "tong-hop-pet-chibi-moi-tft-mua-18",
+          "title": "Pet/Chibi TFT Mùa 18: Những Mẫu Tí Nị Đáng Chú Ý Nhất",
+          "patch": "18.3b",
+          "updatedAt": "2026-10-01",
+          "impressions": 5600,
+          "clicks": 195,
+          "ctr": 3.48,
+          "position": 9.2,
+          "blogToShopClicks": 65,
+          "productViews": 48,
+          "zaloClicks": 16,
+          "conversionRate": 8.21,
+          "performanceGroup": "pos_8_20"
+        },
+        {
+          "slug": "san-dau-moi-va-hieu-ung-am-nhac-tft-mua-18",
+          "title": "Sân Đấu TFT Mùa 18: Tổng Hợp & Cách Chọn Sàn Đấu Đổi Nhạc",
+          "patch": "18.3b",
+          "updatedAt": "2026-10-01",
+          "impressions": 4800,
+          "clicks": 140,
+          "ctr": 2.92,
+          "position": 10.5,
+          "blogToShopClicks": 42,
+          "productViews": 29,
+          "zaloClicks": 9,
+          "conversionRate": 6.43,
+          "performanceGroup": "pos_8_20"
+        },
+        {
+          "slug": "huong-dan-doi-hinh-ahri-tft-mua-18",
+          "title": "Hướng Dẫn Đội Hình Ahri Tinh Linh TFT Mùa 18: Trang Bị & Cách Vận Hành",
+          "patch": "18.3b",
+          "updatedAt": "2026-10-01",
+          "impressions": 6200,
+          "clicks": 180,
+          "ctr": 2.90,
+          "position": 8.9,
+          "blogToShopClicks": 52,
+          "productViews": 36,
+          "zaloClicks": 14,
+          "conversionRate": 7.78,
+          "performanceGroup": "high_impression_low_ctr"
+        },
+        {
+          "slug": "so-sanh-acc-vip-va-clone-tft-nen-thue-loai-nao",
+          "title": "VIP Và Clone TFT Khác Nhau Thế Nào? Hướng Dẫn Chọn Thuê Đúng Nhu Cầu",
+          "updatedAt": "2026-09-30",
+          "impressions": 3100,
+          "clicks": 145,
+          "ctr": 4.68,
+          "position": 7.8,
+          "blogToShopClicks": 61,
+          "productViews": 45,
+          "zaloClicks": 21,
+          "conversionRate": 14.48,
+          "performanceGroup": "top_performer"
+        },
+        {
+          "slug": "cach-chon-acc-tft-theo-pet-chibi-va-san-dau",
+          "title": "Kinh Nghiệm Chọn Thuê Acc TFT Theo Linh Thú Tí Nị & Sân Đấu Ưng Ý",
+          "updatedAt": "2026-09-30",
+          "impressions": 2800,
+          "clicks": 120,
+          "ctr": 4.29,
+          "position": 8.1,
+          "blogToShopClicks": 49,
+          "productViews": 38,
+          "zaloClicks": 15,
+          "conversionRate": 12.50,
+          "performanceGroup": "top_performer"
+        },
+        {
+          "slug": "huong-dan-huong-dan-bao-mat-acc-riot-an-toan-chuan-xac",
+          "title": "Hướng Dẫn Bảo Mật Acc Riot An Toàn & Chuẩn Xác",
+          "updatedAt": "2026-09-28",
+          "impressions": 2400,
+          "clicks": 95,
+          "ctr": 3.96,
+          "position": 11.2,
+          "blogToShopClicks": 18,
+          "productViews": 11,
+          "zaloClicks": 4,
+          "conversionRate": 4.21,
+          "performanceGroup": "pos_8_20"
+        }
+      ],
+      "funnel": {
+        "organicVisits": 4280,
+        "shopVisits": 2140,
+        "productViews": 1260,
+        "zaloClicks": 268,
+        "organicToShopRate": 50.0,
+        "shopToProductRate": 58.88,
+        "productToZaloRate": 21.27,
+        "overallConversionRate": 6.26
+      }
+    },
+    "7d": {
+      "summary": {
+        "clicks": 1180,
+        "impressions": 23400,
+        "ctr": 5.04,
+        "avgPosition": 8.3,
+        "brandClicks": 490,
+        "nonBrandClicks": 690,
+        "nonBrandClicksPercentage": 58.47,
+        "brandImpressions": 4300,
+        "nonBrandImpressions": 19100,
+        "brandCtr": 11.40,
+        "nonBrandCtr": 3.61,
+        "brandAvgPosition": 1.3,
+        "nonBrandAvgPosition": 9.9
+      },
+      "queries": [
+        {
+          "query": "shoptftmobile",
+          "group": "BRAND",
+          "pageUrl": "/",
+          "clicks": 255,
+          "impressions": 1800,
+          "ctr": 14.17,
+          "position": 1.1
+        },
+        {
+          "query": "thuê acc TFT",
+          "group": "COMMERCIAL",
+          "pageUrl": "/thue-acc-tft-dtcl",
+          "clicks": 150,
+          "impressions": 3100,
+          "ctr": 4.84,
+          "position": 7.1
+        },
+        {
+          "query": "thuê acc ĐTCL",
+          "group": "COMMERCIAL",
+          "pageUrl": "/thue-acc-tft-dtcl",
+          "clicks": 115,
+          "impressions": 2500,
+          "ctr": 4.60,
+          "position": 8.4
+        },
+        {
+          "query": "TFT mùa 18",
+          "group": "CONTENT",
+          "pageUrl": "/blog/tft-mua-18",
+          "clicks": 125,
+          "impressions": 3950,
+          "ctr": 3.16,
+          "position": 5.9
+        },
+        {
+          "query": "kho acc TFT",
+          "group": "COMMERCIAL",
+          "pageUrl": "/shop",
+          "clicks": 95,
+          "impressions": 2100,
+          "ctr": 4.52,
+          "position": 5.6
+        }
+      ],
+      "pages": [
+        {
+          "url": "/",
+          "title": "Thuê Acc TFT - ĐTCL | Pet, Chibi & Sân Đấu | ShopTFTMobile",
+          "pageType": "home",
+          "clicks": 380,
+          "impressions": 3000,
+          "ctr": 12.67,
+          "position": 1.2,
+          "indexStatus": "indexed",
+          "canonicalUrl": "https://www.shoptftmobile.net"
+        },
+        {
+          "url": "/thue-acc-tft-dtcl",
+          "title": "Thuê Acc TFT - ĐTCL: Pet, Chibi & Sân Đấu | ShopTFTMobile",
+          "pageType": "commercial_landing",
+          "clicks": 310,
+          "impressions": 6400,
+          "ctr": 4.84,
+          "position": 7.1,
+          "indexStatus": "indexed",
+          "canonicalUrl": "https://www.shoptftmobile.net/thue-acc-tft-dtcl"
+        },
+        {
+          "url": "/shop",
+          "title": "Kho Acc TFT - ĐTCL | Pet, Chibi & Sân Đấu | ShopTFTMobile",
+          "pageType": "shop",
+          "clicks": 175,
+          "impressions": 4400,
+          "ctr": 3.98,
+          "position": 6.8,
+          "indexStatus": "indexed",
+          "canonicalUrl": "https://www.shoptftmobile.net/shop"
+        }
+      ],
+      "opportunities": [],
+      "cannibalization": [],
+      "contentGaps": [],
+      "blogPerformance": [],
+      "funnel": {
+        "organicVisits": 1180,
+        "shopVisits": 610,
+        "productViews": 360,
+        "zaloClicks": 79,
+        "organicToShopRate": 51.69,
+        "shopToProductRate": 59.02,
+        "productToZaloRate": 21.94,
+        "overallConversionRate": 6.69
+      }
+    },
+    "3m": {
+      "summary": {
+        "clicks": 11650,
+        "impressions": 242000,
+        "ctr": 4.81,
+        "avgPosition": 9.4,
+        "brandClicks": 5150,
+        "nonBrandClicks": 6500,
+        "nonBrandClicksPercentage": 55.79,
+        "brandImpressions": 48200,
+        "nonBrandImpressions": 193800,
+        "brandCtr": 10.68,
+        "nonBrandCtr": 3.35,
+        "brandAvgPosition": 1.5,
+        "nonBrandAvgPosition": 11.4
+      },
+      "queries": [
+        {
+          "query": "shoptftmobile",
+          "group": "BRAND",
+          "pageUrl": "/",
+          "clicks": 2680,
+          "impressions": 20400,
+          "ctr": 13.14,
+          "position": 1.2
+        },
+        {
+          "query": "thuê acc TFT",
+          "group": "COMMERCIAL",
+          "pageUrl": "/thue-acc-tft-dtcl",
+          "clicks": 1380,
+          "impressions": 32500,
+          "ctr": 4.25,
+          "position": 8.5
+        },
+        {
+          "query": "TFT mùa 18",
+          "group": "CONTENT",
+          "pageUrl": "/blog/tft-mua-18",
+          "clicks": 1040,
+          "impressions": 38600,
+          "ctr": 2.69,
+          "position": 7.3
+        }
+      ],
+      "pages": [
+        {
+          "url": "/",
+          "title": "Thuê Acc TFT - ĐTCL | Pet, Chibi & Sân Đấu | ShopTFTMobile",
+          "pageType": "home",
+          "clicks": 4120,
+          "impressions": 34000,
+          "ctr": 12.12,
+          "position": 1.3,
+          "indexStatus": "indexed",
+          "canonicalUrl": "https://www.shoptftmobile.net"
+        }
+      ],
+      "opportunities": [],
+      "cannibalization": [],
+      "contentGaps": [],
+      "blogPerformance": [],
+      "funnel": {
+        "organicVisits": 11650,
+        "shopVisits": 5720,
+        "productViews": 3280,
+        "zaloClicks": 685,
+        "organicToShopRate": 49.10,
+        "shopToProductRate": 57.34,
+        "productToZaloRate": 20.88,
+        "overallConversionRate": 5.88
+      }
+    }
+  },
+  "titleHistory": [
+    {
+      "id": "th-1",
+      "pageUrl": "/",
+      "oldTitle": "ShopTFTMobile - Thuê Acc TFT Giá Rẻ Uy Tín Số 1",
+      "newTitle": "Thuê Acc TFT - ĐTCL | Pet, Chibi & Sân Đấu | ShopTFTMobile",
+      "dateChanged": "2026-10-01",
+      "reason": "Loại bỏ từ khoá spam 'giá rẻ, uy tín số 1', tập trung chuẩn xác Search Intent thương hiệu kết hợp bộ sưu tập Pet Chibi Sân Đấu.",
+      "baselineCtr": 3.80,
+      "currentCtr": 4.95
+    },
+    {
+      "id": "th-2",
+      "pageUrl": "/thue-acc-tft-dtcl",
+      "oldTitle": "Dịch Vụ Cho Thuê Tài Khoản TFT Giá Rẻ",
+      "newTitle": "Thuê Acc TFT - ĐTCL: Pet, Chibi & Sân Đấu | ShopTFTMobile",
+      "dateChanged": "2026-10-01",
+      "reason": "Xây dựng trang Commercial Landing Page chuyên sâu cho từ khóa cốt lõi 'thuê acc TFT' & 'thuê acc ĐTCL'.",
+      "baselineCtr": 2.10,
+      "currentCtr": 4.56
+    },
+    {
+      "id": "th-3",
+      "pageUrl": "/shop",
+      "oldTitle": "Cửa Hàng Bán & Cho Thuê Acc TFT",
+      "newTitle": "Kho Acc TFT - ĐTCL | Pet, Chibi & Sân Đấu | ShopTFTMobile",
+      "dateChanged": "2026-10-01",
+      "reason": "Chuẩn hóa định vị Kho Acc / Catalog Discovery, hỗ trợ lọc theo Pet, Chibi, Sân Đấu và phân loại VIP/Clone rõ ràng.",
+      "baselineCtr": 3.20,
+      "currentCtr": 3.80
+    },
+    {
+      "id": "th-4",
+      "pageUrl": "/blog/tft-mua-18",
+      "oldTitle": "Tất Tần Tật Về TFT Mùa 18",
+      "newTitle": "TFT Mùa 18 – Hướng Dẫn, Meta, Pet & Sân Đấu | ShopTFTMobile",
+      "dateChanged": "2026-10-01",
+      "reason": "Nâng cấp thành Topic Hub Mùa 18 liên kết chặt chẽ cụm bài viết Meta, Tộc Hệ, Pet Chibi và Sân Đấu.",
+      "baselineCtr": 2.20,
+      "currentCtr": 2.85
+    }
+  ]
+}

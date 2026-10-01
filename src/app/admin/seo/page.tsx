@@ -28,6 +28,7 @@ import {
   ImageIcon,
   Share2,
   Link2,
+  TrendingUp,
 } from "lucide-react";
 import {
   SeoConfigDatabase,
@@ -37,11 +38,13 @@ import {
   formatProductSeo,
   ImageHealthReport,
   InternalLinksAuditReport,
+  GscPerformanceReport,
 } from "@/utils/seo-shared";
 import { ContentRefreshTab } from "@/components/admin/content-refresh-tab";
 import { InternalLinksTab } from "@/components/admin/internal-links-tab";
+import { RankingOptimizationTab } from "@/components/admin/ranking-optimization-tab";
 
-type TabKey = "overview" | "pages" | "products" | "refresh" | "internal_links" | "sitemap" | "redirects" | "schema" | "settings";
+type TabKey = "overview" | "pages" | "products" | "refresh" | "internal_links" | "ranking" | "sitemap" | "redirects" | "schema" | "settings";
 
 const SAMPLE_ACCOUNTS = [
   {
@@ -100,6 +103,7 @@ export default function AdminSeoPage() {
   const [auditFilter, setAuditFilter] = useState<"all" | "error" | "warning" | "passed">("all");
   const [imageHealth, setImageHealth] = useState<ImageHealthReport | null>(null);
   const [internalLinksAudit, setInternalLinksAudit] = useState<InternalLinksAuditReport | null>(null);
+  const [gscReport, setGscReport] = useState<GscPerformanceReport | null>(null);
   const [socialNetworkPreview, setSocialNetworkPreview] = useState<"facebook" | "twitter">("facebook");
 
   // Fetch SEO configuration from API
@@ -117,6 +121,7 @@ export default function AdminSeoPage() {
         if (data.productMetrics) setProductMetrics(data.productMetrics);
         if (data.imageHealth) setImageHealth(data.imageHealth);
         if (data.internalLinksAudit) setInternalLinksAudit(data.internalLinksAudit);
+        if (data.gscReport) setGscReport(data.gscReport);
       } else {
         toast.error(data.error || "Không thể tải dữ liệu SEO!");
       }
@@ -395,6 +400,23 @@ export default function AdminSeoPage() {
           {internalLinksAudit && (internalLinksAudit.brokenLinks.length > 0 || internalLinksAudit.orphanPages.length > 0) && (
             <span className="w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-bold">
               {internalLinksAudit.brokenLinks.length + internalLinksAudit.orphanPages.length}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveTab("ranking")}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === "ranking"
+              ? "bg-gray-900 text-white shadow-xs"
+              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+          }`}
+        >
+          <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+          <span>Thứ Hạng & GSC</span>
+          {gscReport && gscReport.opportunities.filter((o) => o.priority === "HIGH").length > 0 && (
+            <span className="w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-bold">
+              {gscReport.opportunities.filter((o) => o.priority === "HIGH").length}
             </span>
           )}
         </button>
@@ -1281,6 +1303,16 @@ export default function AdminSeoPage() {
       {activeTab === "internal_links" && (
         <InternalLinksTab
           report={internalLinksAudit}
+          onRefresh={fetchSeoData}
+        />
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB: GOOGLE SEARCH CONSOLE & RANKING OPTIMIZATION (PHASE 7)   */}
+      {/* ============================================================== */}
+      {activeTab === "ranking" && (
+        <RankingOptimizationTab
+          initialReport={gscReport}
           onRefresh={fetchSeoData}
         />
       )}

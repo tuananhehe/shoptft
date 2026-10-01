@@ -125,6 +125,136 @@ export interface InternalLinksAuditReport {
   redirectLinks: Array<{ source: string; target: string; destination: string }>;
 }
 
+export type GscPeriodKey = "7d" | "28d" | "3m";
+export type GscQueryGroup = "BRAND" | "COMMERCIAL" | "DISCOVERY" | "CONTENT" | "GUIDE";
+export type GscOpportunityType = "CTR" | "Ranking" | "Content" | "Cannibalization" | "Indexing";
+export type GscOpportunityPriority = "HIGH" | "MEDIUM" | "LOW";
+
+export interface GscQueryItem {
+  query: string;
+  group: GscQueryGroup;
+  pageUrl: string;
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+  previousCtr?: number;
+  previousPosition?: number;
+}
+
+export interface GscPagePerformance {
+  url: string;
+  title: string;
+  pageType: "home" | "shop" | "commercial_landing" | "brand_about" | "guide" | "hub" | "article" | "product";
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+  previousClicks?: number;
+  previousPosition?: number;
+  indexStatus: "indexed" | "needs_attention" | "not_indexed";
+  canonicalUrl: string;
+}
+
+export interface RankingOpportunity {
+  id: string;
+  query: string;
+  page: string;
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+  opportunity: GscOpportunityType;
+  priority: GscOpportunityPriority;
+  reason: string;
+  recommendedAction: string;
+  targetAudienceOrIntent: string;
+}
+
+export interface BlogSeoConversion {
+  slug: string;
+  title: string;
+  patch?: string;
+  updatedAt: string;
+  impressions: number;
+  clicks: number;
+  ctr: number;
+  position: number;
+  blogToShopClicks: number;
+  productViews: number;
+  zaloClicks: number;
+  conversionRate: number;
+  performanceGroup: "high_impression_low_ctr" | "pos_8_20" | "traffic_drop" | "top_performer";
+}
+
+export interface CannibalizationIssue {
+  query: string;
+  competingUrls: string[];
+  recommendedUrl: string;
+  actionReason: string;
+}
+
+export interface ContentGapItem {
+  query: string;
+  searchImpressions: number;
+  userIntent: string;
+  suggestedTitle: string;
+  suggestedUrl: string;
+  targetCluster: string;
+}
+
+export interface TitleChangeLog {
+  id: string;
+  pageUrl: string;
+  oldTitle: string;
+  newTitle: string;
+  dateChanged: string;
+  reason: string;
+  baselineCtr: number;
+  currentCtr?: number;
+}
+
+export interface FunnelMetrics {
+  organicVisits: number;
+  shopVisits: number;
+  productViews: number;
+  zaloClicks: number;
+  organicToShopRate: number;
+  shopToProductRate: number;
+  productToZaloRate: number;
+  overallConversionRate: number;
+}
+
+export interface GscSummaryMetrics {
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  avgPosition: number;
+  brandClicks: number;
+  nonBrandClicks: number;
+  nonBrandClicksPercentage: number;
+  brandImpressions: number;
+  nonBrandImpressions: number;
+  brandCtr: number;
+  nonBrandCtr: number;
+  brandAvgPosition: number;
+  nonBrandAvgPosition: number;
+}
+
+export interface GscPerformanceReport {
+  period: GscPeriodKey;
+  summary: GscSummaryMetrics;
+  brandQueries: GscQueryItem[];
+  nonBrandQueries: GscQueryItem[];
+  topPages: GscPagePerformance[];
+  opportunities: RankingOpportunity[];
+  cannibalization: CannibalizationIssue[];
+  contentGaps: ContentGapItem[];
+  blogPerformance: BlogSeoConversion[];
+  funnel: FunnelMetrics;
+  titleHistory: TitleChangeLog[];
+}
+
 export const PRODUCTION_ORIGIN = "https://www.shoptftmobile.net";
 
 /**
