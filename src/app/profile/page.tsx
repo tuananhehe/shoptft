@@ -249,7 +249,7 @@ export default function MemberProfilePage() {
       {/* Footer */}
       <footer className="border-t border-white/[0.08] p-4 text-center">
         <p className="text-[11px] text-zinc-600">
-          ShopTFT Mobile • Hỗ trợ bàn giao acc thủ công qua Zalo 24/7
+          ShopTFT Mobile • Hỗ trợ bàn giao acc thủ công qua Zalo
         </p>
       </footer>
     </div>

@@ -317,7 +317,7 @@ export const TFTNavbar: React.FC = () => {
                       >
                         <div>
                           <div className="font-semibold text-zinc-200 group-hover:text-white transition-colors">Quy trình & Cam kết</div>
-                          <div className="text-[11px] text-zinc-400 leading-tight">Bàn giao 2 phút, hỗ trợ Zalo 24/7</div>
+                          <div className="text-[11px] text-zinc-400 leading-tight">Bàn giao trực tiếp, hỗ trợ qua Zalo</div>
                         </div>
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-zinc-400 font-mono ml-2">Uy tín</span>
                       </Link>

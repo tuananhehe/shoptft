@@ -86,7 +86,7 @@ export const TFTFaq: React.FC<TFTFaqProps> = ({ customFaqs }) => {
             </div>
 
           <h2 className="font-heading text-2xl sm:text-3xl lg:text-[34px] font-bold tracking-[-0.02em] text-white leading-tight">
-            Câu Hỏi Thường Gặp
+            Câu Hỏi Khi Thuê Acc TFT - ĐTCL
           </h2>
           <p className="text-zinc-400 text-xs sm:text-sm mt-1 max-w-lg mx-auto leading-relaxed">
             Giải đáp các thắc mắc phổ biến về quy trình thuê, bàn giao và tài khoản thành viên.

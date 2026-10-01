@@ -48,7 +48,7 @@ export const TFTCategoryDiscovery = () => (
             DANH MỤC
           </span>
           <h2 className="font-heading text-2xl sm:text-3xl lg:text-[34px] font-bold tracking-[-0.02em] text-white leading-tight mt-1.5">
-            Khám Phá Theo Nhu Cầu
+            Tìm Acc TFT Theo Nhu Cầu
           </h2>
           <p className="text-zinc-400 text-sm mt-1 max-w-xl font-normal leading-relaxed">
             Lọc nhanh tài khoản phù hợp với sở thích và phong cách chơi của bạn.

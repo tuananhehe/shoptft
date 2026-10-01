@@ -69,7 +69,7 @@ export const TFTNewArrivals: React.FC<TFTNewArrivalsProps> = ({ initialAccounts 
               <span>MỚI LÊN KỆ</span>
             </div>
             <h2 className="font-heading text-2xl sm:text-3xl lg:text-[34px] font-bold tracking-[-0.02em] text-white leading-tight">
-              Acc Mới Về
+              Acc TFT Mới Cập Nhật
             </h2>
             <p className="text-zinc-400 text-sm mt-1 max-w-xl font-normal leading-relaxed">
               Những tài khoản TFT vừa được cập nhật vào kho.

@@ -8,19 +8,24 @@ import { Reveal } from "@/components/reveal";
 
 const steps = [
   {
-    step: "01",
+    step: "1",
     title: "Chọn acc",
     desc: "Tìm acc theo Pet, Chibi hoặc Sân Đấu mong muốn tại Kho Acc.",
   },
   {
-    step: "02",
-    title: "Xem thông tin & gói thuê",
+    step: "2",
+    title: "Chọn gói thuê",
     desc: "Kiểm tra chi tiết Linh Thú, Sân Đấu, trạng thái còn acc và mức giá phù hợp.",
   },
   {
-    step: "03",
+    step: "3",
     title: "Liên hệ Zalo",
-    desc: "Gửi mã số tài khoản qua Zalo để chủ shop Tuấn Thái Bình bàn giao trực tiếp.",
+    desc: "Gửi mã số tài khoản qua Zalo để chủ shop Tuấn Thái Bình hỗ trợ trực tiếp.",
+  },
+  {
+    step: "4",
+    title: "Admin xác nhận & bàn giao",
+    desc: "Xác nhận gói thuê, bàn giao thông tin đăng nhập và hỗ trợ 1-1.",
   },
 ];
 
@@ -30,52 +35,35 @@ export const TFTRentalProcess = () => (
     style={{ contentVisibility: "auto", containIntrinsicSize: "360px" }}
     className="scroll-mt-14 sm:scroll-mt-20 bg-[#090909] py-8 sm:py-12 lg:py-14 px-4 sm:px-6 lg:px-8 border-b border-white/[0.08]"
   >
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <Reveal>
         <div className="mb-8 sm:mb-12 text-center">
           <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.08em] text-zinc-400">
             HƯỚNG DẪN
           </span>
           <h2 className="font-heading text-2xl sm:text-3xl lg:text-[34px] font-bold tracking-[-0.02em] text-white leading-tight mt-1.5">
-            Quy Trình Thuê Acc
+            Cách Thuê Acc TFT tại ShopTFTMobile
           </h2>
           <p className="text-zinc-400 text-sm mt-1 max-w-lg mx-auto font-normal leading-relaxed">
-            3 bước đơn giản, minh bạch và hỗ trợ trực tiếp 1-1 qua Zalo từ chủ shop.
+            4 bước đơn giản, minh bạch và hỗ trợ trực tiếp 1-1 qua Zalo từ chủ shop.
           </p>
         </div>
       </Reveal>
 
-      {/* Desktop Process line 01 -------- 02 -------- 03 */}
-      <div className="hidden md:grid md:grid-cols-3 gap-8 relative">
-        {/* Connecting Line */}
-        <div className="absolute top-5 left-[16.6%] right-[16.6%] h-[1px] bg-white/[0.1] -z-0" />
-
+      {/* Single Responsive Process Block (No duplicate DOM trees) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 relative">
         {steps.map((item) => (
-          <div key={item.step} className="flex flex-col items-center text-center relative z-10 px-4">
-            <div className="w-10 h-10 rounded-full bg-[#141414] border border-white/[0.15] text-white font-mono font-bold text-sm flex items-center justify-center mb-4 shadow-sm">
+          <div
+            key={item.step}
+            className="flex flex-col items-center sm:items-start lg:items-center text-center sm:text-left lg:text-center p-5 rounded-2xl bg-[#121214] border border-white/[0.08] relative hover:border-white/15 transition-colors"
+          >
+            <div className="w-9 h-9 rounded-xl bg-[#18181b] border border-white/15 text-white font-mono font-bold text-sm flex items-center justify-center mb-3 shadow-xs">
               {item.step}
             </div>
-            <h3 className="font-heading text-base font-semibold text-white mb-1">
+            <h3 className="font-heading text-sm sm:text-base font-semibold text-white mb-1.5">
               {item.title}
             </h3>
-            <p className="text-xs text-zinc-400 leading-relaxed max-w-[240px]">
-              {item.desc}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {/* Mobile Vertical Timeline */}
-      <div className="md:hidden space-y-4 relative pl-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-[1px] before:bg-white/[0.1]">
-        {steps.map((item) => (
-          <div key={item.step} className="relative">
-            <span className="absolute -left-6 top-0.5 w-4 h-4 rounded-full bg-[#141414] border border-white/[0.2] flex items-center justify-center text-[9px] font-mono text-white">
-              {item.step.replace(/^0/, "")}
-            </span>
-            <h3 className="text-sm font-semibold text-white">
-              {item.title}
-            </h3>
-            <p className="text-xs text-zinc-400 mt-0.5">
+            <p className="text-xs text-zinc-400 leading-relaxed font-normal">
               {item.desc}
             </p>
           </div>

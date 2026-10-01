@@ -128,9 +128,9 @@ export const DEFAULT_SEO_CONFIG: SeoConfigDatabase = {
     siteName: "ShopTFTMobile",
     brandName: "Tuấn Thái Bình TFT",
     canonicalOrigin: "https://www.shoptftmobile.net",
-    defaultTitle: "Thuê Acc TFT - ĐTCL | ShopTFTMobile - Tuấn Thái Bình TFT",
+    defaultTitle: "Thuê Acc TFT - ĐTCL | Pet, Chibi & Sân Đấu | ShopTFTMobile",
     defaultDescription:
-      "Tìm acc TFT/ĐTCL theo Pet, Chibi và Sân Đấu tại ShopTFTMobile. Xem kho acc và liên hệ Tuấn Thái Bình TFT để được hỗ trợ trực tiếp.",
+      "Thuê acc TFT/ĐTCL theo Pet, Chibi, Sân Đấu, VIP hoặc Clone. Xem trạng thái acc, giá thuê và thông tin rõ ràng tại ShopTFTMobile, hỗ trợ trực tiếp qua Zalo.",
     defaultOgImage: "/banner-seo.jpg",
     googleVerification: "",
     bingVerification: "",
@@ -140,13 +140,13 @@ export const DEFAULT_SEO_CONFIG: SeoConfigDatabase = {
     "/": {
       path: "/",
       name: "Trang chủ",
-      title: "Thuê Acc TFT - ĐTCL | ShopTFTMobile - Tuấn Thái Bình TFT",
+      title: "Thuê Acc TFT - ĐTCL | Pet, Chibi & Sân Đấu | ShopTFTMobile",
       description:
-        "Tìm acc TFT/ĐTCL theo Pet, Chibi và Sân Đấu tại ShopTFTMobile. Xem kho acc và liên hệ Tuấn Thái Bình TFT để được hỗ trợ trực tiếp.",
-      canonical: "https://www.shoptftmobile.net",
-      ogTitle: "Thuê Acc TFT - ĐTCL | ShopTFTMobile - Tuấn Thái Bình TFT",
+        "Thuê acc TFT/ĐTCL theo Pet, Chibi, Sân Đấu, VIP hoặc Clone. Xem trạng thái acc, giá thuê và thông tin rõ ràng tại ShopTFTMobile, hỗ trợ trực tiếp qua Zalo.",
+      canonical: "https://www.shoptftmobile.net/",
+      ogTitle: "Thuê Acc TFT - ĐTCL | Pet, Chibi & Sân Đấu | ShopTFTMobile",
       ogDescription:
-        "Tìm acc TFT/ĐTCL theo Pet, Chibi và Sân Đấu tại ShopTFTMobile. Xem kho acc và liên hệ Tuấn Thái Bình TFT để được hỗ trợ trực tiếp.",
+        "Thuê acc TFT/ĐTCL theo Pet, Chibi, Sân Đấu, VIP hoặc Clone. Xem trạng thái acc, giá thuê và thông tin rõ ràng tại ShopTFTMobile, hỗ trợ trực tiếp qua Zalo.",
       ogImage: "/banner-seo.jpg",
       robots: { index: true, follow: true },
     },

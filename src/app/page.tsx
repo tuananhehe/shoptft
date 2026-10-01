@@ -8,13 +8,13 @@ import { getBlogPosts } from "@/utils/blog-service";
 export async function generateMetadata(): Promise<Metadata> {
   const seoConfig = await getSeoConfig();
   const pageSeo = seoConfig.pages["/"] || {
-    title: "Thuê Acc TFT - ĐTCL | ShopTFTMobile - Tuấn Thái Bình TFT",
+    title: "Thuê Acc TFT - ĐTCL | Pet, Chibi & Sân Đấu | ShopTFTMobile",
     description:
-      "Tìm acc TFT/ĐTCL theo Pet, Chibi và Sân Đấu tại ShopTFTMobile. Xem kho acc và liên hệ Tuấn Thái Bình TFT để được hỗ trợ trực tiếp.",
-    canonical: "https://www.shoptftmobile.net",
+      "Thuê acc TFT/ĐTCL theo Pet, Chibi, Sân Đấu, VIP hoặc Clone. Xem trạng thái acc, giá thuê và thông tin rõ ràng tại ShopTFTMobile, hỗ trợ trực tiếp qua Zalo.",
+    canonical: "https://www.shoptftmobile.net/",
   };
 
-  const canonicalUrl = pageSeo.canonical || seoConfig.global.canonicalOrigin || "https://www.shoptftmobile.net";
+  const canonicalUrl = pageSeo.canonical || "https://www.shoptftmobile.net/";
   const ogImg = pageSeo.ogImage || seoConfig.global.defaultOgImage || "/banner-seo.jpg";
 
   return {

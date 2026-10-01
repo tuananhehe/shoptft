@@ -10,7 +10,7 @@ export const TFTFloatingChat: React.FC = () => {
     <div className="fixed bottom-6 right-4 sm:right-6 md:right-8 md:bottom-8 z-50 flex items-center">
       {/* Tooltip Hover (Chỉ hiển thị trên Desktop) */}
       <span className="hidden sm:inline-block mr-3 px-3.5 py-1.5 bg-slate-900/90 backdrop-blur-sm text-white text-xs font-bold rounded-xl shadow-xl border border-slate-700/80 pointer-events-none transition-all duration-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0">
-        💬 Chat Zalo 24/7 ({PROFILE_INFO.phoneZalo})
+        💬 Chat Zalo ({PROFILE_INFO.phoneZalo})
       </span>
 
       {/* Bong Bóng Nổi Tròn Hoàn Hảo */}

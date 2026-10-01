@@ -50,8 +50,8 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
         {/* H1 Heading */}
-        <h1 className="font-heading font-bold text-3xl sm:text-4xl lg:text-[50px] leading-[1.08] tracking-[-0.03em] text-white max-w-3xl mx-auto">
-          <span className="inline-block whitespace-nowrap">TÌM ĐÚNG ACC TFT</span>{" "}
+        <h1 className="font-heading font-bold text-3xl sm:text-4xl lg:text-[50px] leading-[1.08] tracking-[-0.03em] text-white max-w-4xl mx-auto">
+          <span className="inline-block whitespace-nowrap">TÌM ĐÚNG ACC TFT - ĐTCL</span>{" "}
           <span className="inline-block whitespace-nowrap">BẠN MUỐN</span>
         </h1>
 

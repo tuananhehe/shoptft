@@ -638,7 +638,7 @@ export const UserProfileModal: React.FC = () => {
                   <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 hover:border-emerald-300 transition-all space-y-2">
                     <div className="flex items-center gap-2 text-emerald-800 font-extrabold text-xs uppercase">
                       <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                      <span>Hỗ Trợ Ưu Tiên 24/7</span>
+                      <span>Hỗ Trợ Ưu Tiên 1-1</span>
                     </div>
                     <p className="text-xs text-slate-600">
                       {vipInfo.currentTier.supportPerk}
