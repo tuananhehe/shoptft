@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { TFTNavbar } from "@/components/tft-navbar";
 import { TFTFooter } from "@/components/tft-footer";
 import { TFTMobileBottomBar } from "@/components/tft-mobile-bottom-bar";
-import { TFTAccountModal } from "@/components/tft-account-modal";
 import {
   CatalogFilterBar,
   FilterState,
@@ -19,7 +19,16 @@ import {
   normalizeVipAccount,
   normalizeCloneAccount,
 } from "@/components/product-card";
-import { getVipAndCloneAccounts } from "@/utils/supabase/accounts-service";
+import {
+  getVipAndCloneAccounts,
+  mapRowToVipAccount,
+  mapRowToCloneAccount,
+} from "@/utils/supabase/accounts-service";
+
+const TFTAccountModal = dynamic(
+  () => import("@/components/tft-account-modal").then((m) => m.TFTAccountModal),
+  { ssr: false }
+);
 import { TFTRentalAccount, TFTCloneAccount } from "@/data/tft-data";
 import { analytics } from "@/utils/analytics";
 import { Reveal } from "@/components/reveal";
@@ -64,7 +73,9 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
   const PAGE_SIZE = 12;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMoreServer, setHasMoreServer] = useState(true);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Parse initial filters from URL
   const initialType = (searchParams.get("type") || "").toUpperCase();
@@ -103,13 +114,22 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
     }
   }, [initialVip?.length, initialClone?.length]);
 
-  // Load remaining/fresh Accounts from database in background
+  // Load remaining/fresh Accounts from database only if SSR dataset was empty
   const loadData = useCallback(async () => {
+    if (vipRaw.length > 0 || cloneRaw.length > 0) {
+      setIsLoading(false);
+      return;
+    }
     try {
       setLoadError(null);
+      setIsLoading(true);
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+
       const { vipAccounts, cloneAccounts, error } = await getVipAndCloneAccounts();
       if (error && (!vipAccounts || vipAccounts.length === 0) && (!cloneAccounts || cloneAccounts.length === 0)) {
-        // Only set blocking error if we don't have any accounts (not even initial)
         if (vipRaw.length === 0 && cloneRaw.length === 0) {
           setLoadError(error);
         }
@@ -122,7 +142,7 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
         }
       }
     } catch (err: any) {
-      if (vipRaw.length === 0 && cloneRaw.length === 0) {
+      if (err?.name !== "AbortError" && vipRaw.length === 0 && cloneRaw.length === 0) {
         setLoadError("Không tải được dữ liệu. Thử lại.");
       }
     } finally {
@@ -131,8 +151,13 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
   }, [vipRaw.length, cloneRaw.length]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (vipRaw.length === 0 && cloneRaw.length === 0) {
+      loadData();
+    }
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, [loadData, vipRaw.length, cloneRaw.length]);
 
   // Sync state when URL searchParams change
   const searchParamVal = searchParams.get("search") || "";
@@ -540,7 +565,7 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
     setVisibleCount(PAGE_SIZE);
   }, [filters]);
 
-  const hasMore = visibleCount < filteredAccounts.length;
+  const hasMore = visibleCount < filteredAccounts.length || hasMoreServer;
 
   const visibleAccounts = useMemo(
     () => filteredAccounts.slice(0, visibleCount),
@@ -557,12 +582,52 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !isLoadingMore) {
-          setIsLoadingMore(true);
-          // Debounced batch loading to prevent request storm
-          setTimeout(() => {
-            setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, filteredAccounts.length));
-            setIsLoadingMore(false);
-          }, 60);
+          if (visibleCount < filteredAccounts.length) {
+            setIsLoadingMore(true);
+            setTimeout(() => {
+              setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, filteredAccounts.length));
+              setIsLoadingMore(false);
+            }, 60);
+          } else if (hasMoreServer) {
+            setIsLoadingMore(true);
+            const offset = allNormalizedAccounts.length;
+            fetch(`/api/accounts?offset=${offset}&limit=24`)
+              .then((res) => (res.ok ? res.json() : null))
+              .then((res) => {
+                if (res && res.data && Array.isArray(res.data) && res.data.length > 0) {
+                  const existingIds = new Set([
+                    ...vipRaw.map((v) => v.id),
+                    ...cloneRaw.map((c) => c.id),
+                  ]);
+                  const newVips: TFTRentalAccount[] = [];
+                  const newClones: TFTCloneAccount[] = [];
+
+                  res.data.forEach((row: any, i: number) => {
+                    if (!existingIds.has(row.id)) {
+                      if (row.type === "VIP") {
+                        newVips.push(mapRowToVipAccount(row, offset + i));
+                      } else {
+                        newClones.push(mapRowToCloneAccount(row, offset + i));
+                      }
+                    }
+                  });
+
+                  if (newVips.length > 0) setVipRaw((prev) => [...prev, ...newVips]);
+                  if (newClones.length > 0) setCloneRaw((prev) => [...prev, ...newClones]);
+                  if (newVips.length === 0 && newClones.length === 0) {
+                    setHasMoreServer(false);
+                  }
+                } else {
+                  setHasMoreServer(false);
+                }
+              })
+              .catch(() => {
+                setHasMoreServer(false);
+              })
+              .finally(() => {
+                setIsLoadingMore(false);
+              });
+          }
         }
       },
       {
@@ -575,7 +640,17 @@ export function ShopClientView({ initialVip = [], initialClone = [] }: ShopClien
     return () => {
       observer.disconnect();
     };
-  }, [hasMore, isLoading, isLoadingMore, filteredAccounts.length]);
+  }, [
+    hasMore,
+    hasMoreServer,
+    isLoading,
+    isLoadingMore,
+    visibleCount,
+    filteredAccounts.length,
+    allNormalizedAccounts.length,
+    vipRaw,
+    cloneRaw,
+  ]);
 
   return (
     <div className="min-h-screen bg-[#09090b] text-white flex flex-col justify-between selection:bg-white selection:text-black overflow-x-hidden">

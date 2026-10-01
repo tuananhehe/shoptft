@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { TFTRentalAccount, TFTCloneAccount, TFT_RENTAL_ACCOUNTS, TFT_CLONE_ACCOUNTS } from "@/data/tft-data";
 import { supabase } from "./client";
 
@@ -278,13 +279,13 @@ export function mapRowToCloneAccount(row: AccountDbRow, idx: number): TFTCloneAc
 
 /**
  * Server-only: Lấy trực tiếp danh sách Acc VIP mới nhất từ Supabase
- * Chỉ lấy đúng 4 bản ghi và các trường cần thiết, giảm payload tối đa.
+ * Bọc React cache() để deduplicate và loại bỏ description để tinh gọn payload
  */
-export async function getNewestVipAccountsServer(limit: number = 4): Promise<TFTRentalAccount[]> {
+export const getNewestVipAccountsServer = cache(async (limit: number = 4): Promise<TFTRentalAccount[]> => {
   try {
     const { data, error } = await supabase
       .from("accounts")
-      .select("id, code, type, title, rank, price, hourly_price, daily_price, period_price, period_unit, price_display_type, custom_price, custom_price_unit, champions, arenas, image_url, status, rented_until, description, created_at")
+      .select("id, code, type, title, rank, price, hourly_price, daily_price, period_price, period_unit, price_display_type, custom_price, custom_price_unit, champions, arenas, image_url, status, rented_until, created_at")
       .eq("type", "VIP")
       .order("created_at", { ascending: false })
       .limit(limit);
@@ -296,27 +297,28 @@ export async function getNewestVipAccountsServer(limit: number = 4): Promise<TFT
     console.warn("Lỗi server query newest vip accounts:", err);
   }
   return TFT_RENTAL_ACCOUNTS.slice(0, limit);
-}
+});
 
 /**
  * Server-only: Lấy batch tài khoản đầu tiên cho trang /shop trực tiếp trên server
  * Chạy parallel 2 query VIP & Clone với limit 24, loại bỏ hoàn toàn delay first load.
+ * Bọc React cache() và loại bỏ description để tăng tốc độ nạp SSR.
  */
-export async function getInitialShopAccountsServer(): Promise<{
+export const getInitialShopAccountsServer = cache(async (): Promise<{
   vipAccounts: TFTRentalAccount[];
   cloneAccounts: TFTCloneAccount[];
-}> {
+}> => {
   try {
     const [vipRes, cloneRes] = await Promise.all([
       supabase
         .from("accounts")
-        .select("id, code, type, title, rank, price, hourly_price, daily_price, period_price, period_unit, price_display_type, custom_price, custom_price_unit, champions, arenas, image_url, status, rented_until, description, created_at")
+        .select("id, code, type, title, rank, price, hourly_price, daily_price, period_price, period_unit, price_display_type, custom_price, custom_price_unit, champions, arenas, image_url, status, rented_until, created_at")
         .eq("type", "VIP")
         .order("created_at", { ascending: false })
         .limit(24),
       supabase
         .from("accounts")
-        .select("id, code, type, title, rank, price, hourly_price, daily_price, period_price, period_unit, price_display_type, custom_price, custom_price_unit, champions, arenas, image_url, status, rented_until, description, created_at, features, weekly_price")
+        .select("id, code, type, title, rank, price, hourly_price, daily_price, period_price, period_unit, price_display_type, custom_price, custom_price_unit, champions, arenas, image_url, status, rented_until, created_at, features, weekly_price")
         .eq("type", "CLONE")
         .order("created_at", { ascending: false })
         .limit(24),
@@ -338,7 +340,7 @@ export async function getInitialShopAccountsServer(): Promise<{
       cloneAccounts: TFT_CLONE_ACCOUNTS.slice(0, 24),
     };
   }
-}
+});
 
 /**
  * Gọi GET /api/accounts để lấy danh sách từ Database

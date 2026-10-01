@@ -155,8 +155,9 @@ interface ProductCardProps {
 
 /**
  * COMPONENT THẺ SẢN PHẨM TFT CHUẨN MONOCHROME LUXURY E-COMMERCE
+ * Tối ưu hóa hiệu năng render với React.memo
  */
-export const ProductCard: React.FC<ProductCardProps> = ({
+export const ProductCard: React.FC<ProductCardProps> = React.memo(({
   item,
   onViewDetail,
   onSelectAccount,
@@ -448,7 +449,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </div>
     </div>
   );
-};
+});
+ProductCard.displayName = "ProductCard";
 
 /**
  * COMPONENT SKELETON CHO PRODUCT CARD (DARK MONOCHROME)

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import dynamic from "next/dynamic";
 import { TFTNavbar } from "@/components/tft-navbar";
 import { TFTHero } from "@/components/tft-hero";
 import { TFTNewArrivals } from "@/components/tft-new-arrivals";
@@ -14,9 +15,13 @@ import { TFTFaq } from "@/components/tft-faq";
 import { TFTFinalCTA } from "@/components/tft-final-cta";
 import { TFTFooter } from "@/components/tft-footer";
 import { TFTMobileBottomBar } from "@/components/tft-mobile-bottom-bar";
-import { TFTAccountModal } from "@/components/tft-account-modal";
 import { TFTRentalAccount } from "@/data/tft-data";
 import { BlogPost } from "@/utils/blog-shared";
+
+const TFTAccountModal = dynamic(
+  () => import("@/components/tft-account-modal").then((m) => m.TFTAccountModal),
+  { ssr: false }
+);
 
 import { SectionErrorBoundary } from "@/components/error-boundary";
 

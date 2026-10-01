@@ -1,3 +1,4 @@
+import { cache } from "react";
 import path from "path";
 import { getCloudJson, saveCloudJson } from "@/utils/cloud-config-store";
 import { BlogPost, BlogPostStatus, BlogPostCategory, isPatchStale } from "@/utils/blog-shared";
@@ -11,13 +12,14 @@ let memoryPosts: BlogPost[] | null = null;
 
 /**
  * Đọc toàn bộ danh sách bài viết blog từ Cloud/Local
+ * Bọc React cache() để deduplicate giữa generateMetadata() và Server Components
  */
-export async function getBlogPosts(options?: {
+export const getBlogPosts = cache(async (options?: {
   status?: BlogPostStatus | "all";
   category?: string;
   tag?: string;
   limit?: number;
-}): Promise<BlogPost[]> {
+}): Promise<BlogPost[]> => {
   try {
     const loaded = await getCloudJson<BlogPost[]>(
       STORAGE_KEY,
@@ -64,17 +66,18 @@ export async function getBlogPosts(options?: {
     console.warn("Lỗi đọc danh sách bài viết blog:", err);
     return memoryPosts || [];
   }
-}
+});
 
 /**
  * Lấy chi tiết một bài viết theo slug
+ * Bọc React cache() để deduplicate giữa generateMetadata() và Page render
  */
-export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
+export const getPostBySlug = cache(async (slug: string): Promise<BlogPost | null> => {
   const posts = await getBlogPosts({ status: "all" });
   const cleanSlug = slug.toLowerCase().trim();
   const matched = posts.find((p) => p.slug.toLowerCase().trim() === cleanSlug);
   return matched || null;
-}
+});
 
 /**
  * Lấy danh sách bài viết liên quan (ưu tiên cùng category, cùng season, patch, độ tươi mới)

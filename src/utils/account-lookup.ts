@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { supabase } from "@/utils/supabase/client";
 import {
   TFTRentalAccount,
@@ -328,8 +329,9 @@ function transformCloneFallback(item: TFTCloneAccount): UnifiedProductAccount {
 
 /**
  * Lấy toàn bộ danh sách tài khoản (từ Supabase DB hoặc Fallback)
+ * Sử dụng React cache() để tự động deduplicate request giữa generateMetadata và Page component
  */
-export async function getAllProductAccounts(): Promise<UnifiedProductAccount[]> {
+export const getAllProductAccounts = cache(async (): Promise<UnifiedProductAccount[]> => {
   const vips = TFT_RENTAL_ACCOUNTS.map(transformVipFallback);
   const clones = TFT_CLONE_ACCOUNTS.map(transformCloneFallback);
   const staticAll = [...vips, ...clones];
@@ -358,12 +360,13 @@ export async function getAllProductAccounts(): Promise<UnifiedProductAccount[]> 
   }
 
   return staticAll;
-}
+});
 
 /**
  * Tìm kiếm tài khoản thông minh theo ID, Mã số đầy đủ ("MS: 8899"), Mã rút gọn ("8899", "clone-01"), hoặc Alias ("vip-01", "vip-1", "1")
+ * Bọc cache() deduplicate giữa generateMetadata() và Page render
  */
-export async function getAccountByIdOrSlug(identifier: string): Promise<UnifiedProductAccount | null> {
+export const getAccountByIdOrSlug = cache(async (identifier: string): Promise<UnifiedProductAccount | null> => {
   if (!identifier) return null;
 
   const rawDecoded = decodeURIComponent(identifier).trim();
@@ -459,7 +462,7 @@ export async function getAccountByIdOrSlug(identifier: string): Promise<UnifiedP
 
   // Khong tim thay tai khoan phu hop -> Tra ve null de kich hoat trang 404 chuan
   return null;
-}
+});
 
 /**
  * Helper tính điểm tương đồng giữa hai tài khoản TFT (loại acc, Chibi, Sân đấu, Rank, Giá)
@@ -540,11 +543,12 @@ function calculateSimilarityScore(
 
 /**
  * Lấy danh sách tài khoản liên quan / tương tự dựa trên điểm số tương đồng thông minh (Bounded Query - Phase 10)
+ * Bọc React cache() để deduplicate
  */
-export async function getRelatedAccounts(
+export const getRelatedAccounts = cache(async (
   currentId: string,
   limit = 6
-): Promise<UnifiedProductAccount[]> {
+): Promise<UnifiedProductAccount[]> => {
   const current = await getAccountByIdOrSlug(currentId);
   if (!current) {
     const vips = TFT_RENTAL_ACCOUNTS.map(transformVipFallback);
@@ -595,4 +599,4 @@ export async function getRelatedAccounts(
       : TFT_CLONE_ACCOUNTS.map(transformCloneFallback);
     return fallbackList.filter((a) => a.id !== current.id).slice(0, limit);
   }
-}
+});

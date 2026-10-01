@@ -105,8 +105,11 @@ function isAuthorizedAdmin(req: NextRequest): boolean {
   return !!session;
 }
 
-const LISTING_COLUMNS =
+const ADMIN_COLUMNS =
   "id, code, type, title, rank, price, hourly_price, daily_price, period_price, period_unit, price_display_type, custom_price, custom_price_unit, champions, arenas, image_url, status, rented_until, description, created_at, features, weekly_price";
+
+const PUBLIC_CARD_COLUMNS =
+  "id, code, type, title, rank, price, hourly_price, daily_price, period_price, period_unit, price_display_type, custom_price, custom_price_unit, champions, arenas, image_url, status, rented_until, created_at, features, weekly_price";
 
 /**
  * GET /api/accounts
@@ -115,6 +118,7 @@ const LISTING_COLUMNS =
  */
 export async function GET(req: NextRequest) {
   try {
+    const isAdmin = isAuthorizedAdmin(req);
     const { searchParams } = new URL(req.url);
     const rawSearch = normalizeSearchQuery(searchParams.get("search"));
     const type = searchParams.get("type");
@@ -123,9 +127,10 @@ export async function GET(req: NextRequest) {
     const rawLimit = searchParams.get("limit");
     const rawOffset = searchParams.get("offset");
 
+    const selectCols = isAdmin ? ADMIN_COLUMNS : PUBLIC_CARD_COLUMNS;
     let query = supabase
       .from("accounts")
-      .select(LISTING_COLUMNS, { count: "exact" });
+      .select(selectCols, { count: "exact" });
 
     // Explicit user sort or default date sort
     if (sortParam === "price_asc") {
@@ -155,7 +160,6 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const isAdmin = isAuthorizedAdmin(req);
     if (!isAdmin) {
       query = query.neq("status", "HIDDEN");
     }
@@ -253,7 +257,9 @@ export async function GET(req: NextRequest) {
 
     response.headers.set(
       "Cache-Control",
-      "public, s-maxage=10, stale-while-revalidate=30"
+      isAdmin
+        ? "no-store, max-age=0"
+        : "public, s-maxage=15, stale-while-revalidate=45"
     );
 
     return response;

@@ -194,6 +194,14 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (searchInput !== filters.search) {
+                    onFilterChange({ search: searchInput });
+                  }
+                }
+              }}
               placeholder="Tìm theo tên, Pet, mã số, Sân Đấu..."
               className="w-full pl-9 pr-8 py-2 bg-[#181818] border border-white/[0.08] rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 transition-colors"
             />
@@ -541,6 +549,14 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (searchInput !== filters.search) {
+                    onFilterChange({ search: searchInput });
+                  }
+                }
+              }}
               placeholder="Tìm theo tên, Pet, mã số, Sân Đấu..."
               className="w-full h-10 pl-9 pr-8 bg-[#181818] border border-white/[0.08] rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
             />
