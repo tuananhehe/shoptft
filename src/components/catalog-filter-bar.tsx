@@ -542,9 +542,9 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
         {/* MOBILE COMPACT HEADER BAR (< 1024PX)                          */}
         {/* ============================================================ */}
         <div className="lg:hidden space-y-2">
-          {/* Ô tìm kiếm nhanh trên Mobile (h-10 / 40px tap target) */}
+          {/* Ô tìm kiếm nhanh trên Mobile (h-11 / 44px tap target chuẩn di động) */}
           <div className="relative w-full">
-            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={searchInput}
@@ -557,8 +557,8 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
                   }
                 }
               }}
-              placeholder="Tìm theo tên, Pet, mã số, Sân Đấu..."
-              className="w-full h-10 pl-9 pr-8 bg-[#181818] border border-white/[0.08] rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
+              placeholder="Tìm Pet, Chibi, Sân Đấu..."
+              className="w-full h-11 min-h-[44px] pl-10 pr-9 bg-[#181818] border border-white/[0.08] rounded-xl text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 transition-colors"
             />
             {searchInput && (
               <button
@@ -567,20 +567,20 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
                   setSearchInput("");
                   onFilterChange({ search: "" });
                 }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white cursor-pointer"
+                className="w-8 h-8 rounded-lg flex items-center justify-center absolute right-1.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white cursor-pointer active:scale-95"
                 aria-label="Xóa từ khóa tìm kiếm"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>
 
-          {/* Hàng nút: [ Bộ lọc (count) ] [ Sắp xếp ] (h-10 / 40px tap target) */}
+          {/* Hàng nút: [ Bộ lọc (count) ] [ Sắp xếp ] (h-11 / 44px tap target chuẩn) */}
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => setIsMobileDrawerOpen(true)}
-              className={`h-10 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border ${
+              className={`h-11 min-h-[44px] px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border ${
                 meaningfulFilterCount > 0
                   ? "bg-white text-black border-white"
                   : "bg-[#181818] text-zinc-200 border-white/[0.08] hover:border-white/[0.18]"
@@ -597,11 +597,11 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
                 value={filters.sort}
                 onChange={(e) => onFilterChange({ sort: e.target.value as any })}
                 aria-label="Sắp xếp sản phẩm"
-                className="w-full h-10 px-3 bg-[#181818] border border-white/[0.08] rounded-xl text-xs font-semibold text-zinc-200 focus:outline-none focus:border-white/30 cursor-pointer appearance-none text-center"
+                className="w-full h-11 min-h-[44px] px-3 bg-[#181818] border border-white/[0.08] rounded-xl text-xs font-semibold text-zinc-200 focus:outline-none focus:border-white/30 cursor-pointer appearance-none text-center"
               >
                 <option value="NEWEST">Mới nhất</option>
-                <option value="PRICE_ASC">Giá thấp → cao</option>
-                <option value="PRICE_DESC">Giá cao → thấp</option>
+                <option value="PRICE_DESC">Giá cao</option>
+                <option value="PRICE_ASC">Giá thấp</option>
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-zinc-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
@@ -893,21 +893,21 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
             </div>
 
             {/* Sticky Bottom Actions */}
-            <div className="p-3 bg-[#0C0C0D] border-t border-white/[0.08] flex items-center gap-2">
+            <div className="p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-[#0C0C0D] border-t border-white/[0.08] flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => {
                   onResetAll();
                   setSearchInput("");
                 }}
-                className="py-2.5 px-3 rounded-xl border border-white/15 text-zinc-300 hover:text-white text-xs font-medium transition-colors cursor-pointer"
+                className="min-h-[44px] py-2.5 px-3.5 rounded-xl border border-white/15 text-zinc-300 hover:text-white text-xs font-medium transition-colors cursor-pointer active:scale-95"
               >
                 Xóa bộ lọc
               </button>
               <button
                 type="button"
                 onClick={() => setIsMobileDrawerOpen(false)}
-                className="flex-1 py-2.5 px-4 rounded-xl bg-white hover:bg-zinc-200 text-[#090909] font-semibold text-xs tracking-wide transition-colors text-center cursor-pointer shadow-sm"
+                className="flex-1 min-h-[44px] py-2.5 px-4 rounded-xl bg-white hover:bg-zinc-200 text-[#090909] font-semibold text-xs tracking-wide transition-colors text-center cursor-pointer shadow-sm active:scale-98"
               >
                 Xem {totalMatching} kết quả
               </button>

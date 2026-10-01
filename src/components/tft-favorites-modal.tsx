@@ -229,7 +229,7 @@ export const TFTFavoritesModal: React.FC<TFTFavoritesModalProps> = ({
 
         {/* Footer info */}
         {favorites.length > 0 && (
-          <div className="px-4 py-3 sm:px-6 bg-[#121214] border-t border-white/[0.06] flex items-center justify-between text-xs text-zinc-400">
+          <div className="px-4 py-3 sm:px-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-[#121214] border-t border-white/[0.06] flex items-center justify-between text-xs text-zinc-400">
             <span className="flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
               <span>Bàn giao trực tiếp qua Zalo</span>

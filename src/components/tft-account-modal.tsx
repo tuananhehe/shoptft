@@ -583,7 +583,7 @@ export const TFTAccountModal: React.FC<TFTAccountModalProps> = ({ account, onClo
         </div>
 
         {/* 3. Sticky Action Footer */}
-        <div className="px-4 py-3 sm:px-6 sm:py-3.5 bg-[#141416] border-t border-white/[0.08] flex items-center justify-between gap-3 flex-shrink-0">
+        <div className="px-4 py-3 sm:px-6 sm:py-3.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-[#141416] border-t border-white/[0.08] flex items-center justify-between gap-3 flex-shrink-0">
           <div className="flex flex-col">
             <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">
               {isRented ? "Trạng thái:" : "Tổng giá thuê:"}

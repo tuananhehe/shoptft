@@ -469,9 +469,10 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
           </div>
 
           {/* RIGHT COLUMN: Details & Actions */}
-          <div className="lg:col-span-7 space-y-5">
-            {/* Header info card */}
-            <div className="bg-[#121214] rounded-2xl border border-white/[0.08] p-4 sm:p-6 space-y-4">
+          {/* RIGHT COLUMN: Details & Actions */}
+          <div className="lg:col-span-7 space-y-4 sm:space-y-5">
+            {/* 1. Header Title & Quick Status Card */}
+            <div className="bg-[#121214] rounded-2xl border border-white/[0.08] p-4 sm:p-5 space-y-3">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-white/10 text-white border border-white/10">
                   {isClone ? "KHO CLONE" : "KHO VIP"}
@@ -484,95 +485,20 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                 <span className="px-2.5 py-1 rounded-lg text-xs font-mono text-zinc-400 bg-white/[0.05]">
                   Mã: {account.code}
                 </span>
+                <span className={`ml-auto px-2.5 py-0.5 rounded-md text-[11px] font-semibold flex items-center gap-1.5 ${
+                  isRented ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isRented ? "bg-amber-400" : "bg-emerald-400 animate-pulse"}`} />
+                  <span>{isRented ? "Đang thuê" : "Còn sẵn sàng"}</span>
+                </span>
               </div>
 
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-heading font-bold text-white leading-tight">
                 {account.title}
               </h1>
-
-              {account.description && (
-                <p className="text-sm text-zinc-300 leading-relaxed">
-                  {account.description}
-                </p>
-              )}
-
-              {/* Thông tin acc */}
-              <div className="pt-3 border-t border-white/[0.08] space-y-3">
-                <h2 className="text-xs uppercase tracking-wider font-semibold text-zinc-400">
-                  Thông tin acc
-                </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                  <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                    <div className="text-zinc-500 text-[11px]">Phân loại</div>
-                    <div className="font-semibold text-white mt-0.5">{isClone ? "Acc Clone (Chính chủ)" : "Acc VIP Thuê"}</div>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                    <div className="text-zinc-500 text-[11px]">Mức Rank</div>
-                    <div className="font-semibold text-white mt-0.5">{account.rank || "Chưa rank"}</div>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                    <div className="text-zinc-500 text-[11px]">Trạng thái</div>
-                    <div className={`font-semibold mt-0.5 ${isRented ? "text-amber-400" : "text-emerald-400"}`}>
-                      {isRented ? "Đang thuê" : "Còn sẵn sàng"}
-                    </div>
-                  </div>
-                </div>
-
-                {allChibis.length > 0 && (
-                  <div className="pt-2">
-                    <h2 className="text-xs uppercase tracking-wider font-semibold text-zinc-400 mb-2">
-                      Pet / Chibi
-                    </h2>
-                    <div className="flex flex-wrap gap-1.5">
-                      {allChibis.map((chibi, idx) => (
-                        <span
-                          key={`chibi-${idx}`}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.06] border border-white/10 text-zinc-200 text-xs font-medium"
-                        >
-                          <Sparkles className="w-3 h-3 text-amber-400" />
-                          <span>{chibi}</span>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {allArenas.length > 0 && (
-                  <div className="pt-2">
-                    <h2 className="text-xs uppercase tracking-wider font-semibold text-zinc-400 mb-2">
-                      Sân Đấu
-                    </h2>
-                    <div className="flex flex-wrap gap-1.5">
-                      {allArenas.map((arena, idx) => (
-                        <span
-                          key={`arena-${idx}`}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.06] border border-white/10 text-zinc-200 text-xs font-medium"
-                        >
-                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-                          <span>{arena}</span>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {account.features && account.features.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {account.features.map((feat, idx) => (
-                      <span
-                        key={`feat-${idx}`}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.08] text-zinc-300 text-xs"
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
-                        <span>{feat}</span>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
             </div>
 
-            {/* Pricing & Booking */}
+            {/* 2. Pricing & Booking Packages Card (Đưa lên trên để user quyết định nhanh) */}
             <div className="bg-[#121214] rounded-2xl border border-white/[0.08] p-4 sm:p-6 space-y-4">
               {isClone ? (
                 /* Clone Account */
@@ -687,6 +613,89 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
                   </a>
                 </div>
               </div>
+            </div>
+
+            {/* 3. Detailed Specifications & Inventory Card */}
+            <div className="bg-[#121214] rounded-2xl border border-white/[0.08] p-4 sm:p-6 space-y-4">
+              <h2 className="text-xs uppercase tracking-wider font-semibold text-zinc-400">
+                Chi Tiết Trang Bị & Thông Số
+              </h2>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                  <div className="text-zinc-500 text-[11px]">Phân loại</div>
+                  <div className="font-semibold text-white mt-0.5">{isClone ? "Acc Clone (Chính chủ)" : "Acc VIP Thuê"}</div>
+                </div>
+                <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                  <div className="text-zinc-500 text-[11px]">Mức Rank</div>
+                  <div className="font-semibold text-white mt-0.5">{account.rank || "Chưa rank"}</div>
+                </div>
+                <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                  <div className="text-zinc-500 text-[11px]">Trạng thái</div>
+                  <div className={`font-semibold mt-0.5 ${isRented ? "text-amber-400" : "text-emerald-400"}`}>
+                    {isRented ? "Đang thuê" : "Còn sẵn sàng"}
+                  </div>
+                </div>
+              </div>
+
+              {allChibis.length > 0 && (
+                <div className="pt-1">
+                  <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-400 mb-2">
+                    Pet / Chibi
+                  </h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {allChibis.map((chibi, idx) => (
+                      <span
+                        key={`chibi-${idx}`}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.06] border border-white/10 text-zinc-200 text-xs font-medium"
+                      >
+                        <Sparkles className="w-3 h-3 text-amber-400" />
+                        <span>{chibi}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {allArenas.length > 0 && (
+                <div className="pt-1">
+                  <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-400 mb-2">
+                    Sân Đấu
+                  </h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {allArenas.map((arena, idx) => (
+                      <span
+                        key={`arena-${idx}`}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.06] border border-white/10 text-zinc-200 text-xs font-medium"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                        <span>{arena}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {account.features && account.features.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {account.features.map((feat, idx) => (
+                    <span
+                      key={`feat-${idx}`}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.08] text-zinc-300 text-xs"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
+                      <span>{feat}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {account.description && (
+                <div className="pt-3 border-t border-white/[0.08] text-xs sm:text-sm text-zinc-300 leading-relaxed space-y-1">
+                  <div className="text-zinc-400 font-semibold text-xs">Mô tả:</div>
+                  <p>{account.description}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

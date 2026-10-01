@@ -248,7 +248,7 @@ export function GuideRiotClientView() {
         </div>
 
         {/* 3. QUICK NAVIGATION CHIPS (TỐI ƯU CUỘN NGANG GỌN TRÊN MOBILE) */}
-        <div className="mb-6 sm:mb-8 sticky top-14 sm:top-16 z-30 bg-[#09090b]/95 backdrop-blur-md py-2 -mx-3.5 px-3.5 sm:mx-0 sm:px-0 border-b border-white/[0.06]">
+        <div className="mb-6 sm:mb-8 sticky top-14 sm:top-16 z-30 bg-[#09090b]/95 backdrop-blur-md py-2 w-full border-b border-white/[0.06]">
           <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar text-xs">
             <span className="text-zinc-500 font-medium whitespace-nowrap pl-1 hidden sm:inline text-xs">Mục lục:</span>
             {[

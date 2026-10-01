@@ -141,21 +141,21 @@ export const TFTNavbar: React.FC = () => {
           </nav>
 
           {/* 3. Right: Member Login / Profile + Favorites + Primary CTA */}
-          <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             {user ? (
               <Link
                 href="/profile"
-                className="inline-flex items-center gap-1.5 text-xs text-zinc-300 hover:text-white px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-all"
+                className="inline-flex items-center gap-1.5 text-xs text-zinc-300 hover:text-white px-2 sm:px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-all"
               >
                 <User className="w-3.5 h-3.5 text-zinc-400" />
-                <span className="font-medium max-w-[120px] truncate">
+                <span className="font-medium max-w-[80px] sm:max-w-[120px] truncate">
                   {user.full_name || `@${user.username}`}
                 </span>
               </Link>
             ) : (
               <Link
                 href="/login"
-                className="text-xs text-zinc-300 hover:text-white font-medium px-2.5 py-1.5 transition-colors"
+                className="hidden sm:inline-block text-xs text-zinc-300 hover:text-white font-medium px-2.5 py-1.5 transition-colors"
               >
                 Đăng nhập
               </Link>
@@ -167,11 +167,11 @@ export const TFTNavbar: React.FC = () => {
               onClick={() => setFavoritesOpen(true)}
               aria-label={`Xem danh sách acc đã lưu (${favoriteCount})`}
               title="Acc đã lưu"
-              className="relative p-2 rounded-xl text-zinc-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10 transition-colors cursor-pointer"
+              className="relative min-w-[40px] min-h-[40px] p-2 rounded-xl text-zinc-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10 flex items-center justify-center transition-colors cursor-pointer"
             >
               <Heart className={`w-4 h-4 ${favoriteCount > 0 ? "text-rose-500 fill-rose-500" : ""}`} />
               {favoriteCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-600 text-white font-mono text-[10px] font-bold flex items-center justify-center shadow-sm">
+                <span className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-600 text-white font-mono text-[10px] font-bold flex items-center justify-center shadow-sm">
                   {favoriteCount}
                 </span>
               )}
@@ -188,7 +188,7 @@ export const TFTNavbar: React.FC = () => {
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+              className="md:hidden min-w-[40px] min-h-[40px] p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 flex items-center justify-center transition-colors cursor-pointer"
               aria-label="Toggle navigation"
             >
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -234,7 +234,7 @@ export const TFTNavbar: React.FC = () => {
                   : "text-zinc-200 hover:text-white hover:bg-white/5"
               }`}
             >
-              Hướng Dẫn Đổi Thông Tin Riot
+              Hướng Dẫn Riot
             </Link>
 
             <Link
