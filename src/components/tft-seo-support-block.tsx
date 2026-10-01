@@ -29,7 +29,7 @@ export const TFTSeoSupportBlock: React.FC = () => {
                     href="/thue-acc-tft-dtcl"
                     className="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 underline underline-offset-4 transition-colors font-semibold"
                   >
-                    <span>Xem chi tiết Dịch Vụ Thuê Acc TFT - ĐTCL</span>
+                    <span>Tìm hiểu cách thuê acc TFT - ĐTCL</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
 

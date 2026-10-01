@@ -477,4 +477,33 @@ export const analytics = {
       current_product_id: currentProductId,
     });
   },
+
+  /**
+   * Commercial Landing Page tracking (/thue-acc-tft-dtcl)
+   */
+  trackLandingView: () => {
+    sendEvent("landing_view", {
+      page: "/thue-acc-tft-dtcl",
+    });
+  },
+
+  trackLandingToShop: (target: string = "/shop") => {
+    sendEvent("landing_to_shop", {
+      source: "commercial_landing",
+      target,
+    });
+  },
+
+  trackLandingToGuide: (target: string = "/huong-dan") => {
+    sendEvent("landing_to_guide", {
+      source: "commercial_landing",
+      target,
+    });
+  },
+
+  trackLandingClickZalo: (source: string = "landing_cta") => {
+    sendEvent("landing_click_zalo", {
+      source,
+    });
+  },
 };
