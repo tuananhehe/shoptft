@@ -47,6 +47,15 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/review-pet-san-dau-tft',
+        destination: '/blog/cach-chon-acc-tft-theo-pet-chibi-va-san-dau',
+        statusCode: 301,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

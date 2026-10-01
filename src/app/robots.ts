@@ -13,9 +13,11 @@ export default function robots(): MetadataRoute.Robots {
     "/huong-dan/*",
     "/blog",
     "/blog/*",
+    "/cdn-cgi/image/*",
   ];
 
   const disallowPatterns = [
+    "/cdn-cgi/",
     "/admin",
     "/admin/*",
     "/profile",

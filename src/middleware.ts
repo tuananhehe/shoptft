@@ -143,10 +143,15 @@ export async function middleware(req: NextRequest) {
   }
 
   // 0. URL REDIRECTS (SEO Rules)
+  const normalizedPathname = pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
   const activeRedirects = (seoConfig as any)?.redirects || [];
-  const matchedRedirect = activeRedirects.find(
-    (r: any) => r.enabled && r.source?.trim().toLowerCase() === pathname.toLowerCase()
-  );
+  const matchedRedirect = activeRedirects.find((r: any) => {
+    if (!r.enabled || !r.source) return false;
+    const cleanSource = r.source.trim().length > 1 && r.source.trim().endsWith("/")
+      ? r.source.trim().slice(0, -1)
+      : r.source.trim();
+    return cleanSource.toLowerCase() === normalizedPathname.toLowerCase();
+  });
   if (matchedRedirect) {
     const dest = matchedRedirect.destination?.trim();
     if (dest) {

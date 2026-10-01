@@ -137,6 +137,14 @@
       "permanent": true,
       "enabled": true,
       "createdAt": "2026-09-30T00:00:00.000Z"
+    },
+    {
+      "id": "red-2",
+      "source": "/review-pet-san-dau-tft",
+      "destination": "/blog/cach-chon-acc-tft-theo-pet-chibi-va-san-dau",
+      "permanent": true,
+      "enabled": true,
+      "createdAt": "2026-10-02T00:00:00.000Z"
     }
   ],
   "schema": {
@@ -158,9 +166,11 @@
       "/huong-dan",
       "/huong-dan/*",
       "/blog",
-      "/blog/*"
+      "/blog/*",
+      "/cdn-cgi/image/*"
     ],
     "disallowPaths": [
+      "/cdn-cgi/",
       "/admin",
       "/admin/*",
       "/profile",
