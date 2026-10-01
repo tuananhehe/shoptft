@@ -9,6 +9,9 @@ import {
   detectRedirectLoop,
   getSearchConsoleReport,
   generateAiRankingProposal,
+  getContentOpportunities,
+  getContentBriefs,
+  getContentBriefById,
   DEFAULT_SEO_CONFIG,
   SeoConfigDatabase,
   RedirectRule,
@@ -55,6 +58,17 @@ export async function GET(req: NextRequest) {
       const opportunityType = req.nextUrl.searchParams.get("opportunityType") || "Ranking";
       const proposal = generateAiRankingProposal(query, pageUrl, opportunityType);
       return NextResponse.json({ success: true, proposal });
+    }
+
+    if (action === "content_brief") {
+      const briefId = req.nextUrl.searchParams.get("briefId") || "";
+      const brief = await getContentBriefById(briefId);
+      return NextResponse.json({ success: true, brief });
+    }
+
+    if (action === "content_briefs") {
+      const briefs = await getContentBriefs();
+      return NextResponse.json({ success: true, briefs });
     }
 
     const config = await getSeoConfig();
@@ -111,6 +125,8 @@ export async function GET(req: NextRequest) {
 
     const periodParam = (req.nextUrl.searchParams.get("period") as GscPeriodKey) || "28d";
     const gscReport = await getSearchConsoleReport(periodParam);
+    const contentOpportunities = await getContentOpportunities();
+    const contentBriefs = await getContentBriefs();
 
     return NextResponse.json({
       success: true,
@@ -120,6 +136,8 @@ export async function GET(req: NextRequest) {
       imageHealth,
       internalLinksAudit,
       gscReport,
+      contentOpportunities,
+      contentBriefs,
     });
   } catch (err: any) {
     return NextResponse.json(

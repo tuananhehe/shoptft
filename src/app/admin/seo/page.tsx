@@ -29,6 +29,7 @@ import {
   Share2,
   Link2,
   TrendingUp,
+  BookOpen,
 } from "lucide-react";
 import {
   SeoConfigDatabase,
@@ -39,12 +40,15 @@ import {
   ImageHealthReport,
   InternalLinksAuditReport,
   GscPerformanceReport,
+  ContentOpportunityItem,
+  ContentBrief,
 } from "@/utils/seo-shared";
 import { ContentRefreshTab } from "@/components/admin/content-refresh-tab";
 import { InternalLinksTab } from "@/components/admin/internal-links-tab";
 import { RankingOptimizationTab } from "@/components/admin/ranking-optimization-tab";
+import { ContentOpportunitiesTab } from "@/components/admin/content-opportunities-tab";
 
-type TabKey = "overview" | "pages" | "products" | "refresh" | "internal_links" | "ranking" | "sitemap" | "redirects" | "schema" | "settings";
+type TabKey = "overview" | "pages" | "products" | "refresh" | "internal_links" | "ranking" | "content_opportunities" | "sitemap" | "redirects" | "schema" | "settings";
 
 const SAMPLE_ACCOUNTS = [
   {
@@ -104,6 +108,8 @@ export default function AdminSeoPage() {
   const [imageHealth, setImageHealth] = useState<ImageHealthReport | null>(null);
   const [internalLinksAudit, setInternalLinksAudit] = useState<InternalLinksAuditReport | null>(null);
   const [gscReport, setGscReport] = useState<GscPerformanceReport | null>(null);
+  const [contentOpportunities, setContentOpportunities] = useState<ContentOpportunityItem[]>([]);
+  const [contentBriefs, setContentBriefs] = useState<ContentBrief[]>([]);
   const [socialNetworkPreview, setSocialNetworkPreview] = useState<"facebook" | "twitter">("facebook");
 
   // Fetch SEO configuration from API
@@ -121,7 +127,14 @@ export default function AdminSeoPage() {
         if (data.productMetrics) setProductMetrics(data.productMetrics);
         if (data.imageHealth) setImageHealth(data.imageHealth);
         if (data.internalLinksAudit) setInternalLinksAudit(data.internalLinksAudit);
-        if (data.gscReport) setGscReport(data.gscReport);
+        if (data.gscReport) {
+          setGscReport(data.gscReport);
+          if (data.gscReport.contentOpportunities) {
+            setContentOpportunities(data.gscReport.contentOpportunities);
+          }
+        }
+        if (data.contentOpportunities) setContentOpportunities(data.contentOpportunities);
+        if (data.contentBriefs) setContentBriefs(data.contentBriefs);
       } else {
         toast.error(data.error || "Không thể tải dữ liệu SEO!");
       }
@@ -417,6 +430,23 @@ export default function AdminSeoPage() {
           {gscReport && gscReport.opportunities.filter((o) => o.priority === "HIGH").length > 0 && (
             <span className="w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-bold">
               {gscReport.opportunities.filter((o) => o.priority === "HIGH").length}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveTab("content_opportunities")}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === "content_opportunities"
+              ? "bg-gray-900 text-white shadow-xs"
+              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+          }`}
+        >
+          <BookOpen className="w-3.5 h-3.5 text-purple-500" />
+          <span>Content Opportunities</span>
+          {contentOpportunities.filter((o) => o.priority === "HIGH").length > 0 && (
+            <span className="w-4 h-4 rounded-full bg-purple-500 text-white text-[10px] flex items-center justify-center font-bold">
+              {contentOpportunities.filter((o) => o.priority === "HIGH").length}
             </span>
           )}
         </button>
@@ -1313,6 +1343,17 @@ export default function AdminSeoPage() {
       {activeTab === "ranking" && (
         <RankingOptimizationTab
           initialReport={gscReport}
+          onRefresh={fetchSeoData}
+        />
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB: CONTENT OPPORTUNITIES & QUERY EXPANSION (PHASE 8)         */}
+      {/* ============================================================== */}
+      {activeTab === "content_opportunities" && (
+        <ContentOpportunitiesTab
+          opportunities={contentOpportunities}
+          briefs={contentBriefs}
           onRefresh={fetchSeoData}
         />
       )}

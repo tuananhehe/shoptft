@@ -253,6 +253,49 @@ export interface GscPerformanceReport {
   blogPerformance: BlogSeoConversion[];
   funnel: FunnelMetrics;
   titleHistory: TitleChangeLog[];
+  contentOpportunities?: ContentOpportunityItem[];
+}
+
+export type SearchIntentType = "Commercial" | "Informational" | "Discovery" | "Guide" | "Brand";
+export type ContentOpportunityAction = "Optimize Existing" | "Create Article" | "Create Guide" | "Monitor" | "Ignore";
+export type ContentOpportunityPriority = "HIGH" | "MEDIUM" | "LOW";
+
+export interface ContentOpportunityItem {
+  id: string;
+  query: string;
+  intent: SearchIntentType;
+  existingPage: string | null;
+  impressions: number;
+  clicks: number;
+  ctr: number;
+  position: number;
+  recommendedAction: ContentOpportunityAction;
+  priority: ContentOpportunityPriority;
+  reason: string;
+  briefId?: string;
+}
+
+export interface ContentBrief {
+  id: string;
+  primaryQuery: string;
+  secondaryQueries: string[];
+  searchIntent: SearchIntentType;
+  targetUrl: string;
+  existingCompetingPages: string[];
+  requiredSections: string[];
+  internalLinksIncoming: Array<{ page: string; anchorText: string }>;
+  internalLinksOutgoing: Array<{ target: string; anchorText: string }>;
+  contentType: "blog_article" | "guide" | "commercial_landing" | "page_update";
+  patchOrSeason?: string;
+  freshnessRequirement: string;
+  uniqueValueChecklist: string[];
+  status: "backlog" | "draft" | "review" | "ready";
+  aiDraftProposal?: {
+    title: string;
+    metaDescription: string;
+    outline: string[];
+    draftPreview: string;
+  };
 }
 
 export const PRODUCTION_ORIGIN = "https://www.shoptftmobile.net";

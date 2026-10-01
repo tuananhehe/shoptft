@@ -27,6 +27,10 @@ import {
   FunnelMetrics,
   GscSummaryMetrics,
   GscPerformanceReport,
+  ContentOpportunityItem,
+  ContentBrief,
+  ContentOpportunityAction,
+  SearchIntentType,
 } from "@/utils/seo-shared";
 import { BlogPost } from "@/utils/blog-shared";
 
@@ -975,6 +979,7 @@ export async function getSearchConsoleReport(
     };
 
   const titleHistory: TitleChangeLog[] = rawData?.titleHistory || [];
+  const contentOpportunities: ContentOpportunityItem[] = rawData?.contentOpportunities || [];
 
   return {
     period,
@@ -988,7 +993,48 @@ export async function getSearchConsoleReport(
     blogPerformance,
     funnel,
     titleHistory,
+    contentOpportunities,
   };
+}
+
+/**
+ * Đọc danh sách cơ hội mở rộng nội dung từ truy vấn tìm kiếm thực tế (Content Opportunities)
+ */
+export async function getContentOpportunities(): Promise<ContentOpportunityItem[]> {
+  try {
+    if (fs.existsSync(GSC_DATA_FILE_PATH)) {
+      const fileContent = fs.readFileSync(GSC_DATA_FILE_PATH, "utf-8");
+      const rawData = JSON.parse(fileContent);
+      return rawData.contentOpportunities || [];
+    }
+  } catch (err) {
+    console.warn("Lỗi đọc content opportunities:", err);
+  }
+  return [];
+}
+
+/**
+ * Đọc danh sách Content Briefs phục vụ AI Draft & Admin Review
+ */
+export async function getContentBriefs(): Promise<ContentBrief[]> {
+  try {
+    if (fs.existsSync(GSC_DATA_FILE_PATH)) {
+      const fileContent = fs.readFileSync(GSC_DATA_FILE_PATH, "utf-8");
+      const rawData = JSON.parse(fileContent);
+      return rawData.contentBriefs || [];
+    }
+  } catch (err) {
+    console.warn("Lỗi đọc content briefs:", err);
+  }
+  return [];
+}
+
+/**
+ * Lấy chi tiết một Content Brief theo ID
+ */
+export async function getContentBriefById(briefId: string): Promise<ContentBrief | null> {
+  const briefs = await getContentBriefs();
+  return briefs.find((b) => b.id === briefId) || null;
 }
 
 /**
