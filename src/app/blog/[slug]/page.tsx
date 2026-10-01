@@ -30,6 +30,7 @@ import {
   CheckCircle2,
   List,
 } from "lucide-react";
+import { BlogTrackingClient } from "./blog-tracking-client";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -385,6 +386,11 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
   const headings = extractHeadings(post.content);
   const isStale = isPatchStale(post);
 
+  const isSet18 =
+    post.category === "TFT Mùa 18" ||
+    post.category === "Meta & Đội Hình" ||
+    post.tags.some((t) => t.toLowerCase().includes("mùa 18") || t.toLowerCase().includes("set 18"));
+
   const jsonLdGraph: any[] = [
     {
       "@type": "BreadcrumbList",
@@ -404,8 +410,10 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
         {
           "@type": "ListItem",
           "position": 3,
-          "name": post.category,
-          "item": `https://www.shoptftmobile.net/blog?category=${encodeURIComponent(post.category)}`,
+          "name": isSet18 ? "TFT Mùa 18" : post.category,
+          "item": isSet18
+            ? "https://www.shoptftmobile.net/blog/tft-mua-18"
+            : `https://www.shoptftmobile.net/blog?category=${encodeURIComponent(post.category)}`,
         },
         {
           "@type": "ListItem",
@@ -483,6 +491,9 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
           </div>
         )}
 
+        {/* Analytics Tracker Client */}
+        <BlogTrackingClient slug={post.slug} category={post.category} />
+
         {/* Breadcrumb */}
         <nav
           aria-label="Breadcrumb"
@@ -496,7 +507,18 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
             Blog
           </Link>
           <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
-          <span className="text-zinc-400">{post.category}</span>
+          {isSet18 ? (
+            <Link href="/blog/tft-mua-18" className="hover:text-white transition-colors">
+              TFT Mùa 18
+            </Link>
+          ) : (
+            <Link
+              href={`/blog?category=${encodeURIComponent(post.category)}`}
+              className="hover:text-white transition-colors text-zinc-400"
+            >
+              {post.category}
+            </Link>
+          )}
           <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
           <span className="text-zinc-200 font-medium truncate max-w-[200px] sm:max-w-xs">
             {post.title}
@@ -666,25 +688,42 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
         {/* Contextual CTA to Shop / Hub */}
         <section className="my-10 p-6 sm:p-8 rounded-3xl bg-zinc-900/60 border border-white/[0.08] text-center space-y-4">
           <h3 className="text-lg sm:text-xl font-heading font-bold text-white">
-            Trải Nghiệm Đội Hình Mùa 18 Với Acc VIP Sẵn Có
+            {post.category === "Pet / Chibi / Sân Đấu"
+              ? "Xem acc có Pet/Chibi và Sân Đấu tương tự"
+              : isSet18
+              ? "Trải nghiệm đội hình Mùa 18 với acc ĐTCL sẵn có"
+              : "Tìm tài khoản ĐTCL phù hợp với bạn"}
           </h3>
           <p className="text-xs sm:text-sm text-zinc-400 max-w-xl mx-auto leading-relaxed">
-            Bạn muốn trải nghiệm ngay các tướng Tí Nị Thần Thoại như Ahri Chiêu Hồn hay Yasuo Bão Kiếm mà không tốn tiền triệu nạp rương? Khám phá ngay Kho Acc tại ShopTFTMobile.
+            {post.category === "Pet / Chibi / Sân Đấu"
+              ? "Khám phá danh sách tài khoản sở hữu Tí Nị Thần Thoại và Sân Đấu hiệu ứng đẹp mắt, bàn giao trực tiếp qua Zalo Tuấn Thái Bình TFT."
+              : isSet18
+              ? "Trải nghiệm các tướng Tí Nị Thần Thoại và leo rank thoải mái mà không cần nạp rương tốn kém. Bàn giao 1-1 nhanh chóng."
+              : "Kho tài khoản TFT/ĐTCL đa dạng phân khúc từ clone giá rẻ đến VIP sưu tầm, hỗ trợ trực tiếp từ Tuấn Thái Bình TFT."}
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
             <Link
-              href="/shop"
+              href={post.category === "Pet / Chibi / Sân Đấu" ? "/shop?focus=pet" : "/shop"}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-zinc-950 font-bold text-xs hover:bg-zinc-200 transition-colors shadow-md"
             >
               <Gamepad2 className="w-4 h-4" />
-              <span>Xem Kho Acc TFT</span>
+              <span>Xem Kho Acc</span>
             </Link>
+            {isSet18 && (
+              <Link
+                href="/blog/tft-mua-18"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-800 text-zinc-200 font-semibold text-xs hover:bg-zinc-700 transition-colors"
+              >
+                <span>Xem Hub Mùa 18</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            )}
             <Link
-              href="/blog/tft-mua-18"
+              href="/thue-acc-tft-dtcl"
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-800 text-zinc-200 font-semibold text-xs hover:bg-zinc-700 transition-colors"
             >
-              <span>Xem Hub Mùa 18</span>
+              <span>Dịch Vụ Thuê Acc</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>

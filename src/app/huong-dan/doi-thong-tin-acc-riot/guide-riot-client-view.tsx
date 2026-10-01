@@ -474,6 +474,21 @@ export function GuideRiotClientView() {
           </div>
 
           <div className="pt-1 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
+            <Link
+              href="/huong-dan"
+              className="h-9.5 sm:h-10 px-4 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-zinc-300 hover:text-white border border-white/10 text-xs font-medium transition-colors flex items-center gap-1.5"
+            >
+              <span>Xem hướng dẫn khác</span>
+            </Link>
+
+            <Link
+              href="/shop"
+              className="h-9.5 sm:h-10 px-4 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-zinc-300 hover:text-white border border-white/10 text-xs font-medium transition-colors flex items-center gap-1.5"
+            >
+              <span>Xem Kho Acc</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+
             <a
               href={PROFILE_INFO.zaloUrl}
               target="_blank"
@@ -482,16 +497,8 @@ export function GuideRiotClientView() {
               className="h-9.5 sm:h-10 px-5 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-98 cursor-pointer flex items-center gap-1.5"
             >
               <MessageCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-              <span>Nhắn Zalo Ngay ({PROFILE_INFO.phoneZalo})</span>
+              <span>Liên hệ Zalo hỗ trợ ({PROFILE_INFO.phoneZalo})</span>
             </a>
-
-            <Link
-              href="/shop"
-              className="h-9.5 sm:h-10 px-4 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-zinc-300 hover:text-white border border-white/10 text-xs font-medium transition-colors flex items-center gap-1.5"
-            >
-              <span>Kho Acc TFT</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
           </div>
         </div>
       </div>

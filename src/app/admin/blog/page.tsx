@@ -30,6 +30,7 @@ import {
   ChevronUp,
   Key,
   Wand2,
+  Link2,
 } from "lucide-react";
 import {
   BlogPost,
@@ -956,6 +957,46 @@ export default function AdminBlogManagerPage() {
                       }
                       className="w-full px-3.5 py-2.5 text-xs border border-gray-200 rounded-xl font-mono leading-relaxed focus:outline-hidden focus:border-gray-900"
                     />
+
+                    {/* Internal Links Đề Xuất (Cluster SEO) */}
+                    <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2 mt-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-gray-700 flex items-center gap-1.5">
+                          <Link2 className="w-3.5 h-3.5 text-gray-500" />
+                          <span>Internal links đề xuất (Bấm [Thêm] để chèn liên kết):</span>
+                        </span>
+                        <span className="text-[11px] text-gray-400">SEO Topic Cluster</span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {[
+                          { label: "TFT Mùa 18 Hub", url: "/blog/tft-mua-18" },
+                          { label: "Dịch Vụ Thuê Acc", url: "/thue-acc-tft-dtcl" },
+                          { label: "Kho Acc TFT", url: "/shop" },
+                          { label: "Đổi Thông Tin Riot", url: "/huong-dan/doi-thong-tin-acc-riot" },
+                          ...posts
+                            .filter((p) => p.id !== editingPost.id && p.status === "published")
+                            .slice(0, 3)
+                            .map((p) => ({ label: p.title, url: `/blog/${p.slug}` })),
+                        ].map((item, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => {
+                              const snippet = `\n\nTham khảo thêm tại [${item.label}](${item.url}).\n`;
+                              setEditingPost((prev) => ({
+                                ...prev,
+                                content: (prev?.content || "") + snippet,
+                              }));
+                              toast.success(`Đã thêm link: ${item.label}`);
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-gray-100 border border-gray-200 rounded-lg text-[11px] text-gray-700 hover:text-black font-medium transition-colors cursor-pointer shadow-2xs"
+                          >
+                            <Plus className="w-3 h-3 text-emerald-600 shrink-0" />
+                            <span className="truncate max-w-[140px]">{item.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

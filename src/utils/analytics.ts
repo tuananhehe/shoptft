@@ -429,4 +429,36 @@ export const analytics = {
   trackHomepageGuideClick: () => {
     sendEvent("homepage_guide_click", {});
   },
+
+  /**
+   * Blog SEO & Internal Linking tracking (Improvement 3)
+   */
+  trackBlogArticleView: (slug: string, category: string) => {
+    sendEvent("blog_article_view", {
+      post_slug: slug,
+      category,
+    });
+  },
+
+  trackBlogInternalLinkClick: (sourceSlug: string, targetUrl: string, linkText: string) => {
+    sendEvent("blog_internal_link_click", {
+      source_slug: sourceSlug,
+      target_url: targetUrl,
+      link_text: linkText.slice(0, 50),
+    });
+  },
+
+  trackBlogToShop: (sourceSlug: string, shopTarget?: string) => {
+    sendEvent("blog_to_shop", {
+      source_slug: sourceSlug,
+      shop_target: shopTarget || "/shop",
+    });
+  },
+
+  trackBlogToGuide: (sourceSlug: string, guideTarget?: string) => {
+    sendEvent("blog_to_guide", {
+      source_slug: sourceSlug,
+      guide_target: guideTarget || "/huong-dan",
+    });
+  },
 };

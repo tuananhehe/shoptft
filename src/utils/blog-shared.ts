@@ -89,6 +89,9 @@ export interface AiArticleStructuredOutput {
   };
   suggestedCoverPrompt?: string;
   internalLinks?: Array<{ text: string; url: string }>;
+  relatedTopics?: string[];
+  hubLink?: { text: string; url: string };
+  commercialLink?: { text: string; url: string };
 }
 
 export const DEFAULT_AUTHOR: BlogAuthor = {

@@ -426,6 +426,104 @@ export function runSeoAudit(
         detail: "Mọi bài viết đều có tiêu đề, mô tả tóm tắt và đường dẫn tĩnh hợp lệ.",
       });
     }
+
+    // 8. Topic Cluster, Orphan Pages & Internal Link Audit
+    const inboundLinks = new Map<string, number>();
+    const publishedSlugs = new Set(
+      blogPosts.filter((p) => p.status === "published").map((p) => p.slug.toLowerCase().trim())
+    );
+
+    // Map all links from published articles
+    for (const post of blogPosts) {
+      if (post.status !== "published") continue;
+      const content = post.content || "";
+      const pagePath = `/blog/${post.slug}`;
+      const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+      let match;
+
+      while ((match = linkRegex.exec(content)) !== null) {
+        const href = match[2].trim();
+
+        // Check broken blog links
+        if (href.startsWith("/blog/")) {
+          const targetSlug = href.replace("/blog/", "").split(/[?#]/)[0].toLowerCase().trim();
+          if (targetSlug && targetSlug !== "tft-mua-18" && !publishedSlugs.has(targetSlug)) {
+            issues.push({
+              id: `broken-link-${post.id}-${targetSlug}`,
+              type: "error",
+              category: "blog",
+              page: pagePath,
+              title: `Phát hiện liên kết gãy tới ${href}`,
+              detail: `Bài viết "${post.title}" chứa liên kết trỏ tới bài không tồn tại hoặc đã bị xóa.`,
+            });
+          } else if (targetSlug) {
+            inboundLinks.set(targetSlug, (inboundLinks.get(targetSlug) || 0) + 1);
+          }
+        }
+
+        // Check old domain references
+        if (href.includes("shoptftmobile.com") || href.includes("shoptft.vn")) {
+          issues.push({
+            id: `legacy-domain-link-${post.id}`,
+            type: "error",
+            category: "blog",
+            page: pagePath,
+            title: `Phát hiện link chứa tên miền cũ: ${href}`,
+            detail: `Bài viết "${post.title}" cần chuyển domain sang https://www.shoptftmobile.net.`,
+          });
+        }
+      }
+
+      // Check hub link for TFT Mùa 18 cluster
+      const isSet18Post =
+        post.category === "TFT Mùa 18" ||
+        post.category === "Meta & Đội Hình" ||
+        post.tags.some((t) => t.toLowerCase().includes("mùa 18") || t.toLowerCase().includes("set 18"));
+
+      if (isSet18Post && !content.includes("/blog/tft-mua-18")) {
+        issues.push({
+          id: `missing-hub-link-${post.id}`,
+          type: "warning",
+          category: "blog",
+          page: pagePath,
+          title: `Bài viết "${post.title}" chưa có liên kết về Hub /blog/tft-mua-18`,
+          detail: "Các bài viết thuộc chủ đề Mùa 18 nên có anchor link trỏ về Hub để củng cố sức mạnh Topic Cluster.",
+        });
+      }
+    }
+
+    // Check for Orphan Pages (0 inbound links among published articles)
+    for (const post of blogPosts) {
+      if (post.status !== "published") continue;
+      const inboundCount = inboundLinks.get(post.slug.toLowerCase().trim()) || 0;
+      if (inboundCount === 0) {
+        issues.push({
+          id: `orphan-article-${post.id}`,
+          type: "warning",
+          category: "blog",
+          page: `/blog/${post.slug}`,
+          title: `Bài viết "${post.title}" chưa có liên kết nội bộ trỏ tới (Orphan Page)`,
+          detail: "Trang mồ côi khó được Google lập chỉ mục tốt. Hãy thêm liên kết từ các bài liên quan cùng chủ đề.",
+        });
+      }
+    }
+
+    const clusterErrors = issues.filter(
+      (i) => (i.id.startsWith("broken-link-") || i.id.startsWith("legacy-domain-")) && i.type === "error"
+    ).length;
+    const clusterWarnings = issues.filter(
+      (i) => (i.id.startsWith("missing-hub-link-") || i.id.startsWith("orphan-article-")) && i.type === "warning"
+    ).length;
+
+    if (clusterErrors === 0 && clusterWarnings === 0) {
+      issues.push({
+        id: "cluster-internal-links-passed",
+        type: "passed",
+        category: "blog",
+        title: "Cấu trúc Topic Cluster & Internal Linking đạt chuẩn",
+        detail: "Mọi bài viết đều có internal links trỏ tới, kết nối với Hub Mùa 18 và không phát hiện liên kết gãy.",
+      });
+    }
   }
 
   const errors = issues.filter((i) => i.type === "error").length;

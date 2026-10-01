@@ -34,39 +34,66 @@ export const metadata: Metadata = {
 export default function GuideRiotPage() {
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "HowTo",
-    "name": "Hướng dẫn đổi thông tin tài khoản Riot Games",
-    "description": "Cách đổi mật khẩu, email chính chủ và bật bảo mật 2 lớp cho tài khoản Riot Games.",
-    "step": [
+    "@graph": [
       {
-        "@type": "HowToStep",
-        "name": "Đăng nhập tài khoản Riot Games",
-        "text": "Truy cập account.riotgames.com và đăng nhập với thông tin tài khoản do Shop cấp.",
-        "url": "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot#buoc-1-dang-nhap"
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Trang chủ",
+            "item": "https://www.shoptftmobile.net",
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Hướng Dẫn",
+            "item": "https://www.shoptftmobile.net/huong-dan",
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Hướng Dẫn Đổi Thông Tin Acc Riot",
+            "item": "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot",
+          },
+        ],
       },
       {
-        "@type": "HowToStep",
-        "name": "Đổi Email chính chủ",
-        "text": "Nhập địa chỉ Email cá nhân của bạn, bấm Lưu & Xác minh, sau đó mở hòm thư bấm Verify Email.",
-        "url": "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot#buoc-2-doi-email"
-      },
-      {
-        "@type": "HowToStep",
-        "name": "Đổi mật khẩu mới",
-        "text": "Nhập mật khẩu hiện tại và tạo mật khẩu mới an toàn, sau đó bấm Lưu thay đổi.",
-        "url": "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot#buoc-3-doi-mat-khau"
-      },
-      {
-        "@type": "HowToStep",
-        "name": "Kiểm tra Quản lý tài khoản",
-        "text": "Vào phần cài đặt Riot Account để kiểm tra thông tin và đổi Riot ID miễn phí.",
-        "url": "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot#buoc-4-cai-dat-tai-khoan"
-      },
-      {
-        "@type": "HowToStep",
-        "name": "Bật xác thực 2 lớp 2FA",
-        "text": "Kích hoạt bảo vệ hai yếu tố để nhận mã OTP về email mỗi khi đăng nhập thiết bị mới.",
-        "url": "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot#buoc-5-kiem-tra-bao-mat"
+        "@type": "HowTo",
+        "name": "Hướng dẫn đổi thông tin tài khoản Riot Games",
+        "description": "Cách đổi mật khẩu, email chính chủ và bật bảo mật 2 lớp cho tài khoản Riot Games.",
+        "step": [
+          {
+            "@type": "HowToStep",
+            "name": "Đăng nhập tài khoản Riot Games",
+            "text": "Truy cập account.riotgames.com và đăng nhập với thông tin tài khoản do Shop cấp.",
+            "url": "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot#buoc-1-dang-nhap"
+          },
+          {
+            "@type": "HowToStep",
+            "name": "Đổi Email chính chủ",
+            "text": "Nhập địa chỉ Email cá nhân của bạn, bấm Lưu & Xác minh, sau đó mở hòm thư bấm Verify Email.",
+            "url": "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot#buoc-2-doi-email"
+          },
+          {
+            "@type": "HowToStep",
+            "name": "Đổi mật khẩu mới",
+            "text": "Nhập mật khẩu hiện tại và tạo mật khẩu mới an toàn, sau đó bấm Lưu thay đổi.",
+            "url": "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot#buoc-3-doi-mat-khau"
+          },
+          {
+            "@type": "HowToStep",
+            "name": "Kiểm tra Quản lý tài khoản",
+            "text": "Vào phần cài đặt Riot Account để kiểm tra thông tin và đổi Riot ID miễn phí.",
+            "url": "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot#buoc-4-cai-dat-tai-khoan"
+          },
+          {
+            "@type": "HowToStep",
+            "name": "Bật xác thực 2 lớp 2FA",
+            "text": "Kích hoạt bảo vệ hai yếu tố để nhận mã OTP về email mỗi khi đăng nhập thiết bị mới.",
+            "url": "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot#buoc-5-kiem-tra-bao-mat"
+          }
+        ]
       }
     ]
   };

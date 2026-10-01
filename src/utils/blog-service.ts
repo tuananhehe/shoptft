@@ -77,7 +77,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
 }
 
 /**
- * Lấy danh sách bài viết liên quan (ưu tiên cùng category, cùng season, loại trừ bài hiện tại)
+ * Lấy danh sách bài viết liên quan (ưu tiên cùng category, cùng season, patch, độ tươi mới)
  */
 export async function getRelatedPosts(
   currentPost: BlogPost,
@@ -85,21 +85,52 @@ export async function getRelatedPosts(
 ): Promise<BlogPost[]> {
   const allPosts = await getBlogPosts({ status: "published" });
 
-  const candidates = allPosts.filter((p) => p.id !== currentPost.id);
+  const candidates = allPosts.filter(
+    (p) => p.id !== currentPost.id && p.status === "published"
+  );
+
+  const isCurrentSet18 =
+    currentPost.category === "TFT Mùa 18" ||
+    currentPost.tags.some((t) => t.toLowerCase().includes("mùa 18") || t.toLowerCase().includes("set 18"));
 
   // Score candidate relevance
+  const now = Date.now();
   const scored = candidates.map((p) => {
     let score = 0;
-    if (p.category === currentPost.category) score += 3;
+
+    // 1. Same category
+    if (p.category === currentPost.category) score += 4;
+
+    // 2. Same season
+    const isTargetSet18 =
+      p.category === "TFT Mùa 18" ||
+      p.tags.some((t) => t.toLowerCase().includes("mùa 18") || t.toLowerCase().includes("set 18"));
+    if (isCurrentSet18 && isTargetSet18) score += 3;
+
+    // 3. Same patch / intent
+    if (currentPost.patch && p.patch && currentPost.patch === p.patch) score += 3;
     if (p.contentType === currentPost.contentType) score += 2;
-    const commonTags = p.tags.filter((t) => currentPost.tags.includes(t));
-    score += commonTags.length;
+
+    // 4. Overlapping tags
+    const commonTags = p.tags.filter((t) =>
+      currentPost.tags.some((ct) => ct.toLowerCase().trim() === t.toLowerCase().trim())
+    );
+    score += commonTags.length * 1.5;
+
+    // 5. Freshness boost (within last 30 days)
+    const postDate = new Date(p.updatedAt || p.publishedAt).getTime();
+    if (!isNaN(postDate)) {
+      const ageDays = (now - postDate) / (1000 * 60 * 60 * 24);
+      if (ageDays <= 30) score += 2;
+      else if (ageDays <= 90) score += 1;
+    }
+
     return { post: p, score };
   });
 
   scored.sort((a, b) => b.score - a.score);
 
-  return scored.slice(0, limit).map((s) => s.post);
+  return scored.slice(0, Math.max(1, limit)).map((s) => s.post);
 }
 
 /**

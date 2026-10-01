@@ -32,6 +32,7 @@ import {
   ZoomIn,
   Sparkles,
   Heart,
+  BookOpen,
 } from "lucide-react";
 
 interface AccountDetailViewProps {
@@ -729,6 +730,39 @@ export function AccountDetailView({ account, relatedAccounts }: AccountDetailVie
             </Reveal>
           </SectionErrorBoundary>
         )}
+
+        {/* Hướng Dẫn & Cẩm Nang Liên Quan (Shop -> Content) */}
+        <div className="mt-8 p-4 sm:p-5 rounded-2xl bg-[#121214] border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-0.5">
+            <h3 className="text-xs sm:text-sm font-heading font-bold text-white flex items-center gap-1.5">
+              <BookOpen className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>Hướng Dẫn & Cẩm Nang Hỗ Trợ</span>
+            </h3>
+            <p className="text-[11px] text-zinc-400">
+              Cẩm nang bảo mật Riot, mẹo chọn acc theo Pet và giải đáp thắc mắc khi thuê.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/huong-dan/doi-thong-tin-acc-riot"
+              className="px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] text-zinc-300 hover:text-white border border-white/10 text-xs transition-colors"
+            >
+              Đổi thông tin Riot
+            </Link>
+            <Link
+              href="/blog/cach-chon-acc-tft-theo-pet-chibi-va-san-dau"
+              className="px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] text-zinc-300 hover:text-white border border-white/10 text-xs transition-colors"
+            >
+              Chọn acc theo Pet
+            </Link>
+            <Link
+              href="/thue-acc-tft-dtcl#faq"
+              className="px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] text-zinc-300 hover:text-white border border-white/10 text-xs transition-colors"
+            >
+              FAQ thuê acc
+            </Link>
+          </div>
+        </div>
 
         {/* Recently Viewed Accounts */}
         <SectionErrorBoundary sectionName="RecentlyViewed" silent>

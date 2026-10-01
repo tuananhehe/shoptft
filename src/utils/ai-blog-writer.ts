@@ -347,7 +347,10 @@ async function parseAndValidateLlmOutput(
       index: true,
     },
     suggestedCoverPrompt: parsed.suggestedCoverPrompt || `TFT Season 18 key art featuring ${title}`,
-    internalLinks: Array.isArray(parsed.internalLinks) ? parsed.internalLinks : ALLOWED_INTERNAL_LINKS.slice(0, 2),
+    internalLinks: Array.isArray(parsed.internalLinks) ? parsed.internalLinks : ALLOWED_INTERNAL_LINKS.slice(0, 3),
+    relatedTopics: Array.isArray(parsed.relatedTopics) ? parsed.relatedTopics : ["TFT Mùa 18", "Meta Đội Hình", "Pet Chibi", "Bảo mật Riot"],
+    hubLink: { text: "Cẩm Nang TFT Mùa 18 Hub", url: "/blog/tft-mua-18" },
+    commercialLink: { text: "Dịch Vụ Thuê Acc ĐTCL Uy Tín", url: "/thue-acc-tft-dtcl" },
   };
 }
 
@@ -817,5 +820,8 @@ Hy vọng cẩm nang phân tích này sẽ giúp bạn làm chủ chiến thuậ
     },
     suggestedCoverPrompt: `TFT Season 18 cinematic splash art matching ${cleanTitle}`,
     internalLinks: ALLOWED_INTERNAL_LINKS.slice(0, 3),
+    relatedTopics: ["TFT Mùa 18 Hub", "Meta Patch 18.3b", "Tướng Tí Nị Thần Thoại", "Bảo Mật Riot"],
+    hubLink: { text: "Cẩm Nang TFT Mùa 18 Hub", url: "/blog/tft-mua-18" },
+    commercialLink: { text: "Dịch Vụ Thuê Acc ĐTCL Uy Tín", url: "/thue-acc-tft-dtcl" },
   };
 }
