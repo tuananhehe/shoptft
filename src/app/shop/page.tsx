@@ -95,9 +95,34 @@ function ShopLoadingSkeleton() {
 export default async function ShopPage() {
   const { vipAccounts, cloneAccounts } = await getInitialShopAccountsServer();
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Trang chủ",
+        "item": "https://www.shoptftmobile.net",
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Kho Acc",
+        "item": "https://www.shoptftmobile.net/shop",
+      },
+    ],
+  };
+
   return (
-    <Suspense fallback={<ShopLoadingSkeleton />}>
-      <ShopClientView initialVip={vipAccounts} initialClone={cloneAccounts} />
-    </Suspense>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <Suspense fallback={<ShopLoadingSkeleton />}>
+        <ShopClientView initialVip={vipAccounts} initialClone={cloneAccounts} />
+      </Suspense>
+    </>
   );
 }

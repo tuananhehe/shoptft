@@ -106,6 +106,25 @@ export interface ImageHealthReport {
   items: ImageHealthItem[];
 }
 
+export interface InternalLinkItem {
+  source: string;
+  target: string;
+  anchorText?: string;
+  type: "normal" | "redirect" | "broken" | "orphan";
+}
+
+export interface InternalLinksAuditReport {
+  timestamp: string;
+  healthStatus: "excellent" | "good" | "needs_attention" | "critical";
+  totalPagesAudited: number;
+  totalInternalLinks: number;
+  orphanPages: Array<{ path: string; title: string; type: "blog" | "page" | "guide" }>;
+  brokenLinks: Array<{ source: string; target: string; reason: string }>;
+  excessiveLinks: Array<{ path: string; totalLinks: number; warning: string }>;
+  missingHubLinks: Array<{ path: string; title: string; category: string }>;
+  redirectLinks: Array<{ source: string; target: string; destination: string }>;
+}
+
 export const PRODUCTION_ORIGIN = "https://www.shoptftmobile.net";
 
 /**

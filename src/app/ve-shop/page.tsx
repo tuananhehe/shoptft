@@ -54,8 +54,31 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function VeShopPage() {
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Trang chủ",
+        "item": "https://www.shoptftmobile.net",
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Về Shop",
+        "item": "https://www.shoptftmobile.net/ve-shop",
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#09090b] text-white selection:bg-white selection:text-black flex flex-col justify-between relative">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <TFTNavbar />
       <TFTAbout />
       <TFTFooter />

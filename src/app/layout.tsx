@@ -190,16 +190,9 @@ export default async function RootLayout({
       "@id": `${origin}/#website`,
       url: origin,
       name: seoDb.global.siteName || "ShopTFTMobile",
+      alternateName: "Tuấn Thái Bình TFT",
       description: seoDb.global.defaultDescription,
       inLanguage: "vi-VN",
-      potentialAction: {
-        "@type": "SearchAction",
-        target: {
-          "@type": "EntryPoint",
-          urlTemplate: `${origin}/shop?search={search_term_string}`,
-        },
-        "query-input": "required name=search_term_string",
-      },
     },
     {
       "@type": "Organization",

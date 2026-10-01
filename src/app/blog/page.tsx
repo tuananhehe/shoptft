@@ -63,7 +63,7 @@ export default async function BlogIndexPage() {
           {
             "@type": "ListItem",
             "position": 2,
-            "name": "Blog TFT Mùa 18",
+            "name": "Blog",
             "item": "https://www.shoptftmobile.net/blog",
           },
         ],
@@ -100,7 +100,7 @@ export default async function BlogIndexPage() {
             Trang chủ
           </Link>
           <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
-          <span className="text-zinc-200 font-medium">Blog TFT Mùa 18</span>
+          <span className="text-zinc-200 font-medium">Blog</span>
         </nav>
 
         {/* Page Header */}

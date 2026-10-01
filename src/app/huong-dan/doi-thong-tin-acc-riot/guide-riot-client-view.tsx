@@ -196,8 +196,8 @@ export function GuideRiotClientView() {
               Trang chủ
             </Link>
             <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
-            <Link href="/#huong-dan" className="hover:text-white transition-colors">
-              Hướng dẫn
+            <Link href="/huong-dan" className="hover:text-white transition-colors">
+              Hướng Dẫn
             </Link>
             <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
             <span className="text-white font-medium truncate">Đổi thông tin acc Riot</span>

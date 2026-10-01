@@ -5,6 +5,7 @@ import {
   saveSeoConfig,
   runSeoAudit,
   runImageAudit,
+  runInternalLinksAudit,
   detectRedirectLoop,
   DEFAULT_SEO_CONFIG,
   SeoConfigDatabase,
@@ -94,6 +95,7 @@ export async function GET(req: NextRequest) {
     }
 
     const imageHealth = runImageAudit(config, allAccounts, blogPosts);
+    const internalLinksAudit = runInternalLinksAudit(config, blogPosts, allAccounts);
 
     return NextResponse.json({
       success: true,
@@ -101,6 +103,7 @@ export async function GET(req: NextRequest) {
       audit,
       productMetrics,
       imageHealth,
+      internalLinksAudit,
     });
   } catch (err: any) {
     return NextResponse.json(

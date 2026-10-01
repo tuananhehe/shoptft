@@ -27,6 +27,7 @@ import {
   Sparkles,
   ImageIcon,
   Share2,
+  Link2,
 } from "lucide-react";
 import {
   SeoConfigDatabase,
@@ -35,10 +36,12 @@ import {
   RedirectRule,
   formatProductSeo,
   ImageHealthReport,
+  InternalLinksAuditReport,
 } from "@/utils/seo-shared";
 import { ContentRefreshTab } from "@/components/admin/content-refresh-tab";
+import { InternalLinksTab } from "@/components/admin/internal-links-tab";
 
-type TabKey = "overview" | "pages" | "products" | "refresh" | "sitemap" | "redirects" | "schema" | "settings";
+type TabKey = "overview" | "pages" | "products" | "refresh" | "internal_links" | "sitemap" | "redirects" | "schema" | "settings";
 
 const SAMPLE_ACCOUNTS = [
   {
@@ -96,6 +99,7 @@ export default function AdminSeoPage() {
   const [selectedSampleIndex, setSelectedSampleIndex] = useState<number>(0);
   const [auditFilter, setAuditFilter] = useState<"all" | "error" | "warning" | "passed">("all");
   const [imageHealth, setImageHealth] = useState<ImageHealthReport | null>(null);
+  const [internalLinksAudit, setInternalLinksAudit] = useState<InternalLinksAuditReport | null>(null);
   const [socialNetworkPreview, setSocialNetworkPreview] = useState<"facebook" | "twitter">("facebook");
 
   // Fetch SEO configuration from API
@@ -112,6 +116,7 @@ export default function AdminSeoPage() {
         if (data.audit) setAudit(data.audit);
         if (data.productMetrics) setProductMetrics(data.productMetrics);
         if (data.imageHealth) setImageHealth(data.imageHealth);
+        if (data.internalLinksAudit) setInternalLinksAudit(data.internalLinksAudit);
       } else {
         toast.error(data.error || "Không thể tải dữ liệu SEO!");
       }
@@ -375,6 +380,23 @@ export default function AdminSeoPage() {
         >
           <Sparkles className="w-3.5 h-3.5 text-amber-500" />
           <span>Content Refresh</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("internal_links")}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === "internal_links"
+              ? "bg-gray-900 text-white shadow-xs"
+              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+          }`}
+        >
+          <Link2 className="w-3.5 h-3.5 text-blue-500" />
+          <span>Internal Links</span>
+          {internalLinksAudit && (internalLinksAudit.brokenLinks.length > 0 || internalLinksAudit.orphanPages.length > 0) && (
+            <span className="w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-bold">
+              {internalLinksAudit.brokenLinks.length + internalLinksAudit.orphanPages.length}
+            </span>
+          )}
         </button>
 
         <button
@@ -1252,6 +1274,16 @@ export default function AdminSeoPage() {
       {/* TAB: CONTENT REFRESH (AI ASSISTED)                             */}
       {/* ============================================================== */}
       {activeTab === "refresh" && <ContentRefreshTab />}
+
+      {/* ============================================================== */}
+      {/* TAB: INTERNAL LINKS AUDIT (PHASE 5)                             */}
+      {/* ============================================================== */}
+      {activeTab === "internal_links" && (
+        <InternalLinksTab
+          report={internalLinksAudit}
+          onRefresh={fetchSeoData}
+        />
+      )}
 
       {/* ============================================================== */}
       {/* TAB 4: SITEMAP & ROBOTS                                        */}

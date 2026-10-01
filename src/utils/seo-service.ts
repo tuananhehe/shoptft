@@ -12,6 +12,7 @@ import {
   SeoAuditReport,
   ImageHealthItem,
   ImageHealthReport,
+  InternalLinksAuditReport,
   DEFAULT_SEO_CONFIG,
   detectRedirectLoop,
 } from "@/utils/seo-shared";
@@ -687,5 +688,203 @@ export function runImageAudit(
     oversizedImage,
     invalidAspectRatio,
     items,
+  };
+}
+
+/**
+ * Chạy kiểm toán cấu trúc liên kết nội bộ toàn website (Phase 5 Technical SEO)
+ * Kiểm tra:
+ * - Trang mồ côi (Orphan pages)
+ * - Liên kết hỏng (Broken internal links, 404, old domain .com)
+ * - Liên kết quá tải (Excessive links > 25)
+ * - Bài viết Set 18 thiếu liên kết về Hub (/blog/tft-mua-18)
+ * - Liên kết trỏ vào redirect (Redirect internal links)
+ */
+export function runInternalLinksAudit(
+  cfg: SeoConfigDatabase,
+  blogPosts: BlogPost[] = [],
+  accounts: any[] = []
+): InternalLinksAuditReport {
+  const publishedPosts = blogPosts.filter((p) => p.status === "published");
+  const postSlugs = new Set(publishedPosts.map((p) => `/blog/${p.slug}`));
+
+  // All known crawlable routes
+  const coreRoutes = [
+    { path: "/", title: "Trang chủ", type: "page" as const },
+    { path: "/shop", title: "Kho Acc", type: "page" as const },
+    { path: "/thue-acc-tft-dtcl", title: "Thuê Acc TFT - ĐTCL", type: "page" as const },
+    { path: "/ve-shop", title: "Về Shop", type: "page" as const },
+    { path: "/huong-dan", title: "Hướng Dẫn Dịch Vụ", type: "guide" as const },
+    { path: "/huong-dan/doi-thong-tin-acc-riot", title: "Đổi Thông Tin Acc Riot", type: "guide" as const },
+    { path: "/blog", title: "Blog", type: "blog" as const },
+    { path: "/blog/tft-mua-18", title: "TFT Mùa 18 Hub", type: "blog" as const },
+  ];
+
+  const staticRouteSet = new Set([
+    ...coreRoutes.map((r) => r.path),
+    "/login",
+    "/admin",
+  ]);
+
+  const accountRouteSet = new Set(
+    accounts.map((a) => {
+      const cleanCode = a.code ? a.code.replace(/^MS:\s*/i, "").trim() : "";
+      return `/acc/${cleanCode || a.id}`;
+    })
+  );
+
+  // Inbound links counter map
+  const inboundCount = new Map<string, number>();
+  coreRoutes.forEach((r) => inboundCount.set(r.path, 0));
+  publishedPosts.forEach((p) => inboundCount.set(`/blog/${p.slug}`, 0));
+
+  // Core pages link to each other naturally (Navbar, Footer, Hero, CTA, Breadcrumbs)
+  coreRoutes.forEach((r) => {
+    inboundCount.set(r.path, (inboundCount.get(r.path) || 0) + 1);
+  });
+
+  const brokenLinks: Array<{ source: string; target: string; reason: string }> = [];
+  const excessiveLinks: Array<{ path: string; totalLinks: number; warning: string }> = [];
+  const missingHubLinks: Array<{ path: string; title: string; category: string }> = [];
+  const redirectLinks: Array<{ source: string; target: string; destination: string }> = [];
+
+  // Active redirect sources map
+  const redirectMap = new Map<string, string>();
+  (cfg.redirects || []).forEach((r) => {
+    if (r.enabled) {
+      redirectMap.set(r.source, r.destination);
+    }
+  });
+
+  let totalInternalLinks = 0;
+
+  // Audit each blog post content
+  publishedPosts.forEach((post) => {
+    const postPath = `/blog/${post.slug}`;
+    const content = post.content || "";
+    const rawMatches = [...content.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)];
+    const links = rawMatches.map((m) => ({ anchor: m[1], href: m[2] }));
+
+    let outboundInternalCount = 0;
+    let hasHubLink = false;
+
+    const isSet18 =
+      post.category === "TFT Mùa 18" ||
+      post.category === "Meta & Đội Hình" ||
+      post.tags?.some((t) => t.toLowerCase().includes("mùa 18") || t.toLowerCase().includes("set 18"));
+
+    links.forEach(({ href }) => {
+      if (href.startsWith("/") && !href.startsWith("//")) {
+        outboundInternalCount++;
+        totalInternalLinks++;
+        const cleanTarget = href.split("?")[0].split("#")[0].trim();
+
+        if (inboundCount.has(cleanTarget)) {
+          inboundCount.set(cleanTarget, (inboundCount.get(cleanTarget) || 0) + 1);
+        }
+
+        if (cleanTarget === "/blog/tft-mua-18") {
+          hasHubLink = true;
+        }
+
+        if (redirectMap.has(cleanTarget)) {
+          redirectLinks.push({
+            source: postPath,
+            target: href,
+            destination: redirectMap.get(cleanTarget) || "",
+          });
+        }
+
+        const isValidTarget =
+          staticRouteSet.has(cleanTarget) ||
+          postSlugs.has(cleanTarget) ||
+          accountRouteSet.has(cleanTarget) ||
+          cleanTarget === "" ||
+          href.startsWith("/#") ||
+          href.includes("?");
+
+        if (!isValidTarget) {
+          brokenLinks.push({
+            source: postPath,
+            target: href,
+            reason: "URL đích không tồn tại trong hệ thống (404)",
+          });
+        }
+      } else if (href.includes("shoptftmobile.com")) {
+        brokenLinks.push({
+          source: postPath,
+          target: href,
+          reason: "Sử dụng tên miền cũ .com thay vì domain chuẩn .net",
+        });
+      }
+    });
+
+    if (isSet18 && !hasHubLink) {
+      missingHubLinks.push({
+        path: postPath,
+        title: post.title,
+        category: post.category,
+      });
+    }
+
+    if (outboundInternalCount > 25) {
+      excessiveLinks.push({
+        path: postPath,
+        totalLinks: outboundInternalCount,
+        warning: `Có ${outboundInternalCount} liên kết nội bộ trong bài viết (khuyên dùng 2-8 liên kết để tránh loãng PageRank)`,
+      });
+    }
+  });
+
+  // Hub page links to all Set 18 articles
+  publishedPosts.forEach((post) => {
+    const postPath = `/blog/${post.slug}`;
+    const isSet18 =
+      post.category === "TFT Mùa 18" ||
+      post.category === "Meta & Đội Hình" ||
+      post.category === "Kinh nghiệm TFT" ||
+      post.category === "Pet / Chibi / Sân Đấu" ||
+      post.tags?.some((t) => t.toLowerCase().includes("mùa 18") || t.toLowerCase().includes("tft"));
+
+    if (isSet18) {
+      inboundCount.set(postPath, (inboundCount.get(postPath) || 0) + 1);
+    }
+  });
+
+  // Detect orphan pages (0 inbound links)
+  const orphanPages: Array<{ path: string; title: string; type: "blog" | "page" | "guide" }> = [];
+
+  coreRoutes.forEach((r) => {
+    if ((inboundCount.get(r.path) || 0) === 0) {
+      orphanPages.push({ path: r.path, title: r.title, type: r.type });
+    }
+  });
+
+  publishedPosts.forEach((p) => {
+    const pPath = `/blog/${p.slug}`;
+    if ((inboundCount.get(pPath) || 0) === 0) {
+      orphanPages.push({ path: pPath, title: p.title, type: "blog" });
+    }
+  });
+
+  let healthStatus: "excellent" | "good" | "needs_attention" | "critical" = "excellent";
+  if (brokenLinks.length > 5 || orphanPages.length > 3) {
+    healthStatus = "critical";
+  } else if (brokenLinks.length > 0 || orphanPages.length > 0) {
+    healthStatus = "needs_attention";
+  } else if (missingHubLinks.length > 0 || redirectLinks.length > 0) {
+    healthStatus = "good";
+  }
+
+  return {
+    timestamp: new Date().toISOString(),
+    healthStatus,
+    totalPagesAudited: coreRoutes.length + publishedPosts.length,
+    totalInternalLinks,
+    orphanPages,
+    brokenLinks,
+    excessiveLinks,
+    missingHubLinks,
+    redirectLinks,
   };
 }

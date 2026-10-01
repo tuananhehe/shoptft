@@ -329,9 +329,13 @@ export const TFTAbout: React.FC = () => {
             <Link href="/thue-acc-tft-dtcl" className="text-amber-400 hover:underline font-medium">
               Dịch vụ Thuê Acc TFT - ĐTCL
             </Link>
-            <span> hoặc xem </span>
+            <span>, xem </span>
             <Link href="/huong-dan" className="text-amber-400 hover:underline font-medium">
-              Hướng Dẫn Dịch Vụ & Bảo Mật Riot
+              Hướng Dẫn Dịch Vụ
+            </Link>
+            <span> hoặc khám phá </span>
+            <Link href="/blog" className="text-amber-400 hover:underline font-medium">
+              Cẩm Nang Blog TFT
             </Link>
             <span>.</span>
           </div>
