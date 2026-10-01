@@ -31,6 +31,12 @@ import {
   ContentBrief,
   ContentOpportunityAction,
   SearchIntentType,
+  BacklinkStatus,
+  BacklinkType,
+  BacklinkItem,
+  BrandMentionItem,
+  LinkableAssetItem,
+  BacklinkMonitorReport,
 } from "@/utils/seo-shared";
 import { BlogPost } from "@/utils/blog-shared";
 
@@ -39,6 +45,7 @@ export * from "@/utils/seo-shared";
 const STORAGE_KEY = "system/seo-config.json";
 const CONFIG_FILE_PATH = path.join(process.cwd(), "src", "data", "seo-config.json");
 const GSC_DATA_FILE_PATH = path.join(process.cwd(), "src", "data", "search-console-data.json");
+const BACKLINKS_FILE_PATH = path.join(process.cwd(), "src", "data", "backlinks-data.json");
 
 let memorySeoConfig: SeoConfigDatabase = { ...DEFAULT_SEO_CONFIG };
 
@@ -1353,4 +1360,281 @@ export function generateAiRankingProposal(
     searchIntentNote,
     safeguardNote: "Khuyến nghị chỉ mang tính tham khảo (Proposal Only). Admin phải duyệt trước khi áp dụng.",
   };
+}
+
+/**
+ * Đọc dữ liệu Backlink Monitor, Brand Mentions và Linkable Assets
+ */
+export async function getBacklinkMonitorReport(): Promise<BacklinkMonitorReport> {
+  let raw: {
+    backlinks: BacklinkItem[];
+    brandMentions: BrandMentionItem[];
+    linkableAssets: LinkableAssetItem[];
+  } = {
+    backlinks: [],
+    brandMentions: [],
+    linkableAssets: [],
+  };
+
+  try {
+    if (fs.existsSync(BACKLINKS_FILE_PATH)) {
+      const fileData = fs.readFileSync(BACKLINKS_FILE_PATH, "utf-8");
+      raw = JSON.parse(fileData);
+    }
+  } catch (e) {
+    console.warn("Lỗi đọc backlinks-data.json:", e);
+  }
+
+  const backlinks: BacklinkItem[] = Array.isArray(raw.backlinks) ? raw.backlinks : [];
+  const brandMentions: BrandMentionItem[] = Array.isArray(raw.brandMentions) ? raw.brandMentions : [];
+  const linkableAssets: LinkableAssetItem[] = Array.isArray(raw.linkableAssets) ? raw.linkableAssets : [];
+
+  const uniqueDomains = new Set<string>();
+  let dofollowCount = 0;
+  let nofollowCount = 0;
+  let ugcCount = 0;
+  let brandMentionsCount = 0;
+  let activeCount = 0;
+  let redirectCount = 0;
+  let brokenCount = 0;
+  let lostCount = 0;
+  let oldDomainComCount = 0;
+  let oldDomainResolvedCount = 0;
+
+  const targetCounts = new Map<string, { count: number; domains: Set<string> }>();
+  const brokenTargetMap = new Map<string, number>();
+
+  for (const b of backlinks) {
+    if (b.sourceDomain) uniqueDomains.add(b.sourceDomain.toLowerCase());
+    if (b.type === "dofollow") dofollowCount++;
+    else if (b.type === "nofollow") nofollowCount++;
+    else if (b.type === "ugc") ugcCount++;
+    else if (b.type === "brand_mention") brandMentionsCount++;
+
+    if (b.status === "active") activeCount++;
+    else if (b.status === "301_redirect") redirectCount++;
+    else if (b.status === "broken") brokenCount++;
+    else if (b.status === "lost") lostCount++;
+
+    const isComTarget = b.targetUrl.toLowerCase().includes("shoptftmobile.com");
+    if (isComTarget) {
+      oldDomainComCount++;
+      if (b.status === "301_redirect") oldDomainResolvedCount++;
+    }
+
+    if (b.status === "broken") {
+      brokenTargetMap.set(b.targetUrl, (brokenTargetMap.get(b.targetUrl) || 0) + 1);
+    }
+
+    // Top linked targets
+    const normTarget = b.targetUrl.replace(/^https?:\/\/[^/]+/, "") || "/";
+    const curr = targetCounts.get(normTarget) || { count: 0, domains: new Set<string>() };
+    curr.count++;
+    if (b.sourceDomain) curr.domains.add(b.sourceDomain.toLowerCase());
+    targetCounts.set(normTarget, curr);
+  }
+
+  const brokenTargets = Array.from(brokenTargetMap.entries()).map(([targetUrl, count]) => {
+    let suggestedRedirect = "/";
+    if (targetUrl.includes("thue-acc") || targetUrl.includes("rent")) suggestedRedirect = "/thue-acc-tft-dtcl";
+    else if (targetUrl.includes("shop") || targetUrl.includes("acc")) suggestedRedirect = "/shop";
+    else if (targetUrl.includes("huong-dan") || targetUrl.includes("guide")) suggestedRedirect = "/huong-dan";
+    else if (targetUrl.includes("pet") || targetUrl.includes("san-dau") || targetUrl.includes("mua-18")) suggestedRedirect = "/blog/tft-mua-18";
+    return { targetUrl, count, suggestedRedirect };
+  });
+
+  const topLinkedPages = Array.from(targetCounts.entries())
+    .map(([path, data]) => ({
+      path,
+      title: path === "/" ? "Trang chủ" : path,
+      referringDomains: data.domains.size,
+      backlinkCount: data.count,
+    }))
+    .sort((a, b) => b.backlinkCount - a.backlinkCount);
+
+  return {
+    timestamp: new Date().toISOString(),
+    summary: {
+      totalBacklinks: backlinks.length,
+      totalReferringDomains: uniqueDomains.size,
+      dofollowCount,
+      nofollowCount,
+      ugcCount,
+      brandMentionsCount,
+      activeCount,
+      redirectCount,
+      brokenCount,
+      lostCount,
+      oldDomainComCount,
+      oldDomainResolvedCount,
+    },
+    backlinks,
+    brandMentions,
+    linkableAssets,
+    brokenTargets,
+    topLinkedPages,
+  };
+}
+
+/**
+ * Ghi đè toàn bộ dữ liệu Backlink
+ */
+export async function saveBacklinkData(data: {
+  backlinks: BacklinkItem[];
+  brandMentions: BrandMentionItem[];
+  linkableAssets: LinkableAssetItem[];
+}): Promise<boolean> {
+  try {
+    fs.writeFileSync(BACKLINKS_FILE_PATH, JSON.stringify(data, null, 2), "utf-8");
+    return true;
+  } catch (e) {
+    console.error("Lỗi lưu backlinks-data.json:", e);
+    return false;
+  }
+}
+
+/**
+ * Thêm mới một bản ghi Backlink thủ công
+ */
+export async function addBacklinkItem(
+  item: Omit<BacklinkItem, "id" | "firstSeen" | "lastSeen">
+): Promise<BacklinkItem> {
+  const current = await getBacklinkMonitorReport();
+  const id = `bl-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+  let domain = item.sourceDomain;
+  if (!domain && item.sourceUrl) {
+    try {
+      domain = new URL(item.sourceUrl).hostname.replace(/^www\./, "");
+    } catch {
+      domain = item.sourceUrl;
+    }
+  }
+
+  const newItem: BacklinkItem = {
+    ...item,
+    id,
+    sourceDomain: domain || "unknown",
+    firstSeen: new Date().toISOString(),
+    lastSeen: new Date().toISOString(),
+  };
+
+  const updatedBacklinks = [newItem, ...current.backlinks];
+  await saveBacklinkData({
+    backlinks: updatedBacklinks,
+    brandMentions: current.brandMentions,
+    linkableAssets: current.linkableAssets,
+  });
+
+  return newItem;
+}
+
+/**
+ * Cập nhật một bản ghi Backlink
+ */
+export async function updateBacklinkItem(
+  id: string,
+  updates: Partial<BacklinkItem>
+): Promise<BacklinkItem | null> {
+  const current = await getBacklinkMonitorReport();
+  const idx = current.backlinks.findIndex((b) => b.id === id);
+  if (idx === -1) return null;
+
+  const updatedItem: BacklinkItem = {
+    ...current.backlinks[idx],
+    ...updates,
+    lastSeen: new Date().toISOString(),
+  };
+
+  current.backlinks[idx] = updatedItem;
+  await saveBacklinkData({
+    backlinks: current.backlinks,
+    brandMentions: current.brandMentions,
+    linkableAssets: current.linkableAssets,
+  });
+
+  return updatedItem;
+}
+
+/**
+ * Xóa một bản ghi Backlink
+ */
+export async function deleteBacklinkItem(id: string): Promise<boolean> {
+  const current = await getBacklinkMonitorReport();
+  const filtered = current.backlinks.filter((b) => b.id !== id);
+  if (filtered.length === current.backlinks.length) return false;
+
+  await saveBacklinkData({
+    backlinks: filtered,
+    brandMentions: current.brandMentions,
+    linkableAssets: current.linkableAssets,
+  });
+
+  return true;
+}
+
+/**
+ * Import danh sách Backlink từ CSV/Text
+ */
+export async function importBacklinksCsv(
+  csvContent: string
+): Promise<{ importedCount: number; errors: string[] }> {
+  const lines = csvContent.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  if (lines.length === 0) return { importedCount: 0, errors: ["Nội dung CSV trống."] };
+
+  const current = await getBacklinkMonitorReport();
+  const newItems: BacklinkItem[] = [];
+  const errors: string[] = [];
+
+  let startIdx = 0;
+  const firstLine = lines[0].toLowerCase();
+  if (firstLine.includes("source") && (firstLine.includes("target") || firstLine.includes("anchor"))) {
+    startIdx = 1;
+  }
+
+  for (let i = startIdx; i < lines.length; i++) {
+    const line = lines[i];
+    const parts = line.split(",").map((p) => p.trim().replace(/^["']|["']$/g, ""));
+    if (parts.length < 2) {
+      errors.push(`Dòng ${i + 1}: Không đủ cột (cần ít nhất Source URL và Target URL).`);
+      continue;
+    }
+
+    const sourceUrl = parts[0];
+    const targetUrl = parts[1];
+    const anchorText = parts[2] || "ShopTFTMobile";
+    const type = (parts[3]?.toLowerCase() as BacklinkType) || "dofollow";
+    const status = (parts[4]?.toLowerCase() as BacklinkStatus) || "active";
+    const notes = parts[5] || "Imported via CSV";
+
+    let domain = "external";
+    try {
+      domain = new URL(sourceUrl).hostname.replace(/^www\./, "");
+    } catch {
+      domain = sourceUrl.slice(0, 30);
+    }
+
+    newItems.push({
+      id: `bl-csv-${Date.now()}-${i}`,
+      sourceUrl,
+      sourceDomain: domain,
+      targetUrl,
+      anchorText,
+      type: ["dofollow", "nofollow", "ugc", "brand_mention"].includes(type) ? type : "dofollow",
+      status: ["active", "301_redirect", "broken", "lost"].includes(status) ? status : "active",
+      firstSeen: new Date().toISOString(),
+      lastSeen: new Date().toISOString(),
+      authorityCategory: "community",
+      notes,
+    });
+  }
+
+  if (newItems.length > 0) {
+    await saveBacklinkData({
+      backlinks: [...newItems, ...current.backlinks],
+      brandMentions: current.brandMentions,
+      linkableAssets: current.linkableAssets,
+    });
+  }
+
+  return { importedCount: newItems.length, errors };
 }

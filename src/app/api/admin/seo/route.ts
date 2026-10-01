@@ -16,6 +16,11 @@ import {
   SeoConfigDatabase,
   RedirectRule,
   GscPeriodKey,
+  getBacklinkMonitorReport,
+  addBacklinkItem,
+  updateBacklinkItem,
+  deleteBacklinkItem,
+  importBacklinksCsv,
 } from "@/utils/seo-service";
 import { getBlogPosts } from "@/utils/blog-service";
 import { getAllProductAccounts } from "@/utils/account-lookup";
@@ -127,6 +132,7 @@ export async function GET(req: NextRequest) {
     const gscReport = await getSearchConsoleReport(periodParam);
     const contentOpportunities = await getContentOpportunities();
     const contentBriefs = await getContentBriefs();
+    const backlinkReport = await getBacklinkMonitorReport();
 
     return NextResponse.json({
       success: true,
@@ -138,6 +144,7 @@ export async function GET(req: NextRequest) {
       gscReport,
       contentOpportunities,
       contentBriefs,
+      backlinkReport,
     });
   } catch (err: any) {
     return NextResponse.json(
@@ -362,6 +369,104 @@ export async function PUT(req: NextRequest) {
   } catch (err: any) {
     return NextResponse.json(
       { success: false, error: err.message || "Lỗi khi lưu cấu hình SEO" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/admin/seo
+ * Quản lý Backlink Monitor (thêm, cập nhật, xóa, import CSV)
+ */
+export async function POST(req: NextRequest) {
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json(
+      { success: false, error: "Yêu cầu quyền Quản Trị Viên (Unauthorized)!" },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const { searchParams } = new URL(req.url);
+    const action = searchParams.get("action");
+    const body = await req.json().catch(() => ({}));
+
+    if (action === "add_backlink") {
+      if (!body.sourceUrl || !body.targetUrl) {
+        return NextResponse.json(
+          { success: false, error: "Thiếu Source URL hoặc Target URL!" },
+          { status: 400 }
+        );
+      }
+      await addBacklinkItem({
+        sourceUrl: body.sourceUrl,
+        sourceDomain: body.sourceDomain,
+        targetUrl: body.targetUrl,
+        anchorText: body.anchorText || "ShopTFTMobile",
+        status: body.status || "active",
+        type: body.type || "dofollow",
+        authorityCategory: body.authorityCategory || "community",
+        notes: body.notes,
+      });
+      const report = await getBacklinkMonitorReport();
+      return NextResponse.json({
+        success: true,
+        message: "Đã thêm backlink thành công!",
+        backlinkReport: report,
+      });
+    }
+
+    if (action === "update_backlink") {
+      if (!body.id) {
+        return NextResponse.json(
+          { success: false, error: "Thiếu Backlink ID!" },
+          { status: 400 }
+        );
+      }
+      await updateBacklinkItem(body.id, body.updates || {});
+      const report = await getBacklinkMonitorReport();
+      return NextResponse.json({
+        success: true,
+        message: "Đã cập nhật backlink thành công!",
+        backlinkReport: report,
+      });
+    }
+
+    if (action === "delete_backlink") {
+      if (!body.id) {
+        return NextResponse.json(
+          { success: false, error: "Thiếu Backlink ID!" },
+          { status: 400 }
+        );
+      }
+      await deleteBacklinkItem(body.id);
+      const report = await getBacklinkMonitorReport();
+      return NextResponse.json({
+        success: true,
+        message: "Đã xóa backlink thành công!",
+        backlinkReport: report,
+      });
+    }
+
+    if (action === "import_backlinks_csv") {
+      const csv = body.csvContent || "";
+      const result = await importBacklinksCsv(csv);
+      const report = await getBacklinkMonitorReport();
+      return NextResponse.json({
+        success: true,
+        message: `Đã nhập thành công ${result.importedCount} backlink!`,
+        errors: result.errors,
+        backlinkReport: report,
+      });
+    }
+
+    return NextResponse.json(
+      { success: false, error: "Hành động (action) không được hỗ trợ!" },
+      { status: 400 }
+    );
+  } catch (err: any) {
+    return NextResponse.json(
+      { success: false, error: err.message || "Lỗi thao tác Backlink" },
       { status: 500 }
     );
   }

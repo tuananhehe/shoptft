@@ -42,13 +42,28 @@ import {
   GscPerformanceReport,
   ContentOpportunityItem,
   ContentBrief,
+  BacklinkMonitorReport,
+  BacklinkItem,
 } from "@/utils/seo-shared";
 import { ContentRefreshTab } from "@/components/admin/content-refresh-tab";
 import { InternalLinksTab } from "@/components/admin/internal-links-tab";
 import { RankingOptimizationTab } from "@/components/admin/ranking-optimization-tab";
 import { ContentOpportunitiesTab } from "@/components/admin/content-opportunities-tab";
+import { BacklinksTab } from "@/components/admin/backlinks-tab";
 
-type TabKey = "overview" | "pages" | "products" | "refresh" | "internal_links" | "ranking" | "content_opportunities" | "sitemap" | "redirects" | "schema" | "settings";
+type TabKey =
+  | "overview"
+  | "pages"
+  | "products"
+  | "refresh"
+  | "internal_links"
+  | "ranking"
+  | "content_opportunities"
+  | "backlinks"
+  | "sitemap"
+  | "redirects"
+  | "schema"
+  | "settings";
 
 const SAMPLE_ACCOUNTS = [
   {
@@ -110,6 +125,7 @@ export default function AdminSeoPage() {
   const [gscReport, setGscReport] = useState<GscPerformanceReport | null>(null);
   const [contentOpportunities, setContentOpportunities] = useState<ContentOpportunityItem[]>([]);
   const [contentBriefs, setContentBriefs] = useState<ContentBrief[]>([]);
+  const [backlinkReport, setBacklinkReport] = useState<BacklinkMonitorReport | null>(null);
   const [socialNetworkPreview, setSocialNetworkPreview] = useState<"facebook" | "twitter">("facebook");
 
   // Fetch SEO configuration from API
@@ -135,6 +151,7 @@ export default function AdminSeoPage() {
         }
         if (data.contentOpportunities) setContentOpportunities(data.contentOpportunities);
         if (data.contentBriefs) setContentBriefs(data.contentBriefs);
+        if (data.backlinkReport) setBacklinkReport(data.backlinkReport);
       } else {
         toast.error(data.error || "Không thể tải dữ liệu SEO!");
       }
@@ -143,6 +160,78 @@ export default function AdminSeoPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAddBacklink = async (item: Omit<BacklinkItem, "id" | "firstSeen" | "lastSeen">) => {
+    const localToken = typeof window !== "undefined" ? localStorage.getItem("shoptft_admin_token") : null;
+    const res = await fetch("/api/admin/seo?action=add_backlink", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(localToken ? { "x-admin-token": localToken } : {}),
+      },
+      body: JSON.stringify(item),
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (data.backlinkReport) setBacklinkReport(data.backlinkReport);
+      return true;
+    }
+    throw new Error(data.error || "Lỗi khi thêm backlink");
+  };
+
+  const handleUpdateBacklink = async (id: string, updates: Partial<BacklinkItem>) => {
+    const localToken = typeof window !== "undefined" ? localStorage.getItem("shoptft_admin_token") : null;
+    const res = await fetch("/api/admin/seo?action=update_backlink", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(localToken ? { "x-admin-token": localToken } : {}),
+      },
+      body: JSON.stringify({ id, updates }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (data.backlinkReport) setBacklinkReport(data.backlinkReport);
+      return true;
+    }
+    throw new Error(data.error || "Lỗi khi cập nhật backlink");
+  };
+
+  const handleDeleteBacklink = async (id: string) => {
+    const localToken = typeof window !== "undefined" ? localStorage.getItem("shoptft_admin_token") : null;
+    const res = await fetch("/api/admin/seo?action=delete_backlink", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(localToken ? { "x-admin-token": localToken } : {}),
+      },
+      body: JSON.stringify({ id }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (data.backlinkReport) setBacklinkReport(data.backlinkReport);
+      return true;
+    }
+    throw new Error(data.error || "Lỗi khi xóa backlink");
+  };
+
+  const handleImportBacklinksCsv = async (csvContent: string) => {
+    const localToken = typeof window !== "undefined" ? localStorage.getItem("shoptft_admin_token") : null;
+    const res = await fetch("/api/admin/seo?action=import_backlinks_csv", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(localToken ? { "x-admin-token": localToken } : {}),
+      },
+      body: JSON.stringify({ csvContent }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (data.backlinkReport) setBacklinkReport(data.backlinkReport);
+      return { importedCount: data.message?.includes("thành công") ? (data.backlinkReport?.summary?.totalBacklinks || 1) : 0, errors: data.errors || [] };
+    }
+    return { importedCount: 0, errors: [data.error || "Lỗi import CSV"] };
   };
 
   useEffect(() => {
@@ -447,6 +536,23 @@ export default function AdminSeoPage() {
           {contentOpportunities.filter((o) => o.priority === "HIGH").length > 0 && (
             <span className="w-4 h-4 rounded-full bg-purple-500 text-white text-[10px] flex items-center justify-center font-bold">
               {contentOpportunities.filter((o) => o.priority === "HIGH").length}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveTab("backlinks")}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === "backlinks"
+              ? "bg-gray-900 text-white shadow-xs"
+              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+          }`}
+        >
+          <Globe className="w-3.5 h-3.5 text-teal-500" />
+          <span>Backlink Monitor</span>
+          {backlinkReport && backlinkReport.summary.totalBacklinks > 0 && (
+            <span className="px-1.5 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold">
+              {backlinkReport.summary.totalBacklinks}
             </span>
           )}
         </button>
@@ -1355,6 +1461,20 @@ export default function AdminSeoPage() {
           opportunities={contentOpportunities}
           briefs={contentBriefs}
           onRefresh={fetchSeoData}
+        />
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB: BACKLINK MONITOR & OFF-SITE AUTHORITY (PHASE 10)           */}
+      {/* ============================================================== */}
+      {activeTab === "backlinks" && (
+        <BacklinksTab
+          report={backlinkReport}
+          onRefresh={fetchSeoData}
+          onAddBacklink={handleAddBacklink}
+          onUpdateBacklink={handleUpdateBacklink}
+          onDeleteBacklink={handleDeleteBacklink}
+          onImportCsv={handleImportBacklinksCsv}
         />
       )}
 

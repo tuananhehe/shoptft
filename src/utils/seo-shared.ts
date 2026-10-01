@@ -305,6 +305,69 @@ export interface ContentBrief {
   };
 }
 
+export type BacklinkStatus = "active" | "301_redirect" | "broken" | "lost";
+export type BacklinkType = "dofollow" | "nofollow" | "ugc" | "brand_mention";
+
+export interface BacklinkItem {
+  id: string;
+  sourceUrl: string;
+  sourceDomain: string;
+  targetUrl: string;
+  anchorText: string;
+  status: BacklinkStatus;
+  type: BacklinkType;
+  firstSeen: string;
+  lastSeen: string;
+  authorityCategory: "profile" | "community" | "guide" | "legacy_com" | "partner";
+  notes?: string;
+}
+
+export interface BrandMentionItem {
+  id: string;
+  sourceUrl: string;
+  sourceDomain: string;
+  mentionedBrand: "ShopTFTMobile" | "Tuấn Thái Bình TFT";
+  contextSnippet: string;
+  hasLink: boolean;
+  linkUrl?: string;
+  discoveredDate: string;
+  outreachPotential: "recommended" | "not_needed" | "contacted" | "declined";
+  notes?: string;
+}
+
+export interface LinkableAssetItem {
+  slug: string;
+  title: string;
+  path: string;
+  category: "topic_hub" | "guide" | "comparison" | "checklist";
+  whyLinkable: string;
+  naturalAnchorExamples: string[];
+  referringDomainsCount: number;
+}
+
+export interface BacklinkMonitorReport {
+  timestamp: string;
+  summary: {
+    totalBacklinks: number;
+    totalReferringDomains: number;
+    dofollowCount: number;
+    nofollowCount: number;
+    ugcCount: number;
+    brandMentionsCount: number;
+    activeCount: number;
+    redirectCount: number;
+    brokenCount: number;
+    lostCount: number;
+    oldDomainComCount: number;
+    oldDomainResolvedCount: number;
+  };
+  backlinks: BacklinkItem[];
+  brandMentions: BrandMentionItem[];
+  linkableAssets: LinkableAssetItem[];
+  brokenTargets: Array<{ targetUrl: string; count: number; suggestedRedirect: string }>;
+  topLinkedPages: Array<{ path: string; title: string; referringDomains: number; backlinkCount: number }>;
+}
+
 export const PRODUCTION_ORIGIN = "https://www.shoptftmobile.net";
 
 /**
@@ -454,6 +517,14 @@ export const DEFAULT_SEO_CONFIG: SeoConfigDatabase = {
       id: "red-2",
       source: "/review-pet-san-dau-tft",
       destination: "/blog/cach-chon-acc-tft-theo-pet-chibi-va-san-dau",
+      permanent: true,
+      enabled: true,
+      createdAt: "2026-10-02T00:00:00.000Z",
+    },
+    {
+      id: "red-3",
+      source: "/huong-dan-thue-acc-cu",
+      destination: "/thue-acc-tft-dtcl",
       permanent: true,
       enabled: true,
       createdAt: "2026-10-02T00:00:00.000Z",

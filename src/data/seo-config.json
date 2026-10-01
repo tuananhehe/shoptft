@@ -152,6 +152,14 @@
       "permanent": true,
       "enabled": true,
       "createdAt": "2026-10-02T00:00:00.000Z"
+    },
+    {
+      "id": "red-3",
+      "source": "/huong-dan-thue-acc-cu",
+      "destination": "/thue-acc-tft-dtcl",
+      "permanent": true,
+      "enabled": true,
+      "createdAt": "2026-10-02T00:00:00.000Z"
     }
   ],
   "schema": {

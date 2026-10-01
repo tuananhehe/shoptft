@@ -1,0 +1,276 @@
+{
+  "backlinks": [
+    {
+      "id": "bl-1",
+      "sourceUrl": "https://checkscam.vn/?qh_ss=0352867283",
+      "sourceDomain": "checkscam.vn",
+      "targetUrl": "https://www.shoptftmobile.net/ve-shop",
+      "anchorText": "ShopTFTMobile",
+      "status": "active",
+      "type": "dofollow",
+      "firstSeen": "2026-08-15T00:00:00.000Z",
+      "lastSeen": "2026-10-02T00:00:00.000Z",
+      "authorityCategory": "profile",
+      "notes": "Hồ sơ bảo hiểm giao dịch 30.000.000 VNĐ xác thực chính chủ Tuấn Thái Bình."
+    },
+    {
+      "id": "bl-2",
+      "sourceUrl": "https://tiktok.com/@shoptftmobile",
+      "sourceDomain": "tiktok.com",
+      "targetUrl": "https://www.shoptftmobile.net/",
+      "anchorText": "shoptftmobile.net",
+      "status": "active",
+      "type": "nofollow",
+      "firstSeen": "2026-08-20T00:00:00.000Z",
+      "lastSeen": "2026-10-02T00:00:00.000Z",
+      "authorityCategory": "profile",
+      "notes": "Bio trang TikTok chính thức của shop."
+    },
+    {
+      "id": "bl-3",
+      "sourceUrl": "https://zalo.me/g/tfjsec788",
+      "sourceDomain": "zalo.me",
+      "targetUrl": "https://www.shoptftmobile.net/",
+      "anchorText": "ShopTFTMobile",
+      "status": "active",
+      "type": "nofollow",
+      "firstSeen": "2026-08-10T00:00:00.000Z",
+      "lastSeen": "2026-10-02T00:00:00.000Z",
+      "authorityCategory": "community",
+      "notes": "Ghim mô tả nhóm Zalo giao lưu cờ thủ ShopTFTMobile."
+    },
+    {
+      "id": "bl-4",
+      "sourceUrl": "https://discord.gg/shoptftmobile",
+      "sourceDomain": "discord.com",
+      "targetUrl": "https://www.shoptftmobile.net/",
+      "anchorText": "ShopTFTMobile",
+      "status": "active",
+      "type": "nofollow",
+      "firstSeen": "2026-09-01T00:00:00.000Z",
+      "lastSeen": "2026-10-02T00:00:00.000Z",
+      "authorityCategory": "community",
+      "notes": "Server Discord phòng leo rank và giao lưu."
+    },
+    {
+      "id": "bl-5",
+      "sourceUrl": "https://facebook.com/groups/dtclvn/posts/huong-dan-doi-thong-tin",
+      "sourceDomain": "facebook.com",
+      "targetUrl": "https://www.shoptftmobile.net/huong-dan/doi-thong-tin-acc-riot",
+      "anchorText": "hướng dẫn đổi thông tin Riot",
+      "status": "active",
+      "type": "ugc",
+      "firstSeen": "2026-09-12T00:00:00.000Z",
+      "lastSeen": "2026-10-01T00:00:00.000Z",
+      "authorityCategory": "guide",
+      "notes": "Bài chia sẻ kinh nghiệm bảo mật tài khoản được cộng đồng ĐTCL dẫn nguồn."
+    },
+    {
+      "id": "bl-6",
+      "sourceUrl": "https://gamethuvn.example/tft/tong-hop-giao-an-mua-18",
+      "sourceDomain": "gamethuvn.example",
+      "targetUrl": "https://www.shoptftmobile.net/blog/tft-mua-18",
+      "anchorText": "cẩm nang TFT Mùa 18",
+      "status": "active",
+      "type": "dofollow",
+      "firstSeen": "2026-09-25T00:00:00.000Z",
+      "lastSeen": "2026-10-02T00:00:00.000Z",
+      "authorityCategory": "guide",
+      "notes": "Chuyên trang tổng hợp meta dẫn liên kết tới Topic Hub Mùa 18."
+    },
+    {
+      "id": "bl-7",
+      "sourceUrl": "https://cothuviet.example/wiki/cach-chon-acc-tft",
+      "sourceDomain": "cothuviet.example",
+      "targetUrl": "https://www.shoptftmobile.net/thue-acc-tft-dtcl",
+      "anchorText": "thuê acc TFT theo Pet và Sân Đấu",
+      "status": "active",
+      "type": "dofollow",
+      "firstSeen": "2026-09-28T00:00:00.000Z",
+      "lastSeen": "2026-10-02T00:00:00.000Z",
+      "authorityCategory": "guide",
+      "notes": "Bài viết định hướng người chơi mới phân biệt VIP và Clone."
+    },
+    {
+      "id": "bl-8",
+      "sourceUrl": "https://voz.vn/t/thao-luan-dtcl.123/",
+      "sourceDomain": "voz.vn",
+      "targetUrl": "http://shoptftmobile.com/shop",
+      "anchorText": "kho acc TFT Tuấn Thái Bình",
+      "status": "301_redirect",
+      "type": "dofollow",
+      "firstSeen": "2026-06-10T00:00:00.000Z",
+      "lastSeen": "2026-10-02T00:00:00.000Z",
+      "authorityCategory": "legacy_com",
+      "notes": "Backlink domain cũ .com trỏ về /shop, đã được 301 bảo toàn sang https://www.shoptftmobile.net/shop."
+    },
+    {
+      "id": "bl-9",
+      "sourceUrl": "https://gamek.example/tuan-thai-binh-shop",
+      "sourceDomain": "gamek.example",
+      "targetUrl": "http://shoptftmobile.com/ve-shop",
+      "anchorText": "Tuấn Thái Bình TFT",
+      "status": "301_redirect",
+      "type": "dofollow",
+      "firstSeen": "2026-07-05T00:00:00.000Z",
+      "lastSeen": "2026-10-02T00:00:00.000Z",
+      "authorityCategory": "legacy_com",
+      "notes": "Backlink domain cũ .com trỏ về /ve-shop, đã được 301 bảo toàn sang https://www.shoptftmobile.net/ve-shop."
+    },
+    {
+      "id": "bl-10",
+      "sourceUrl": "https://reddit.com/r/TeamfightTactics/comments/vietnam_shop/",
+      "sourceDomain": "reddit.com",
+      "targetUrl": "http://shoptftmobile.com/review-pet-san-dau-tft",
+      "anchorText": "review pet san dau tft",
+      "status": "301_redirect",
+      "type": "ugc",
+      "firstSeen": "2026-05-18T00:00:00.000Z",
+      "lastSeen": "2026-10-02T00:00:00.000Z",
+      "authorityCategory": "legacy_com",
+      "notes": "Backlink cũ trỏ tới URL cũ đã 404, đã được 301 sang /blog/cach-chon-acc-tft-theo-pet-chibi-va-san-dau."
+    },
+    {
+      "id": "bl-11",
+      "sourceUrl": "https://discord.com/channels/archive/123",
+      "sourceDomain": "discord.com",
+      "targetUrl": "http://shoptftmobile.com/acc-moi",
+      "anchorText": "acc moi shoptft",
+      "status": "301_redirect",
+      "type": "nofollow",
+      "firstSeen": "2026-07-20T00:00:00.000Z",
+      "lastSeen": "2026-10-01T00:00:00.000Z",
+      "authorityCategory": "legacy_com",
+      "notes": "Backlink cũ trỏ về /acc-moi, đã 301 redirect sang /shop?sort=newest."
+    },
+    {
+      "id": "bl-12",
+      "sourceUrl": "https://diendangame.example/links/tft-rent",
+      "sourceDomain": "diendangame.example",
+      "targetUrl": "https://www.shoptftmobile.net/huong-dan-thue-acc-cu",
+      "anchorText": "cách thuê acc",
+      "status": "broken",
+      "type": "dofollow",
+      "firstSeen": "2026-08-01T00:00:00.000Z",
+      "lastSeen": "2026-10-02T00:00:00.000Z",
+      "authorityCategory": "guide",
+      "notes": "Cơ hội phục hồi: URL đích /huong-dan-thue-acc-cu đang trả về 404. Cần cấu hình 301 trỏ về /thue-acc-tft-dtcl."
+    },
+    {
+      "id": "bl-13",
+      "sourceUrl": "https://forumold.example/thread/closed",
+      "sourceDomain": "forumold.example",
+      "targetUrl": "https://www.shoptftmobile.net/",
+      "anchorText": "ShopTFTMobile",
+      "status": "lost",
+      "type": "dofollow",
+      "firstSeen": "2026-04-10T00:00:00.000Z",
+      "lastSeen": "2026-08-30T00:00:00.000Z",
+      "authorityCategory": "community",
+      "notes": "Diễn đàn cũ đã ngừng hoạt động và xóa thread, đánh dấu Lost link tự nhiên."
+    }
+  ],
+  "brandMentions": [
+    {
+      "id": "bm-1",
+      "sourceUrl": "https://facebook.com/groups/dtclvn/posts/hoi-thue-acc-uy-tin",
+      "sourceDomain": "facebook.com",
+      "mentionedBrand": "Tuấn Thái Bình TFT",
+      "contextSnippet": "Anh em cho hỏi chỗ thuê acc ĐTCL uy tín với, thấy nhiều người khen Tuấn Thái Bình TFT hỗ trợ nhanh và acc có bảo hiểm 30M.",
+      "hasLink": false,
+      "discoveredDate": "2026-09-29T14:30:00.000Z",
+      "outreachPotential": "recommended",
+      "notes": "Comment phản hồi cung cấp link chính thức https://www.shoptftmobile.net/ve-shop."
+    },
+    {
+      "id": "bm-2",
+      "sourceUrl": "https://tiktok.com/@streamer_tft_test/video/7391829102",
+      "sourceDomain": "tiktok.com",
+      "mentionedBrand": "ShopTFTMobile",
+      "contextSnippet": "Nay test đội hình Mùa 18 bằng acc VIP thuê bên ShopTFTMobile, sân thần thoại đổi nhạc nghe cuốn thật sự.",
+      "hasLink": true,
+      "linkUrl": "https://www.shoptftmobile.net",
+      "discoveredDate": "2026-09-30T20:15:00.000Z",
+      "outreachPotential": "not_needed",
+      "notes": "Streamer đã ghim link trang chủ trong bình luận."
+    },
+    {
+      "id": "bm-3",
+      "sourceUrl": "https://reviewgame.example/top-shop-thue-acc-tft-2026",
+      "sourceDomain": "reviewgame.example",
+      "mentionedBrand": "ShopTFTMobile",
+      "contextSnippet": "ShopTFTMobile vận hành bởi Tuấn Thái Bình cựu Thách Đấu ĐTCL, nổi bật với hệ thống lọc Pet Chibi và bàn giao trực tiếp Zalo.",
+      "hasLink": false,
+      "discoveredDate": "2026-10-01T09:00:00.000Z",
+      "outreachPotential": "recommended",
+      "notes": "Gửi email đề xuất bổ sung hyperlink tới /thue-acc-tft-dtcl theo phong cách tự nhiên, hữu ích."
+    }
+  ],
+  "linkableAssets": [
+    {
+      "slug": "tft-mua-18",
+      "title": "TFT Mùa 18 Hub – Hướng Dẫn, Meta, Pet & Sân Đấu",
+      "path": "/blog/tft-mua-18",
+      "category": "topic_hub",
+      "whyLinkable": "Cổng thông tin toàn diện về Mùa 18, tổng hợp đội hình, tộc hệ và cập nhật patch liên tục.",
+      "naturalAnchorExamples": [
+        "cẩm nang TFT Mùa 18",
+        "TFT Mùa 18 Hub",
+        "hướng dẫn Mùa 18 ShopTFTMobile"
+      ],
+      "referringDomainsCount": 4
+    },
+    {
+      "slug": "doi-thong-tin-acc-riot",
+      "title": "Hướng Dẫn Đổi Thông Tin Acc Riot An Toàn",
+      "path": "/huong-dan/doi-thong-tin-acc-riot",
+      "category": "guide",
+      "whyLinkable": "Tài liệu kỹ thuật chi tiết hướng dẫn đổi mail, đổi mật khẩu và bật 2FA, giải quyết nỗi lo bảo mật của game thủ.",
+      "naturalAnchorExamples": [
+        "hướng dẫn đổi thông tin Riot",
+        "cách đổi pass acc Riot",
+        "bảo mật 2FA Riot Games"
+      ],
+      "referringDomainsCount": 3
+    },
+    {
+      "slug": "thue-acc-tft-dtcl",
+      "title": "Dịch Vụ Thuê Acc TFT - ĐTCL: Pet, Chibi & Sân Đấu",
+      "path": "/thue-acc-tft-dtcl",
+      "category": "comparison",
+      "whyLinkable": "Phân tích rõ ràng sự khác biệt giữa gói VIP và Clone, quy trình thuê minh bạch và checklist an toàn.",
+      "naturalAnchorExamples": [
+        "thuê acc TFT - ĐTCL",
+        "so sánh acc VIP và Clone",
+        "quy trình thuê acc TFT"
+      ],
+      "referringDomainsCount": 5
+    },
+    {
+      "slug": "ve-shop",
+      "title": "Tuấn Thái Bình TFT | Về ShopTFTMobile",
+      "path": "/ve-shop",
+      "category": "checklist",
+      "whyLinkable": "Trang thực thể thương hiệu chính thức, bằng chứng ký quỹ Checkscam 30M và thông tin người vận hành cựu Thách Đấu.",
+      "naturalAnchorExamples": [
+        "ShopTFTMobile",
+        "Tuấn Thái Bình TFT",
+        "bảo hiểm Checkscam Tuấn Thái Bình"
+      ],
+      "referringDomainsCount": 3
+    },
+    {
+      "slug": "cach-chon-acc-tft-theo-pet-chibi-va-san-dau",
+      "title": "Cách Chọn Acc TFT Theo Pet Chibi & Sân Đấu",
+      "path": "/blog/cach-chon-acc-tft-theo-pet-chibi-va-san-dau",
+      "category": "guide",
+      "whyLinkable": "Cẩm nang tra cứu hiệu ứng sàn đấu đổi nhạc và tướng Tí Nị kết liễu độc quyền.",
+      "naturalAnchorExamples": [
+        "chọn acc TFT theo Pet Chibi",
+        "hiệu ứng sàn đấu ĐTCL",
+        "tướng Tí Nị đẹp nhất"
+      ],
+      "referringDomainsCount": 2
+    }
+  ]
+}
