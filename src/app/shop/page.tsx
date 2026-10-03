@@ -72,9 +72,9 @@ function ShopLoadingSkeleton() {
       <TFTNavbar />
       <main className="max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-20 sm:pb-16 flex-1">
         <div className="mb-4 sm:mb-6 space-y-2">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight font-heading text-white">
+          <div role="heading" aria-level={1} className="text-xl sm:text-2xl font-bold tracking-tight font-heading text-white">
             Kho Acc TFT - ĐTCL
-          </h1>
+          </div>
           <p className="text-xs sm:text-sm text-zinc-400">
             Tìm acc theo Pet, Chibi, Sân Đấu, loại tài khoản và mức giá phù hợp.
           </p>

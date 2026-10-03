@@ -187,6 +187,7 @@
     ],
     "disallowPaths": [
       "/cdn-cgi/",
+      "/admin/",
       "/admin",
       "/admin/*",
       "/profile",
@@ -194,6 +195,7 @@
       "/login",
       "/register",
       "/pay/*",
+      "/api/",
       "/api/*",
       "/*?*search=*",
       "/*?*q=*",

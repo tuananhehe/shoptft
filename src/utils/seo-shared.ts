@@ -555,6 +555,7 @@ export const DEFAULT_SEO_CONFIG: SeoConfigDatabase = {
     ],
     disallowPaths: [
       "/cdn-cgi/",
+      "/admin/",
       "/admin",
       "/admin/*",
       "/profile",
@@ -562,6 +563,7 @@ export const DEFAULT_SEO_CONFIG: SeoConfigDatabase = {
       "/login",
       "/register",
       "/pay/*",
+      "/api/",
       "/api/*",
       "/*?*search=*",
       "/*?*q=*",

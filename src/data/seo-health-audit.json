@@ -1,28 +1,16 @@
 {
   "summary": {
     "criticalErrors": 0,
-    "warnings": 2,
-    "passed": 167,
+    "warnings": 1,
+    "passed": 168,
     "info": 0,
-    "lastScan": "2026-10-03T14:12:16.855Z",
-    "nextScan": "2026-10-04T14:12:16.855Z",
+    "lastScan": "2026-10-03T14:23:15.856Z",
+    "nextScan": "2026-10-04T14:23:15.856Z",
     "scanFrequency": "daily",
     "totalUrlsMonitored": 168,
     "isScanning": false
   },
   "issues": [
-    {
-      "id": "check-robots-private-exposed",
-      "severity": "WARNING",
-      "category": "robots",
-      "page": "/robots.txt",
-      "issue": "Robots.txt chưa chặn hoàn toàn các khu vực nhạy cảm (/api/, /admin/)",
-      "detail": "Cần khai báo disallow cho /api/ và /admin/ để bảo vệ tài nguyên máy chủ.",
-      "suggestedAction": "Thêm /api/ và /admin/ vào danh sách Chặn (Disallow).",
-      "status": "open",
-      "firstDetected": "2026-10-03T14:11:50.882Z",
-      "lastDetected": "2026-10-03T14:12:16.855Z"
-    },
     {
       "id": "check-blog-patch-post-3",
       "severity": "WARNING",
@@ -33,7 +21,20 @@
       "suggestedAction": "Rà soát lại các mốc sức mạnh và ghi chú patch tương ứng trong bài.",
       "status": "open",
       "firstDetected": "2026-10-03T14:12:16.854Z",
-      "lastDetected": "2026-10-03T14:12:16.854Z"
+      "lastDetected": "2026-10-03T14:23:15.856Z"
+    },
+    {
+      "id": "check-robots-private-exposed",
+      "severity": "WARNING",
+      "category": "robots",
+      "page": "/robots.txt",
+      "issue": "Robots.txt chưa chặn hoàn toàn các khu vực nhạy cảm (/api/, /admin/)",
+      "detail": "Cần khai báo disallow cho /api/ và /admin/ để bảo vệ tài nguyên máy chủ.",
+      "suggestedAction": "Thêm /api/ và /admin/ vào danh sách Chặn (Disallow).",
+      "status": "resolved",
+      "firstDetected": "2026-10-03T14:11:50.882Z",
+      "lastDetected": "2026-10-03T14:22:07.269Z",
+      "resolvedDate": "2026-10-03T14:23:15.856Z"
     },
     {
       "id": "health-fresh-01",
@@ -130,6 +131,32 @@
   ],
   "scanLogs": [
     {
+      "id": "scan-1791037395856",
+      "timestamp": "2026-10-03T14:23:15.856Z",
+      "scanType": "full",
+      "durationMs": 2014,
+      "criticalCount": 0,
+      "warningCount": 1,
+      "infoCount": 0,
+      "passedCount": 168,
+      "totalUrlsChecked": 168,
+      "status": "success",
+      "message": "Quét FULL hoàn tất trong 2014ms. Kiểm tra 168 URLs."
+    },
+    {
+      "id": "scan-1791037327269",
+      "timestamp": "2026-10-03T14:22:07.269Z",
+      "scanType": "full",
+      "durationMs": 704,
+      "criticalCount": 0,
+      "warningCount": 2,
+      "infoCount": 0,
+      "passedCount": 167,
+      "totalUrlsChecked": 168,
+      "status": "success",
+      "message": "Quét FULL hoàn tất trong 704ms. Kiểm tra 168 URLs."
+    },
+    {
       "id": "scan-1791036736855",
       "timestamp": "2026-10-03T14:12:16.855Z",
       "scanType": "full",
@@ -200,7 +227,7 @@
     "errors": 0,
     "warnings": 0,
     "isXmlValid": true,
-    "lastChecked": "2026-10-03T14:12:16.854Z"
+    "lastChecked": "2026-10-03T14:23:15.855Z"
   },
   "robotsHealth": {
     "accessible": true,

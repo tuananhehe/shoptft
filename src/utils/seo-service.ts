@@ -2317,7 +2317,10 @@ export async function runAutomatedSeoHealthScan(
       robotsPassed = false;
     }
 
-    if (!robots.disallowPaths.includes("/api/") || !robots.disallowPaths.includes("/admin/")) {
+    const blocksApi = robots.disallowPaths.some((p) => p === "/api/" || p === "/api/*" || p.startsWith("/api"));
+    const blocksAdmin = robots.disallowPaths.some((p) => p === "/admin/" || p === "/admin/*" || p.startsWith("/admin"));
+
+    if (!blocksApi || !blocksAdmin) {
       detectedIssues.push({
         id: "check-robots-private-exposed",
         severity: "WARNING",
