@@ -4,6 +4,7 @@ import path from "path";
 import { supabase } from "@/utils/supabase/client";
 import { verifyAdminSessionToken, ADMIN_COOKIE_NAME } from "@/utils/admin-auth";
 import { OrderItem, OrdersStats, OrderStatus, determinePackageFromAccount } from "@/utils/orders-service";
+import { revalidateShopAndInventory } from "@/utils/shop-inventory-service";
 
 const ORDERS_FILE_PATH = path.join(process.cwd(), "src", "data", "orders.json");
 
@@ -391,6 +392,7 @@ export async function PUT(req: NextRequest) {
               rented_until: newExpiry,
             })
             .ilike("code", currentOrder.accountCode);
+          revalidateShopAndInventory();
         } catch (dbErr) {
           console.warn("Lỗi đồng bộ gia hạn Supabase:", dbErr);
         }
@@ -459,6 +461,10 @@ export async function PUT(req: NextRequest) {
       } catch (dbErr) {
         console.warn("Lỗi đồng bộ mở lại Supabase:", dbErr);
       }
+    }
+
+    if (currentOrder.accountCode) {
+      revalidateShopAndInventory();
     }
 
     return NextResponse.json({

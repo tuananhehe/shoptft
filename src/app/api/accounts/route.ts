@@ -13,6 +13,7 @@ import {
 import {
   getShopInventory,
   invalidateShopInventoryCache,
+  revalidateShopAndInventory,
 } from "@/utils/shop-inventory-service";
 
 const ORDERS_FILE_PATH = path.join(process.cwd(), "src", "data", "orders.json");
@@ -112,9 +113,7 @@ function isAuthorizedAdmin(req: NextRequest): boolean {
 
 function notifyInventoryChange() {
   try {
-    invalidateShopInventoryCache();
-    revalidatePath("/shop");
-    revalidatePath("/");
+    revalidateShopAndInventory();
   } catch (e) {
     console.warn("Lỗi revalidate shop inventory:", e);
   }
@@ -181,8 +180,8 @@ export async function GET(req: NextRequest) {
     response.headers.set(
       "Cache-Control",
       isAdmin
-        ? "no-store, max-age=0"
-        : "public, s-maxage=15, stale-while-revalidate=45"
+        ? "no-store, no-cache, must-revalidate"
+        : "no-cache, no-store, max-age=0, must-revalidate"
     );
 
     return response;

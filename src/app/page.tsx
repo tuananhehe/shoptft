@@ -1,9 +1,12 @@
 import React from "react";
 import type { Metadata } from "next";
 import { HomePageView } from "./home-page-view";
-import { getNewestVipAccountsServer } from "@/utils/supabase/accounts-service";
+import { getNewestVipAccountsServer } from "@/utils/shop-inventory-service";
 import { getSeoConfig } from "@/utils/seo-service";
 import { getBlogPosts } from "@/utils/blog-service";
+
+// Bật on-demand ISR cho Homepage trên Vercel với 60s fallback TTL
+export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
   const seoConfig = await getSeoConfig();

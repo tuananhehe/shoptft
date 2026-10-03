@@ -30,7 +30,7 @@ export const TFTNewArrivals: React.FC<TFTNewArrivalsProps> = ({ initialAccounts 
     }
 
     let isMounted = true;
-    fetch("/api/accounts?type=VIP&limit=4")
+    fetch("/api/accounts?type=VIP&limit=4&sort=newest", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : Promise.reject(res.statusText)))
       .then((result) => {
         if (isMounted) {

@@ -287,6 +287,7 @@ export const getNewestVipAccountsServer = cache(async (limit: number = 4): Promi
       .from("accounts")
       .select("id, code, type, title, rank, price, hourly_price, daily_price, period_price, period_unit, price_display_type, custom_price, custom_price_unit, champions, arenas, image_url, status, rented_until, created_at")
       .eq("type", "VIP")
+      .in("status", ["AVAILABLE", "RENTED"])
       .order("created_at", { ascending: false })
       .limit(limit);
 
@@ -354,8 +355,8 @@ export async function getVipAndCloneAccounts(): Promise<{
     const { fetchWithTimeout } = await import("@/utils/api-client");
     const res = await fetchWithTimeout("/api/accounts", {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
-      next: { revalidate: 15 },
+      headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+      cache: "no-store",
       timeoutMs: 8000,
     });
 

@@ -23,7 +23,7 @@ import { Reveal } from "@/components/reveal";
 import { TFTRecentlyViewed } from "@/components/tft-recently-viewed";
 import { ChevronRight, RotateCcw, AlertCircle, RefreshCw, Loader2 } from "lucide-react";
 import { SectionErrorBoundary } from "@/components/error-boundary";
-import { FilterOptionsData } from "@/utils/shop-inventory-service";
+import type { FilterOptionsData } from "@/utils/shop-inventory-service";
 
 const TFTAccountModal = dynamic(
   () => import("@/components/tft-account-modal").then((m) => m.TFTAccountModal),

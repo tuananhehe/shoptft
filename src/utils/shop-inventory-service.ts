@@ -1,4 +1,5 @@
 import { supabase } from "@/utils/supabase/client";
+import { unstable_cache, revalidateTag, revalidatePath } from "next/cache";
 import {
   TFTRentalAccount,
   TFTCloneAccount,
@@ -72,31 +73,79 @@ interface CachedInventory {
 }
 
 let cachedInventory: CachedInventory | null = null;
-const CACHE_TTL_MS = 20 * 1000; // 20s TTL for extreme freshness + low DB overhead
+const CACHE_TTL_MS = 20 * 1000; // 20s fast in-memory L1 cache
+
+/**
+ * On-demand revalidation cho toàn bộ inventory:
+ * - Purge Next.js Data Cache tags: 'products', 'products:newest', 'shop-products'
+ * - Revalidate các route HTML: '/', '/shop', '/thue-acc-tft-dtcl'
+ * - Xóa L1 in-memory cache
+ */
+export function revalidateShopAndInventory() {
+  try {
+    cachedInventory = null;
+    revalidateTag("products");
+    revalidateTag("products:newest");
+    revalidateTag("shop-products");
+    revalidatePath("/", "page");
+    revalidatePath("/shop", "page");
+    revalidatePath("/thue-acc-tft-dtcl", "page");
+    console.log("✅ [Inventory Revalidation] Purged cache tags: products, products:newest, shop-products and revalidated paths: /, /shop, /thue-acc-tft-dtcl");
+  } catch (err) {
+    console.warn("⚠️ [Inventory Revalidation] Revalidation warning:", err);
+  }
+}
 
 export function invalidateShopInventoryCache() {
-  cachedInventory = null;
+  revalidateShopAndInventory();
 }
 
 /**
- * Lấy toàn bộ danh sách tài khoản đã chuẩn hóa thành ProductCardData từ DB (có cache in-memory 20s)
+ * Lấy danh sách tài khoản VIP mới nhất phục vụ Homepage (“Acc TFT Mới Cập Nhật”) và Landing page.
+ * Đảm bảo:
+ * - Query đúng: WHERE status IN ('AVAILABLE', 'RENTED') AND type = 'VIP'
+ * - Sort đúng: ORDER BY created_at DESC
+ * - Bounded query: LIMIT 4
+ * - Cache: Next.js Data Cache với tag ['products', 'products:newest'] + on-demand revalidation tức thì sau mutation.
  */
-async function getAllNormalizedAccounts(isAdmin: boolean = false): Promise<{
+export const getNewestVipAccountsServer = unstable_cache(
+  async (limit: number = 4): Promise<TFTRentalAccount[]> => {
+    try {
+      const { data, error } = await supabase
+        .from("accounts")
+        .select(PUBLIC_CARD_COLUMNS)
+        .eq("type", "VIP")
+        .in("status", ["AVAILABLE", "RENTED"])
+        .order("created_at", { ascending: false })
+        .limit(limit);
+
+      if (!error && data && data.length > 0) {
+        return data.map((row: AccountDbRow, idx: number) => mapRowToVipAccount(row, idx));
+      }
+    } catch (err) {
+      console.warn("Lỗi server query newest vip accounts:", err);
+    }
+    return TFT_RENTAL_ACCOUNTS.slice(0, limit);
+  },
+  ["homepage-newest-vip-accounts-v2"],
+  {
+    revalidate: 60,
+    tags: ["products", "products:newest"],
+  }
+);
+
+/**
+ * Truy vấn và tính toán toàn bộ danh sách inventory đã chuẩn hóa từ Database
+ */
+async function fetchAndNormalizeAccountsFromDb(): Promise<{
   allAccounts: ProductCardData[];
   filterOptions: FilterOptionsData;
 }> {
-  const now = Date.now();
-  if (cachedInventory && now - cachedInventory.timestamp < CACHE_TTL_MS) {
-    return {
-      allAccounts: cachedInventory.allAccounts,
-      filterOptions: cachedInventory.filterOptions,
-    };
-  }
-
   try {
     const { data, error } = await supabase
       .from("accounts")
       .select(PUBLIC_CARD_COLUMNS)
+      .in("status", ["AVAILABLE", "RENTED"])
       .order("created_at", { ascending: false });
 
     if (!error && data && data.length > 0) {
@@ -179,12 +228,6 @@ async function getAllNormalizedAccounts(isAdmin: boolean = false): Promise<{
         },
       };
 
-      cachedInventory = {
-        timestamp: now,
-        allAccounts,
-        filterOptions,
-      };
-
       return { allAccounts, filterOptions };
     }
   } catch (err) {
@@ -204,12 +247,59 @@ async function getAllNormalizedAccounts(isAdmin: boolean = false): Promise<{
       total: fallbackAccounts.length,
       vip: vips.length,
       clone: clones.length,
-      available: fallbackAccounts.filter((a) => a.status === "AVAILABLE").length,
-      rented: fallbackAccounts.filter((a) => a.status === "RENTED").length,
+      available: fallbackAccounts.filter((r) => r.status === "AVAILABLE").length,
+      rented: fallbackAccounts.filter((r) => r.status === "RENTED").length,
     },
   };
 
   return { allAccounts: fallbackAccounts, filterOptions: fallbackOptions };
+}
+
+/**
+ * Data Cache layer cho toàn bộ danh sách inventory dùng chung giữa các Vercel serverless instance.
+ * Tự động gắn tag 'products' và 'shop-products'.
+ */
+const getCachedNormalizedInventory = unstable_cache(
+  async () => {
+    return await fetchAndNormalizeAccountsFromDb();
+  },
+  ["shop-all-normalized-inventory-v2"],
+  {
+    revalidate: 60,
+    tags: ["products", "shop-products"],
+  }
+);
+
+/**
+ * Lấy toàn bộ danh sách tài khoản đã chuẩn hóa thành ProductCardData từ DB.
+ * Ưu tiên:
+ * 1. L1 Fast in-memory cache (cho cùng instance trong 20s)
+ * 2. Next.js Data Cache (unstable_cache chia sẻ giữa các instance trên Vercel, invalidate tức thì qua revalidateTag)
+ */
+async function getAllNormalizedAccounts(isAdmin: boolean = false): Promise<{
+  allAccounts: ProductCardData[];
+  filterOptions: FilterOptionsData;
+}> {
+  if (isAdmin) {
+    return await fetchAndNormalizeAccountsFromDb();
+  }
+
+  const now = Date.now();
+  if (cachedInventory && now - cachedInventory.timestamp < CACHE_TTL_MS) {
+    return {
+      allAccounts: cachedInventory.allAccounts,
+      filterOptions: cachedInventory.filterOptions,
+    };
+  }
+
+  const result = await getCachedNormalizedInventory();
+  cachedInventory = {
+    timestamp: now,
+    allAccounts: result.allAccounts,
+    filterOptions: result.filterOptions,
+  };
+
+  return result;
 }
 
 /**

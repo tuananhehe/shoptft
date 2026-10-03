@@ -6,8 +6,11 @@ import { TFTFooter } from "@/components/tft-footer";
 import { TFTMobileBottomBar } from "@/components/tft-mobile-bottom-bar";
 import { PROFILE_INFO } from "@/data/tft-data";
 import { getSeoConfig } from "@/utils/seo-service";
-import { getNewestVipAccountsServer } from "@/utils/supabase/accounts-service";
+import { getNewestVipAccountsServer } from "@/utils/shop-inventory-service";
 import { LandingViewTracker, TrackedLandingLink } from "./landing-tracker";
+
+// Bật on-demand ISR cho Landing page trên Vercel với 60s fallback TTL
+export const revalidate = 60;
 import {
   ShieldCheck,
   Sparkles,
