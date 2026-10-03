@@ -250,6 +250,10 @@ export interface GscSummaryMetrics {
 
 export interface GscPerformanceReport {
   period: GscPeriodKey;
+  isConnected: boolean;
+  property: string;
+  dataSource: "LIVE_GSC" | "IMPORT_CSV" | "NONE";
+  lastSynced: string | null;
   summary: GscSummaryMetrics;
   brandQueries: GscQueryItem[];
   nonBrandQueries: GscQueryItem[];

@@ -149,6 +149,7 @@ export const TFTNavbar: React.FC = () => {
               >
                 <span>Kho Acc</span>
                 <ChevronDown
+                  aria-hidden="true"
                   className={`w-3.5 h-3.5 transition-transform duration-200 ${
                     desktopDropdown === "shop" ? "rotate-180 text-white" : "text-zinc-400"
                   }`}
@@ -166,7 +167,7 @@ export const TFTNavbar: React.FC = () => {
                     <div className="grid grid-cols-2 gap-3">
                       {/* Cột 1: Phân Loại Tài Khoản */}
                       <div className="space-y-1">
-                        <div className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-semibold">
+                        <div className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-semibold">
                           Loại Tài Khoản
                         </div>
                         <Link
@@ -177,7 +178,7 @@ export const TFTNavbar: React.FC = () => {
                             <div className="font-semibold text-zinc-200 group-hover:text-white transition-colors">Tất cả Acc</div>
                             <div className="text-[11px] text-zinc-400 leading-tight">Kho tổng ĐTCL</div>
                           </div>
-                          <span className="text-[10px] text-zinc-500 font-mono tracking-wider ml-2">/shop</span>
+                          <span className="text-[10px] text-zinc-400 font-mono tracking-wider ml-2">/shop</span>
                         </Link>
                         <Link
                           href="/shop?type=vip"
@@ -213,7 +214,7 @@ export const TFTNavbar: React.FC = () => {
 
                       {/* Cột 2: Bộ Sưu Tập & Nhu Cầu */}
                       <div className="space-y-1">
-                        <div className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-semibold">
+                        <div className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-semibold">
                           Khám Phá Theo Đồ
                         </div>
                         <Link
@@ -224,7 +225,7 @@ export const TFTNavbar: React.FC = () => {
                             <div className="font-semibold text-zinc-200 group-hover:text-white transition-colors">Pet / Chibi</div>
                             <div className="text-[11px] text-zinc-400 leading-tight">Linh Thú Tí Nị hot</div>
                           </div>
-                          <span className="text-[11px] text-zinc-500 ml-2">Tướng</span>
+                          <span className="text-[11px] text-zinc-400 ml-2">Tướng</span>
                         </Link>
                         <Link
                           href="/shop?focus=arena"
@@ -234,7 +235,7 @@ export const TFTNavbar: React.FC = () => {
                             <div className="font-semibold text-zinc-200 group-hover:text-white transition-colors">Sân Đấu</div>
                             <div className="text-[11px] text-zinc-400 leading-tight">Sân Đấu Thần Thoại</div>
                           </div>
-                          <span className="text-[11px] text-zinc-500 ml-2">Bản đồ</span>
+                          <span className="text-[11px] text-zinc-400 ml-2">Bản đồ</span>
                         </Link>
                         <Link
                           href="/thue-acc-tft-dtcl"
@@ -347,7 +348,7 @@ export const TFTNavbar: React.FC = () => {
                 href="/profile"
                 className="inline-flex items-center gap-1.5 text-xs text-zinc-300 hover:text-white px-2 sm:px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-all"
               >
-                <User className="w-3.5 h-3.5 text-zinc-400" />
+                <User className="w-3.5 h-3.5 text-zinc-400" aria-hidden="true" />
                 <span className="font-medium max-w-[80px] sm:max-w-[120px] truncate">
                   {user.full_name || `@${user.username}`}
                 </span>
@@ -369,7 +370,10 @@ export const TFTNavbar: React.FC = () => {
               title="Acc đã lưu"
               className="relative min-w-[40px] min-h-[40px] p-2 rounded-xl text-zinc-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10 flex items-center justify-center transition-colors cursor-pointer"
             >
-              <Heart className={`w-4 h-4 ${favoriteCount > 0 ? "text-rose-500 fill-rose-500" : ""}`} />
+              <Heart
+                aria-hidden="true"
+                className={`w-4 h-4 ${favoriteCount > 0 ? "text-rose-500 fill-rose-500" : ""}`}
+              />
               {favoriteCount > 0 && (
                 <span className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-600 text-white font-mono text-[10px] font-bold flex items-center justify-center shadow-sm">
                   {favoriteCount}
@@ -389,9 +393,14 @@ export const TFTNavbar: React.FC = () => {
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="md:hidden min-w-[40px] min-h-[40px] p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 flex items-center justify-center transition-colors cursor-pointer"
-              aria-label="Toggle navigation"
+              aria-label={mobileOpen ? "Đóng menu điều hướng" : "Mở menu điều hướng"}
+              aria-expanded={mobileOpen}
             >
-              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileOpen ? (
+                <X className="w-5 h-5" aria-hidden="true" />
+              ) : (
+                <Menu className="w-5 h-5" aria-hidden="true" />
+              )}
             </button>
           </div>
         </div>

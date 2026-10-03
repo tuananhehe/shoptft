@@ -32,6 +32,7 @@ import {
   updateHealthIssueStatus,
   generateAiHealthSuggestion,
   HealthScanType,
+  importSearchConsoleCsv,
 } from "@/utils/seo-service";
 import { getBlogPosts } from "@/utils/blog-service";
 import { getAllProductAccounts } from "@/utils/account-lookup";
@@ -592,6 +593,19 @@ export async function POST(req: NextRequest) {
         success: true,
         message: `Đã hoàn thành quét SEO (${scanType}) thành công!`,
         healthReport,
+      });
+    }
+
+    if (action === "import_gsc_csv") {
+      const csv = body.csvContent || "";
+      const period = (body.period as GscPeriodKey) || "28d";
+      const result = await importSearchConsoleCsv(csv, period);
+      const gscReport = await getSearchConsoleReport(period);
+      return NextResponse.json({
+        success: true,
+        message: `Đã nhập thành công ${result.importedCount} truy vấn từ Google Search Console!`,
+        summary: result.summary,
+        gscReport,
       });
     }
 

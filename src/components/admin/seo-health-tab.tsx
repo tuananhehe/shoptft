@@ -233,7 +233,7 @@ export function SeoHealthTab({
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs relative overflow-hidden">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
-              Cảnh Báo (Warnings)
+              Cảnh Báo URL Health (Warnings)
             </span>
             <span className="p-2 rounded-xl bg-amber-50 text-amber-600">
               <AlertTriangle className="w-5 h-5" />

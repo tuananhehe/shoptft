@@ -790,22 +790,22 @@ export default function AdminSeoPage() {
 
             <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
               <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
-                Lỗi cần khắc phục
+                Lỗi Kỹ Thuật (Technical Errors)
               </span>
               <p className="text-2xl font-bold text-red-600 mt-1">
                 {audit?.summary.errors || 0}
               </p>
-              <span className="text-[11px] text-gray-400">Ảnh hưởng xếp hạng</span>
+              <span className="text-[11px] text-gray-400">Cấu hình hệ thống ảnh hưởng xếp hạng</span>
             </div>
 
             <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
               <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
-                Cảnh báo tối ưu
+                Cảnh Báo Kỹ Thuật (Technical Warnings)
               </span>
               <p className="text-2xl font-bold text-amber-600 mt-1">
                 {audit?.summary.warnings || 0}
               </p>
-              <span className="text-[11px] text-gray-400">Khuyến nghị cải thiện</span>
+              <span className="text-[11px] text-gray-400">Khuyến nghị On-page &amp; cấu hình</span>
             </div>
 
             <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">

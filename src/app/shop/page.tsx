@@ -24,10 +24,10 @@ export async function generateMetadata({ searchParams }: ShopPageProps): Promise
   const pageConfig = seoConfig.pages["/shop"];
 
   const canonicalUrl = pageConfig?.canonical || "https://www.shoptftmobile.net/shop";
-  const title = pageConfig?.title || "Kho Acc TFT - ĐTCL | Pet, Chibi & Sân Đấu | ShopTFTMobile";
+  const title = pageConfig?.title || "Kho Acc TFT - ĐTCL | Danh Sách Acc VIP & Clone | ShopTFTMobile";
   const description =
     pageConfig?.description ||
-    "Xem kho acc TFT/ĐTCL theo Pet, Chibi, Sân Đấu, VIP/Clone và mức giá tại ShopTFTMobile. Kiểm tra trạng thái acc và chọn tài khoản phù hợp.";
+    "Duyệt toàn bộ kho acc TFT/ĐTCL có sẵn. Bộ lọc Linh Thú, Sân Đấu, loại tài khoản VIP & Clone với bảng giá rõ ràng và cập nhật liên tục.";
   const ogImg = pageConfig?.ogImage || "https://www.shoptftmobile.net/banner-seo.jpg";
 
   return {

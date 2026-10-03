@@ -17,6 +17,7 @@ import {
   DEFAULT_SEO_CONFIG,
   detectRedirectLoop,
   GscPeriodKey,
+  GscQueryGroup,
   GscQueryItem,
   GscPagePerformance,
   RankingOpportunity,
@@ -525,13 +526,21 @@ export function runSeoAudit(
         }
       }
 
-      // Check hub link for TFT Mùa 18 cluster
+      // Check hub link for TFT Mùa 18 cluster (only for articles truly in the Set 18 cluster)
       const isSet18Post =
         post.category === "TFT Mùa 18" ||
-        post.category === "Meta & Đội Hình" ||
-        post.tags.some((t) => t.toLowerCase().includes("mùa 18") || t.toLowerCase().includes("set 18"));
+        post.tags?.some((t) => t.toLowerCase().includes("mùa 18") || t.toLowerCase().includes("set 18")) ||
+        post.title.toLowerCase().includes("mùa 18") ||
+        post.title.toLowerCase().includes("set 18");
 
-      if (isSet18Post && !content.includes("/blog/tft-mua-18")) {
+      const isEvergreenOrSecurity =
+        post.category === "Hướng Dẫn Riot" ||
+        post.contentType === "evergreen" ||
+        post.slug.includes("huong-dan") ||
+        post.slug.includes("doi-thong-tin") ||
+        post.slug.includes("bao-mat");
+
+      if (isSet18Post && !isEvergreenOrSecurity && !content.includes("/blog/tft-mua-18")) {
         issues.push({
           id: `missing-hub-link-${post.id}`,
           type: "warning",
@@ -1165,67 +1174,87 @@ export async function getSearchConsoleReport(
     console.warn("Lỗi đọc search-console-data.json:", err);
   }
 
-  const selectedPeriodData =
-    rawData?.periods?.[period] || rawData?.periods?.["28d"] || {};
+  const isConnected = Boolean(rawData?.isConnected);
+  const property = rawData?.property || "https://www.shoptftmobile.net";
+  const dataSource = rawData?.dataSource || (isConnected ? "IMPORT_CSV" : "NONE");
+  const lastSynced = rawData?.lastSynced || null;
 
-  const summary: GscSummaryMetrics = selectedPeriodData.summary || {
-    clicks: 4280,
-    impressions: 86450,
-    ctr: 4.95,
-    avgPosition: 8.7,
-    brandClicks: 1820,
-    nonBrandClicks: 2460,
-    nonBrandClicksPercentage: 57.48,
-    brandImpressions: 16400,
-    nonBrandImpressions: 70050,
-    brandCtr: 11.1,
-    nonBrandCtr: 3.51,
-    brandAvgPosition: 1.4,
-    nonBrandAvgPosition: 10.4,
+  const emptySummary: GscSummaryMetrics = {
+    clicks: 0,
+    impressions: 0,
+    ctr: 0,
+    avgPosition: 0,
+    brandClicks: 0,
+    nonBrandClicks: 0,
+    nonBrandClicksPercentage: 0,
+    brandImpressions: 0,
+    nonBrandImpressions: 0,
+    brandCtr: 0,
+    nonBrandCtr: 0,
+    brandAvgPosition: 0,
+    nonBrandAvgPosition: 0,
   };
 
-  const allQueries: GscQueryItem[] = selectedPeriodData.queries || [];
+  const selectedPeriodData = isConnected
+    ? (rawData?.periods?.[period] || rawData?.periods?.["28d"] || {})
+    : {};
+
+  const summary: GscSummaryMetrics = isConnected && selectedPeriodData.summary
+    ? selectedPeriodData.summary
+    : emptySummary;
+
+  const allQueries: GscQueryItem[] = isConnected && Array.isArray(selectedPeriodData.queries)
+    ? selectedPeriodData.queries
+    : [];
+
   const brandQueries = allQueries.filter((q) => q.group === "BRAND");
   const nonBrandQueries = allQueries.filter((q) => q.group !== "BRAND");
 
-  const fallback28d = rawData?.periods?.["28d"] || {};
-  const topPages: GscPagePerformance[] =
-    selectedPeriodData.pages?.length > 0
-      ? selectedPeriodData.pages
-      : fallback28d.pages || [];
-  const opportunities: RankingOpportunity[] =
-    selectedPeriodData.opportunities?.length > 0
-      ? selectedPeriodData.opportunities
-      : fallback28d.opportunities || [];
-  const cannibalization: CannibalizationIssue[] =
-    selectedPeriodData.cannibalization?.length > 0
-      ? selectedPeriodData.cannibalization
-      : fallback28d.cannibalization || [];
-  const contentGaps: ContentGapItem[] =
-    selectedPeriodData.contentGaps?.length > 0
-      ? selectedPeriodData.contentGaps
-      : fallback28d.contentGaps || [];
-  const blogPerformance: BlogSeoConversion[] =
-    selectedPeriodData.blogPerformance?.length > 0
-      ? selectedPeriodData.blogPerformance
-      : fallback28d.blogPerformance || [];
-  const funnel: FunnelMetrics = selectedPeriodData.funnel ||
-    fallback28d.funnel || {
-      organicVisits: summary.clicks,
-      shopVisits: Math.round(summary.clicks * 0.5),
-      productViews: Math.round(summary.clicks * 0.29),
-      zaloClicks: Math.round(summary.clicks * 0.062),
-      organicToShopRate: 50.0,
-      shopToProductRate: 58.0,
-      productToZaloRate: 21.4,
-      overallConversionRate: 6.2,
-    };
+  const fallback28d = isConnected ? (rawData?.periods?.["28d"] || {}) : {};
+  const topPages: GscPagePerformance[] = isConnected && Array.isArray(selectedPeriodData.pages)
+    ? selectedPeriodData.pages
+    : (Array.isArray(fallback28d.pages) ? fallback28d.pages : []);
+
+  const opportunities: RankingOpportunity[] = isConnected && Array.isArray(selectedPeriodData.opportunities)
+    ? selectedPeriodData.opportunities
+    : (Array.isArray(fallback28d.opportunities) ? fallback28d.opportunities : []);
+
+  const cannibalization: CannibalizationIssue[] = isConnected && Array.isArray(selectedPeriodData.cannibalization)
+    ? selectedPeriodData.cannibalization
+    : (Array.isArray(fallback28d.cannibalization) ? fallback28d.cannibalization : []);
+
+  const contentGaps: ContentGapItem[] = isConnected && Array.isArray(selectedPeriodData.contentGaps)
+    ? selectedPeriodData.contentGaps
+    : (Array.isArray(fallback28d.contentGaps) ? fallback28d.contentGaps : []);
+
+  const blogPerformance: BlogSeoConversion[] = isConnected && Array.isArray(selectedPeriodData.blogPerformance)
+    ? selectedPeriodData.blogPerformance
+    : (Array.isArray(fallback28d.blogPerformance) ? fallback28d.blogPerformance : []);
+
+  const funnel: FunnelMetrics = isConnected && (selectedPeriodData.funnel || fallback28d.funnel)
+    ? (selectedPeriodData.funnel || fallback28d.funnel)
+    : {
+        organicVisits: summary.clicks,
+        shopVisits: Math.round(summary.clicks * 0.5),
+        productViews: Math.round(summary.clicks * 0.29),
+        zaloClicks: Math.round(summary.clicks * 0.062),
+        organicToShopRate: summary.clicks > 0 ? 50.0 : 0,
+        shopToProductRate: summary.clicks > 0 ? 58.0 : 0,
+        productToZaloRate: summary.clicks > 0 ? 21.4 : 0,
+        overallConversionRate: summary.clicks > 0 ? 6.2 : 0,
+      };
 
   const titleHistory: TitleChangeLog[] = rawData?.titleHistory || [];
-  const contentOpportunities: ContentOpportunityItem[] = rawData?.contentOpportunities || [];
+  const contentOpportunities: ContentOpportunityItem[] = isConnected && Array.isArray(rawData?.contentOpportunities)
+    ? rawData.contentOpportunities
+    : [];
 
   return {
     period,
+    isConnected,
+    property,
+    dataSource,
+    lastSynced,
     summary,
     brandQueries,
     nonBrandQueries,
@@ -1238,6 +1267,131 @@ export async function getSearchConsoleReport(
     titleHistory,
     contentOpportunities,
   };
+}
+
+/**
+ * Nhập dữ liệu Search Console thực tế từ tệp CSV do Google Search Console xuất ra
+ * (Hỗ trợ định dạng Queries.csv tiếng Anh hoặc tiếng Việt)
+ */
+export async function importSearchConsoleCsv(
+  csvContent: string,
+  period: GscPeriodKey = "28d"
+): Promise<{ success: boolean; importedCount: number; summary: GscSummaryMetrics }> {
+  const lines = csvContent.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  if (lines.length < 2) {
+    throw new Error("Tệp CSV không chứa dữ liệu hợp lệ (cần ít nhất 1 dòng tiêu đề và 1 dòng dữ liệu).");
+  }
+
+  const headerLine = lines[0].toLowerCase();
+  const headers = headerLine.split(",").map((h) => h.replace(/^["']|["']$/g, "").trim());
+
+  let queryIdx = headers.findIndex((h) => h.includes("query") || h.includes("cụm từ") || h.includes("từ khóa"));
+  let clicksIdx = headers.findIndex((h) => h.includes("click") || h.includes("nhấp"));
+  let impIdx = headers.findIndex((h) => h.includes("impression") || h.includes("hiển thị"));
+  let ctrIdx = headers.findIndex((h) => h.includes("ctr"));
+  let posIdx = headers.findIndex((h) => h.includes("position") || h.includes("vị trí"));
+
+  if (queryIdx === -1) queryIdx = 0;
+  if (clicksIdx === -1) clicksIdx = 1;
+  if (impIdx === -1) impIdx = 2;
+  if (ctrIdx === -1) ctrIdx = 3;
+  if (posIdx === -1) posIdx = 4;
+
+  const queries: GscQueryItem[] = [];
+  const brandKeywords = ["shoptft", "shop tft", "tuấn thái bình", "tuan thai binh"];
+
+  for (let i = 1; i < lines.length; i++) {
+    const rawLine = lines[i];
+    const cols = rawLine.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || rawLine.split(",");
+    const cleanCols = cols.map((c) => c.replace(/^["']|["']$/g, "").trim());
+    const query = cleanCols[queryIdx];
+    if (!query) continue;
+
+    const clicks = parseInt(cleanCols[clicksIdx]?.replace(/[^0-9]/g, "") || "0", 10);
+    const impressions = parseInt(cleanCols[impIdx]?.replace(/[^0-9]/g, "") || "0", 10);
+    let ctr = parseFloat(cleanCols[ctrIdx]?.replace("%", "").replace(",", ".") || "0");
+    if (ctr <= 0 && impressions > 0) {
+      ctr = Math.round((clicks / impressions) * 10000) / 100;
+    }
+    const position = parseFloat(cleanCols[posIdx]?.replace(",", ".") || "0") || 10;
+
+    const isBrand = brandKeywords.some((b) => query.toLowerCase().includes(b));
+    const group: GscQueryGroup = isBrand
+      ? "BRAND"
+      : query.toLowerCase().includes("thuê") || query.toLowerCase().includes("acc")
+      ? "COMMERCIAL"
+      : query.toLowerCase().includes("mùa") || query.toLowerCase().includes("đội hình")
+      ? "CONTENT"
+      : query.toLowerCase().includes("đổi") || query.toLowerCase().includes("pass")
+      ? "GUIDE"
+      : "DISCOVERY";
+
+    queries.push({
+      query,
+      group,
+      pageUrl: isBrand ? "/" : query.includes("thuê") ? "/thue-acc-tft-dtcl" : "/shop",
+      clicks,
+      impressions,
+      ctr,
+      position,
+    });
+  }
+
+  // Tính toán số liệu thống kê thực tế từ danh sách truy vấn
+  const totalClicks = queries.reduce((acc, q) => acc + q.clicks, 0);
+  const totalImpressions = queries.reduce((acc, q) => acc + q.impressions, 0);
+  const avgCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
+  const avgPosition = queries.length > 0 ? queries.reduce((acc, q) => acc + q.position, 0) / queries.length : 0;
+
+  const brandList = queries.filter((q) => q.group === "BRAND");
+  const nonBrandList = queries.filter((q) => q.group !== "BRAND");
+
+  const brandClicks = brandList.reduce((acc, q) => acc + q.clicks, 0);
+  const nonBrandClicks = nonBrandList.reduce((acc, q) => acc + q.clicks, 0);
+  const brandImp = brandList.reduce((acc, q) => acc + q.impressions, 0);
+  const nonBrandImp = nonBrandList.reduce((acc, q) => acc + q.impressions, 0);
+
+  const summary: GscSummaryMetrics = {
+    clicks: totalClicks,
+    impressions: totalImpressions,
+    ctr: Math.round(avgCtr * 100) / 100,
+    avgPosition: Math.round(avgPosition * 10) / 10,
+    brandClicks,
+    nonBrandClicks,
+    nonBrandClicksPercentage: totalClicks > 0 ? Math.round((nonBrandClicks / totalClicks) * 10000) / 100 : 0,
+    brandImpressions: brandImp,
+    nonBrandImpressions: nonBrandImp,
+    brandCtr: brandImp > 0 ? Math.round((brandClicks / brandImp) * 10000) / 100 : 0,
+    nonBrandCtr: nonBrandImp > 0 ? Math.round((nonBrandClicks / nonBrandImp) * 10000) / 100 : 0,
+    brandAvgPosition: brandList.length > 0 ? Math.round((brandList.reduce((acc, q) => acc + q.position, 0) / brandList.length) * 10) / 10 : 0,
+    nonBrandAvgPosition: nonBrandList.length > 0 ? Math.round((nonBrandList.reduce((acc, q) => acc + q.position, 0) / nonBrandList.length) * 10) / 10 : 0,
+  };
+
+  let currentFile: any = {};
+  if (fs.existsSync(GSC_DATA_FILE_PATH)) {
+    try {
+      currentFile = JSON.parse(fs.readFileSync(GSC_DATA_FILE_PATH, "utf-8"));
+    } catch {}
+  }
+
+  const updatedData = {
+    ...currentFile,
+    isConnected: true,
+    property: "https://www.shoptftmobile.net",
+    dataSource: "IMPORT_CSV",
+    lastSynced: new Date().toISOString(),
+    periods: {
+      ...(currentFile.periods || {}),
+      [period]: {
+        ...(currentFile.periods?.[period] || {}),
+        summary,
+        queries,
+      },
+    },
+  };
+
+  fs.writeFileSync(GSC_DATA_FILE_PATH, JSON.stringify(updatedData, null, 2), "utf-8");
+  return { success: true, importedCount: queries.length, summary };
 }
 
 /**

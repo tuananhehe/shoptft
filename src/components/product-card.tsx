@@ -293,7 +293,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
             className="h-10 px-2 bg-white/[0.04] hover:bg-white/[0.08] active:scale-98 text-zinc-300 hover:text-white border border-white/[0.08] hover:border-white/[0.16] rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/20"
             aria-label={`Xem chi tiết tài khoản ${item.code}`}
           >
-            <Eye className="w-3.5 h-3.5 flex-shrink-0 text-zinc-400" />
+            <Eye className="w-3.5 h-3.5 flex-shrink-0 text-zinc-400" aria-hidden="true" />
             <span className="truncate">Chi tiết</span>
           </button>
 
@@ -305,17 +305,17 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
               className="h-10 px-2 bg-white hover:bg-zinc-200 active:scale-98 text-[#09090b] font-semibold text-sm rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
               aria-label={`${ctaText} tài khoản ${item.code}`}
             >
-              <KeyRound className="w-3.5 h-3.5 flex-shrink-0 text-[#09090b]" />
+              <KeyRound className="w-3.5 h-3.5 flex-shrink-0 text-[#09090b]" aria-hidden="true" />
               <span className="truncate">{ctaText}</span>
             </button>
           ) : (
             <button
               type="button"
               disabled
-              className="h-10 px-1.5 bg-white/[0.03] text-zinc-500 border border-white/[0.05] font-medium text-sm rounded-xl flex items-center justify-center gap-1.5 cursor-not-allowed select-none opacity-80"
+              className="h-10 px-1.5 bg-white/[0.03] text-zinc-400 border border-white/[0.05] font-medium text-sm rounded-xl flex items-center justify-center gap-1.5 cursor-not-allowed select-none opacity-80"
               aria-label={`Tài khoản ${item.code} đang thuê`}
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
+              <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" aria-hidden="true" />
               <span className="truncate">Đang thuê</span>
             </button>
           )}

@@ -49,10 +49,10 @@ export const TFTFooter: React.FC = () => {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-emerald-400 text-xs font-medium hover:border-emerald-500/40 transition-colors"
               >
-                <ShieldCheck className="w-3.5 h-3.5" />
+                <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>Bảo hiểm 30M Checkscam</span>
               </a>
-              <span className="text-[11px] text-zinc-500 font-mono">
+              <span className="text-[11px] text-zinc-400 font-mono">
                 Domain: shoptftmobile.net
               </span>
             </div>
@@ -135,7 +135,7 @@ export const TFTFooter: React.FC = () => {
                   onClick={() => analytics.trackClickZalo({ source: "footer" })}
                   className="hover:text-white transition-colors flex items-center gap-1"
                 >
-                  <MessageCircle className="w-3 h-3 text-emerald-400" />
+                  <MessageCircle className="w-3 h-3 text-emerald-400" aria-hidden="true" />
                   <span>Zalo ({PROFILE_INFO.phoneZalo})</span>
                 </a>
               </li>
@@ -164,15 +164,16 @@ export const TFTFooter: React.FC = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-400">
           <p>© {new Date().getFullYear()} ShopTFTMobile • Vận hành bởi Tuấn Thái Bình TFT • Website chính thức: shoptftmobile.net</p>
 
           <button
             onClick={scrollToTop}
+            aria-label="Cuộn lên đầu trang"
             className="inline-flex items-center gap-1 text-zinc-400 hover:text-white transition-colors cursor-pointer text-xs"
           >
             <span>Lên đầu trang</span>
-            <ArrowUp className="w-3.5 h-3.5" />
+            <ArrowUp className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
         </div>
       </div>

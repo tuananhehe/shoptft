@@ -36,9 +36,9 @@ import {
 export async function generateMetadata(): Promise<Metadata> {
   const seoConfig = await getSeoConfig();
   const pageSeo = seoConfig.pages["/thue-acc-tft-dtcl"] || {
-    title: "Thuê Acc TFT - ĐTCL: Pet, Chibi & Sân Đấu | ShopTFTMobile",
+    title: "Thuê Acc TFT - ĐTCL Uy Tín: Pet, Chibi & Sân Đấu | ShopTFTMobile",
     description:
-      "Thuê acc TFT/ĐTCL theo Pet, Chibi, Sân Đấu, VIP hoặc Clone tại ShopTFTMobile. Xem cách chọn acc, quy trình thuê và liên hệ hỗ trợ trực tiếp qua Zalo.",
+      "Dịch vụ cho thuê acc TFT/ĐTCL theo Pet, Chibi, Sân Đấu, VIP hoặc Clone tại ShopTFTMobile. Bảng giá minh bạch, giao nhận tức thì, hỗ trợ trực tiếp 1-1 qua Zalo Tuấn Thái Bình.",
     canonical: "https://www.shoptftmobile.net/thue-acc-tft-dtcl",
   };
 

@@ -29,6 +29,11 @@ import {
   Split,
   HelpCircle,
   Calendar,
+  UploadCloud,
+  FileSpreadsheet,
+  Clock,
+  Database,
+  X,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import {
@@ -85,6 +90,63 @@ export function RankingOptimizationTab({
   const [queryGroupTab, setQueryGroupTab] = useState<
     "non_brand" | "brand" | "all"
   >("non_brand");
+
+  // CSV Import Modal state
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [importCsvContent, setImportCsvContent] = useState("");
+  const [importPeriod, setImportPeriod] = useState<GscPeriodKey>("28d");
+  const [isImporting, setIsImporting] = useState(false);
+
+  const handleImportCsv = async () => {
+    if (!importCsvContent.trim()) {
+      toast.error("Vui lòng dán hoặc tải lên nội dung tệp CSV!");
+      return;
+    }
+    try {
+      setIsImporting(true);
+      const localToken =
+        typeof window !== "undefined"
+          ? localStorage.getItem("shoptft_admin_token")
+          : null;
+      const res = await fetch("/api/admin/seo", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(localToken ? { "x-admin-token": localToken } : {}),
+        },
+        body: JSON.stringify({
+          action: "import_gsc_csv",
+          csvContent: importCsvContent,
+          period: importPeriod,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.gscReport) {
+        toast.success(data.message || "Đã nhập dữ liệu Search Console thành công!");
+        setReport(data.gscReport);
+        setSelectedPeriod(importPeriod);
+        setIsImportModalOpen(false);
+        setImportCsvContent("");
+      } else {
+        toast.error(data.error || "Lỗi khi nhập dữ liệu CSV");
+      }
+    } catch {
+      toast.error("Lỗi mạng khi kết nối tới máy chủ");
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (text) setImportCsvContent(text);
+    };
+    reader.readAsText(file);
+  };
 
   // Fetch report when period changes
   const fetchReportForPeriod = async (period: GscPeriodKey) => {
@@ -279,6 +341,153 @@ export function RankingOptimizationTab({
           </button>
         </div>
       </div>
+
+      {/* DATA SOURCE INDICATOR & STATUS */}
+      <div
+        className={`p-4 rounded-2xl border transition-all ${
+          report.isConnected && summary.impressions > 0
+            ? "bg-slate-900 border-slate-800 text-white"
+            : "bg-amber-500/10 border-amber-500/20 text-amber-900"
+        }`}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span
+              className={`p-2 rounded-xl shrink-0 ${
+                report.isConnected && summary.impressions > 0
+                  ? "bg-emerald-500/20 text-emerald-400"
+                  : "bg-amber-500/20 text-amber-600"
+              }`}
+            >
+              <Database className="w-5 h-5" />
+            </span>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-heading font-bold text-xs sm:text-sm">
+                  {report.isConnected && summary.impressions > 0
+                    ? "Dữ liệu thực tế từ Google Search Console"
+                    : "Chưa có dữ liệu Search Console"}
+                </span>
+                <span
+                  className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                    report.isConnected && summary.impressions > 0
+                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                      : "bg-amber-500/20 text-amber-700 border border-amber-500/30"
+                  }`}
+                >
+                  {report.isConnected && summary.impressions > 0 ? "Đã xác thực" : "Cần kết nối / nhập CSV"}
+                </span>
+                {report.lastSynced &&
+                  Date.now() - new Date(report.lastSynced).getTime() >
+                    30 * 24 * 60 * 60 * 1000 && (
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/30 flex items-center gap-1">
+                      <Clock className="w-3 h-3" /> &gt; 30 ngày (Dữ liệu cũ)
+                    </span>
+                  )}
+              </div>
+              <div
+                className={`flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] mt-1 ${
+                  report.isConnected && summary.impressions > 0
+                    ? "text-zinc-400"
+                    : "text-amber-700"
+                }`}
+              >
+                <span>
+                  Property:{" "}
+                  <code
+                    className={
+                      report.isConnected && summary.impressions > 0
+                        ? "text-zinc-200"
+                        : "text-amber-900 font-semibold"
+                    }
+                  >
+                    {report.property || "https://www.shoptftmobile.net"}
+                  </code>
+                </span>
+                <span>
+                  Nguồn:{" "}
+                  <strong>
+                    {report.dataSource === "IMPORT_CSV"
+                      ? "Nhập tệp CSV thực tế"
+                      : report.dataSource === "LIVE_GSC"
+                      ? "Google Search Console API"
+                      : "Chưa có dữ liệu"}
+                  </strong>
+                </span>
+                <span>
+                  Kỳ:{" "}
+                  <strong>
+                    {selectedPeriod === "7d"
+                      ? "7 ngày"
+                      : selectedPeriod === "28d"
+                      ? "28 ngày"
+                      : "3 tháng"}
+                  </strong>
+                </span>
+                <span>
+                  Lần đồng bộ gần nhất:{" "}
+                  <strong>
+                    {report.lastSynced
+                      ? new Date(report.lastSynced).toLocaleString("vi-VN")
+                      : "Chưa đồng bộ"}
+                  </strong>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setIsImportModalOpen(true)}
+            className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-sm shrink-0 cursor-pointer"
+          >
+            <UploadCloud className="w-4 h-4" />
+            <span>
+              {report.isConnected && summary.impressions > 0
+                ? "Cập nhật dữ liệu CSV"
+                : "Kết nối / Nhập dữ liệu"}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* ZERO DATA WARNING & INSTRUCTIONS */}
+      {(!report.isConnected || summary.impressions === 0) && (
+        <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-8 text-center space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200">
+            <FileSpreadsheet className="w-6 h-6" />
+          </div>
+          <div className="max-w-md mx-auto space-y-1">
+            <h3 className="text-base font-bold text-gray-900 font-heading">
+              Chưa có dữ liệu Search Console
+            </h3>
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Hệ thống tuyệt đối <strong>không sử dụng dữ liệu ảo (mock/seed)</strong> cho các chỉ số Clicks, Impressions, CTR và Vị trí của <code>https://www.shoptftmobile.net</code>. Vui lòng tải lên tệp xuất (CSV) từ Google Search Console để xem báo cáo chi tiết.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <button
+              onClick={() => setIsImportModalOpen(true)}
+              className="px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
+            >
+              <UploadCloud className="w-4 h-4" />
+              <span>Nhập tệp Queries.csv từ GSC</span>
+            </button>
+          </div>
+          <div className="text-left max-w-lg mx-auto bg-gray-50 p-4 rounded-xl border border-gray-200 text-xs text-gray-600 space-y-2 mt-4">
+            <div className="font-semibold text-gray-800 flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              Cách xuất tệp từ Google Search Console:
+            </div>
+            <ol className="list-decimal list-inside space-y-1 text-[11px] text-gray-600">
+              <li>Mở <a href="https://search.google.com/search-console" target="_blank" rel="noreferrer" className="text-blue-600 underline">Google Search Console</a> và chọn thuộc tính <strong>https://www.shoptftmobile.net</strong></li>
+              <li>Vào menu <strong>Hiệu suất (Performance)</strong> → Chọn tab <strong>Truy vấn (Queries)</strong></li>
+              <li>Chọn khoảng thời gian (28 ngày qua hoặc 3 tháng qua)</li>
+              <li>Nhấp nút <strong>Xuất (Export)</strong> ở góc trên bên phải → chọn <strong>Tệp CSV</strong></li>
+              <li>Mở tệp <code>Queries.csv</code> vừa tải về và dán nội dung vào nút Nhập dữ liệu ở trên.</li>
+            </ol>
+          </div>
+        </div>
+      )}
 
       {/* 2. SIX KPI METRIC CARDS */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -1260,6 +1469,116 @@ export function RankingOptimizationTab({
           </table>
         </div>
       </div>
+
+      {/* MODAL IMPORT GSC CSV */}
+      {isImportModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <span className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+                  <UploadCloud className="w-5 h-5" />
+                </span>
+                <div>
+                  <h3 className="font-bold text-sm text-gray-900 font-heading">
+                    Nhập dữ liệu Google Search Console
+                  </h3>
+                  <p className="text-[11px] text-gray-500">
+                    Thuộc tính: https://www.shoptftmobile.net
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsImportModalOpen(false)}
+                className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                aria-label="Đóng cửa sổ"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Khoảng thời gian (Period):
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["7d", "28d", "3m"] as GscPeriodKey[]).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setImportPeriod(p)}
+                      className={`py-1.5 px-3 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer ${
+                        importPeriod === p
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-300 font-semibold"
+                          : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      {p === "7d" ? "7 ngày qua" : p === "28d" ? "28 ngày qua" : "3 tháng qua"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Tải lên tệp Queries.csv:
+                </label>
+                <input
+                  type="file"
+                  accept=".csv,text/csv"
+                  onChange={handleFileUpload}
+                  className="block w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 file:cursor-pointer"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Hoặc dán nội dung CSV vào đây:
+                </label>
+                <textarea
+                  value={importCsvContent}
+                  onChange={(e) => setImportCsvContent(e.target.value)}
+                  placeholder="Top queries,Clicks,Impressions,CTR,Position&#10;thuê acc tft,120,1800,6.67%,4.2&#10;shoptftmobile,350,2100,16.67%,1.1..."
+                  rows={6}
+                  className="w-full text-xs font-mono p-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+                <p className="text-[10px] text-gray-400 mt-1">
+                  Hỗ trợ cả tiêu đề tiếng Anh (Top queries, Clicks, Impressions, CTR, Position) và tiếng Việt (Cụm từ tìm kiếm, Số lượt nhấp, Số lượt hiển thị, CTR, Vị trí).
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setIsImportModalOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                onClick={handleImportCsv}
+                disabled={isImporting || !importCsvContent.trim()}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 cursor-pointer shadow-sm"
+              >
+                {isImporting ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Đang xử lý...</span>
+                  </>
+                ) : (
+                  <>
+                    <UploadCloud className="w-3.5 h-3.5" />
+                    <span>Xác nhận &amp; Tính toán</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

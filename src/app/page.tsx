@@ -11,9 +11,9 @@ export const revalidate = 60;
 export async function generateMetadata(): Promise<Metadata> {
   const seoConfig = await getSeoConfig();
   const pageSeo = seoConfig.pages["/"] || {
-    title: "Thuê Acc TFT - ĐTCL | Pet, Chibi & Sân Đấu | ShopTFTMobile",
+    title: "ShopTFTMobile - Shop Acc ĐTCL Uy Tín | Tuấn Thái Bình TFT",
     description:
-      "Thuê acc TFT/ĐTCL theo Pet, Chibi, Sân Đấu, VIP hoặc Clone. Xem trạng thái acc, giá thuê và thông tin rõ ràng tại ShopTFTMobile, hỗ trợ trực tiếp qua Zalo.",
+      "ShopTFTMobile - Website dịch vụ tài khoản ĐTCL chính thức của Tuấn Thái Bình. Khám phá kho acc ĐTCL theo Pet, Chibi, Sân Đấu và hướng dẫn an toàn.",
     canonical: "https://www.shoptftmobile.net/",
   };
 

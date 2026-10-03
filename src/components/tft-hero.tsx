@@ -63,7 +63,7 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
         {/* Large Search Form */}
         <form onSubmit={handleSearch} className="mt-6 max-w-2xl mx-auto" role="search">
           <div className="relative flex items-center">
-            <Search className="w-5 h-5 text-zinc-400 absolute left-4 pointer-events-none" />
+            <Search className="w-5 h-5 text-zinc-400 absolute left-4 pointer-events-none" aria-hidden="true" />
             <input
               type="text"
               value={searchTerm}
@@ -76,7 +76,7 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
               }}
               placeholder="Tìm Pet, Chibi, Sân Đấu, mã acc..."
               aria-label="Tìm kiếm tài khoản TFT"
-              className="w-full h-12 sm:h-14 pl-12 pr-28 sm:pr-32 rounded-2xl bg-[#141416] focus:bg-[#18181c] border border-white/15 focus:border-white/40 text-white placeholder:text-zinc-500 text-sm focus:outline-none transition-all shadow-sm"
+              className="w-full h-12 sm:h-14 pl-12 pr-28 sm:pr-32 rounded-2xl bg-[#141416] focus:bg-[#18181c] border border-white/15 focus:border-white/40 text-white placeholder:text-zinc-400 text-sm focus:outline-none transition-all shadow-sm"
             />
             <button
               type="submit"
@@ -88,14 +88,14 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
               className="absolute right-2 top-2 bottom-2 px-4 sm:px-5 rounded-xl bg-white hover:bg-zinc-200 active:scale-98 text-black text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-black"
             >
               <span>Tìm kiếm</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
           </div>
         </form>
 
         {/* Quick Shortcuts (5-7 chips) */}
         <div className="mt-3.5 flex flex-wrap items-center justify-center gap-2 text-xs">
-          <span className="text-zinc-500">Gợi ý:</span>
+          <span className="text-zinc-400">Gợi ý:</span>
           {shortcuts.map((item) => (
             <Link
               key={item.label}
@@ -122,7 +122,7 @@ export const TFTHero: React.FC<TFTHeroProps> = () => {
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 font-semibold transition-colors shadow-sm"
             >
               <span>Xem Kho Acc</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
             </Link>
             <Link
               href="/huong-dan"

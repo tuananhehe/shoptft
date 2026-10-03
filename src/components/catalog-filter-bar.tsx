@@ -189,10 +189,11 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
         <div className="hidden lg:flex items-center gap-2 flex-wrap">
           {/* Ô tìm kiếm nhanh (35-40% bề ngang) */}
           <div className="relative flex-[1.4] min-w-[220px] max-w-[360px]">
-            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
             <input
               type="text"
               value={searchInput}
+              aria-label="Tìm kiếm theo tên, Pet, mã số, Sân Đấu"
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -203,7 +204,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
                 }
               }}
               placeholder="Tìm theo tên, Pet, mã số, Sân Đấu..."
-              className="w-full h-10 pl-9 pr-8 bg-[#181818] border border-white/[0.08] rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 transition-colors"
+              className="w-full h-10 pl-9 pr-8 bg-[#181818] border border-white/[0.08] rounded-xl text-xs text-white placeholder-zinc-400 focus:outline-none focus:border-white/30 transition-colors"
             />
             {searchInput && (
               <button
@@ -215,7 +216,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white cursor-pointer"
                 aria-label="Xóa từ khóa tìm kiếm"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
             )}
           </div>
@@ -544,10 +545,11 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
         <div className="lg:hidden space-y-2">
           {/* Ô tìm kiếm nhanh trên Mobile (h-11 / 44px tap target chuẩn di động) */}
           <div className="relative w-full">
-            <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
             <input
               type="text"
               value={searchInput}
+              aria-label="Tìm kiếm Pet, Chibi, Sân Đấu"
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -558,7 +560,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
                 }
               }}
               placeholder="Tìm Pet, Chibi, Sân Đấu..."
-              className="w-full h-11 min-h-[44px] pl-10 pr-9 bg-[#181818] border border-white/[0.08] rounded-xl text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 transition-colors"
+              className="w-full h-11 min-h-[44px] pl-10 pr-9 bg-[#181818] border border-white/[0.08] rounded-xl text-xs sm:text-sm text-white placeholder-zinc-400 focus:outline-none focus:border-white/30 transition-colors"
             />
             {searchInput && (
               <button
@@ -570,7 +572,7 @@ export const CatalogFilterBar: React.FC<CatalogFilterBarProps> = ({
                 className="w-8 h-8 rounded-lg flex items-center justify-center absolute right-1.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white cursor-pointer active:scale-95"
                 aria-label="Xóa từ khóa tìm kiếm"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4" aria-hidden="true" />
               </button>
             )}
           </div>
