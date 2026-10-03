@@ -1,0 +1,225 @@
+{
+  "summary": {
+    "criticalErrors": 0,
+    "warnings": 2,
+    "passed": 167,
+    "info": 0,
+    "lastScan": "2026-10-03T14:12:16.855Z",
+    "nextScan": "2026-10-04T14:12:16.855Z",
+    "scanFrequency": "daily",
+    "totalUrlsMonitored": 168,
+    "isScanning": false
+  },
+  "issues": [
+    {
+      "id": "check-robots-private-exposed",
+      "severity": "WARNING",
+      "category": "robots",
+      "page": "/robots.txt",
+      "issue": "Robots.txt chưa chặn hoàn toàn các khu vực nhạy cảm (/api/, /admin/)",
+      "detail": "Cần khai báo disallow cho /api/ và /admin/ để bảo vệ tài nguyên máy chủ.",
+      "suggestedAction": "Thêm /api/ và /admin/ vào danh sách Chặn (Disallow).",
+      "status": "open",
+      "firstDetected": "2026-10-03T14:11:50.882Z",
+      "lastDetected": "2026-10-03T14:12:16.855Z"
+    },
+    {
+      "id": "check-blog-patch-post-3",
+      "severity": "WARNING",
+      "category": "blog_freshness",
+      "page": "/blog/top-doi-hinh-manh-tft-mua-18-patch-18-3",
+      "issue": "Bài viết \"Top Đội Hình Mạnh Nhất TFT Mùa 18 Patch 18.3b Leo Rank Thần Tốc\" chứa nội dung nhạy cảm theo Patch",
+      "detail": "Bài viết phân tích chỉ số meta có thể cần cập nhật khi có bản vá mới của ĐTCL.",
+      "suggestedAction": "Rà soát lại các mốc sức mạnh và ghi chú patch tương ứng trong bài.",
+      "status": "open",
+      "firstDetected": "2026-10-03T14:12:16.854Z",
+      "lastDetected": "2026-10-03T14:12:16.854Z"
+    },
+    {
+      "id": "health-fresh-01",
+      "severity": "WARNING",
+      "category": "blog_freshness",
+      "page": "/blog/tong-hop-tuong-5-vang-va-cach-kich-hoat-tft-mua-18",
+      "issue": "Bài viết Mùa 18 cần rà soát theo bản Patch mới nhất",
+      "detail": "Bài viết đề cập các mốc tướng 5 vàng Mùa 18 nhưng chưa cập nhật tỉ lệ xuất hiện mới theo bản vá cân bằng gần nhất.",
+      "suggestedAction": "Kiểm tra và cập nhật chỉ số tướng 5 vàng theo patch hiện tại. Giữ nguyên cấu trúc Evergreen.",
+      "status": "resolved",
+      "firstDetected": "2026-09-28T09:00:00Z",
+      "lastDetected": "2026-10-03T14:30:00Z",
+      "aiSuggestion": {
+        "type": "refresh_brief",
+        "proposal": "Cập nhật bảng tỷ lệ ra tướng 5 vàng ở cấp 8/9/10 theo patch mới nhất, bổ sung lưu ý về nâng cấp tướng carry.",
+        "rationale": "Tránh người đọc hiểu sai meta khi áp dụng vào rank thực tế."
+      },
+      "resolvedDate": "2026-10-03T14:12:00.349Z"
+    },
+    {
+      "id": "health-img-02",
+      "severity": "WARNING",
+      "category": "image",
+      "page": "/shop",
+      "issue": "Phát hiện banner hoặc ảnh thumbnail thiếu mô tả alt tối ưu",
+      "detail": "Một số hình ảnh linh thú mới tải lên chưa có thẻ alt chi tiết tên Pet/Chibi.",
+      "suggestedAction": "Điền alt text rõ ràng chứa tên tướng Tí Nị và tên Sân Đấu (không nhồi nhét từ khóa).",
+      "status": "resolved",
+      "firstDetected": "2026-10-01T10:15:00Z",
+      "lastDetected": "2026-10-03T14:30:00Z",
+      "aiSuggestion": {
+        "type": "general_advice",
+        "proposal": "Đặt alt dạng: 'Linh Thú Tí Nị Ahri Chiêu Hồn trong Đấu Trường Chân Lý'",
+        "rationale": "Giúp Google Image nhận diện chính xác thực thể cosmetic."
+      },
+      "resolvedDate": "2026-10-03T14:11:50.882Z"
+    },
+    {
+      "id": "health-404-03",
+      "severity": "WARNING",
+      "category": "404",
+      "page": "/blog/bai-viet-cu-tft-mua-16",
+      "issue": "Đường dẫn bài viết cũ từ Mùa 16 phát sinh lỗi 404 (Redirect candidate)",
+      "detail": "Truy cập từ backlink ngoài trỏ vào bài cũ Mùa 16 đã lưu trữ, phát sinh mã 404.",
+      "suggestedAction": "Tạo quy tắc 301 redirect trỏ về Hub /blog/tft-mua-18 thay vì để 404.",
+      "status": "resolved",
+      "firstDetected": "2026-09-29T11:20:00Z",
+      "lastDetected": "2026-10-03T14:30:00Z",
+      "aiSuggestion": {
+        "type": "redirect_fix",
+        "proposal": "301 Redirect /blog/bai-viet-cu-tft-mua-16 -> /blog/tft-mua-18",
+        "rationale": "Bảo tồn giá trị link equity từ các diễn đàn trỏ về bài cũ."
+      },
+      "resolvedDate": "2026-10-03T14:11:50.882Z"
+    },
+    {
+      "id": "health-meta-04",
+      "severity": "INFO",
+      "page": "/thue-acc-tft-dtcl",
+      "issue": "Độ dài tiêu đề ở cận trên mức khuyến nghị (63 ký tự)",
+      "detail": "Tiêu đề 'Thuê Acc TFT - ĐTCL Giá Tốt: Pet, Chibi & Sân Đấu | ShopTFTMobile' có 63 ký tự, hiển thị tốt nhưng cần tránh kéo dài thêm.",
+      "suggestedAction": "Duy trì theo dõi SERP Snippet. Không cần sửa nếu Google không cắt dòng.",
+      "status": "resolved",
+      "firstDetected": "2026-09-25T08:00:00Z",
+      "lastDetected": "2026-10-03T14:30:00Z",
+      "resolvedDate": "2026-10-03T14:11:50.882Z"
+    },
+    {
+      "id": "health-canon-05",
+      "severity": "CRITICAL",
+      "category": "canonical",
+      "page": "/ve-shop",
+      "issue": "Canonical host trỏ sai miền thử nghiệm localhost",
+      "detail": "Trang /ve-shop từng chứa thẻ canonical trỏ localhost trong phiên bản dev cũ.",
+      "suggestedAction": "Đã chuẩn hóa canonical về https://www.shoptftmobile.net/ve-shop.",
+      "status": "resolved",
+      "firstDetected": "2026-09-15T07:00:00Z",
+      "lastDetected": "2026-09-20T10:00:00Z",
+      "resolvedDate": "2026-09-21T08:00:00Z"
+    },
+    {
+      "id": "health-link-06",
+      "severity": "WARNING",
+      "category": "broken_link",
+      "page": "/blog/tft-mua-18",
+      "issue": "Liên kết nội bộ chứa tên miền cũ shoptftmobile.com",
+      "detail": "Một liên kết tham khảo bài hướng dẫn cũ sử dụng domain .com thay vì .net.",
+      "suggestedAction": "Đã cập nhật toàn bộ link nội bộ sang domain chuẩn .net.",
+      "status": "resolved",
+      "firstDetected": "2026-09-18T14:00:00Z",
+      "lastDetected": "2026-09-22T09:00:00Z",
+      "resolvedDate": "2026-09-22T10:30:00Z"
+    }
+  ],
+  "scanLogs": [
+    {
+      "id": "scan-1791036736855",
+      "timestamp": "2026-10-03T14:12:16.855Z",
+      "scanType": "full",
+      "durationMs": 1804,
+      "criticalCount": 0,
+      "warningCount": 2,
+      "infoCount": 0,
+      "passedCount": 167,
+      "totalUrlsChecked": 168,
+      "status": "success",
+      "message": "Quét FULL hoàn tất trong 1804ms. Kiểm tra 168 URLs."
+    },
+    {
+      "id": "scan-1791036710882",
+      "timestamp": "2026-10-03T14:11:50.882Z",
+      "scanType": "light",
+      "durationMs": 590,
+      "criticalCount": 0,
+      "warningCount": 1,
+      "infoCount": 0,
+      "passedCount": 7,
+      "totalUrlsChecked": 8,
+      "status": "success",
+      "message": "Quét LIGHT hoàn tất trong 590ms. Kiểm tra 8 URLs."
+    },
+    {
+      "id": "scan-log-01",
+      "timestamp": "2026-10-03T14:30:00Z",
+      "scanType": "full",
+      "durationMs": 420,
+      "criticalCount": 0,
+      "warningCount": 3,
+      "infoCount": 2,
+      "passedCount": 52,
+      "totalUrlsChecked": 68,
+      "status": "success",
+      "message": "Quét toàn diện toàn bộ 68 URLs indexable, canonical, robots, sitemap, blog freshness, images và schema hoàn tất."
+    },
+    {
+      "id": "scan-log-02",
+      "timestamp": "2026-10-02T14:30:00Z",
+      "scanType": "light",
+      "durationMs": 140,
+      "criticalCount": 0,
+      "warningCount": 3,
+      "infoCount": 2,
+      "passedCount": 52,
+      "totalUrlsChecked": 12,
+      "status": "success",
+      "message": "Quét nhanh định kỳ các trang cốt lõi, robots.txt, sitemap và kiểm tra vòng lặp redirect."
+    },
+    {
+      "id": "scan-log-03",
+      "timestamp": "2026-10-01T14:30:00Z",
+      "scanType": "full",
+      "durationMs": 460,
+      "criticalCount": 0,
+      "warningCount": 4,
+      "infoCount": 2,
+      "passedCount": 51,
+      "totalUrlsChecked": 68,
+      "status": "success",
+      "message": "Quét toàn diện hàng tuần hoàn tất."
+    }
+  ],
+  "sitemapHealth": {
+    "totalUrls": 166,
+    "errors": 0,
+    "warnings": 0,
+    "isXmlValid": true,
+    "lastChecked": "2026-10-03T14:12:16.854Z"
+  },
+  "robotsHealth": {
+    "accessible": true,
+    "sitemapDeclared": true,
+    "publicBlocked": false,
+    "cdnCgiConfigured": true,
+    "privateDisallowed": true,
+    "lastChecked": "2026-10-03T14:30:00Z"
+  },
+  "redirectHealth": {
+    "totalRules": 12,
+    "loopsDetected": 0,
+    "chainsDetected": 0,
+    "destinationsValid": true
+  },
+  "brokenLinksCount": 0,
+  "blogFreshnessCount": {
+    "evergreen": 13,
+    "needsReview": 1,
+    "outdated": 0
+  }
+}

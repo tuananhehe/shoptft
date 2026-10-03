@@ -27,6 +27,11 @@ import {
   deleteSerpExperiment,
   generateAiTitleVariants,
   generateAiMetaVariants,
+  getSeoHealthReport,
+  runAutomatedSeoHealthScan,
+  updateHealthIssueStatus,
+  generateAiHealthSuggestion,
+  HealthScanType,
 } from "@/utils/seo-service";
 import { getBlogPosts } from "@/utils/blog-service";
 import { getAllProductAccounts } from "@/utils/account-lookup";
@@ -96,6 +101,18 @@ export async function GET(req: NextRequest) {
       const currentMeta = req.nextUrl.searchParams.get("currentMeta") || "";
       const variants = generateAiMetaVariants(pageUrl, query, currentMeta);
       return NextResponse.json({ success: true, variants });
+    }
+
+    if (action === "seo_health_scan") {
+      const scanType = (req.nextUrl.searchParams.get("scanType") as HealthScanType) || "full";
+      const healthReport = await runAutomatedSeoHealthScan(scanType);
+      return NextResponse.json({ success: true, healthReport });
+    }
+
+    if (action === "ai_health_suggestion") {
+      const issueId = req.nextUrl.searchParams.get("issueId") || "";
+      const suggestion = await generateAiHealthSuggestion(issueId);
+      return NextResponse.json({ success: true, suggestion });
     }
 
     const config = await getSeoConfig();
@@ -169,6 +186,7 @@ export async function GET(req: NextRequest) {
       contentBriefs,
       backlinkReport,
       serpExperimentsReport,
+      seoHealthReport: await getSeoHealthReport(),
     });
   } catch (err: any) {
     return NextResponse.json(
@@ -412,8 +430,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
-    const action = searchParams.get("action");
     const body = await req.json().catch(() => ({}));
+    const action = searchParams.get("action") || body.action;
 
     if (action === "add_backlink") {
       if (!body.sourceUrl || !body.targetUrl) {
@@ -548,6 +566,32 @@ export async function POST(req: NextRequest) {
         success: true,
         message: "Đã xóa thử nghiệm SERP thành công!",
         serpReport,
+      });
+    }
+
+    if (action === "update_health_issue_status") {
+      if (!body.id || !body.status) {
+        return NextResponse.json(
+          { success: false, error: "Thiếu ID hoặc Trạng Thái (status)!" },
+          { status: 400 }
+        );
+      }
+      await updateHealthIssueStatus(body.id, body.status);
+      const healthReport = await getSeoHealthReport();
+      return NextResponse.json({
+        success: true,
+        message: "Đã cập nhật trạng thái vấn đề thành công!",
+        healthReport,
+      });
+    }
+
+    if (action === "run_health_scan") {
+      const scanType = body.scanType || "full";
+      const healthReport = await runAutomatedSeoHealthScan(scanType);
+      return NextResponse.json({
+        success: true,
+        message: `Đã hoàn thành quét SEO (${scanType}) thành công!`,
+        healthReport,
       });
     }
 

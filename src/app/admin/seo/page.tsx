@@ -31,6 +31,7 @@ import {
   TrendingUp,
   BookOpen,
   FlaskConical,
+  Activity,
 } from "lucide-react";
 import {
   SeoConfigDatabase,
@@ -47,6 +48,9 @@ import {
   BacklinkItem,
   SerpExperimentsReport,
   SerpExperimentItem,
+  SeoHealthReport,
+  HealthScanType,
+  HealthIssueStatus,
 } from "@/utils/seo-shared";
 import { ContentRefreshTab } from "@/components/admin/content-refresh-tab";
 import { InternalLinksTab } from "@/components/admin/internal-links-tab";
@@ -54,9 +58,11 @@ import { RankingOptimizationTab } from "@/components/admin/ranking-optimization-
 import { ContentOpportunitiesTab } from "@/components/admin/content-opportunities-tab";
 import { BacklinksTab } from "@/components/admin/backlinks-tab";
 import { SerpExperimentsTab } from "@/components/admin/serp-experiments-tab";
+import { SeoHealthTab } from "@/components/admin/seo-health-tab";
 
 type TabKey =
   | "overview"
+  | "health"
   | "pages"
   | "products"
   | "refresh"
@@ -132,6 +138,7 @@ export default function AdminSeoPage() {
   const [contentBriefs, setContentBriefs] = useState<ContentBrief[]>([]);
   const [backlinkReport, setBacklinkReport] = useState<BacklinkMonitorReport | null>(null);
   const [serpExperimentsReport, setSerpExperimentsReport] = useState<SerpExperimentsReport | null>(null);
+  const [seoHealthReport, setSeoHealthReport] = useState<SeoHealthReport | null>(null);
   const [socialNetworkPreview, setSocialNetworkPreview] = useState<"facebook" | "twitter">("facebook");
 
   // Fetch SEO configuration from API
@@ -159,6 +166,7 @@ export default function AdminSeoPage() {
         if (data.contentBriefs) setContentBriefs(data.contentBriefs);
         if (data.backlinkReport) setBacklinkReport(data.backlinkReport);
         if (data.serpExperimentsReport) setSerpExperimentsReport(data.serpExperimentsReport);
+        if (data.seoHealthReport) setSeoHealthReport(data.seoHealthReport);
       } else {
         toast.error(data.error || "Không thể tải dữ liệu SEO!");
       }
@@ -293,6 +301,42 @@ export default function AdminSeoPage() {
       return true;
     }
     throw new Error(data.error || "Lỗi khi xóa thử nghiệm SERP");
+  };
+
+  const handleRunHealthScan = async (scanType: HealthScanType) => {
+    const localToken = typeof window !== "undefined" ? localStorage.getItem("shoptft_admin_token") : null;
+    const res = await fetch("/api/admin/seo?action=run_health_scan", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(localToken ? { "x-admin-token": localToken } : {}),
+      },
+      body: JSON.stringify({ scanType }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (data.healthReport) setSeoHealthReport(data.healthReport);
+      return true;
+    }
+    throw new Error(data.error || "Lỗi khi quét sức khỏe SEO");
+  };
+
+  const handleUpdateHealthIssueStatus = async (id: string, status: HealthIssueStatus) => {
+    const localToken = typeof window !== "undefined" ? localStorage.getItem("shoptft_admin_token") : null;
+    const res = await fetch("/api/admin/seo?action=update_health_issue_status", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(localToken ? { "x-admin-token": localToken } : {}),
+      },
+      body: JSON.stringify({ id, status }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (data.healthReport) setSeoHealthReport(data.healthReport);
+      return true;
+    }
+    throw new Error(data.error || "Lỗi khi cập nhật trạng thái");
   };
 
   useEffect(() => {
@@ -512,6 +556,27 @@ export default function AdminSeoPage() {
               {audit.summary.errors}
             </span>
           )}
+        </button>
+
+        <button
+          onClick={() => setActiveTab("health")}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === "health"
+              ? "bg-gray-900 text-white shadow-xs"
+              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+          }`}
+        >
+          <Activity className="w-3.5 h-3.5 text-rose-500" />
+          <span>Health Monitor</span>
+          {seoHealthReport && seoHealthReport.summary.criticalErrors > 0 ? (
+            <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center font-bold animate-pulse">
+              {seoHealthReport.summary.criticalErrors}
+            </span>
+          ) : seoHealthReport && seoHealthReport.summary.warnings > 0 ? (
+            <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
+              {seoHealthReport.summary.warnings}
+            </span>
+          ) : null}
         </button>
 
         <button
@@ -982,6 +1047,18 @@ export default function AdminSeoPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB: HEALTH MONITOR (PHASE 12)                                 */}
+      {/* ============================================================== */}
+      {activeTab === "health" && (
+        <SeoHealthTab
+          report={seoHealthReport}
+          onRefresh={fetchSeoData}
+          onRunScan={handleRunHealthScan}
+          onUpdateIssueStatus={handleUpdateHealthIssueStatus}
+        />
       )}
 
       {/* ============================================================== */}

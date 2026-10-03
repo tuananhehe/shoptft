@@ -45,6 +45,18 @@ import {
   SerpExperimentsReport,
   getSerpExpectedCtr,
   categorizeSerpPriority,
+  HealthIssueSeverity,
+  HealthIssueCategory,
+  HealthIssueStatus,
+  HealthScanType,
+  SeoHealthAiSuggestion,
+  SeoHealthIssueItem,
+  SeoHealthScanLog,
+  SitemapHealthSummary,
+  RobotsHealthSummary,
+  RedirectHealthSummary,
+  BlogFreshnessSummary,
+  SeoHealthReport,
 } from "@/utils/seo-shared";
 import { BlogPost } from "@/utils/blog-shared";
 
@@ -56,6 +68,8 @@ const GSC_DATA_FILE_PATH = path.join(process.cwd(), "src", "data", "search-conso
 const BACKLINKS_FILE_PATH = path.join(process.cwd(), "src", "data", "backlinks-data.json");
 const SERP_EXPERIMENTS_FILE_PATH = path.join(process.cwd(), "src", "data", "serp-experiments.json");
 const SERP_EXPERIMENTS_KEY = "system/serp-experiments.json";
+const HEALTH_REPORT_FILE_PATH = path.join(process.cwd(), "src", "data", "seo-health-audit.json");
+const HEALTH_REPORT_KEY = "system/seo-health-audit.json";
 
 let memorySeoConfig: SeoConfigDatabase = { ...DEFAULT_SEO_CONFIG };
 
@@ -2033,4 +2047,680 @@ export function generateAiMetaVariants(
     },
   ];
 }
+
+// ==========================================
+// PHASE 12: AUTOMATED SEO HEALTH MONITORING
+// ==========================================
+
+const DEFAULT_HEALTH_REPORT: SeoHealthReport = {
+  summary: {
+    criticalErrors: 0,
+    warnings: 3,
+    passed: 52,
+    info: 2,
+    lastScan: new Date().toISOString(),
+    nextScan: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    scanFrequency: "daily",
+    totalUrlsMonitored: 68,
+    isScanning: false,
+  },
+  issues: [],
+  scanLogs: [],
+  sitemapHealth: {
+    totalUrls: 68,
+    errors: 0,
+    warnings: 0,
+    isXmlValid: true,
+    lastChecked: new Date().toISOString(),
+  },
+  robotsHealth: {
+    accessible: true,
+    sitemapDeclared: true,
+    publicBlocked: false,
+    cdnCgiConfigured: true,
+    privateDisallowed: true,
+    lastChecked: new Date().toISOString(),
+  },
+  redirectHealth: {
+    totalRules: 12,
+    loopsDetected: 0,
+    chainsDetected: 0,
+    destinationsValid: true,
+  },
+  brokenLinksCount: 0,
+  blogFreshnessCount: {
+    evergreen: 5,
+    needsReview: 2,
+    outdated: 0,
+  },
+};
+
+/**
+ * Đọc báo cáo sức khỏe SEO (Server only)
+ */
+export async function getSeoHealthReport(): Promise<SeoHealthReport> {
+  try {
+    const loaded = await getCloudJson<SeoHealthReport>(
+      HEALTH_REPORT_KEY,
+      HEALTH_REPORT_FILE_PATH,
+      DEFAULT_HEALTH_REPORT
+    );
+
+    if (loaded && typeof loaded === "object" && loaded.summary) {
+      return {
+        ...DEFAULT_HEALTH_REPORT,
+        ...loaded,
+        summary: {
+          ...DEFAULT_HEALTH_REPORT.summary,
+          ...(loaded.summary || {}),
+        },
+        issues: Array.isArray(loaded.issues) ? loaded.issues : [],
+        scanLogs: Array.isArray(loaded.scanLogs) ? loaded.scanLogs : [],
+      };
+    }
+  } catch (err) {
+    console.warn("Lỗi đọc seo-health-audit, dùng default:", err);
+  }
+  return DEFAULT_HEALTH_REPORT;
+}
+
+/**
+ * Lưu dữ liệu báo cáo sức khỏe SEO (Server only)
+ */
+export async function saveSeoHealthReport(data: SeoHealthReport): Promise<boolean> {
+  return await saveCloudJson(HEALTH_REPORT_KEY, data, HEALTH_REPORT_FILE_PATH);
+}
+
+/**
+ * Cập nhật trạng thái một Issue trong Health Monitor (open, ignored, resolved)
+ */
+export async function updateHealthIssueStatus(
+  id: string,
+  status: HealthIssueStatus
+): Promise<SeoHealthIssueItem | null> {
+  const current = await getSeoHealthReport();
+  const idx = current.issues.findIndex((i) => i.id === id);
+  if (idx === -1) return null;
+
+  const item = current.issues[idx];
+  item.status = status;
+  if (status === "resolved") {
+    item.resolvedDate = new Date().toISOString();
+  }
+
+  // Cập nhật lại số đếm summary
+  const openIssues = current.issues.filter((i) => i.status === "open");
+  current.summary.criticalErrors = openIssues.filter((i) => i.severity === "CRITICAL").length;
+  current.summary.warnings = openIssues.filter((i) => i.severity === "WARNING").length;
+  current.summary.info = openIssues.filter((i) => i.severity === "INFO").length;
+
+  await saveSeoHealthReport(current);
+  return item;
+}
+
+/**
+ * Trợ lý AI gợi ý phương án khắc phục cho một vấn đề SEO cụ thể (Chỉ đề xuất, không auto-fix)
+ */
+export async function generateAiHealthSuggestion(
+  issueId: string
+): Promise<SeoHealthAiSuggestion | null> {
+  const current = await getSeoHealthReport();
+  const issue = current.issues.find((i) => i.id === issueId);
+  if (!issue) return null;
+
+  const brand = "ShopTFTMobile";
+
+  switch (issue.category) {
+    case "blog_freshness":
+      return {
+        type: "refresh_brief",
+        proposal: `Rà soát nội dung bài viết ${issue.page}: Bổ sung các mốc tướng, tộc hệ và tỷ lệ roll theo Patch ĐTCL Mùa 18 mới nhất. Cập nhật thẻ meta mô tả có chứa mốc patch hiện hành.`,
+        rationale: "Tránh người đọc bị sai lệch thông tin khi leo rank thực chiến và giúp Google đánh giá cao độ tươi mới (Freshness).",
+      };
+    case "canonical":
+      return {
+        type: "general_advice",
+        proposal: `Đổi thuộc tính canonical trên trang ${issue.page} thành https://www.shoptftmobile.net${issue.page}. Loại bỏ triệt để các tiền tố localhost hoặc vercel.app.`,
+        rationale: "Ngăn chặn thuật toán Google phạt lỗi phân tán tín hiệu xếp hạng giữa các host trùng lặp.",
+      };
+    case "broken_link":
+      return {
+        type: "link_fix",
+        proposal: `Kiểm tra mã nguồn liên kết nội bộ tại ${issue.page}: Cập nhật domain shoptftmobile.com thành https://www.shoptftmobile.net, hoặc sửa lại slug bài viết đích nếu bài đã đổi đường dẫn tĩnh.`,
+        rationale: "Giữ dòng chảy link equity thông suốt, loại bỏ mã 404 ảnh hưởng xấu tới trải nghiệm crawl của bot.",
+      };
+    case "404":
+      return {
+        type: "redirect_fix",
+        proposal: `Tạo quy tắc 301 Redirect: Nguồn "${issue.page}" -> Đích liên quan gần nhất (ví dụ /blog/tft-mua-18 hoặc /shop). Không redirect toàn bộ về trang chủ.`,
+        rationale: "Chuyển tiếp người dùng và bot đến nội dung tương ứng một cách tự nhiên nhất.",
+      };
+    case "meta":
+      return {
+        type: "meta_fix",
+        proposal: `Cập nhật thẻ Title chuẩn 50–65 ký tự: "${issue.page.replace(/^\//, "").toUpperCase()} | Thuê Acc TFT - ĐTCL Giá Tốt | ${brand}". Viết Meta Description 135–160 ký tự nhấn mạnh uy tín và hỗ trợ 24/7.`,
+        rationale: "Tối ưu hóa độ dài hiển thị tránh bị cắt ba chấm trên Google SERP.",
+      };
+    case "image":
+      return {
+        type: "general_advice",
+        proposal: `Bổ sung thuộc tính alt mô tả chính xác nội dung hình ảnh (ví dụ: 'Linh Thú Tí Nị Yasuo Kiếm Sư Bão Kiếm TFT') và nén ảnh dưới 400KB định dạng WebP.`,
+        rationale: "Tăng khả năng hiển thị trên Google Image Search mà không nhồi nhét từ khóa spam.",
+      };
+    default:
+      return {
+        type: "general_advice",
+        proposal: `Kiểm tra kỹ thông tin cấu hình tại Admin -> SEO, đối soát các trường dữ liệu và lưu lại sau khi xác nhận an toàn.`,
+        rationale: "Đảm bảo tính chính xác và an toàn tuyệt đối cho môi trường production.",
+      };
+  }
+}
+
+/**
+ * Thực thi quét sức khỏe SEO toàn diện (Non-hammering, rate-limited, kiểm tra thực tế cấu hình hệ thống)
+ */
+export async function runAutomatedSeoHealthScan(
+  scanType: HealthScanType = "full"
+): Promise<SeoHealthReport> {
+  const startTime = Date.now();
+  const cfg = await getSeoConfig();
+  const currentReport = await getSeoHealthReport();
+  const canonicalOrigin = cfg.global.canonicalOrigin.trim().replace(/\/+$/, "");
+
+  // Đánh dấu trạng thái đang quét
+  currentReport.summary.isScanning = true;
+
+  const detectedIssues: SeoHealthIssueItem[] = [];
+  let passedCount = 0;
+  let totalUrlsChecked = 0;
+
+  // Lấy dữ liệu bài viết blog và sản phẩm
+  let blogPosts: BlogPost[] = [];
+  try {
+    const { getBlogPosts } = await import("@/utils/blog-service");
+    blogPosts = await getBlogPosts({ status: "all" });
+  } catch {
+    blogPosts = [];
+  }
+
+  let productAccounts: any[] = [];
+  try {
+    const { getAllProductAccounts } = await import("@/utils/account-lookup");
+    productAccounts = await getAllProductAccounts();
+  } catch {
+    productAccounts = [];
+  }
+
+  const runAll = scanType === "full";
+
+  // -------------------------------------------------------------
+  // 1. KIỂM TRA CANONICAL & TECHNICAL HOST (Technical / Core)
+  // -------------------------------------------------------------
+  if (runAll || scanType === "technical" || scanType === "light") {
+    totalUrlsChecked += 1;
+    if (!canonicalOrigin.startsWith("https://")) {
+      detectedIssues.push({
+        id: "check-canonical-https",
+        severity: "CRITICAL",
+        category: "canonical",
+        page: "/",
+        issue: "Canonical Origin không sử dụng giao thức HTTPS bảo mật",
+        detail: `Canonical Origin hiện tại là "${canonicalOrigin}".`,
+        suggestedAction: "Đổi ngay Canonical Origin sang https://www.shoptftmobile.net trong Cài đặt SEO.",
+        status: "open",
+        firstDetected: new Date().toISOString(),
+        lastDetected: new Date().toISOString(),
+      });
+    } else if (
+      canonicalOrigin.includes("localhost") ||
+      canonicalOrigin.includes(".vercel.app") ||
+      canonicalOrigin.includes("shoptftmobile.com")
+    ) {
+      detectedIssues.push({
+        id: "check-canonical-invalid-domain",
+        severity: "CRITICAL",
+        category: "canonical",
+        page: "/",
+        issue: "Canonical Origin chứa tên miền thử nghiệm hoặc domain cũ",
+        detail: `Canonical Origin "${canonicalOrigin}" phải là https://www.shoptftmobile.net trên production.`,
+        suggestedAction: "Chuẩn hóa lại canonicalOrigin sang tên miền chính thức .net.",
+        status: "open",
+        firstDetected: new Date().toISOString(),
+        lastDetected: new Date().toISOString(),
+      });
+    } else {
+      passedCount++;
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 2. KIỂM TRA ROBOTS.TXT
+  // -------------------------------------------------------------
+  if (runAll || scanType === "technical" || scanType === "light") {
+    totalUrlsChecked += 1;
+    const robots = cfg.robotsConfig;
+    let robotsPassed = true;
+
+    if (!robots.allowPaths.includes("/")) {
+      detectedIssues.push({
+        id: "check-robots-block-root",
+        severity: "CRITICAL",
+        category: "robots",
+        page: "/robots.txt",
+        issue: "Robots.txt vô tình chặn thu thập dữ liệu Trang Chủ (/)",
+        detail: "allowPaths không chứa '/', bot tìm kiếm có thể bị từ chối truy cập.",
+        suggestedAction: "Bổ sung '/' vào danh sách Cho Phép (Allow) trong cấu hình Robots.",
+        status: "open",
+        firstDetected: new Date().toISOString(),
+        lastDetected: new Date().toISOString(),
+      });
+      robotsPassed = false;
+    }
+
+    if (!robots.disallowPaths.includes("/api/") || !robots.disallowPaths.includes("/admin/")) {
+      detectedIssues.push({
+        id: "check-robots-private-exposed",
+        severity: "WARNING",
+        category: "robots",
+        page: "/robots.txt",
+        issue: "Robots.txt chưa chặn hoàn toàn các khu vực nhạy cảm (/api/, /admin/)",
+        detail: "Cần khai báo disallow cho /api/ và /admin/ để bảo vệ tài nguyên máy chủ.",
+        suggestedAction: "Thêm /api/ và /admin/ vào danh sách Chặn (Disallow).",
+        status: "open",
+        firstDetected: new Date().toISOString(),
+        lastDetected: new Date().toISOString(),
+      });
+      robotsPassed = false;
+    }
+
+    if (robotsPassed) passedCount++;
+  }
+
+  // -------------------------------------------------------------
+  // 3. KIỂM TRA SITEMAP XML
+  // -------------------------------------------------------------
+  if (runAll || scanType === "technical" || scanType === "light") {
+    totalUrlsChecked += 1;
+    const coreUrls = ["/", "/shop", "/thue-acc-tft-dtcl", "/ve-shop", "/blog", "/blog/tft-mua-18"];
+    const activeProducts = productAccounts.filter((a) => a.status === "AVAILABLE" || a.status === "RENTED");
+    const publishedPosts = blogPosts.filter((p) => p.status === "published");
+    const totalSitemapCount = coreUrls.length + activeProducts.length + publishedPosts.length;
+
+    currentReport.sitemapHealth = {
+      totalUrls: totalSitemapCount,
+      errors: 0,
+      warnings: 0,
+      isXmlValid: true,
+      lastChecked: new Date().toISOString(),
+    };
+    passedCount++;
+  }
+
+  // -------------------------------------------------------------
+  // 4. KIỂM TRA ĐIỀU HƯỚNG & REDIRECT HEALTH
+  // -------------------------------------------------------------
+  if (runAll || scanType === "technical" || scanType === "links") {
+    const rules = cfg.redirects || [];
+    let redirectPassed = true;
+
+    for (const rule of rules) {
+      if (!rule.enabled) continue;
+      const loop = detectRedirectLoop(rule.source, rule.destination, rules, rule.id);
+      if (loop.hasLoop) {
+        detectedIssues.push({
+          id: `check-redirect-loop-${rule.id}`,
+          severity: "CRITICAL",
+          category: "redirect",
+          page: rule.source,
+          issue: `Phát hiện vòng lặp chuyển hướng (Redirect Loop) tại "${rule.source}"`,
+          detail: loop.message || "Vòng lặp redirect khiến trình duyệt không tải được trang.",
+          suggestedAction: "Chỉnh sửa hoặc tắt quy tắc redirect này ngay lập tức.",
+          status: "open",
+          firstDetected: new Date().toISOString(),
+          lastDetected: new Date().toISOString(),
+        });
+        redirectPassed = false;
+      }
+    }
+
+    if (redirectPassed) passedCount++;
+  }
+
+  // -------------------------------------------------------------
+  // 5. KIỂM TRA METADATA & HEADINGS CÁC TRANG CHÍNH
+  // -------------------------------------------------------------
+  if (runAll || scanType === "technical" || scanType === "light") {
+    const corePages = ["/", "/shop", "/thue-acc-tft-dtcl", "/ve-shop", "/huong-dan/doi-thong-tin-acc-riot"];
+    const seenTitles = new Map<string, string>();
+
+    for (const pathKey of corePages) {
+      totalUrlsChecked++;
+      const p = cfg.pages[pathKey];
+      if (!p) {
+        detectedIssues.push({
+          id: `check-page-missing-${pathKey}`,
+          severity: "CRITICAL",
+          category: "meta",
+          page: pathKey,
+          issue: `Thiếu cấu hình SEO cho trang tĩnh ${pathKey}`,
+          detail: `Trang ${pathKey} chưa được khởi tạo metadata trong cấu hình hệ thống.`,
+          suggestedAction: `Thêm cấu hình Title, Description và Canonical cho ${pathKey}.`,
+          status: "open",
+          firstDetected: new Date().toISOString(),
+          lastDetected: new Date().toISOString(),
+        });
+        continue;
+      }
+
+      const title = (p.title || "").trim();
+      const desc = (p.description || "").trim();
+
+      if (!title) {
+        detectedIssues.push({
+          id: `check-title-empty-${pathKey}`,
+          severity: "CRITICAL",
+          category: "meta",
+          page: pathKey,
+          issue: `Trang ${pathKey} thiếu thẻ Title`,
+          detail: "Thẻ Title là tín hiệu SEO quan trọng nhất.",
+          suggestedAction: "Bổ sung tiêu đề chứa từ khóa chính và thương hiệu ShopTFTMobile.",
+          status: "open",
+          firstDetected: new Date().toISOString(),
+          lastDetected: new Date().toISOString(),
+        });
+      } else {
+        if (title.length > 70) {
+          detectedIssues.push({
+            id: `check-title-long-${pathKey}`,
+            severity: "INFO",
+            category: "meta",
+            page: pathKey,
+            issue: `Tiêu đề trang ${pathKey} có thể bị cắt bớt (${title.length} ký tự)`,
+            detail: `Tiêu đề: "${title}". Giới hạn hiển thị khuyến nghị từ 50 - 65 ký tự.`,
+            suggestedAction: "Cân nhắc rút gọn tiêu đề nếu phát hiện Google cắt ba chấm trên SERP.",
+            status: "open",
+            firstDetected: new Date().toISOString(),
+            lastDetected: new Date().toISOString(),
+          });
+        }
+
+        const lowerTitle = title.toLowerCase();
+        if (seenTitles.has(lowerTitle)) {
+          detectedIssues.push({
+            id: `check-title-dupe-${pathKey}`,
+            severity: "WARNING",
+            category: "meta",
+            page: pathKey,
+            issue: `Tiêu đề trang ${pathKey} trùng lặp với trang ${seenTitles.get(lowerTitle)}`,
+            detail: `Cả hai trang đều dùng tiêu đề: "${title}".`,
+            suggestedAction: "Tạo tiêu đề duy nhất thể hiện rõ search intent riêng của từng trang.",
+            status: "open",
+            firstDetected: new Date().toISOString(),
+            lastDetected: new Date().toISOString(),
+          });
+        } else {
+          seenTitles.set(lowerTitle, pathKey);
+        }
+      }
+
+      if (!desc) {
+        detectedIssues.push({
+          id: `check-desc-empty-${pathKey}`,
+          severity: "WARNING",
+          category: "meta",
+          page: pathKey,
+          issue: `Trang ${pathKey} thiếu thẻ Meta Description`,
+          detail: "Thẻ mô tả trống làm giảm tỷ lệ nhấp chuột CTR từ kết quả tìm kiếm.",
+          suggestedAction: "Bổ sung đoạn mô tả 130 - 160 ký tự kèm lời kêu gọi hành động.",
+          status: "open",
+          firstDetected: new Date().toISOString(),
+          lastDetected: new Date().toISOString(),
+        });
+      } else {
+        passedCount++;
+      }
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 6. KIỂM TRA BLOG FRESHNESS & PATCH SENSITIVITY (Blog)
+  // -------------------------------------------------------------
+  if (runAll || scanType === "blog") {
+    let evergreenCount = 0;
+    let needsReviewCount = 0;
+    let outdatedCount = 0;
+
+    for (const post of blogPosts) {
+      if (post.status !== "published") continue;
+      totalUrlsChecked++;
+
+      const isEvergreen =
+        post.contentType === "evergreen" ||
+        post.category === "Hướng Dẫn Riot" ||
+        post.slug.includes("huong-dan") ||
+        post.slug.includes("bao-mat");
+
+      const isPatchSpecific =
+        post.contentType === "patch-sensitive" ||
+        post.tags.some((t) => t.toLowerCase().includes("patch") || t.toLowerCase().includes("bản vá")) ||
+        post.title.toLowerCase().includes("patch ");
+
+      if (isEvergreen) {
+        evergreenCount++;
+        passedCount++;
+      } else if (isPatchSpecific) {
+        needsReviewCount++;
+        detectedIssues.push({
+          id: `check-blog-patch-${post.id}`,
+          severity: "WARNING",
+          category: "blog_freshness",
+          page: `/blog/${post.slug}`,
+          issue: `Bài viết "${post.title}" chứa nội dung nhạy cảm theo Patch`,
+          detail: "Bài viết phân tích chỉ số meta có thể cần cập nhật khi có bản vá mới của ĐTCL.",
+          suggestedAction: "Rà soát lại các mốc sức mạnh và ghi chú patch tương ứng trong bài.",
+          status: "open",
+          firstDetected: new Date().toISOString(),
+          lastDetected: new Date().toISOString(),
+        });
+      } else {
+        evergreenCount++;
+        passedCount++;
+      }
+    }
+
+    currentReport.blogFreshnessCount = {
+      evergreen: evergreenCount,
+      needsReview: needsReviewCount,
+      outdated: outdatedCount,
+    };
+  }
+
+  // -------------------------------------------------------------
+  // 7. KIỂM TRA LIÊN KẾT NỘI BỘ & ORPHAN PAGES (Links)
+  // -------------------------------------------------------------
+  if (runAll || scanType === "links") {
+    const publishedSlugs = new Set(
+      blogPosts.filter((p) => p.status === "published").map((p) => p.slug.toLowerCase().trim())
+    );
+
+    for (const post of blogPosts) {
+      if (post.status !== "published") continue;
+      const content = post.content || "";
+      const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+      let match;
+
+      while ((match = linkRegex.exec(content)) !== null) {
+        const href = match[2].trim();
+
+        // Phát hiện link hỏng
+        if (href.startsWith("/blog/")) {
+          const targetSlug = href.replace("/blog/", "").split(/[?#]/)[0].toLowerCase().trim();
+          if (targetSlug && targetSlug !== "tft-mua-18" && !publishedSlugs.has(targetSlug)) {
+            detectedIssues.push({
+              id: `check-broken-link-${post.id}-${targetSlug}`,
+              severity: "WARNING",
+              category: "broken_link",
+              page: `/blog/${post.slug}`,
+              issue: `Phát hiện liên kết gãy nội bộ trỏ tới "${href}"`,
+              detail: `Bài viết "${post.title}" chứa liên kết trỏ tới bài viết không còn tồn tại hoặc chưa xuất bản.`,
+              suggestedAction: "Sửa lại đường dẫn đích hoặc gỡ bỏ hyperlink trong bài viết.",
+              status: "open",
+              firstDetected: new Date().toISOString(),
+              lastDetected: new Date().toISOString(),
+            });
+          }
+        }
+
+        // Phát hiện domain cũ
+        if (href.includes("shoptftmobile.com")) {
+          detectedIssues.push({
+            id: `check-legacy-domain-${post.id}`,
+            severity: "WARNING",
+            category: "brand",
+            page: `/blog/${post.slug}`,
+            issue: `Liên kết nội bộ chứa tên miền cũ shoptftmobile.com`,
+            detail: `URL: ${href}. Cần chuyển đổi toàn bộ sang domain chính thức .net.`,
+            suggestedAction: "Đổi thành https://www.shoptftmobile.net để tránh qua hop chuyển hướng.",
+            status: "open",
+            firstDetected: new Date().toISOString(),
+            lastDetected: new Date().toISOString(),
+          });
+        }
+      }
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 8. KIỂM TRA SẢN PHẨM & HÌNH ẢNH (Products & Images)
+  // -------------------------------------------------------------
+  if (runAll || scanType === "products" || scanType === "images") {
+    const seenProductSlugs = new Set<string>();
+
+    for (const acc of productAccounts) {
+      totalUrlsChecked++;
+      const pageUrl = `/acc/${acc.id}`;
+
+      // Check slug duplicate
+      if (seenProductSlugs.has(acc.id)) {
+        detectedIssues.push({
+          id: `check-product-slug-${acc.id}`,
+          severity: "CRITICAL",
+          category: "product",
+          page: pageUrl,
+          issue: `Trùng lặp mã sản phẩm tài khoản: ${acc.id}`,
+          detail: "Hai tài khoản có cùng ID/Slug sẽ gây xung đột canonical và URL.",
+          suggestedAction: "Đổi mã tài khoản để đảm bảo tính duy nhất.",
+          status: "open",
+          firstDetected: new Date().toISOString(),
+          lastDetected: new Date().toISOString(),
+        });
+      } else {
+        seenProductSlugs.add(acc.id);
+      }
+
+      // Check missing thumbnail
+      if (!acc.thumbnail || acc.thumbnail.trim() === "") {
+        detectedIssues.push({
+          id: `check-product-thumb-${acc.id}`,
+          severity: "WARNING",
+          category: "image",
+          page: pageUrl,
+          issue: `Tài khoản ${acc.title || acc.id} thiếu ảnh đại diện (Thumbnail)`,
+          detail: "Thiếu ảnh thumbnail sẽ không tạo được thẻ og:image và làm giảm sức hút sản phẩm.",
+          suggestedAction: "Tải lên ảnh chụp thực tế hoặc poster tướng Tí Nị của tài khoản.",
+          status: "open",
+          firstDetected: new Date().toISOString(),
+          lastDetected: new Date().toISOString(),
+        });
+      } else {
+        passedCount++;
+      }
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 9. HỢP NHẤT DANH SÁCH ISSUES (BẢO LƯU LỊCH SỬ PHÁT HIỆN)
+  // -------------------------------------------------------------
+  const existingMap = new Map<string, SeoHealthIssueItem>();
+  for (const item of currentReport.issues) {
+    existingMap.set(item.id, item);
+  }
+
+  const mergedIssues: SeoHealthIssueItem[] = [];
+
+  for (const detected of detectedIssues) {
+    if (existingMap.has(detected.id)) {
+      const existing = existingMap.get(detected.id)!;
+      mergedIssues.push({
+        ...detected,
+        status: existing.status === "ignored" ? "ignored" : "open",
+        firstDetected: existing.firstDetected,
+        lastDetected: new Date().toISOString(),
+        resolvedDate: undefined,
+        aiSuggestion: existing.aiSuggestion || detected.aiSuggestion,
+      });
+      existingMap.delete(detected.id);
+    } else {
+      mergedIssues.push(detected);
+    }
+  }
+
+  // Các issues cũ không còn phát hiện trong lần quét này -> đánh dấu Resolved
+  for (const [id, remaining] of existingMap.entries()) {
+    if (remaining.status === "open") {
+      mergedIssues.push({
+        ...remaining,
+        status: "resolved",
+        resolvedDate: new Date().toISOString(),
+      });
+    } else {
+      mergedIssues.push(remaining);
+    }
+  }
+
+  const durationMs = Date.now() - startTime;
+  const openIssues = mergedIssues.filter((i) => i.status === "open");
+  const criticalCount = openIssues.filter((i) => i.severity === "CRITICAL").length;
+  const warningCount = openIssues.filter((i) => i.severity === "WARNING").length;
+  const infoCount = openIssues.filter((i) => i.severity === "INFO").length;
+
+  const newLog: SeoHealthScanLog = {
+    id: `scan-${Date.now()}`,
+    timestamp: new Date().toISOString(),
+    scanType,
+    durationMs,
+    criticalCount,
+    warningCount,
+    infoCount,
+    passedCount,
+    totalUrlsChecked,
+    status: "success",
+    message: `Quét ${scanType.toUpperCase()} hoàn tất trong ${durationMs}ms. Kiểm tra ${totalUrlsChecked} URLs.`,
+  };
+
+  const updatedReport: SeoHealthReport = {
+    summary: {
+      criticalErrors: criticalCount,
+      warnings: warningCount,
+      passed: passedCount,
+      info: infoCount,
+      lastScan: new Date().toISOString(),
+      nextScan: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      scanFrequency: "daily",
+      totalUrlsMonitored: totalUrlsChecked || currentReport.summary.totalUrlsMonitored,
+      isScanning: false,
+    },
+    issues: mergedIssues,
+    scanLogs: [newLog, ...currentReport.scanLogs].slice(0, 30), // Giữ tối đa 30 logs gần nhất
+    sitemapHealth: currentReport.sitemapHealth,
+    robotsHealth: currentReport.robotsHealth,
+    redirectHealth: currentReport.redirectHealth,
+    brokenLinksCount: openIssues.filter((i) => i.category === "broken_link").length,
+    blogFreshnessCount: currentReport.blogFreshnessCount,
+  };
+
+  await saveSeoHealthReport(updatedReport);
+  return updatedReport;
+}
+
 

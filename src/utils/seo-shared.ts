@@ -840,3 +840,122 @@ export function categorizeSerpPriority(position: number, impressions: number, ct
   return "LOW";
 }
 
+// ==========================================
+// PHASE 12: AUTOMATED SEO HEALTH CHECKS
+// ==========================================
+
+export type HealthIssueSeverity = "CRITICAL" | "WARNING" | "INFO";
+
+export type HealthIssueCategory =
+  | "canonical"
+  | "broken_link"
+  | "redirect"
+  | "sitemap"
+  | "robots"
+  | "meta"
+  | "heading"
+  | "blog_freshness"
+  | "product"
+  | "image"
+  | "schema"
+  | "brand"
+  | "404";
+
+export type HealthIssueStatus = "open" | "ignored" | "resolved";
+
+export type HealthScanType =
+  | "full"
+  | "light"
+  | "technical"
+  | "blog"
+  | "products"
+  | "links"
+  | "images";
+
+export interface SeoHealthAiSuggestion {
+  type: "title_fix" | "meta_fix" | "link_fix" | "refresh_brief" | "redirect_fix" | "general_advice";
+  proposal: string;
+  rationale: string;
+}
+
+export interface SeoHealthIssueItem {
+  id: string;
+  severity: HealthIssueSeverity;
+  category: HealthIssueCategory;
+  page: string;
+  issue: string;
+  detail: string;
+  suggestedAction: string;
+  status: HealthIssueStatus;
+  firstDetected: string;
+  lastDetected: string;
+  resolvedDate?: string;
+  aiSuggestion?: SeoHealthAiSuggestion;
+}
+
+export interface SeoHealthScanLog {
+  id: string;
+  timestamp: string;
+  scanType: HealthScanType;
+  durationMs: number;
+  criticalCount: number;
+  warningCount: number;
+  infoCount: number;
+  passedCount: number;
+  totalUrlsChecked: number;
+  status: "success" | "failed" | "in_progress";
+  message?: string;
+}
+
+export interface SitemapHealthSummary {
+  totalUrls: number;
+  errors: number;
+  warnings: number;
+  isXmlValid: boolean;
+  lastChecked: string;
+}
+
+export interface RobotsHealthSummary {
+  accessible: boolean;
+  sitemapDeclared: boolean;
+  publicBlocked: boolean;
+  cdnCgiConfigured: boolean;
+  privateDisallowed: boolean;
+  lastChecked: string;
+}
+
+export interface RedirectHealthSummary {
+  totalRules: number;
+  loopsDetected: number;
+  chainsDetected: number;
+  destinationsValid: boolean;
+}
+
+export interface BlogFreshnessSummary {
+  evergreen: number;
+  needsReview: number;
+  outdated: number;
+}
+
+export interface SeoHealthReport {
+  summary: {
+    criticalErrors: number;
+    warnings: number;
+    passed: number;
+    info: number;
+    lastScan: string;
+    nextScan: string;
+    scanFrequency: "daily" | "weekly";
+    totalUrlsMonitored: number;
+    isScanning: boolean;
+  };
+  issues: SeoHealthIssueItem[];
+  scanLogs: SeoHealthScanLog[];
+  sitemapHealth: SitemapHealthSummary;
+  robotsHealth: RobotsHealthSummary;
+  redirectHealth: RedirectHealthSummary;
+  brokenLinksCount: number;
+  blogFreshnessCount: BlogFreshnessSummary;
+}
+
+
