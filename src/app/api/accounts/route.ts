@@ -4,11 +4,16 @@ import path from "path";
 import { supabase } from "@/utils/supabase/client";
 import { verifyAdminSessionToken, ADMIN_COOKIE_NAME } from "@/utils/admin-auth";
 import { determinePackageFromAccount, OrderItem } from "@/utils/orders-service";
+import { revalidatePath } from "next/cache";
 import {
   normalizeSearchQuery,
   expandSearchKeywords,
   calculateSearchRelevance,
 } from "@/utils/search-discovery";
+import {
+  getShopInventory,
+  invalidateShopInventoryCache,
+} from "@/utils/shop-inventory-service";
 
 const ORDERS_FILE_PATH = path.join(process.cwd(), "src", "data", "orders.json");
 
@@ -105,6 +110,16 @@ function isAuthorizedAdmin(req: NextRequest): boolean {
   return !!session;
 }
 
+function notifyInventoryChange() {
+  try {
+    invalidateShopInventoryCache();
+    revalidatePath("/shop");
+    revalidatePath("/");
+  } catch (e) {
+    console.warn("Lỗi revalidate shop inventory:", e);
+  }
+}
+
 const ADMIN_COLUMNS =
   "id, code, type, title, rank, price, hourly_price, daily_price, period_price, period_unit, price_display_type, custom_price, custom_price_unit, champions, arenas, image_url, status, rented_until, description, created_at, features, weekly_price";
 
@@ -120,139 +135,47 @@ export async function GET(req: NextRequest) {
   try {
     const isAdmin = isAuthorizedAdmin(req);
     const { searchParams } = new URL(req.url);
-    const rawSearch = normalizeSearchQuery(searchParams.get("search"));
-    const type = searchParams.get("type");
-    const status = searchParams.get("status");
-    const sortParam = (searchParams.get("sort") || "").toLowerCase();
+
+    const rawSearch = searchParams.get("search") || searchParams.get("q") || undefined;
+    const type = (searchParams.get("type") || undefined) as any;
+    const pet = searchParams.get("pet") || undefined;
+    const arena = searchParams.get("arena") || undefined;
+    const price = searchParams.get("price") || undefined;
+    const status = (searchParams.get("status") || undefined) as any;
+    const sort = (searchParams.get("sort") || undefined) as any;
+
     const rawLimit = searchParams.get("limit");
     const rawOffset = searchParams.get("offset");
+    const rawPage = searchParams.get("page");
 
-    const selectCols = isAdmin ? ADMIN_COLUMNS : PUBLIC_CARD_COLUMNS;
-    let query = supabase
-      .from("accounts")
-      .select(selectCols, { count: "exact" });
-
-    // Explicit user sort or default date sort
-    if (sortParam === "price_asc") {
-      query = query.order("price", { ascending: true });
-    } else if (sortParam === "price_desc") {
-      query = query.order("price", { ascending: false });
-    } else {
-      query = query.order("created_at", { ascending: false });
+    const limit = rawLimit ? parseInt(rawLimit, 10) : 24;
+    let page = rawPage ? parseInt(rawPage, 10) : 1;
+    if (rawOffset && !rawPage) {
+      page = Math.floor(parseInt(rawOffset, 10) / limit) + 1;
     }
 
-    if (rawSearch) {
-      const terms = expandSearchKeywords(rawSearch);
-      const orClauses: string[] = [];
-      for (const t of terms) {
-        const clean = t.replace(/[%,()]/g, " ").trim();
-        if (clean) {
-          orClauses.push(
-            `title.ilike.%${clean}%`,
-            `code.ilike.%${clean}%`,
-            `rank.ilike.%${clean}%`,
-            `description.ilike.%${clean}%`
-          );
-        }
-      }
-      if (orClauses.length > 0) {
-        query = query.or(orClauses.join(","));
-      }
-    }
-
-    if (!isAdmin) {
-      query = query.neq("status", "HIDDEN");
-    }
-
-    if (type && type.toUpperCase() !== "ALL") {
-      query = query.eq("type", type.toUpperCase());
-    }
-
-    if (status && status.toUpperCase() !== "ALL") {
-      query = query.eq("status", status.toUpperCase());
-    }
-
-    // Nếu không có search query, phân trang trực tiếp ở database
-    const limit = rawLimit ? parseInt(rawLimit, 10) : 0;
-    const offset = rawOffset ? parseInt(rawOffset, 10) : 0;
-
-    if (!rawSearch && limit > 0) {
-      query = query.range(offset, offset + limit - 1);
-    }
-
-    const { data, error, count } = await query;
-
-    if (error) {
-      console.warn("Lỗi truy vấn Supabase accounts:", error.message);
-      return NextResponse.json(
-        {
-          success: false,
-          error: error.message,
-          data: [],
-          total: 0,
-        },
-        { status: 200 }
-      );
-    }
-
-    let resultList = data || [];
-
-    // Nếu có search query và user KHÔNG chọn explicit sort theo giá, sắp xếp theo relevance score
-    if (rawSearch && sortParam !== "price_asc" && sortParam !== "price_desc") {
-      resultList = [...resultList].sort((a: any, b: any) => {
-        const scoreA = calculateSearchRelevance(
-          {
-            id: a.id,
-            code: a.code,
-            title: a.title,
-            rank: a.rank,
-            mainPet: a.champions?.[0],
-            allPets: a.champions || [],
-            arena: a.arenas?.[0],
-            allArenas: a.arenas || [],
-            features: a.features || [],
-            description: a.description,
-            status: a.status,
-            type: a.type,
-          },
-          rawSearch
-        );
-        const scoreB = calculateSearchRelevance(
-          {
-            id: b.id,
-            code: b.code,
-            title: b.title,
-            rank: b.rank,
-            mainPet: b.champions?.[0],
-            allPets: b.champions || [],
-            arena: b.arenas?.[0],
-            allArenas: b.arenas || [],
-            features: b.features || [],
-            description: b.description,
-            status: b.status,
-            type: b.type,
-          },
-          rawSearch
-        );
-        if (scoreB !== scoreA) {
-          return scoreB - scoreA;
-        }
-        const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
-        const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
-        return timeB - timeA;
-      });
-    }
-
-    // Áp dụng limit / offset sau khi relevance ranking
-    const totalCount = count || resultList.length;
-    if (rawSearch && limit > 0) {
-      resultList = resultList.slice(offset, offset + limit);
-    }
+    const result = await getShopInventory({
+      search: rawSearch,
+      type,
+      pet,
+      arena,
+      price,
+      status,
+      sort,
+      page,
+      limit,
+      isAdmin,
+    });
 
     const response = NextResponse.json({
       success: true,
-      data: resultList,
-      total: totalCount,
+      items: result.items,
+      data: result.items, // backward compatibility with admin & legacy components
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      hasMore: result.hasMore,
+      filterOptions: result.filterOptions,
     });
 
     response.headers.set(
@@ -266,7 +189,7 @@ export async function GET(req: NextRequest) {
   } catch (err: any) {
     console.error("Lỗi Server GET /api/accounts:", err);
     return NextResponse.json(
-      { success: false, error: err.message || "Lỗi máy chủ nội bộ", data: [], total: 0 },
+      { success: false, error: err.message || "Lỗi máy chủ nội bộ", items: [], data: [], total: 0, hasMore: false, page: 1, limit: 24 },
       { status: 500 }
     );
   }
@@ -390,6 +313,18 @@ export async function POST(req: NextRequest) {
         );
       }
 
+function notifyInventoryChange() {
+  invalidateShopInventoryCache();
+  try {
+    revalidatePath("/shop");
+    revalidatePath("/");
+  } catch (err) {
+    console.warn("Revalidation warning:", err);
+  }
+}
+
+      notifyInventoryChange();
+
       return NextResponse.json(
         {
           success: true,
@@ -462,6 +397,8 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    notifyInventoryChange();
 
     return NextResponse.json(
       {
@@ -606,6 +543,8 @@ export async function PUT(req: NextRequest) {
       }
     }
 
+    notifyInventoryChange();
+
     return NextResponse.json({
       success: true,
       message: "Cập nhật tài khoản thành công!",
@@ -656,6 +595,8 @@ export async function DELETE(req: NextRequest) {
           );
         }
 
+        notifyInventoryChange();
+
         return NextResponse.json({
           success: true,
           message: `Đã xóa hàng loạt ${ids.length} tài khoản thành công!`,
@@ -687,6 +628,8 @@ export async function DELETE(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    notifyInventoryChange();
 
     return NextResponse.json({
       success: true,

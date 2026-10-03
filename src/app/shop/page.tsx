@@ -1,12 +1,12 @@
 import React, { Suspense } from "react";
 import type { Metadata } from "next";
-import { getInitialShopAccountsServer } from "@/utils/supabase/accounts-service";
+import { getShopInventory } from "@/utils/shop-inventory-service";
 import { ShopClientView } from "./shop-client-view";
 import { TFTNavbar } from "@/components/tft-navbar";
 import { TFTFooter } from "@/components/tft-footer";
 import { TFTMobileBottomBar } from "@/components/tft-mobile-bottom-bar";
 import { ProductCardSkeleton } from "@/components/product-card";
-
+import { FilterState } from "@/components/catalog-filter-bar";
 import { getSeoConfig } from "@/utils/seo-service";
 
 interface ShopPageProps {
@@ -92,24 +92,68 @@ function ShopLoadingSkeleton() {
   );
 }
 
-export default async function ShopPage() {
-  const { vipAccounts, cloneAccounts } = await getInitialShopAccountsServer();
+export default async function ShopPage({ searchParams }: ShopPageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+
+  // Parse SSR initial filter state from URL query parameters
+  const rawSearch = typeof resolvedSearchParams.search === "string" ? resolvedSearchParams.search : "";
+  const rawType = typeof resolvedSearchParams.type === "string" ? resolvedSearchParams.type.toUpperCase() : "ALL";
+  const validType: "ALL" | "VIP" | "CLONE" = rawType === "VIP" ? "VIP" : rawType === "CLONE" ? "CLONE" : "ALL";
+
+  const rawPet = typeof resolvedSearchParams.pet === "string" ? resolvedSearchParams.pet : "";
+  const rawArena = typeof resolvedSearchParams.arena === "string" ? resolvedSearchParams.arena : "";
+  const rawPrice = typeof resolvedSearchParams.price === "string" ? resolvedSearchParams.price : "ALL";
+
+  const rawStatus = typeof resolvedSearchParams.status === "string" ? resolvedSearchParams.status.toUpperCase() : "ALL";
+  const validStatus: "ALL" | "AVAILABLE" | "RENTED" =
+    rawStatus === "AVAILABLE" ? "AVAILABLE" : rawStatus === "RENTED" ? "RENTED" : "ALL";
+
+  const rawSort = typeof resolvedSearchParams.sort === "string" ? resolvedSearchParams.sort.toLowerCase() : "";
+  let validSort: "NEWEST" | "PRICE_ASC" | "PRICE_DESC" = "NEWEST";
+  if (rawSort === "price_desc") validSort = "PRICE_DESC";
+  else if (rawSort === "price_asc") validSort = "PRICE_ASC";
+  else if (rawSort === "newest") validSort = "NEWEST";
+  else if (validType === "VIP" && !rawSort) validSort = "PRICE_DESC";
+
+  // Query global database on server for first batch (24 items)
+  const inventoryResult = await getShopInventory({
+    search: rawSearch,
+    type: validType,
+    pet: rawPet,
+    arena: rawArena,
+    price: rawPrice,
+    status: validStatus,
+    sort: validSort,
+    page: 1,
+    limit: 24,
+    isAdmin: false,
+  });
+
+  const initialFilters: FilterState = {
+    search: rawSearch,
+    type: validType,
+    pet: rawPet,
+    arena: rawArena,
+    price: rawPrice,
+    status: validStatus,
+    sort: validSort,
+  };
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    "itemListElement": [
+    itemListElement: [
       {
         "@type": "ListItem",
-        "position": 1,
-        "name": "Trang chủ",
-        "item": "https://www.shoptftmobile.net",
+        position: 1,
+        name: "Trang chủ",
+        item: "https://www.shoptftmobile.net",
       },
       {
         "@type": "ListItem",
-        "position": 2,
-        "name": "Kho Acc",
-        "item": "https://www.shoptftmobile.net/shop",
+        position: 2,
+        name: "Kho Acc",
+        item: "https://www.shoptftmobile.net/shop",
       },
     ],
   };
@@ -121,7 +165,13 @@ export default async function ShopPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <Suspense fallback={<ShopLoadingSkeleton />}>
-        <ShopClientView initialVip={vipAccounts} initialClone={cloneAccounts} />
+        <ShopClientView
+          initialItems={inventoryResult.items}
+          initialTotal={inventoryResult.total}
+          initialHasMore={inventoryResult.hasMore}
+          initialFilters={initialFilters}
+          initialFilterOptions={inventoryResult.filterOptions}
+        />
       </Suspense>
     </>
   );
